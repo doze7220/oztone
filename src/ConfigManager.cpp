@@ -3,6 +3,7 @@
 
 ConfigManager::ConfigManager()
     : m_showTitleBar(false), m_showWindowFrame(false), m_showTaskbar(false),
+      m_windowX(CW_USEDEFAULT), m_windowY(CW_USEDEFAULT), m_windowWidth(1024), m_windowHeight(512),
       m_logoX(16), m_logoY(16), m_logoWidth(64), m_logoHeight(64),
       m_baseX(30), m_baseY(350), m_artOffsetX(0), m_artOffsetY(0), m_artSize(120), m_bgOpacity(0.3f),
       m_titleOffsetX(140), m_titleOffsetY(10), m_titleFontSize(32.0f),
@@ -52,6 +53,11 @@ void ConfigManager::LoadSettings() {
     m_showWindowFrame = GetPrivateProfileIntW(L"Window", L"ShowWindowFrame", 0, m_iniFilePath.c_str()) != 0;
     m_showTaskbar = GetPrivateProfileIntW(L"Window", L"ShowTaskbar", 0, m_iniFilePath.c_str()) != 0;
 
+    m_windowX = GetPrivateProfileIntW(L"Window", L"WindowX", CW_USEDEFAULT, m_iniFilePath.c_str());
+    m_windowY = GetPrivateProfileIntW(L"Window", L"WindowY", CW_USEDEFAULT, m_iniFilePath.c_str());
+    m_windowWidth = GetPrivateProfileIntW(L"Window", L"WindowWidth", 1024, m_iniFilePath.c_str());
+    m_windowHeight = GetPrivateProfileIntW(L"Window", L"WindowHeight", 512, m_iniFilePath.c_str());
+
     m_logoX = GetPrivateProfileIntW(L"Layout_AppLogo", L"X", 16, m_iniFilePath.c_str());
     m_logoY = GetPrivateProfileIntW(L"Layout_AppLogo", L"Y", 16, m_iniFilePath.c_str());
     m_logoWidth = GetPrivateProfileIntW(L"Layout_AppLogo", L"Width", 64, m_iniFilePath.c_str());
@@ -82,6 +88,10 @@ void ConfigManager::SaveDefaultSettings() {
     WritePrivateProfileStringW(L"Window", L"ShowTitleBar", L"0", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Window", L"ShowWindowFrame", L"0", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Window", L"ShowTaskbar", L"0", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Window", L"WindowX", std::to_wstring(CW_USEDEFAULT).c_str(), m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Window", L"WindowY", std::to_wstring(CW_USEDEFAULT).c_str(), m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Window", L"WindowWidth", L"1024", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Window", L"WindowHeight", L"512", m_iniFilePath.c_str());
 
     WritePrivateProfileStringW(L"Layout_AppLogo", L"X", L"16", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Layout_AppLogo", L"Y", L"16", m_iniFilePath.c_str());
@@ -102,4 +112,16 @@ void ConfigManager::SaveDefaultSettings() {
     WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtistOffsetX", L"140", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtistOffsetY", L"55", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtistFontSize", L"18.0", m_iniFilePath.c_str());
+}
+
+void ConfigManager::SaveWindowPosition(int x, int y, int width, int height) {
+    m_windowX = x;
+    m_windowY = y;
+    m_windowWidth = width;
+    m_windowHeight = height;
+
+    WritePrivateProfileStringW(L"Window", L"WindowX", std::to_wstring(x).c_str(), m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Window", L"WindowY", std::to_wstring(y).c_str(), m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Window", L"WindowWidth", std::to_wstring(width).c_str(), m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Window", L"WindowHeight", std::to_wstring(height).c_str(), m_iniFilePath.c_str());
 }

@@ -21,7 +21,7 @@ public:
      * @param config 設定マネージャへの参照
      * @return 成功した場合はtrue、失敗した場合はfalse
      */
-    bool Initialize(HINSTANCE hInstance, int nCmdShow, const ConfigManager& config);
+    bool Initialize(HINSTANCE hInstance, int nCmdShow, ConfigManager& config);
 
     /**
      * @brief ウィンドウのメッセージ処理を行う（1フレーム分）
@@ -49,7 +49,7 @@ private:
     HINSTANCE m_hInstance;
     const wchar_t* m_className = L"OZtoneWindowClass";
 
-    const ConfigManager* m_config;
+    ConfigManager* m_config;
     bool m_isHovered;
     bool m_isTrackingMouse;
 };

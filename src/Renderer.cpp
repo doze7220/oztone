@@ -116,11 +116,14 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(&dxgiBackBuffer));
     if (FAILED(hr)) return false;
 
+    UINT dpi = GetDpiForWindow(m_hwnd);
+    float dpiF = static_cast<float>(dpi);
+
     D2D1_BITMAP_PROPERTIES1 bitmapProperties = D2D1::BitmapProperties1(
         D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
         D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
-        96.0f, // DPI X
-        96.0f  // DPI Y
+        dpiF, // DPI X
+        dpiF  // DPI Y
     );
 
     hr = m_d2dContext->CreateBitmapFromDxgiSurface(dxgiBackBuffer.Get(), &bitmapProperties, &m_d2dTargetBitmap);

@@ -10,7 +10,7 @@ Window::~Window() {
     }
 }
 
-bool Window::Initialize(HINSTANCE hInstance, int nCmdShow, const ConfigManager& config) {
+bool Window::Initialize(HINSTANCE hInstance, int nCmdShow, ConfigManager& config) {
     m_hInstance = hInstance;
     m_config = &config;
 
@@ -48,16 +48,28 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow, const ConfigManager& 
         dwExStyle |= WS_EX_APPWINDOW;
     }
 
-    // サイズは1024x512
-    RECT rect = { 0, 0, 1024, 512 };
-    AdjustWindowRectEx(&rect, dwStyle, FALSE, dwExStyle);
+    // ConfigManagerからサイズ・座標を取得しDPIスケーリング
+    int x = config.GetWindowX();
+    int y = config.GetWindowY();
+    int width = config.GetWindowWidth();
+    int height = config.GetWindowHeight();
+
+    UINT dpi = GetDpiForSystem();
+    int scaledWidth = MulDiv(width, dpi, 96);
+    int scaledHeight = MulDiv(height, dpi, 96);
+
+    int scaledX = (x == CW_USEDEFAULT) ? CW_USEDEFAULT : MulDiv(x, dpi, 96);
+    int scaledY = (y == CW_USEDEFAULT) ? CW_USEDEFAULT : MulDiv(y, dpi, 96);
+
+    RECT rect = { 0, 0, scaledWidth, scaledHeight };
+    AdjustWindowRectExForDpi(&rect, dwStyle, FALSE, dwExStyle, dpi);
 
     m_hwnd = CreateWindowExW(
         dwExStyle,
         m_className,
         L"OZtone",
         dwStyle,
-        CW_USEDEFAULT, CW_USEDEFAULT,
+        scaledX, scaledY,
         rect.right - rect.left, rect.bottom - rect.top,
         nullptr, nullptr, m_hInstance, this
     );
@@ -150,9 +162,21 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             }
             return 0;
         }
-        case WM_DESTROY:
+        case WM_DESTROY: {
+            if (m_config) {
+                RECT wndRect, clientRect;
+                if (GetWindowRect(hwnd, &wndRect) && GetClientRect(hwnd, &clientRect)) {
+                    UINT dpi = GetDpiForWindow(hwnd);
+                    int logicalX = MulDiv(wndRect.left, 96, dpi);
+                    int logicalY = MulDiv(wndRect.top, 96, dpi);
+                    int logicalWidth = MulDiv(clientRect.right - clientRect.left, 96, dpi);
+                    int logicalHeight = MulDiv(clientRect.bottom - clientRect.top, 96, dpi);
+                    m_config->SaveWindowPosition(logicalX, logicalY, logicalWidth, logicalHeight);
+                }
+            }
             PostQuitMessage(0);
             return 0;
+        }
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }

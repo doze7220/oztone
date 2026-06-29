@@ -20,6 +20,16 @@ public:
     bool GetShowWindowFrame() const { return m_showWindowFrame; }
     bool GetShowTaskbar() const { return m_showTaskbar; }
 
+    int GetWindowX() const { return m_windowX; }
+    int GetWindowY() const { return m_windowY; }
+    int GetWindowWidth() const { return m_windowWidth; }
+    int GetWindowHeight() const { return m_windowHeight; }
+
+    /**
+     * @brief ウィンドウの表示位置とサイズを保存する
+     */
+    void SaveWindowPosition(int x, int y, int width, int height);
+
     int GetLogoX() const { return m_logoX; }
     int GetLogoY() const { return m_logoY; }
     int GetLogoWidth() const { return m_logoWidth; }
@@ -46,6 +56,11 @@ private:
     bool m_showTitleBar;
     bool m_showWindowFrame;
     bool m_showTaskbar;
+
+    int m_windowX;
+    int m_windowY;
+    int m_windowWidth;
+    int m_windowHeight;
 
     int m_logoX;
     int m_logoY;
