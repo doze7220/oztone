@@ -1,0 +1,20 @@
+# CMake build directories
+build/
+out/
+bin/
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.user
+
+# Build artifacts
+*.exe
+*.obj
+*.lib
+*.dll
+*.pdb
+
+# OS specific
+.DS_Store
+Thumbs.db
