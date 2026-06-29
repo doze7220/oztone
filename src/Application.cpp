@@ -13,7 +13,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         return false;
     }
     
-    if (!m_renderer.Initialize(m_window.GetHandle())) {
+    if (!m_renderer.Initialize(m_window.GetHandle(), m_config)) {
         return false;
     }
 
@@ -24,7 +24,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
 void Application::Run() {
     // メインループ
     while (m_window.ProcessMessages()) {
-        m_renderer.Render();
+        m_renderer.Render(m_window.IsHovered());
         Sleep(1); // CPU使用率を抑えるための仮のスリープ
     }
 }

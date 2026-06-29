@@ -34,6 +34,11 @@ public:
      */
     HWND GetHandle() const { return m_hwnd; }
 
+    /**
+     * @brief マウスがロゴのホバー領域にあるかどうかを返す
+     */
+    bool IsHovered() const { return m_isHovered; }
+
 private:
     static LRESULT CALLBACK WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -41,4 +46,8 @@ private:
     HWND m_hwnd;
     HINSTANCE m_hInstance;
     const wchar_t* m_className = L"OZtoneWindowClass";
+
+    const ConfigManager* m_config;
+    bool m_isHovered;
+    bool m_isTrackingMouse;
 };

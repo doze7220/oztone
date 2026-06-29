@@ -10,6 +10,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
+    // COMの初期化 (WICなどを使用するため)
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    if (FAILED(hr)) {
+        return -1;
+    }
+
     // メモリリーク検出（デバッグ時）
 #if defined(_DEBUG)
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
@@ -24,5 +30,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     app.Run();
 
+    CoUninitialize();
     return 0;
 }

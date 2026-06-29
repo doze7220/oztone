@@ -1,11 +1,14 @@
 #include "Renderer.h"
+#include "ConfigManager.h"
+#include "resource.h"
 
-Renderer::Renderer() : m_hwnd(nullptr) {}
+Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr) {}
 
 Renderer::~Renderer() {}
 
-bool Renderer::Initialize(HWND hwnd) {
+bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     m_hwnd = hwnd;
+    m_config = &config;
     HRESULT hr = S_OK;
 
     // 1. D3D11 デバイスとデバイスコンテキストの作成
@@ -105,10 +108,81 @@ bool Renderer::Initialize(HWND hwnd) {
 
     m_d2dContext->SetTarget(m_d2dTargetBitmap.Get());
 
+    // 6. WICファクトリの初期化と画像ロード
+    hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_wicFactory));
+    if (FAILED(hr)) return false;
+
+    if (!LoadBitmapResource(L"app_logo.png", IDI_APP_LOGO, &m_appLogoBitmap)) return false;
+    if (!LoadBitmapResource(L"app_logo_hover.png", IDI_APP_LOGO_HOVER, &m_appLogoHoverBitmap)) return false;
+
     return true;
 }
 
-void Renderer::Render() {
+bool Renderer::LoadBitmapResource(const std::wstring& filename, int resourceId, ID2D1Bitmap** ppBitmap) {
+    HRESULT hr = S_OK;
+    Microsoft::WRL::ComPtr<IWICBitmapDecoder> decoder;
+
+    // ① exeと同階層のファイルからロードを試みる
+    hr = m_wicFactory->CreateDecoderFromFilename(
+        filename.c_str(),
+        nullptr,
+        GENERIC_READ,
+        WICDecodeMetadataCacheOnLoad,
+        &decoder
+    );
+
+    if (FAILED(hr)) {
+        // ② 失敗した場合は埋め込みリソースからロード
+        HMODULE hModule = GetModuleHandle(nullptr);
+        HRSRC imageResHandle = FindResource(hModule, MAKEINTRESOURCE(resourceId), RT_RCDATA);
+        if (!imageResHandle) { return false; }
+
+        HGLOBAL imageResDataHandle = LoadResource(hModule, imageResHandle);
+        if (!imageResDataHandle) { return false; }
+
+        void* pImageFile = LockResource(imageResDataHandle);
+        DWORD imageFileSize = SizeofResource(hModule, imageResHandle);
+        if (!pImageFile || imageFileSize == 0) { return false; }
+
+        Microsoft::WRL::ComPtr<IWICStream> stream;
+        hr = m_wicFactory->CreateStream(&stream);
+        if (FAILED(hr)) { return false; }
+
+        hr = stream->InitializeFromMemory(reinterpret_cast<BYTE*>(pImageFile), imageFileSize);
+        if (FAILED(hr)) { return false; }
+
+        hr = m_wicFactory->CreateDecoderFromStream(
+            stream.Get(),
+            nullptr,
+            WICDecodeMetadataCacheOnLoad,
+            &decoder
+        );
+        if (FAILED(hr)) { return false; }
+    }
+
+    Microsoft::WRL::ComPtr<IWICBitmapFrameDecode> frame;
+    hr = decoder->GetFrame(0, &frame);
+    if (FAILED(hr)) { return false; }
+
+    Microsoft::WRL::ComPtr<IWICFormatConverter> converter;
+    hr = m_wicFactory->CreateFormatConverter(&converter);
+    if (FAILED(hr)) { return false; }
+
+    hr = converter->Initialize(
+        frame.Get(),
+        GUID_WICPixelFormat32bppPBGRA,
+        WICBitmapDitherTypeNone,
+        nullptr,
+        0.0f,
+        WICBitmapPaletteTypeMedianCut
+    );
+    if (FAILED(hr)) { return false; }
+
+    hr = m_d2dContext->CreateBitmapFromWicBitmap(converter.Get(), nullptr, ppBitmap);
+    return SUCCEEDED(hr);
+}
+
+void Renderer::Render(bool isHovered) {
     if (!m_d2dContext) return;
 
     m_d2dContext->BeginDraw();
@@ -116,7 +190,17 @@ void Renderer::Render() {
     // 画面全体を黒でクリア
     m_d2dContext->Clear(D2D1::ColorF(D2D1::ColorF::Black));
     
-    // 今後、2D/3D描画命令をここに追加していく
+    // アイコンの描画
+    ID2D1Bitmap* bitmapToDraw = isHovered ? m_appLogoHoverBitmap.Get() : m_appLogoBitmap.Get();
+    if (bitmapToDraw && m_config) {
+        D2D1_RECT_F destRect = D2D1::RectF(
+            static_cast<FLOAT>(m_config->GetLogoX()),
+            static_cast<FLOAT>(m_config->GetLogoY()),
+            static_cast<FLOAT>(m_config->GetLogoX() + m_config->GetLogoWidth()),
+            static_cast<FLOAT>(m_config->GetLogoY() + m_config->GetLogoHeight())
+        );
+        m_d2dContext->DrawBitmap(bitmapToDraw, destRect);
+    }
 
     HRESULT hr = m_d2dContext->EndDraw();
 

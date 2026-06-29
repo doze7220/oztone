@@ -11,6 +11,7 @@ set(SOURCES
     src/Window.cpp
     src/ConfigManager.cpp
     src/Renderer.cpp
+    src/OZtone.rc
 )
 
 set(HEADERS
@@ -24,8 +25,18 @@ set(HEADERS
 add_executable(OZtone WIN32 ${SOURCES} ${HEADERS})
 
 # 必要なWin32ライブラリをリンク
-target_link_libraries(OZtone PRIVATE user32.lib gdi32.lib d3d11.lib d2d1.lib dxgi.lib)
+target_link_libraries(OZtone PRIVATE user32.lib gdi32.lib d3d11.lib d2d1.lib dxgi.lib windowscodecs.lib)
 
 if(MSVC)
     target_compile_options(OZtone PRIVATE /utf-8)
 endif()
+
+# テスト用にassetsフォルダの画像をビルド出力ディレクトリにコピー
+add_custom_command(TARGET OZtone POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_SOURCE_DIR}/assets/app_logo.png"
+    "${CMAKE_BINARY_DIR}/app_logo.png"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_SOURCE_DIR}/assets/app_logo_hover.png"
+    "${CMAKE_BINARY_DIR}/app_logo_hover.png"
+)

@@ -1,7 +1,8 @@
 #include "Window.h"
 #include "ConfigManager.h"
+#include <windowsx.h>
 
-Window::Window() : m_hwnd(nullptr), m_hInstance(nullptr) {}
+Window::Window() : m_hwnd(nullptr), m_hInstance(nullptr), m_config(nullptr), m_isHovered(false), m_isTrackingMouse(false) {}
 
 Window::~Window() {
     if (m_hwnd) {
@@ -11,6 +12,7 @@ Window::~Window() {
 
 bool Window::Initialize(HINSTANCE hInstance, int nCmdShow, const ConfigManager& config) {
     m_hInstance = hInstance;
+    m_config = &config;
 
     WNDCLASSEXW wc = {};
     wc.cbSize = sizeof(WNDCLASSEXW);
@@ -101,6 +103,31 @@ LRESULT CALLBACK Window::WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, L
 
 LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
+        case WM_MOUSEMOVE: {
+            if (m_config) {
+                int xPos = GET_X_LPARAM(lParam);
+                int yPos = GET_Y_LPARAM(lParam);
+
+                bool inRect = (xPos >= m_config->GetLogoX() && xPos <= m_config->GetLogoX() + m_config->GetLogoWidth() &&
+                               yPos >= m_config->GetLogoY() && yPos <= m_config->GetLogoY() + m_config->GetLogoHeight());
+                m_isHovered = inRect;
+
+                if (!m_isTrackingMouse) {
+                    TRACKMOUSEEVENT tme = {};
+                    tme.cbSize = sizeof(TRACKMOUSEEVENT);
+                    tme.dwFlags = TME_LEAVE;
+                    tme.hwndTrack = hwnd;
+                    TrackMouseEvent(&tme);
+                    m_isTrackingMouse = true;
+                }
+            }
+            return 0;
+        }
+        case WM_MOUSELEAVE: {
+            m_isHovered = false;
+            m_isTrackingMouse = false;
+            return 0;
+        }
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;

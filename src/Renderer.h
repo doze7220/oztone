@@ -4,7 +4,11 @@
 #include <d2d1.h>
 #include <d2d1_1.h>
 #include <dxgi1_2.h>
+#include <wincodec.h>
 #include <wrl/client.h>
+#include <string>
+
+class ConfigManager;
 
 /**
  * @brief Direct3D 11 と Direct2D を用いたハイブリッド描画エンジン
@@ -20,15 +24,16 @@ public:
     /**
      * @brief DirectX関連のデバイスやスワップチェインを初期化する
      * @param hwnd ウィンドウハンドル
+     * @param config 設定マネージャの参照
      * @return 成功ならtrue
      */
-    bool Initialize(HWND hwnd);
+    bool Initialize(HWND hwnd, const ConfigManager& config);
 
     /**
      * @brief 毎フレーム呼び出される描画処理
-     * 現在は画面を単色でクリアするのみ
+     * @param isHovered ロゴ領域がホバーされているか
      */
-    void Render();
+    void Render(bool isHovered);
 
 private:
     // D3D11 リソース
@@ -42,5 +47,16 @@ private:
     Microsoft::WRL::ComPtr<ID2D1DeviceContext> m_d2dContext;
     Microsoft::WRL::ComPtr<ID2D1Bitmap1> m_d2dTargetBitmap;
 
+    // WIC および 画像リソース
+    Microsoft::WRL::ComPtr<IWICImagingFactory> m_wicFactory;
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_appLogoBitmap;
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_appLogoHoverBitmap;
+
     HWND m_hwnd;
+    const ConfigManager* m_config;
+
+    /**
+     * @brief 画像をファイルまたはリソースからロードする
+     */
+    bool LoadBitmapResource(const std::wstring& filename, int resourceId, ID2D1Bitmap** ppBitmap);
 };

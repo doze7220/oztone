@@ -1,0 +1,4 @@
+#include "resource.h"
+
+IDI_APP_LOGO       RCDATA "../assets/app_logo.png"
+IDI_APP_LOGO_HOVER RCDATA "../assets/app_logo_hover.png"

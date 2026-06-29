@@ -2,7 +2,8 @@
 #include <vector>
 
 ConfigManager::ConfigManager()
-    : m_showTitleBar(false), m_showWindowFrame(false), m_showTaskbar(false) {
+    : m_showTitleBar(false), m_showWindowFrame(false), m_showTaskbar(false),
+      m_logoX(16), m_logoY(16), m_logoWidth(64), m_logoHeight(64) {
 }
 
 ConfigManager::~ConfigManager() {}
@@ -47,10 +48,20 @@ void ConfigManager::LoadSettings() {
     m_showTitleBar = GetPrivateProfileIntW(L"Window", L"ShowTitleBar", 0, m_iniFilePath.c_str()) != 0;
     m_showWindowFrame = GetPrivateProfileIntW(L"Window", L"ShowWindowFrame", 0, m_iniFilePath.c_str()) != 0;
     m_showTaskbar = GetPrivateProfileIntW(L"Window", L"ShowTaskbar", 0, m_iniFilePath.c_str()) != 0;
+
+    m_logoX = GetPrivateProfileIntW(L"Layout_AppLogo", L"X", 16, m_iniFilePath.c_str());
+    m_logoY = GetPrivateProfileIntW(L"Layout_AppLogo", L"Y", 16, m_iniFilePath.c_str());
+    m_logoWidth = GetPrivateProfileIntW(L"Layout_AppLogo", L"Width", 64, m_iniFilePath.c_str());
+    m_logoHeight = GetPrivateProfileIntW(L"Layout_AppLogo", L"Height", 64, m_iniFilePath.c_str());
 }
 
 void ConfigManager::SaveDefaultSettings() {
     WritePrivateProfileStringW(L"Window", L"ShowTitleBar", L"0", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Window", L"ShowWindowFrame", L"0", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Window", L"ShowTaskbar", L"0", m_iniFilePath.c_str());
+
+    WritePrivateProfileStringW(L"Layout_AppLogo", L"X", L"16", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_AppLogo", L"Y", L"16", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_AppLogo", L"Width", L"64", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_AppLogo", L"Height", L"64", m_iniFilePath.c_str());
 }
