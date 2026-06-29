@@ -10,19 +10,21 @@ set(SOURCES
     src/Application.cpp
     src/Window.cpp
     src/ConfigManager.cpp
+    src/Renderer.cpp
 )
 
 set(HEADERS
     src/Application.h
     src/Window.h
     src/ConfigManager.h
+    src/Renderer.h
 )
 
 # 実行ファイルの作成 (WIN32 を指定してコンソールウィンドウを非表示にする)
 add_executable(OZtone WIN32 ${SOURCES} ${HEADERS})
 
 # 必要なWin32ライブラリをリンク
-target_link_libraries(OZtone PRIVATE user32.lib gdi32.lib)
+target_link_libraries(OZtone PRIVATE user32.lib gdi32.lib d3d11.lib d2d1.lib dxgi.lib)
 
 if(MSVC)
     target_compile_options(OZtone PRIVATE /utf-8)

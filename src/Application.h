@@ -2,6 +2,7 @@
 #include <windows.h>
 #include "Window.h"
 #include "ConfigManager.h"
+#include "Renderer.h"
 
 /**
  * @brief アプリケーション全体のライフサイクルとメインループを管理するクラス
@@ -27,4 +28,5 @@ public:
 private:
     ConfigManager m_config;
     Window m_window;
+    Renderer m_renderer;
 };
