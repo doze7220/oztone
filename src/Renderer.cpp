@@ -117,6 +117,44 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     if (!LoadBitmapResource(L"app_logo_hover.png", IDI_APP_LOGO_HOVER, &m_appLogoHoverBitmap)) return false;
     if (!LoadBitmapResource(L"placeholder_art.png", IDI_PLACEHOLDER_ART, &m_placeholderArtBitmap)) return false;
 
+    // 7. DirectWrite ファクトリの作成とテキストフォーマット・ブラシの初期化
+    hr = DWriteCreateFactory(
+        DWRITE_FACTORY_TYPE_SHARED,
+        __uuidof(IDWriteFactory),
+        reinterpret_cast<IUnknown**>(m_dwriteFactory.GetAddressOf())
+    );
+    if (FAILED(hr)) return false;
+
+    hr = m_dwriteFactory->CreateTextFormat(
+        L"Meiryo",
+        nullptr,
+        DWRITE_FONT_WEIGHT_BOLD,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        m_config->GetTitleFontSize(),
+        L"ja-jp",
+        &m_titleTextFormat
+    );
+    if (FAILED(hr)) return false;
+
+    hr = m_dwriteFactory->CreateTextFormat(
+        L"Meiryo",
+        nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        m_config->GetArtistFontSize(),
+        L"ja-jp",
+        &m_artistTextFormat
+    );
+    if (FAILED(hr)) return false;
+
+    hr = m_d2dContext->CreateSolidColorBrush(
+        D2D1::ColorF(D2D1::ColorF::White),
+        &m_textBrush
+    );
+    if (FAILED(hr)) return false;
+
     return true;
 }
 
@@ -241,6 +279,39 @@ void Renderer::Render(bool isHovered) {
             &destRectArt,
             1.0f,
             D2D1_BITMAP_INTERPOLATION_MODE_LINEAR
+        );
+    }
+
+    // 5. 曲情報テキストの描画
+    if (m_textBrush && m_titleTextFormat && m_artistTextFormat && m_config) {
+        std::wstring dummyTitle = L"Dummy Track Title";
+        std::wstring dummyArtist = L"Dummy Artist Name";
+
+        float baseX = static_cast<float>(m_config->GetBaseX());
+        float baseY = static_cast<float>(m_config->GetBaseY());
+
+        // 曲名描画
+        float titleX = baseX + static_cast<float>(m_config->GetTitleOffsetX());
+        float titleY = baseY + static_cast<float>(m_config->GetTitleOffsetY());
+        D2D1_RECT_F titleRect = D2D1::RectF(titleX, titleY, titleX + 800.0f, titleY + 100.0f);
+        m_d2dContext->DrawText(
+            dummyTitle.c_str(),
+            static_cast<UINT32>(dummyTitle.length()),
+            m_titleTextFormat.Get(),
+            &titleRect,
+            m_textBrush.Get()
+        );
+
+        // アーティスト名描画
+        float artistX = baseX + static_cast<float>(m_config->GetArtistOffsetX());
+        float artistY = baseY + static_cast<float>(m_config->GetArtistOffsetY());
+        D2D1_RECT_F artistRect = D2D1::RectF(artistX, artistY, artistX + 800.0f, artistY + 50.0f);
+        m_d2dContext->DrawText(
+            dummyArtist.c_str(),
+            static_cast<UINT32>(dummyArtist.length()),
+            m_artistTextFormat.Get(),
+            &artistRect,
+            m_textBrush.Get()
         );
     }
 

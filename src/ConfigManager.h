@@ -32,6 +32,14 @@ public:
     int GetArtSize() const { return m_artSize; }
     float GetBgOpacity() const { return m_bgOpacity; }
 
+    int GetTitleOffsetX() const { return m_titleOffsetX; }
+    int GetTitleOffsetY() const { return m_titleOffsetY; }
+    float GetTitleFontSize() const { return m_titleFontSize; }
+
+    int GetArtistOffsetX() const { return m_artistOffsetX; }
+    int GetArtistOffsetY() const { return m_artistOffsetY; }
+    float GetArtistFontSize() const { return m_artistFontSize; }
+
 private:
     std::wstring m_iniFilePath;
 
@@ -50,6 +58,14 @@ private:
     int m_artOffsetY;
     int m_artSize;
     float m_bgOpacity;
+
+    int m_titleOffsetX;
+    int m_titleOffsetY;
+    float m_titleFontSize;
+
+    int m_artistOffsetX;
+    int m_artistOffsetY;
+    float m_artistFontSize;
 
     std::wstring GetExecutablePath() const;
     void LoadSettings();

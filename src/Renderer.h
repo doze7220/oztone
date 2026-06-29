@@ -6,6 +6,7 @@
 #include <dxgi1_2.h>
 #include <wincodec.h>
 #include <wrl/client.h>
+#include <dwrite.h>
 #include <string>
 
 class ConfigManager;
@@ -46,6 +47,12 @@ private:
     Microsoft::WRL::ComPtr<ID2D1Device> m_d2dDevice;
     Microsoft::WRL::ComPtr<ID2D1DeviceContext> m_d2dContext;
     Microsoft::WRL::ComPtr<ID2D1Bitmap1> m_d2dTargetBitmap;
+
+    // DWrite リソース
+    Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_titleTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_artistTextFormat;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_textBrush;
 
     // WIC および 画像リソース
     Microsoft::WRL::ComPtr<IWICImagingFactory> m_wicFactory;

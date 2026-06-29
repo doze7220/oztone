@@ -4,7 +4,9 @@
 ConfigManager::ConfigManager()
     : m_showTitleBar(false), m_showWindowFrame(false), m_showTaskbar(false),
       m_logoX(16), m_logoY(16), m_logoWidth(64), m_logoHeight(64),
-      m_baseX(30), m_baseY(350), m_artOffsetX(0), m_artOffsetY(0), m_artSize(120), m_bgOpacity(0.3f) {
+      m_baseX(30), m_baseY(350), m_artOffsetX(0), m_artOffsetY(0), m_artSize(120), m_bgOpacity(0.3f),
+      m_titleOffsetX(140), m_titleOffsetY(10), m_titleFontSize(32.0f),
+      m_artistOffsetX(140), m_artistOffsetY(55), m_artistFontSize(18.0f) {
 }
 
 ConfigManager::~ConfigManager() {}
@@ -64,6 +66,16 @@ void ConfigManager::LoadSettings() {
     wchar_t buf[32];
     GetPrivateProfileStringW(L"Layout_NowPlaying", L"BgOpacity", L"0.3", buf, 32, m_iniFilePath.c_str());
     try { m_bgOpacity = std::stof(buf); } catch (...) { m_bgOpacity = 0.3f; }
+
+    m_titleOffsetX = GetPrivateProfileIntW(L"Layout_NowPlaying", L"TitleOffsetX", 140, m_iniFilePath.c_str());
+    m_titleOffsetY = GetPrivateProfileIntW(L"Layout_NowPlaying", L"TitleOffsetY", 10, m_iniFilePath.c_str());
+    GetPrivateProfileStringW(L"Layout_NowPlaying", L"TitleFontSize", L"32.0", buf, 32, m_iniFilePath.c_str());
+    try { m_titleFontSize = std::stof(buf); } catch (...) { m_titleFontSize = 32.0f; }
+
+    m_artistOffsetX = GetPrivateProfileIntW(L"Layout_NowPlaying", L"ArtistOffsetX", 140, m_iniFilePath.c_str());
+    m_artistOffsetY = GetPrivateProfileIntW(L"Layout_NowPlaying", L"ArtistOffsetY", 55, m_iniFilePath.c_str());
+    GetPrivateProfileStringW(L"Layout_NowPlaying", L"ArtistFontSize", L"18.0", buf, 32, m_iniFilePath.c_str());
+    try { m_artistFontSize = std::stof(buf); } catch (...) { m_artistFontSize = 18.0f; }
 }
 
 void ConfigManager::SaveDefaultSettings() {
@@ -82,4 +94,12 @@ void ConfigManager::SaveDefaultSettings() {
     WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtOffsetY", L"0", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtSize", L"120", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Layout_NowPlaying", L"BgOpacity", L"0.3", m_iniFilePath.c_str());
+
+    WritePrivateProfileStringW(L"Layout_NowPlaying", L"TitleOffsetX", L"140", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NowPlaying", L"TitleOffsetY", L"10", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NowPlaying", L"TitleFontSize", L"32.0", m_iniFilePath.c_str());
+    
+    WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtistOffsetX", L"140", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtistOffsetY", L"55", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtistFontSize", L"18.0", m_iniFilePath.c_str());
 }
