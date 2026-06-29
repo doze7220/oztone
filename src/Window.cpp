@@ -115,9 +115,14 @@ LRESULT CALLBACK Window::WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, L
 }
 
 bool Window::IsInLogoRegion(int x, int y) const {
-    if (!m_config) return false;
-    return (x >= m_config->GetLogoX() && x <= m_config->GetLogoX() + m_config->GetLogoWidth() &&
-            y >= m_config->GetLogoY() && y <= m_config->GetLogoY() + m_config->GetLogoHeight());
+    if (!m_config || !m_hwnd) return false;
+    
+    UINT dpi = GetDpiForWindow(m_hwnd);
+    int logicalX = MulDiv(x, 96, dpi);
+    int logicalY = MulDiv(y, 96, dpi);
+
+    return (logicalX >= m_config->GetLogoX() && logicalX <= m_config->GetLogoX() + m_config->GetLogoWidth() &&
+            logicalY >= m_config->GetLogoY() && logicalY <= m_config->GetLogoY() + m_config->GetLogoHeight());
 }
 
 LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {

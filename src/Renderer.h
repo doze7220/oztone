@@ -69,6 +69,7 @@ private:
 
     HWND m_hwnd;
     const ConfigManager* m_config;
+    float m_dpiScale = 1.0f;
 
     /**
      * @brief 画像をファイルまたはリソースからロードする

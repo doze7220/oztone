@@ -3,7 +3,7 @@
 #include "resource.h"
 #include <algorithm>
 
-Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr) {}
+Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f) {}
 
 Renderer::~Renderer() {}
 
@@ -117,13 +117,13 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     if (FAILED(hr)) return false;
 
     UINT dpi = GetDpiForWindow(m_hwnd);
-    float dpiF = static_cast<float>(dpi);
+    m_dpiScale = static_cast<float>(dpi) / 96.0f;
 
     D2D1_BITMAP_PROPERTIES1 bitmapProperties = D2D1::BitmapProperties1(
         D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
         D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
-        dpiF, // DPI X
-        dpiF  // DPI Y
+        96.0f, // DPI X (内部は96DPI基準)
+        96.0f  // DPI Y
     );
 
     hr = m_d2dContext->CreateBitmapFromDxgiSurface(dxgiBackBuffer.Get(), &bitmapProperties, &m_d2dTargetBitmap);
@@ -249,12 +249,19 @@ void Renderer::Render(bool isHovered) {
 
     m_d2dContext->BeginDraw();
     
+    // DPIスケールを適用（論理ピクセルから物理ピクセルへの変換）
+    m_d2dContext->SetTransform(D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
+    
     // 1. 画面全体を黒でクリア
     m_d2dContext->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
     
     // 2. 背景アルバムアートの描画 (Cover)
     if (m_placeholderArtBitmap && m_config) {
         D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
+        // 96DPIターゲットから得た物理サイズを論理サイズに変換
+        renderTargetSize.width /= m_dpiScale;
+        renderTargetSize.height /= m_dpiScale;
+        
         D2D1_SIZE_F bitmapSize = m_placeholderArtBitmap->GetSize();
         
         float scaleX = renderTargetSize.width / bitmapSize.width;

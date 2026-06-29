@@ -2,7 +2,9 @@
 
 Application::Application() {}
 
-Application::~Application() {}
+Application::~Application() {
+    m_audioPlayer.Uninitialize();
+}
 
 bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     if (!m_config.Initialize()) {
@@ -17,7 +19,10 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         return false;
     }
 
-    // 今後、AudioPlayerの初期化をここに追加する
+    if (m_audioPlayer.Initialize()) {
+        m_audioPlayer.Play("assets/test.mp3");
+    }
+
     return true;
 }
 

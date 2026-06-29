@@ -3,6 +3,7 @@
 #include "Window.h"
 #include "ConfigManager.h"
 #include "Renderer.h"
+#include "AudioPlayer.h"
 
 /**
  * @brief アプリケーション全体のライフサイクルとメインループを管理するクラス
@@ -29,4 +30,5 @@ private:
     ConfigManager m_config;
     Window m_window;
     Renderer m_renderer;
+    AudioPlayer m_audioPlayer;
 };
