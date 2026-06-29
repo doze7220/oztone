@@ -25,7 +25,7 @@ set(HEADERS
 add_executable(OZtone WIN32 ${SOURCES} ${HEADERS})
 
 # 必要なWin32ライブラリをリンク
-target_link_libraries(OZtone PRIVATE user32.lib gdi32.lib d3d11.lib d2d1.lib dxgi.lib windowscodecs.lib dwrite.lib)
+target_link_libraries(OZtone PRIVATE user32.lib gdi32.lib d3d11.lib d2d1.lib dxgi.lib windowscodecs.lib dwrite.lib dcomp.lib)
 
 if(MSVC)
     target_compile_options(OZtone PRIVATE /utf-8)

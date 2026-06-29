@@ -4,6 +4,7 @@
 #include <d2d1.h>
 #include <d2d1_1.h>
 #include <dxgi1_2.h>
+#include <dcomp.h>
 #include <wincodec.h>
 #include <wrl/client.h>
 #include <dwrite.h>
@@ -16,6 +17,7 @@ class ConfigManager;
  * 
  * 将来的な3Dビジュアライザと2D UI(アルバムアート等)を共存させるため、
  * D3D11のSwapChainからDXGIサーフェスを取り出し、D2D1のレンダーターゲットを作成する。
+ * ウィンドウ透過にはDirectCompositionを使用し、アルファブレンドされたスワップチェインを合成する。
  */
 class Renderer {
 public:
@@ -41,6 +43,11 @@ private:
     Microsoft::WRL::ComPtr<ID3D11Device> m_d3dDevice;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_d3dContext;
     Microsoft::WRL::ComPtr<IDXGISwapChain1> m_swapChain;
+
+    // DirectComposition リソース（ウィンドウ透過合成用）
+    Microsoft::WRL::ComPtr<IDCompositionDevice> m_dcompDevice;
+    Microsoft::WRL::ComPtr<IDCompositionTarget> m_dcompTarget;
+    Microsoft::WRL::ComPtr<IDCompositionVisual> m_dcompVisual;
 
     // D2D1 リソース
     Microsoft::WRL::ComPtr<ID2D1Factory1> m_d2dFactory;

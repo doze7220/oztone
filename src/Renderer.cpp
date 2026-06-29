@@ -66,18 +66,37 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     swapChainDesc.BufferCount = 2; // ダブルバッファリング
     swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
     swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // Windows 8以降推奨
-    swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+    swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
     swapChainDesc.Flags = 0;
 
-    hr = dxgiFactory->CreateSwapChainForHwnd(
+    // PREMULTIPLIED AlphaMode はCreateSwapChainForHwndでは未サポートのため、
+    // CreateSwapChainForComposition を使用し、DirectComposition経由でウィンドウに合成する
+    hr = dxgiFactory->CreateSwapChainForComposition(
         m_d3dDevice.Get(),
-        m_hwnd,
         &swapChainDesc,
-        nullptr,
         nullptr,
         &m_swapChain
     );
 
+    if (FAILED(hr)) return false;
+
+    // DirectComposition デバイスを作成し、スワップチェインをウィンドウにバインドする
+    hr = DCompositionCreateDevice(dxgiDevice.Get(), IID_PPV_ARGS(&m_dcompDevice));
+    if (FAILED(hr)) return false;
+
+    hr = m_dcompDevice->CreateTargetForHwnd(m_hwnd, TRUE, &m_dcompTarget);
+    if (FAILED(hr)) return false;
+
+    hr = m_dcompDevice->CreateVisual(&m_dcompVisual);
+    if (FAILED(hr)) return false;
+
+    hr = m_dcompVisual->SetContent(m_swapChain.Get());
+    if (FAILED(hr)) return false;
+
+    hr = m_dcompTarget->SetRoot(m_dcompVisual.Get());
+    if (FAILED(hr)) return false;
+
+    hr = m_dcompDevice->Commit();
     if (FAILED(hr)) return false;
 
     // 3. D2D1 ファクトリの作成
@@ -99,7 +118,7 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
 
     D2D1_BITMAP_PROPERTIES1 bitmapProperties = D2D1::BitmapProperties1(
         D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-        D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE),
+        D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
         96.0f, // DPI X
         96.0f  // DPI Y
     );
@@ -228,7 +247,7 @@ void Renderer::Render(bool isHovered) {
     m_d2dContext->BeginDraw();
     
     // 1. 画面全体を黒でクリア
-    m_d2dContext->Clear(D2D1::ColorF(D2D1::ColorF::Black));
+    m_d2dContext->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
     
     // 2. 背景アルバムアートの描画 (Cover)
     if (m_placeholderArtBitmap && m_config) {

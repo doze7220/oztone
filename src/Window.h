@@ -43,6 +43,8 @@ private:
     static LRESULT CALLBACK WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+    bool IsInLogoRegion(int x, int y) const;
+
     HWND m_hwnd;
     HINSTANCE m_hInstance;
     const wchar_t* m_className = L"OZtoneWindowClass";

@@ -39,6 +39,7 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow, const ConfigManager& 
         dwStyle = WS_POPUP | WS_THICKFRAME;
     } else {
         dwStyle = WS_POPUP; // 完全枠なし
+        dwExStyle |= WS_EX_LAYERED;
     }
 
     if (!config.GetShowTaskbar()) {
@@ -101,6 +102,12 @@ LRESULT CALLBACK Window::WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, L
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
+bool Window::IsInLogoRegion(int x, int y) const {
+    if (!m_config) return false;
+    return (x >= m_config->GetLogoX() && x <= m_config->GetLogoX() + m_config->GetLogoWidth() &&
+            y >= m_config->GetLogoY() && y <= m_config->GetLogoY() + m_config->GetLogoHeight());
+}
+
 LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
         case WM_MOUSEMOVE: {
@@ -108,9 +115,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                 int xPos = GET_X_LPARAM(lParam);
                 int yPos = GET_Y_LPARAM(lParam);
 
-                bool inRect = (xPos >= m_config->GetLogoX() && xPos <= m_config->GetLogoX() + m_config->GetLogoWidth() &&
-                               yPos >= m_config->GetLogoY() && yPos <= m_config->GetLogoY() + m_config->GetLogoHeight());
-                m_isHovered = inRect;
+                m_isHovered = IsInLogoRegion(xPos, yPos);
 
                 if (!m_isTrackingMouse) {
                     TRACKMOUSEEVENT tme = {};
@@ -126,6 +131,23 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         case WM_MOUSELEAVE: {
             m_isHovered = false;
             m_isTrackingMouse = false;
+            return 0;
+        }
+        case WM_LBUTTONDOWN: {
+            int xPos = GET_X_LPARAM(lParam);
+            int yPos = GET_Y_LPARAM(lParam);
+            if (IsInLogoRegion(xPos, yPos)) {
+                ReleaseCapture();
+                SendMessage(hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+            }
+            return 0;
+        }
+        case WM_RBUTTONDOWN: {
+            int xPos = GET_X_LPARAM(lParam);
+            int yPos = GET_Y_LPARAM(lParam);
+            if (IsInLogoRegion(xPos, yPos)) {
+                PostMessage(hwnd, WM_CLOSE, 0, 0);
+            }
             return 0;
         }
         case WM_DESTROY:
