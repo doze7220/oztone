@@ -9,11 +9,13 @@ set(SOURCES
     src/main.cpp
     src/Application.cpp
     src/Window.cpp
+    src/ConfigManager.cpp
 )
 
 set(HEADERS
     src/Application.h
     src/Window.h
+    src/ConfigManager.h
 )
 
 # 実行ファイルの作成 (WIN32 を指定してコンソールウィンドウを非表示にする)

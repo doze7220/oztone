@@ -1,6 +1,7 @@
 #pragma once
 #include <windows.h>
 #include "Window.h"
+#include "ConfigManager.h"
 
 /**
  * @brief アプリケーション全体のライフサイクルとメインループを管理するクラス
@@ -24,5 +25,6 @@ public:
     void Run();
 
 private:
+    ConfigManager m_config;
     Window m_window;
 };

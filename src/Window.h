@@ -1,6 +1,8 @@
 #pragma once
 #include <windows.h>
 
+class ConfigManager;
+
 /**
  * @brief メインウィンドウを管理するクラス
  * 
@@ -16,9 +18,10 @@ public:
      * @brief ウィンドウを初期化して作成する
      * @param hInstance アプリケーションのインスタンスハンドル
      * @param nCmdShow ウィンドウの表示状態
+     * @param config 設定マネージャへの参照
      * @return 成功した場合はtrue、失敗した場合はfalse
      */
-    bool Initialize(HINSTANCE hInstance, int nCmdShow);
+    bool Initialize(HINSTANCE hInstance, int nCmdShow, const ConfigManager& config);
 
     /**
      * @brief ウィンドウのメッセージ処理を行う（1フレーム分）

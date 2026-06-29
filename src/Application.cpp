@@ -5,7 +5,11 @@ Application::Application() {}
 Application::~Application() {}
 
 bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
-    if (!m_window.Initialize(hInstance, nCmdShow)) {
+    if (!m_config.Initialize()) {
+        return false;
+    }
+
+    if (!m_window.Initialize(hInstance, nCmdShow, m_config)) {
         return false;
     }
     

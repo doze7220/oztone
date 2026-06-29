@@ -1,4 +1,5 @@
 #include "Window.h"
+#include "ConfigManager.h"
 
 Window::Window() : m_hwnd(nullptr), m_hInstance(nullptr) {}
 
@@ -8,7 +9,7 @@ Window::~Window() {
     }
 }
 
-bool Window::Initialize(HINSTANCE hInstance, int nCmdShow) {
+bool Window::Initialize(HINSTANCE hInstance, int nCmdShow, const ConfigManager& config) {
     m_hInstance = hInstance;
 
     WNDCLASSEXW wc = {};
@@ -24,16 +25,35 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow) {
         return false;
     }
 
-    // 開発初期段階のため、通常のウィンドウ（WS_OVERLAPPEDWINDOW）を使用
+    // 設定からウィンドウスタイルを決定
+    DWORD dwStyle = 0;
+    DWORD dwExStyle = 0;
+
+    if (config.GetShowTitleBar() && config.GetShowWindowFrame()) {
+        dwStyle = WS_OVERLAPPEDWINDOW;
+    } else if (config.GetShowTitleBar()) {
+        dwStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+    } else if (config.GetShowWindowFrame()) {
+        dwStyle = WS_POPUP | WS_THICKFRAME;
+    } else {
+        dwStyle = WS_POPUP; // 完全枠なし
+    }
+
+    if (!config.GetShowTaskbar()) {
+        dwExStyle |= WS_EX_TOOLWINDOW;
+    } else {
+        dwExStyle |= WS_EX_APPWINDOW;
+    }
+
     // サイズは1024x512
     RECT rect = { 0, 0, 1024, 512 };
-    AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE);
+    AdjustWindowRectEx(&rect, dwStyle, FALSE, dwExStyle);
 
     m_hwnd = CreateWindowExW(
-        0,
+        dwExStyle,
         m_className,
         L"OZtone",
-        WS_OVERLAPPEDWINDOW,
+        dwStyle,
         CW_USEDEFAULT, CW_USEDEFAULT,
         rect.right - rect.left, rect.bottom - rect.top,
         nullptr, nullptr, m_hInstance, this
