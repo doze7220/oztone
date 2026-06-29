@@ -39,4 +39,7 @@ add_custom_command(TARGET OZtone POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_SOURCE_DIR}/assets/app_logo_hover.png"
     "${CMAKE_BINARY_DIR}/app_logo_hover.png"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_SOURCE_DIR}/assets/placeholder_art.png"
+    "${CMAKE_BINARY_DIR}/placeholder_art.png"
 )

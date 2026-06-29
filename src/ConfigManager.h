@@ -25,6 +25,13 @@ public:
     int GetLogoWidth() const { return m_logoWidth; }
     int GetLogoHeight() const { return m_logoHeight; }
 
+    int GetBaseX() const { return m_baseX; }
+    int GetBaseY() const { return m_baseY; }
+    int GetArtOffsetX() const { return m_artOffsetX; }
+    int GetArtOffsetY() const { return m_artOffsetY; }
+    int GetArtSize() const { return m_artSize; }
+    float GetBgOpacity() const { return m_bgOpacity; }
+
 private:
     std::wstring m_iniFilePath;
 
@@ -36,6 +43,13 @@ private:
     int m_logoY;
     int m_logoWidth;
     int m_logoHeight;
+
+    int m_baseX;
+    int m_baseY;
+    int m_artOffsetX;
+    int m_artOffsetY;
+    int m_artSize;
+    float m_bgOpacity;
 
     std::wstring GetExecutablePath() const;
     void LoadSettings();

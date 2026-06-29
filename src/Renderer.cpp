@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "ConfigManager.h"
 #include "resource.h"
+#include <algorithm>
 
 Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr) {}
 
@@ -114,6 +115,7 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
 
     if (!LoadBitmapResource(L"app_logo.png", IDI_APP_LOGO, &m_appLogoBitmap)) return false;
     if (!LoadBitmapResource(L"app_logo_hover.png", IDI_APP_LOGO_HOVER, &m_appLogoHoverBitmap)) return false;
+    if (!LoadBitmapResource(L"placeholder_art.png", IDI_PLACEHOLDER_ART, &m_placeholderArtBitmap)) return false;
 
     return true;
 }
@@ -187,10 +189,36 @@ void Renderer::Render(bool isHovered) {
 
     m_d2dContext->BeginDraw();
     
-    // 画面全体を黒でクリア
+    // 1. 画面全体を黒でクリア
     m_d2dContext->Clear(D2D1::ColorF(D2D1::ColorF::Black));
     
-    // アイコンの描画
+    // 2. 背景アルバムアートの描画 (Cover)
+    if (m_placeholderArtBitmap && m_config) {
+        D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
+        D2D1_SIZE_F bitmapSize = m_placeholderArtBitmap->GetSize();
+        
+        float scaleX = renderTargetSize.width / bitmapSize.width;
+        float scaleY = renderTargetSize.height / bitmapSize.height;
+        float scale = (std::max)(scaleX, scaleY);
+        
+        float newWidth = renderTargetSize.width / scale;
+        float newHeight = renderTargetSize.height / scale;
+        float srcX = (bitmapSize.width - newWidth) / 2.0f;
+        float srcY = (bitmapSize.height - newHeight) / 2.0f;
+        
+        D2D1_RECT_F srcRect = D2D1::RectF(srcX, srcY, srcX + newWidth, srcY + newHeight);
+        D2D1_RECT_F destRect = D2D1::RectF(0.0f, 0.0f, renderTargetSize.width, renderTargetSize.height);
+        
+        m_d2dContext->DrawBitmap(
+            m_placeholderArtBitmap.Get(),
+            &destRect,
+            m_config->GetBgOpacity(),
+            D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
+            &srcRect
+        );
+    }
+
+    // 3. アイコンの描画
     ID2D1Bitmap* bitmapToDraw = isHovered ? m_appLogoHoverBitmap.Get() : m_appLogoBitmap.Get();
     if (bitmapToDraw && m_config) {
         D2D1_RECT_F destRect = D2D1::RectF(
@@ -199,7 +227,21 @@ void Renderer::Render(bool isHovered) {
             static_cast<FLOAT>(m_config->GetLogoX() + m_config->GetLogoWidth()),
             static_cast<FLOAT>(m_config->GetLogoY() + m_config->GetLogoHeight())
         );
-        m_d2dContext->DrawBitmap(bitmapToDraw, destRect);
+        m_d2dContext->DrawBitmap(bitmapToDraw, &destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+    }
+
+    // 4. 左下アルバムアートの描画
+    if (m_placeholderArtBitmap && m_config) {
+        float size = static_cast<float>(m_config->GetArtSize());
+        float x = static_cast<float>(m_config->GetBaseX() + m_config->GetArtOffsetX());
+        float y = static_cast<float>(m_config->GetBaseY() + m_config->GetArtOffsetY());
+        D2D1_RECT_F destRectArt = D2D1::RectF(x, y, x + size, y + size);
+        m_d2dContext->DrawBitmap(
+            m_placeholderArtBitmap.Get(),
+            &destRectArt,
+            1.0f,
+            D2D1_BITMAP_INTERPOLATION_MODE_LINEAR
+        );
     }
 
     HRESULT hr = m_d2dContext->EndDraw();

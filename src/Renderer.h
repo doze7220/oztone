@@ -51,6 +51,7 @@ private:
     Microsoft::WRL::ComPtr<IWICImagingFactory> m_wicFactory;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_appLogoBitmap;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_appLogoHoverBitmap;
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_placeholderArtBitmap;
 
     HWND m_hwnd;
     const ConfigManager* m_config;
