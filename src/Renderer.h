@@ -87,8 +87,11 @@ private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextTitleTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextArtistTextFormat;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_textBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_shadowBrush;
+    Microsoft::WRL::ComPtr<ID2D1Effect> m_shadowEffect;
 
     // WIC および 画像リソース
+
     Microsoft::WRL::ComPtr<IWICImagingFactory> m_wicFactory;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_appLogoBitmap;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_appLogoHoverBitmap;

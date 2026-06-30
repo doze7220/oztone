@@ -13,6 +13,14 @@ WindowY=-2147483648
 WindowWidth=1024
 WindowHeight=512
 
+[Layout_Window]
+EnableShadow=1
+ShadowOffsetX=2.0
+ShadowOffsetY=2.0
+ShadowOpacity=0.7
+BgOpacity=0.8
+BgDarkenOpacity=0.4
+
 [Layout_AppLogo]
 X=16
 Y=16
@@ -20,31 +28,30 @@ Width=64
 Height=64
 
 [Layout_NowPlaying]
-BaseX=30
+BaseX=16
 BaseBottomOffset=162
 ArtOffsetX=0
 ArtOffsetY=0
 ArtSize=120
-BgOpacity=0.3
 FallbackArtOpacity=0.5
-TitleOffsetX=140
-TitleOffsetY=10
-TitleFontSize=32.0
+TitleOffsetX=128
+TitleOffsetY=81
+TitleFontSize=36.0
 TitleFontFamily=Meiryo
-ArtistOffsetX=140
-ArtistOffsetY=55
+ArtistOffsetX=130
+ArtistOffsetY=60
 ArtistFontSize=18.0
 ArtistFontFamily=Meiryo
 
 [Layout_SeekBar]
 WidthRatio=0.95
-Height=3
-BottomOffset=50
+Height=5
+BottomOffset=25
 BgOpacity=0.3
-TimeFontFamily=Consolas
-TimeFontSize=12.0
+TimeFontFamily="Courier New"
+TimeFontSize=14.0
 TimeAreaWidth=100
-TimeLetterSpacing=0.0
+TimeLetterSpacing=-3.0
 
 [Layout_NextTrack]
 BaseRightOffset=250
@@ -58,25 +65,31 @@ LabelOffsetX=0
 LabelOffsetY=-20
 LabelFontSize=12.0
 LabelFontFamily=Meiryo
-TitleOffsetX=50
-TitleOffsetY=0
+TitleOffsetX=45
+TitleOffsetY=20
 TitleFontSize=14.0
 TitleFontFamily=Meiryo
-ArtistOffsetX=50
-ArtistOffsetY=20
+ArtistOffsetX=45
+ArtistOffsetY=0
 ArtistFontSize=12.0
 ArtistFontFamily=Meiryo
 
+
 [Playlist]
-DefaultPlaylistPath=
+
+DefaultPlaylistPath=oztone_playlist.lst
 )";
 
 ConfigManager::ConfigManager()
     : m_showTitleBar(false), m_showWindowFrame(false), m_showTaskbar(false),
       m_windowX(CW_USEDEFAULT), m_windowY(CW_USEDEFAULT), m_windowWidth(1024), m_windowHeight(512),
+      m_enableShadow(true), m_shadowOffsetX(2.0f), m_shadowOffsetY(2.0f), m_shadowOpacity(0.7f), m_bgDarkenOpacity(0.3f), m_bgOpacity(0.8f),
       m_logoX(16), m_logoY(16), m_logoWidth(64), m_logoHeight(64),
-      m_baseX(30), m_baseBottomOffset(162), m_artOffsetX(0), m_artOffsetY(0), m_artSize(120), m_bgOpacity(0.3f),
+      m_baseX(30), m_baseBottomOffset(162), m_artOffsetX(0), m_artOffsetY(0), m_artSize(120),
       m_fallbackArtOpacity(0.5f),
+
+
+
       m_titleOffsetX(140), m_titleOffsetY(10), m_titleFontSize(32.0f), m_titleFontFamily(L"Meiryo"),
       m_artistOffsetX(140), m_artistOffsetY(55), m_artistFontSize(18.0f), m_artistFontFamily(L"Meiryo"),
       m_seekBarWidthRatio(0.95f), m_seekBarHeight(3), m_seekBarBottomOffset(50),
@@ -87,6 +100,7 @@ ConfigManager::ConfigManager()
       m_nextArtOffsetX(0), m_nextArtOffsetY(0), m_nextArtSize(40),
       m_nextBgOpacity(0.3f), m_nextFallbackArtOpacity(0.5f),
       m_nextLabelOffsetX(0), m_nextLabelOffsetY(-20), m_nextLabelFontSize(12.0f), m_nextLabelFontFamily(L"Meiryo"),
+
       m_nextTitleOffsetX(50), m_nextTitleOffsetY(0), m_nextTitleFontSize(14.0f), m_nextTitleFontFamily(L"Meiryo"),
       m_nextArtistOffsetX(50), m_nextArtistOffsetY(20), m_nextArtistFontSize(12.0f), m_nextArtistFontFamily(L"Meiryo") {
 }
@@ -139,20 +153,32 @@ void ConfigManager::LoadSettings() {
     m_windowWidth = GetPrivateProfileIntW(L"Window", L"WindowWidth", 1024, m_iniFilePath.c_str());
     m_windowHeight = GetPrivateProfileIntW(L"Window", L"WindowHeight", 512, m_iniFilePath.c_str());
 
+    m_enableShadow = GetPrivateProfileIntW(L"Layout_Window", L"EnableShadow", 1, m_iniFilePath.c_str()) != 0;
+    
+    wchar_t buf[32];
+    GetPrivateProfileStringW(L"Layout_Window", L"ShadowOffsetX", L"2.0", buf, 32, m_iniFilePath.c_str());
+    try { m_shadowOffsetX = std::stof(buf); } catch (...) { m_shadowOffsetX = 2.0f; }
+    GetPrivateProfileStringW(L"Layout_Window", L"ShadowOffsetY", L"2.0", buf, 32, m_iniFilePath.c_str());
+    try { m_shadowOffsetY = std::stof(buf); } catch (...) { m_shadowOffsetY = 2.0f; }
+    GetPrivateProfileStringW(L"Layout_Window", L"ShadowOpacity", L"0.7", buf, 32, m_iniFilePath.c_str());
+    try { m_shadowOpacity = std::stof(buf); } catch (...) { m_shadowOpacity = 0.7f; }
+    GetPrivateProfileStringW(L"Layout_Window", L"BgDarkenOpacity", L"0.3", buf, 32, m_iniFilePath.c_str());
+    try { m_bgDarkenOpacity = std::stof(buf); } catch (...) { m_bgDarkenOpacity = 0.3f; }
+    GetPrivateProfileStringW(L"Layout_Window", L"BgOpacity", L"0.8", buf, 32, m_iniFilePath.c_str());
+    try { m_bgOpacity = std::stof(buf); } catch (...) { m_bgOpacity = 0.8f; }
+
     m_logoX = GetPrivateProfileIntW(L"Layout_AppLogo", L"X", 16, m_iniFilePath.c_str());
+
     m_logoY = GetPrivateProfileIntW(L"Layout_AppLogo", L"Y", 16, m_iniFilePath.c_str());
     m_logoWidth = GetPrivateProfileIntW(L"Layout_AppLogo", L"Width", 64, m_iniFilePath.c_str());
     m_logoHeight = GetPrivateProfileIntW(L"Layout_AppLogo", L"Height", 64, m_iniFilePath.c_str());
 
     m_baseX = GetPrivateProfileIntW(L"Layout_NowPlaying", L"BaseX", 30, m_iniFilePath.c_str());
+
     m_baseBottomOffset = GetPrivateProfileIntW(L"Layout_NowPlaying", L"BaseBottomOffset", 162, m_iniFilePath.c_str());
     m_artOffsetX = GetPrivateProfileIntW(L"Layout_NowPlaying", L"ArtOffsetX", 0, m_iniFilePath.c_str());
     m_artOffsetY = GetPrivateProfileIntW(L"Layout_NowPlaying", L"ArtOffsetY", 0, m_iniFilePath.c_str());
     m_artSize = GetPrivateProfileIntW(L"Layout_NowPlaying", L"ArtSize", 120, m_iniFilePath.c_str());
-
-    wchar_t buf[32];
-    GetPrivateProfileStringW(L"Layout_NowPlaying", L"BgOpacity", L"0.3", buf, 32, m_iniFilePath.c_str());
-    try { m_bgOpacity = std::stof(buf); } catch (...) { m_bgOpacity = 0.3f; }
 
     GetPrivateProfileStringW(L"Layout_NowPlaying", L"FallbackArtOpacity", L"0.5", buf, 32, m_iniFilePath.c_str());
     try { m_fallbackArtOpacity = std::stof(buf); } catch (...) { m_fallbackArtOpacity = 0.5f; }
@@ -172,6 +198,7 @@ void ConfigManager::LoadSettings() {
     m_artistFontFamily = buf;
 
     GetPrivateProfileStringW(L"Layout_SeekBar", L"WidthRatio", L"0.95", buf, 32, m_iniFilePath.c_str());
+
     try { m_seekBarWidthRatio = std::stof(buf); } catch (...) { m_seekBarWidthRatio = 0.95f; }
     
     m_seekBarHeight = GetPrivateProfileIntW(L"Layout_SeekBar", L"Height", 3, m_iniFilePath.c_str());
@@ -225,6 +252,7 @@ void ConfigManager::LoadSettings() {
     m_nextArtistFontFamily = buf;
 
     wchar_t pathBuf[MAX_PATH];
+
     GetPrivateProfileStringW(L"Playlist", L"DefaultPlaylistPath", L"", pathBuf, MAX_PATH, m_iniFilePath.c_str());
     std::wstring loadedPlaylistPath = pathBuf;
     if (loadedPlaylistPath.empty()) {

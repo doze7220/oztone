@@ -1,7 +1,11 @@
 #include "Renderer.h"
 #include "ConfigManager.h"
 #include "resource.h"
+#include <initguid.h>
+#include <d2d1effects.h>
+#pragma comment(lib, "dxguid.lib")
 #include <algorithm>
+
 
 Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f) {}
 
@@ -230,7 +234,17 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     );
     if (FAILED(hr)) return false;
 
+    hr = m_d2dContext->CreateSolidColorBrush(
+        D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f),
+        &m_shadowBrush
+    );
+    if (FAILED(hr)) return false;
+
+    hr = m_d2dContext->CreateEffect(CLSID_D2D1Shadow, &m_shadowEffect);
+    if (FAILED(hr)) return false;
+
     return true;
+
 }
 
 bool Renderer::LoadBitmapResource(const std::wstring& filename, int resourceId, ID2D1Bitmap** ppBitmap) {
@@ -405,17 +419,42 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
         );
     }
 
+    if (m_config && m_config->GetBgDarkenOpacity() > 0.0f) {
+        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> darkenBrush;
+        m_d2dContext->CreateSolidColorBrush(
+            D2D1::ColorF(0.0f, 0.0f, 0.0f, m_config->GetBgDarkenOpacity()),
+            &darkenBrush
+        );
+        if (darkenBrush) {
+            D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
+            float logicWidth = rtSize.width / m_dpiScale;
+            float logicHeight = rtSize.height / m_dpiScale;
+            D2D1_RECT_F bgRect = D2D1::RectF(0.0f, 0.0f, logicWidth, logicHeight);
+            m_d2dContext->FillRectangle(&bgRect, darkenBrush.Get());
+        }
+    }
+
     // 3. アイコンの描画
+
     ID2D1Bitmap* bitmapToDraw = isHovered ? m_appLogoHoverBitmap.Get() : m_appLogoBitmap.Get();
     if (bitmapToDraw && m_config) {
-        D2D1_RECT_F destRect = D2D1::RectF(
-            static_cast<FLOAT>(m_config->GetLogoX()),
-            static_cast<FLOAT>(m_config->GetLogoY()),
-            static_cast<FLOAT>(m_config->GetLogoX() + m_config->GetLogoWidth()),
-            static_cast<FLOAT>(m_config->GetLogoY() + m_config->GetLogoHeight())
-        );
+        float x = static_cast<FLOAT>(m_config->GetLogoX());
+        float y = static_cast<FLOAT>(m_config->GetLogoY());
+        float w = static_cast<FLOAT>(m_config->GetLogoWidth());
+        float h = static_cast<FLOAT>(m_config->GetLogoHeight());
+        D2D1_RECT_F destRect = D2D1::RectF(x, y, x + w, y + h);
+        
+        if (m_shadowEffect && m_config->GetEnableShadow()) {
+            m_shadowEffect->SetInput(0, bitmapToDraw);
+            m_shadowEffect->SetValue(D2D1_SHADOW_PROP_COLOR, D2D1::Vector4F(0.0f, 0.0f, 0.0f, m_config->GetShadowOpacity()));
+            D2D1_POINT_2F offset = D2D1::Point2F(x + m_config->GetShadowOffsetX(), y + m_config->GetShadowOffsetY());
+            m_d2dContext->DrawImage(m_shadowEffect.Get(), &offset, nullptr, D2D1_INTERPOLATION_MODE_LINEAR, D2D1_COMPOSITE_MODE_SOURCE_OVER);
+        }
+
         m_d2dContext->DrawBitmap(bitmapToDraw, &destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+
     }
+
 
     // 4. 左下アルバムアートの描画
     if (m_config) {
@@ -437,8 +476,21 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
             float drawX = x + (size - drawWidth) / 2.0f;
             float drawY = y + (size - drawHeight) / 2.0f;
             
+            if (m_shadowBrush && m_config->GetEnableShadow()) {
+                m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
+                D2D1_RECT_F shadowRect = D2D1::RectF(
+                    drawX + m_config->GetShadowOffsetX(),
+                    drawY + m_config->GetShadowOffsetY(),
+                    drawX + drawWidth + m_config->GetShadowOffsetX(),
+                    drawY + drawHeight + m_config->GetShadowOffsetY()
+                );
+                m_d2dContext->FillRectangle(&shadowRect, m_shadowBrush.Get());
+            }
+
             D2D1_RECT_F destRectArt = D2D1::RectF(drawX, drawY, drawX + drawWidth, drawY + drawHeight);
+
             m_d2dContext->DrawBitmap(
+
                 m_currentArtBitmap.Get(),
                 &destRectArt,
                 1.0f,
@@ -468,7 +520,26 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
         // 曲名描画
         float titleX = baseX + static_cast<float>(m_config->GetTitleOffsetX());
         float titleY = baseY + static_cast<float>(m_config->GetTitleOffsetY());
+        
+        if (m_shadowBrush && m_config->GetEnableShadow()) {
+            m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
+            D2D1_RECT_F titleShadowRect = D2D1::RectF(
+                titleX + m_config->GetShadowOffsetX(),
+                titleY + m_config->GetShadowOffsetY(),
+                titleX + m_config->GetShadowOffsetX() + 800.0f,
+                titleY + m_config->GetShadowOffsetY() + 100.0f
+            );
+            m_d2dContext->DrawText(
+                m_trackTitle.c_str(),
+                static_cast<UINT32>(m_trackTitle.length()),
+                m_titleTextFormat.Get(),
+                &titleShadowRect,
+                m_shadowBrush.Get()
+            );
+        }
+
         D2D1_RECT_F titleRect = D2D1::RectF(titleX, titleY, titleX + 800.0f, titleY + 100.0f);
+
         m_d2dContext->DrawText(
             m_trackTitle.c_str(),
             static_cast<UINT32>(m_trackTitle.length()),
@@ -480,6 +551,25 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
         // アーティスト名描画
         float artistX = baseX + static_cast<float>(m_config->GetArtistOffsetX());
         float artistY = baseY + static_cast<float>(m_config->GetArtistOffsetY());
+        
+        if (m_shadowBrush && m_config->GetEnableShadow()) {
+            m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
+            D2D1_RECT_F artistShadowRect = D2D1::RectF(
+                artistX + m_config->GetShadowOffsetX(),
+                artistY + m_config->GetShadowOffsetY(),
+                artistX + m_config->GetShadowOffsetX() + 800.0f,
+                artistY + m_config->GetShadowOffsetY() + 50.0f
+            );
+            m_d2dContext->DrawText(
+                m_trackArtist.c_str(),
+
+                static_cast<UINT32>(m_trackArtist.length()),
+                m_artistTextFormat.Get(),
+                &artistShadowRect,
+                m_shadowBrush.Get()
+            );
+        }
+
         D2D1_RECT_F artistRect = D2D1::RectF(artistX, artistY, artistX + 800.0f, artistY + 50.0f);
         m_d2dContext->DrawText(
             m_trackArtist.c_str(),
@@ -488,6 +578,7 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
             &artistRect,
             m_textBrush.Get()
         );
+
     }
 
     // 6. シークバーと時間テキストの描画
@@ -559,6 +650,25 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
             float labelX = baseX + static_cast<float>(m_config->GetNextLabelOffsetX());
             float labelY = baseY + static_cast<float>(m_config->GetNextLabelOffsetY());
             std::wstring labelText = L"Next Track";
+            
+            if (m_shadowBrush && m_config->GetEnableShadow()) {
+                m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
+                D2D1_RECT_F labelShadowRect = D2D1::RectF(
+                    labelX + m_config->GetShadowOffsetX(),
+                    labelY + m_config->GetShadowOffsetY(),
+                    labelX + m_config->GetShadowOffsetX() + 200.0f,
+                    labelY + m_config->GetShadowOffsetY() + 30.0f
+                );
+                m_d2dContext->DrawText(
+                    labelText.c_str(),
+
+                    static_cast<UINT32>(labelText.length()),
+                    m_nextLabelTextFormat.Get(),
+                    &labelShadowRect,
+                    m_shadowBrush.Get()
+                );
+            }
+
             D2D1_RECT_F labelRect = D2D1::RectF(labelX, labelY, labelX + 200.0f, labelY + 30.0f);
             m_d2dContext->DrawText(
                 labelText.c_str(),
@@ -584,6 +694,25 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
             float textX = baseX + static_cast<float>(m_config->GetNextTitleOffsetX());
             float textY = baseY + static_cast<float>(m_config->GetNextTitleOffsetY());
             std::wstring loadingText = L"Loading...";
+            
+            if (m_shadowBrush && m_config->GetEnableShadow()) {
+                m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
+                D2D1_RECT_F textShadowRect = D2D1::RectF(
+                    textX + m_config->GetShadowOffsetX(),
+                    textY + m_config->GetShadowOffsetY(),
+                    textX + m_config->GetShadowOffsetX() + 300.0f,
+                    textY + m_config->GetShadowOffsetY() + 50.0f
+                );
+                m_d2dContext->DrawText(
+                    loadingText.c_str(),
+
+                    static_cast<UINT32>(loadingText.length()),
+                    m_nextTitleTextFormat.Get(),
+                    &textShadowRect,
+                    m_shadowBrush.Get()
+                );
+            }
+
             D2D1_RECT_F textRect = D2D1::RectF(textX, textY, textX + 300.0f, textY + 50.0f);
             m_d2dContext->DrawText(
                 loadingText.c_str(),
@@ -592,6 +721,7 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
                 &textRect,
                 m_textBrush.Get()
             );
+
         } else {
             // ロード完了
             if (m_nextArtBitmap) {
@@ -606,7 +736,19 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
                 float drawX = artX + (artSize - drawWidth) / 2.0f;
                 float drawY = artY + (artSize - drawHeight) / 2.0f;
                 
+                if (m_shadowBrush && m_config->GetEnableShadow()) {
+                    m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
+                    D2D1_RECT_F shadowRect = D2D1::RectF(
+                        drawX + m_config->GetShadowOffsetX(),
+                        drawY + m_config->GetShadowOffsetY(),
+                        drawX + drawWidth + m_config->GetShadowOffsetX(),
+                        drawY + drawHeight + m_config->GetShadowOffsetY()
+                    );
+                    m_d2dContext->FillRectangle(&shadowRect, m_shadowBrush.Get());
+                }
+
                 D2D1_RECT_F destRectArt = D2D1::RectF(drawX, drawY, drawX + drawWidth, drawY + drawHeight);
+
                 m_d2dContext->DrawBitmap(
                     m_nextArtBitmap.Get(),
                     &destRectArt,
@@ -629,9 +771,29 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
             float titleX = baseX + static_cast<float>(m_config->GetNextTitleOffsetX());
             float titleY = baseY + static_cast<float>(m_config->GetNextTitleOffsetY());
             std::wstring nextText = m_nextTrackTitle;
+            
+            if (m_shadowBrush && m_config->GetEnableShadow()) {
+                m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
+                D2D1_RECT_F titleShadowRect = D2D1::RectF(
+                    titleX + m_config->GetShadowOffsetX(),
+                    titleY + m_config->GetShadowOffsetY(),
+                    titleX + m_config->GetShadowOffsetX() + 400.0f,
+                    titleY + m_config->GetShadowOffsetY() + 50.0f
+                );
+                m_d2dContext->DrawText(
+                    nextText.c_str(),
+
+                    static_cast<UINT32>(nextText.length()),
+                    m_nextTitleTextFormat.Get(),
+                    &titleShadowRect,
+                    m_shadowBrush.Get()
+                );
+            }
+
             D2D1_RECT_F titleRect = D2D1::RectF(titleX, titleY, titleX + 400.0f, titleY + 50.0f);
             m_d2dContext->DrawText(
                 nextText.c_str(),
+
                 static_cast<UINT32>(nextText.length()),
                 m_nextTitleTextFormat.Get(),
                 &titleRect,
@@ -641,9 +803,29 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
             // Nextアーティスト名テキスト描画
             float artistX = baseX + static_cast<float>(m_config->GetNextArtistOffsetX());
             float artistY = baseY + static_cast<float>(m_config->GetNextArtistOffsetY());
+            
+            if (m_shadowBrush && m_config->GetEnableShadow()) {
+                m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
+                D2D1_RECT_F artistShadowRect = D2D1::RectF(
+                    artistX + m_config->GetShadowOffsetX(),
+                    artistY + m_config->GetShadowOffsetY(),
+                    artistX + m_config->GetShadowOffsetX() + 400.0f,
+                    artistY + m_config->GetShadowOffsetY() + 50.0f
+                );
+                m_d2dContext->DrawText(
+                    m_nextTrackArtist.c_str(),
+
+                    static_cast<UINT32>(m_nextTrackArtist.length()),
+                    m_nextArtistTextFormat.Get(),
+                    &artistShadowRect,
+                    m_shadowBrush.Get()
+                );
+            }
+
             D2D1_RECT_F artistRect = D2D1::RectF(artistX, artistY, artistX + 400.0f, artistY + 50.0f);
             m_d2dContext->DrawText(
                 m_nextTrackArtist.c_str(),
+
                 static_cast<UINT32>(m_nextTrackArtist.length()),
                 m_nextArtistTextFormat.Get(),
                 &artistRect,

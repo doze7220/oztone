@@ -20,6 +20,14 @@ public:
     bool GetShowWindowFrame() const { return m_showWindowFrame; }
     bool GetShowTaskbar() const { return m_showTaskbar; }
 
+    bool GetEnableShadow() const { return m_enableShadow; }
+    float GetShadowOffsetX() const { return m_shadowOffsetX; }
+    float GetShadowOffsetY() const { return m_shadowOffsetY; }
+    float GetShadowOpacity() const { return m_shadowOpacity; }
+    float GetBgDarkenOpacity() const { return m_bgDarkenOpacity; }
+    float GetBgOpacity() const { return m_bgOpacity; }
+
+
     int GetWindowX() const { return m_windowX; }
     int GetWindowY() const { return m_windowY; }
     int GetWindowWidth() const { return m_windowWidth; }
@@ -35,13 +43,17 @@ public:
     int GetLogoWidth() const { return m_logoWidth; }
     int GetLogoHeight() const { return m_logoHeight; }
 
+
+
     int GetBaseX() const { return m_baseX; }
     int GetBaseBottomOffset() const { return m_baseBottomOffset; }
     int GetArtOffsetX() const { return m_artOffsetX; }
     int GetArtOffsetY() const { return m_artOffsetY; }
     int GetArtSize() const { return m_artSize; }
-    float GetBgOpacity() const { return m_bgOpacity; }
     float GetFallbackArtOpacity() const { return m_fallbackArtOpacity; }
+
+
+
 
     int GetTitleOffsetX() const { return m_titleOffsetX; }
     int GetTitleOffsetY() const { return m_titleOffsetY; }
@@ -69,6 +81,8 @@ public:
     int GetNextArtSize() const { return m_nextArtSize; }
     float GetNextBgOpacity() const { return m_nextBgOpacity; }
     float GetNextFallbackArtOpacity() const { return m_nextFallbackArtOpacity; }
+
+
 
     int GetNextLabelOffsetX() const { return m_nextLabelOffsetX; }
     int GetNextLabelOffsetY() const { return m_nextLabelOffsetY; }
@@ -98,18 +112,30 @@ private:
     int m_windowWidth;
     int m_windowHeight;
 
+    bool m_enableShadow;
+    float m_shadowOffsetX;
+    float m_shadowOffsetY;
+    float m_shadowOpacity;
+    float m_bgDarkenOpacity;
+    float m_bgOpacity;
+
+
     int m_logoX;
     int m_logoY;
     int m_logoWidth;
     int m_logoHeight;
+
+
 
     int m_baseX;
     int m_baseBottomOffset;
     int m_artOffsetX;
     int m_artOffsetY;
     int m_artSize;
-    float m_bgOpacity;
     float m_fallbackArtOpacity;
+
+
+
 
     int m_titleOffsetX;
     int m_titleOffsetY;
@@ -137,6 +163,8 @@ private:
     int m_nextArtSize;
     float m_nextBgOpacity;
     float m_nextFallbackArtOpacity;
+
+
 
     int m_nextLabelOffsetX;
     int m_nextLabelOffsetY;
