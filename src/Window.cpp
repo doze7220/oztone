@@ -4,9 +4,15 @@
 #include <windowsx.h>
 #include <shellapi.h>
 
-Window::Window() : m_hwnd(nullptr), m_hInstance(nullptr), m_config(nullptr), m_isHovered(false), m_isTrackingMouse(false), m_pDropTarget(nullptr) {}
+HWND Window::s_hwnd = nullptr;
+
+Window::Window() : m_hwnd(nullptr), m_hInstance(nullptr), m_config(nullptr), m_isHovered(false), m_isTrackingMouse(false), m_pDropTarget(nullptr), m_keyboardHook(nullptr) {}
 
 Window::~Window() {
+    if (m_keyboardHook) {
+        UnhookWindowsHookEx(m_keyboardHook);
+        m_keyboardHook = nullptr;
+    }
     if (m_pDropTarget) {
         RevokeDragDrop(m_hwnd);
         m_pDropTarget->Release();
@@ -162,6 +168,9 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow, ConfigManager& config
         return false;
     }
 
+    s_hwnd = m_hwnd;
+    m_keyboardHook = SetWindowsHookExW(WH_KEYBOARD_LL, LowLevelKeyboardProc, m_hInstance, 0);
+
     ShowWindow(m_hwnd, nCmdShow);
     UpdateWindow(m_hwnd);
     
@@ -210,6 +219,22 @@ LRESULT CALLBACK Window::WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, L
     }
 
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+
+LRESULT CALLBACK Window::LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    if (nCode == HC_ACTION) {
+        if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
+            KBDLLHOOKSTRUCT* pKeyBoard = reinterpret_cast<KBDLLHOOKSTRUCT*>(lParam);
+            DWORD vkCode = pKeyBoard->vkCode;
+            if (vkCode == VK_MEDIA_PLAY_PAUSE ||
+                vkCode == VK_MEDIA_STOP ||
+                vkCode == VK_MEDIA_NEXT_TRACK ||
+                vkCode == VK_MEDIA_PREV_TRACK) {
+                PostMessage(s_hwnd, WM_APP_MEDIAKEY, vkCode, 0);
+            }
+        }
+    }
+    return CallNextHookEx(nullptr, nCode, wParam, lParam);
 }
 
 bool Window::IsInLogoRegion(int x, int y) const {
@@ -275,18 +300,25 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             }
             return 0;
         }
-        case WM_APPCOMMAND: {
+        case WM_APP_MEDIAKEY: {
             if (m_onMediaCommand) {
-                int cmd = GET_APPCOMMAND_LPARAM(lParam);
-                if (cmd == APPCOMMAND_MEDIA_PLAY_PAUSE ||
-                    cmd == APPCOMMAND_MEDIA_STOP ||
-                    cmd == APPCOMMAND_MEDIA_NEXTTRACK ||
-                    cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) {
+                DWORD vkCode = static_cast<DWORD>(wParam);
+                int cmd = 0;
+                if (vkCode == VK_MEDIA_PLAY_PAUSE) {
+                    cmd = APPCOMMAND_MEDIA_PLAY_PAUSE;
+                } else if (vkCode == VK_MEDIA_STOP) {
+                    cmd = APPCOMMAND_MEDIA_STOP;
+                } else if (vkCode == VK_MEDIA_NEXT_TRACK) {
+                    cmd = APPCOMMAND_MEDIA_NEXTTRACK;
+                } else if (vkCode == VK_MEDIA_PREV_TRACK) {
+                    cmd = APPCOMMAND_MEDIA_PREVIOUSTRACK;
+                }
+                
+                if (cmd != 0) {
                     m_onMediaCommand(cmd);
-                    return 1;
                 }
             }
-            break;
+            return 0;
         }
         case WM_COPYDATA: {
             COPYDATASTRUCT* pcds = reinterpret_cast<COPYDATASTRUCT*>(lParam);

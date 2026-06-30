@@ -114,5 +114,10 @@ private:
     DropTarget* m_pDropTarget;
 
     static constexpr UINT WM_TRAYICON = WM_APP + 1;
+    static constexpr UINT WM_APP_MEDIAKEY = WM_APP + 2;
     NOTIFYICONDATAW m_nid;
+
+    HHOOK m_keyboardHook;
+    static HWND s_hwnd;
+    static LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam);
 };
