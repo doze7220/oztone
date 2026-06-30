@@ -60,6 +60,25 @@ public:
     int GetSeekBarTimeAreaWidth() const { return m_seekBarTimeAreaWidth; }
     float GetSeekBarTimeLetterSpacing() const { return m_seekBarTimeLetterSpacing; }
 
+    int GetNextBaseRightOffset() const { return m_nextBaseRightOffset; }
+    int GetNextBaseBottomOffset() const { return m_nextBaseBottomOffset; }
+    int GetNextArtOffsetX() const { return m_nextArtOffsetX; }
+    int GetNextArtOffsetY() const { return m_nextArtOffsetY; }
+    int GetNextArtSize() const { return m_nextArtSize; }
+    float GetNextBgOpacity() const { return m_nextBgOpacity; }
+    float GetNextFallbackArtOpacity() const { return m_nextFallbackArtOpacity; }
+
+    int GetNextLabelOffsetX() const { return m_nextLabelOffsetX; }
+    int GetNextLabelOffsetY() const { return m_nextLabelOffsetY; }
+    float GetNextLabelFontSize() const { return m_nextLabelFontSize; }
+
+    int GetNextTitleOffsetX() const { return m_nextTitleOffsetX; }
+    int GetNextTitleOffsetY() const { return m_nextTitleOffsetY; }
+    float GetNextTitleFontSize() const { return m_nextTitleFontSize; }
+
+    int GetNextArtistOffsetX() const { return m_nextArtistOffsetX; }
+    int GetNextArtistOffsetY() const { return m_nextArtistOffsetY; }
+    float GetNextArtistFontSize() const { return m_nextArtistFontSize; }
     std::wstring GetDefaultPlaylistPath() const { return m_defaultPlaylistPath; }
 
 private:
@@ -103,6 +122,26 @@ private:
     float m_seekBarTimeFontSize;
     int m_seekBarTimeAreaWidth;
     float m_seekBarTimeLetterSpacing;
+
+    int m_nextBaseRightOffset;
+    int m_nextBaseBottomOffset;
+    int m_nextArtOffsetX;
+    int m_nextArtOffsetY;
+    int m_nextArtSize;
+    float m_nextBgOpacity;
+    float m_nextFallbackArtOpacity;
+
+    int m_nextLabelOffsetX;
+    int m_nextLabelOffsetY;
+    float m_nextLabelFontSize;
+
+    int m_nextTitleOffsetX;
+    int m_nextTitleOffsetY;
+    float m_nextTitleFontSize;
+
+    int m_nextArtistOffsetX;
+    int m_nextArtistOffsetY;
+    float m_nextArtistFontSize;
 
     std::wstring m_defaultPlaylistPath;
 

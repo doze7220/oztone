@@ -293,6 +293,13 @@ void Application::Run() {
             if (progress < 0.0f) progress = 0.0f;
         }
 
+        m_renderer.SetNextTrackInfo(
+            m_isPrefetchReady.load(),
+            m_prefetchedAlbumArt.Get(),
+            m_prefetchedTitle,
+            m_prefetchedArtist
+        );
+
         m_renderer.Render(m_window.IsHovered(), progress, timeString);
         Sleep(1); // CPU使用率を抑えるための仮のスリープ
     }

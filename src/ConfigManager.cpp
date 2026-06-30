@@ -12,7 +12,13 @@ ConfigManager::ConfigManager()
       m_seekBarWidthRatio(0.95f), m_seekBarHeight(3), m_seekBarBottomOffset(50),
       m_seekBarBgOpacity(0.3f), m_seekBarTimeFontFamily(L"Consolas"),
       m_seekBarTimeFontSize(12.0f), m_seekBarTimeAreaWidth(100),
-      m_seekBarTimeLetterSpacing(0.0f) {
+      m_seekBarTimeLetterSpacing(0.0f),
+      m_nextBaseRightOffset(250), m_nextBaseBottomOffset(80),
+      m_nextArtOffsetX(0), m_nextArtOffsetY(0), m_nextArtSize(40),
+      m_nextBgOpacity(0.3f), m_nextFallbackArtOpacity(0.5f),
+      m_nextLabelOffsetX(0), m_nextLabelOffsetY(-20), m_nextLabelFontSize(12.0f),
+      m_nextTitleOffsetX(50), m_nextTitleOffsetY(0), m_nextTitleFontSize(14.0f),
+      m_nextArtistOffsetX(50), m_nextArtistOffsetY(20), m_nextArtistFontSize(12.0f) {
 }
 
 ConfigManager::~ConfigManager() {}
@@ -111,6 +117,33 @@ void ConfigManager::LoadSettings() {
     GetPrivateProfileStringW(L"Layout_SeekBar", L"TimeLetterSpacing", L"0.0", buf, 32, m_iniFilePath.c_str());
     try { m_seekBarTimeLetterSpacing = std::stof(buf); } catch (...) { m_seekBarTimeLetterSpacing = 0.0f; }
 
+    m_nextBaseRightOffset = GetPrivateProfileIntW(L"Layout_NextTrack", L"BaseRightOffset", 250, m_iniFilePath.c_str());
+    m_nextBaseBottomOffset = GetPrivateProfileIntW(L"Layout_NextTrack", L"BaseBottomOffset", 80, m_iniFilePath.c_str());
+    m_nextArtOffsetX = GetPrivateProfileIntW(L"Layout_NextTrack", L"ArtOffsetX", 0, m_iniFilePath.c_str());
+    m_nextArtOffsetY = GetPrivateProfileIntW(L"Layout_NextTrack", L"ArtOffsetY", 0, m_iniFilePath.c_str());
+    m_nextArtSize = GetPrivateProfileIntW(L"Layout_NextTrack", L"ArtSize", 40, m_iniFilePath.c_str());
+
+    GetPrivateProfileStringW(L"Layout_NextTrack", L"BgOpacity", L"0.3", buf, 32, m_iniFilePath.c_str());
+    try { m_nextBgOpacity = std::stof(buf); } catch (...) { m_nextBgOpacity = 0.3f; }
+
+    GetPrivateProfileStringW(L"Layout_NextTrack", L"FallbackArtOpacity", L"0.5", buf, 32, m_iniFilePath.c_str());
+    try { m_nextFallbackArtOpacity = std::stof(buf); } catch (...) { m_nextFallbackArtOpacity = 0.5f; }
+
+    m_nextLabelOffsetX = GetPrivateProfileIntW(L"Layout_NextTrack", L"LabelOffsetX", 0, m_iniFilePath.c_str());
+    m_nextLabelOffsetY = GetPrivateProfileIntW(L"Layout_NextTrack", L"LabelOffsetY", -20, m_iniFilePath.c_str());
+    GetPrivateProfileStringW(L"Layout_NextTrack", L"LabelFontSize", L"12.0", buf, 32, m_iniFilePath.c_str());
+    try { m_nextLabelFontSize = std::stof(buf); } catch (...) { m_nextLabelFontSize = 12.0f; }
+
+    m_nextTitleOffsetX = GetPrivateProfileIntW(L"Layout_NextTrack", L"TitleOffsetX", 50, m_iniFilePath.c_str());
+    m_nextTitleOffsetY = GetPrivateProfileIntW(L"Layout_NextTrack", L"TitleOffsetY", 0, m_iniFilePath.c_str());
+    GetPrivateProfileStringW(L"Layout_NextTrack", L"TitleFontSize", L"14.0", buf, 32, m_iniFilePath.c_str());
+    try { m_nextTitleFontSize = std::stof(buf); } catch (...) { m_nextTitleFontSize = 14.0f; }
+
+    m_nextArtistOffsetX = GetPrivateProfileIntW(L"Layout_NextTrack", L"ArtistOffsetX", 50, m_iniFilePath.c_str());
+    m_nextArtistOffsetY = GetPrivateProfileIntW(L"Layout_NextTrack", L"ArtistOffsetY", 20, m_iniFilePath.c_str());
+    GetPrivateProfileStringW(L"Layout_NextTrack", L"ArtistFontSize", L"12.0", buf, 32, m_iniFilePath.c_str());
+    try { m_nextArtistFontSize = std::stof(buf); } catch (...) { m_nextArtistFontSize = 12.0f; }
+
     wchar_t pathBuf[MAX_PATH];
     GetPrivateProfileStringW(L"Playlist", L"DefaultPlaylistPath", L"", pathBuf, MAX_PATH, m_iniFilePath.c_str());
     std::wstring loadedPlaylistPath = pathBuf;
@@ -166,6 +199,23 @@ void ConfigManager::SaveDefaultSettings() {
     WritePrivateProfileStringW(L"Layout_SeekBar", L"TimeFontSize", L"12.0", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Layout_SeekBar", L"TimeAreaWidth", L"100", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Layout_SeekBar", L"TimeLetterSpacing", L"0.0", m_iniFilePath.c_str());
+
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"BaseRightOffset", L"250", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"BaseBottomOffset", L"80", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"ArtOffsetX", L"0", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"ArtOffsetY", L"0", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"ArtSize", L"40", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"BgOpacity", L"0.3", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"FallbackArtOpacity", L"0.5", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"LabelOffsetX", L"0", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"LabelOffsetY", L"-20", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"LabelFontSize", L"12.0", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"TitleOffsetX", L"50", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"TitleOffsetY", L"0", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"TitleFontSize", L"14.0", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"ArtistOffsetX", L"50", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"ArtistOffsetY", L"20", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NextTrack", L"ArtistFontSize", L"12.0", m_iniFilePath.c_str());
 
     std::wstring exePath = GetExecutablePath();
     std::wstring defPlaylistPath;

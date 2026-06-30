@@ -53,6 +53,11 @@ public:
     void SetAlbumArt(ID2D1Bitmap* bitmap);
 
     /**
+     * @brief 次の曲情報を設定する
+     */
+    void SetNextTrackInfo(bool isReady, ID2D1Bitmap* art, const std::wstring& title, const std::wstring& artist);
+
+    /**
      * @brief メモリ上のバイナリデータからID2D1Bitmapを生成する
      */
     bool LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitmap** ppBitmap);
@@ -78,6 +83,9 @@ private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_titleTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_artistTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_timeTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextLabelTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextTitleTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextArtistTextFormat;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_textBrush;
 
     // WIC および 画像リソース
@@ -89,6 +97,11 @@ private:
 
     std::wstring m_trackTitle = L"Unknown";
     std::wstring m_trackArtist = L"Unknown";
+
+    bool m_nextIsReady = false;
+    std::wstring m_nextTrackTitle = L"";
+    std::wstring m_nextTrackArtist = L"";
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_nextArtBitmap;
 
     HWND m_hwnd;
     const ConfigManager* m_config;

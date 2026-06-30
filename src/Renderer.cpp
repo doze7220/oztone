@@ -172,6 +172,42 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     if (FAILED(hr)) return false;
 
     hr = m_dwriteFactory->CreateTextFormat(
+        L"Meiryo",
+        nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        m_config->GetNextLabelFontSize(),
+        L"ja-jp",
+        &m_nextLabelTextFormat
+    );
+    if (FAILED(hr)) return false;
+
+    hr = m_dwriteFactory->CreateTextFormat(
+        L"Meiryo",
+        nullptr,
+        DWRITE_FONT_WEIGHT_BOLD,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        m_config->GetNextTitleFontSize(),
+        L"ja-jp",
+        &m_nextTitleTextFormat
+    );
+    if (FAILED(hr)) return false;
+
+    hr = m_dwriteFactory->CreateTextFormat(
+        L"Meiryo",
+        nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        m_config->GetNextArtistFontSize(),
+        L"ja-jp",
+        &m_nextArtistTextFormat
+    );
+    if (FAILED(hr)) return false;
+
+    hr = m_dwriteFactory->CreateTextFormat(
         m_config->GetSeekBarTimeFontFamily().c_str(),
         nullptr,
         DWRITE_FONT_WEIGHT_NORMAL,
@@ -268,6 +304,13 @@ void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artis
 
 void Renderer::SetAlbumArt(ID2D1Bitmap* bitmap) {
     m_currentArtBitmap = bitmap;
+}
+
+void Renderer::SetNextTrackInfo(bool isReady, ID2D1Bitmap* art, const std::wstring& title, const std::wstring& artist) {
+    m_nextIsReady = isReady;
+    m_nextArtBitmap = art;
+    m_nextTrackTitle = title;
+    m_nextTrackArtist = artist;
 }
 
 bool Renderer::LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitmap** ppBitmap) {
@@ -491,6 +534,116 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
                 textLayout.Get(),
                 m_textBrush.Get(),
                 D2D1_DRAW_TEXT_OPTIONS_NONE
+            );
+        }
+    }
+
+    // 7. 「次の曲」表示の描画
+    if (m_config && m_textBrush && m_nextTitleTextFormat && m_nextArtistTextFormat) {
+        D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
+        renderTargetSize.width /= m_dpiScale;
+        renderTargetSize.height /= m_dpiScale;
+
+        float baseX = renderTargetSize.width - static_cast<float>(m_config->GetNextBaseRightOffset());
+        float baseY = renderTargetSize.height - static_cast<float>(m_config->GetNextBaseBottomOffset());
+
+        float artSize = static_cast<float>(m_config->GetNextArtSize());
+        float artX = baseX + static_cast<float>(m_config->GetNextArtOffsetX());
+        float artY = baseY + static_cast<float>(m_config->GetNextArtOffsetY());
+
+        if (m_nextLabelTextFormat) {
+            float labelX = baseX + static_cast<float>(m_config->GetNextLabelOffsetX());
+            float labelY = baseY + static_cast<float>(m_config->GetNextLabelOffsetY());
+            std::wstring labelText = L"Next Track";
+            D2D1_RECT_F labelRect = D2D1::RectF(labelX, labelY, labelX + 200.0f, labelY + 30.0f);
+            m_d2dContext->DrawText(
+                labelText.c_str(),
+                static_cast<UINT32>(labelText.length()),
+                m_nextLabelTextFormat.Get(),
+                &labelRect,
+                m_textBrush.Get()
+            );
+        }
+
+        if (!m_nextIsReady) {
+            // ロード中
+            Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> blackBrush;
+            m_d2dContext->CreateSolidColorBrush(
+                D2D1::ColorF(0.0f, 0.0f, 0.0f, m_config->GetNextFallbackArtOpacity()),
+                &blackBrush
+            );
+            if (blackBrush) {
+                D2D1_RECT_F destRectArt = D2D1::RectF(artX, artY, artX + artSize, artY + artSize);
+                m_d2dContext->FillRectangle(&destRectArt, blackBrush.Get());
+            }
+
+            float textX = baseX + static_cast<float>(m_config->GetNextTitleOffsetX());
+            float textY = baseY + static_cast<float>(m_config->GetNextTitleOffsetY());
+            std::wstring loadingText = L"Loading...";
+            D2D1_RECT_F textRect = D2D1::RectF(textX, textY, textX + 300.0f, textY + 50.0f);
+            m_d2dContext->DrawText(
+                loadingText.c_str(),
+                static_cast<UINT32>(loadingText.length()),
+                m_nextTitleTextFormat.Get(),
+                &textRect,
+                m_textBrush.Get()
+            );
+        } else {
+            // ロード完了
+            if (m_nextArtBitmap) {
+                D2D1_SIZE_F bitmapSize = m_nextArtBitmap->GetSize();
+                float scaleX = artSize / bitmapSize.width;
+                float scaleY = artSize / bitmapSize.height;
+                float scale = (std::min)(scaleX, scaleY);
+                
+                float drawWidth = bitmapSize.width * scale;
+                float drawHeight = bitmapSize.height * scale;
+                
+                float drawX = artX + (artSize - drawWidth) / 2.0f;
+                float drawY = artY + (artSize - drawHeight) / 2.0f;
+                
+                D2D1_RECT_F destRectArt = D2D1::RectF(drawX, drawY, drawX + drawWidth, drawY + drawHeight);
+                m_d2dContext->DrawBitmap(
+                    m_nextArtBitmap.Get(),
+                    &destRectArt,
+                    1.0f,
+                    D2D1_BITMAP_INTERPOLATION_MODE_LINEAR
+                );
+            } else {
+                Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> blackBrush;
+                m_d2dContext->CreateSolidColorBrush(
+                    D2D1::ColorF(0.0f, 0.0f, 0.0f, m_config->GetNextFallbackArtOpacity()),
+                    &blackBrush
+                );
+                if (blackBrush) {
+                    D2D1_RECT_F destRectArt = D2D1::RectF(artX, artY, artX + artSize, artY + artSize);
+                    m_d2dContext->FillRectangle(&destRectArt, blackBrush.Get());
+                }
+            }
+
+            // Next曲名テキスト描画
+            float titleX = baseX + static_cast<float>(m_config->GetNextTitleOffsetX());
+            float titleY = baseY + static_cast<float>(m_config->GetNextTitleOffsetY());
+            std::wstring nextText = m_nextTrackTitle;
+            D2D1_RECT_F titleRect = D2D1::RectF(titleX, titleY, titleX + 400.0f, titleY + 50.0f);
+            m_d2dContext->DrawText(
+                nextText.c_str(),
+                static_cast<UINT32>(nextText.length()),
+                m_nextTitleTextFormat.Get(),
+                &titleRect,
+                m_textBrush.Get()
+            );
+
+            // Nextアーティスト名テキスト描画
+            float artistX = baseX + static_cast<float>(m_config->GetNextArtistOffsetX());
+            float artistY = baseY + static_cast<float>(m_config->GetNextArtistOffsetY());
+            D2D1_RECT_F artistRect = D2D1::RectF(artistX, artistY, artistX + 400.0f, artistY + 50.0f);
+            m_d2dContext->DrawText(
+                m_nextTrackArtist.c_str(),
+                static_cast<UINT32>(m_nextTrackArtist.length()),
+                m_nextArtistTextFormat.Get(),
+                &artistRect,
+                m_textBrush.Get()
             );
         }
     }
