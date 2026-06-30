@@ -1,14 +1,84 @@
 #include "ConfigManager.h"
 #include <vector>
+#include <fstream>
+
+constexpr const char* DEFAULT_INI_CONTENT = R"(; OZtone Default Configuration
+
+[Window]
+ShowTitleBar=0
+ShowWindowFrame=0
+ShowTaskbar=0
+WindowX=-2147483648
+WindowY=-2147483648
+WindowWidth=1024
+WindowHeight=512
+
+[Layout_AppLogo]
+X=16
+Y=16
+Width=64
+Height=64
+
+[Layout_NowPlaying]
+BaseX=30
+BaseBottomOffset=162
+ArtOffsetX=0
+ArtOffsetY=0
+ArtSize=120
+BgOpacity=0.3
+FallbackArtOpacity=0.5
+TitleOffsetX=140
+TitleOffsetY=10
+TitleFontSize=32.0
+TitleFontFamily=Meiryo
+ArtistOffsetX=140
+ArtistOffsetY=55
+ArtistFontSize=18.0
+ArtistFontFamily=Meiryo
+
+[Layout_SeekBar]
+WidthRatio=0.95
+Height=3
+BottomOffset=50
+BgOpacity=0.3
+TimeFontFamily=Consolas
+TimeFontSize=12.0
+TimeAreaWidth=100
+TimeLetterSpacing=0.0
+
+[Layout_NextTrack]
+BaseRightOffset=250
+BaseBottomOffset=80
+ArtOffsetX=0
+ArtOffsetY=0
+ArtSize=40
+BgOpacity=0.3
+FallbackArtOpacity=0.5
+LabelOffsetX=0
+LabelOffsetY=-20
+LabelFontSize=12.0
+LabelFontFamily=Meiryo
+TitleOffsetX=50
+TitleOffsetY=0
+TitleFontSize=14.0
+TitleFontFamily=Meiryo
+ArtistOffsetX=50
+ArtistOffsetY=20
+ArtistFontSize=12.0
+ArtistFontFamily=Meiryo
+
+[Playlist]
+DefaultPlaylistPath=
+)";
 
 ConfigManager::ConfigManager()
     : m_showTitleBar(false), m_showWindowFrame(false), m_showTaskbar(false),
       m_windowX(CW_USEDEFAULT), m_windowY(CW_USEDEFAULT), m_windowWidth(1024), m_windowHeight(512),
       m_logoX(16), m_logoY(16), m_logoWidth(64), m_logoHeight(64),
-      m_baseX(30), m_baseY(350), m_artOffsetX(0), m_artOffsetY(0), m_artSize(120), m_bgOpacity(0.3f),
+      m_baseX(30), m_baseBottomOffset(162), m_artOffsetX(0), m_artOffsetY(0), m_artSize(120), m_bgOpacity(0.3f),
       m_fallbackArtOpacity(0.5f),
-      m_titleOffsetX(140), m_titleOffsetY(10), m_titleFontSize(32.0f),
-      m_artistOffsetX(140), m_artistOffsetY(55), m_artistFontSize(18.0f),
+      m_titleOffsetX(140), m_titleOffsetY(10), m_titleFontSize(32.0f), m_titleFontFamily(L"Meiryo"),
+      m_artistOffsetX(140), m_artistOffsetY(55), m_artistFontSize(18.0f), m_artistFontFamily(L"Meiryo"),
       m_seekBarWidthRatio(0.95f), m_seekBarHeight(3), m_seekBarBottomOffset(50),
       m_seekBarBgOpacity(0.3f), m_seekBarTimeFontFamily(L"Consolas"),
       m_seekBarTimeFontSize(12.0f), m_seekBarTimeAreaWidth(100),
@@ -16,9 +86,9 @@ ConfigManager::ConfigManager()
       m_nextBaseRightOffset(250), m_nextBaseBottomOffset(80),
       m_nextArtOffsetX(0), m_nextArtOffsetY(0), m_nextArtSize(40),
       m_nextBgOpacity(0.3f), m_nextFallbackArtOpacity(0.5f),
-      m_nextLabelOffsetX(0), m_nextLabelOffsetY(-20), m_nextLabelFontSize(12.0f),
-      m_nextTitleOffsetX(50), m_nextTitleOffsetY(0), m_nextTitleFontSize(14.0f),
-      m_nextArtistOffsetX(50), m_nextArtistOffsetY(20), m_nextArtistFontSize(12.0f) {
+      m_nextLabelOffsetX(0), m_nextLabelOffsetY(-20), m_nextLabelFontSize(12.0f), m_nextLabelFontFamily(L"Meiryo"),
+      m_nextTitleOffsetX(50), m_nextTitleOffsetY(0), m_nextTitleFontSize(14.0f), m_nextTitleFontFamily(L"Meiryo"),
+      m_nextArtistOffsetX(50), m_nextArtistOffsetY(20), m_nextArtistFontSize(12.0f), m_nextArtistFontFamily(L"Meiryo") {
 }
 
 ConfigManager::~ConfigManager() {}
@@ -75,7 +145,7 @@ void ConfigManager::LoadSettings() {
     m_logoHeight = GetPrivateProfileIntW(L"Layout_AppLogo", L"Height", 64, m_iniFilePath.c_str());
 
     m_baseX = GetPrivateProfileIntW(L"Layout_NowPlaying", L"BaseX", 30, m_iniFilePath.c_str());
-    m_baseY = GetPrivateProfileIntW(L"Layout_NowPlaying", L"BaseY", 350, m_iniFilePath.c_str());
+    m_baseBottomOffset = GetPrivateProfileIntW(L"Layout_NowPlaying", L"BaseBottomOffset", 162, m_iniFilePath.c_str());
     m_artOffsetX = GetPrivateProfileIntW(L"Layout_NowPlaying", L"ArtOffsetX", 0, m_iniFilePath.c_str());
     m_artOffsetY = GetPrivateProfileIntW(L"Layout_NowPlaying", L"ArtOffsetY", 0, m_iniFilePath.c_str());
     m_artSize = GetPrivateProfileIntW(L"Layout_NowPlaying", L"ArtSize", 120, m_iniFilePath.c_str());
@@ -91,11 +161,15 @@ void ConfigManager::LoadSettings() {
     m_titleOffsetY = GetPrivateProfileIntW(L"Layout_NowPlaying", L"TitleOffsetY", 10, m_iniFilePath.c_str());
     GetPrivateProfileStringW(L"Layout_NowPlaying", L"TitleFontSize", L"32.0", buf, 32, m_iniFilePath.c_str());
     try { m_titleFontSize = std::stof(buf); } catch (...) { m_titleFontSize = 32.0f; }
+    GetPrivateProfileStringW(L"Layout_NowPlaying", L"TitleFontFamily", L"Meiryo", buf, 32, m_iniFilePath.c_str());
+    m_titleFontFamily = buf;
 
     m_artistOffsetX = GetPrivateProfileIntW(L"Layout_NowPlaying", L"ArtistOffsetX", 140, m_iniFilePath.c_str());
     m_artistOffsetY = GetPrivateProfileIntW(L"Layout_NowPlaying", L"ArtistOffsetY", 55, m_iniFilePath.c_str());
     GetPrivateProfileStringW(L"Layout_NowPlaying", L"ArtistFontSize", L"18.0", buf, 32, m_iniFilePath.c_str());
     try { m_artistFontSize = std::stof(buf); } catch (...) { m_artistFontSize = 18.0f; }
+    GetPrivateProfileStringW(L"Layout_NowPlaying", L"ArtistFontFamily", L"Meiryo", buf, 32, m_iniFilePath.c_str());
+    m_artistFontFamily = buf;
 
     GetPrivateProfileStringW(L"Layout_SeekBar", L"WidthRatio", L"0.95", buf, 32, m_iniFilePath.c_str());
     try { m_seekBarWidthRatio = std::stof(buf); } catch (...) { m_seekBarWidthRatio = 0.95f; }
@@ -133,16 +207,22 @@ void ConfigManager::LoadSettings() {
     m_nextLabelOffsetY = GetPrivateProfileIntW(L"Layout_NextTrack", L"LabelOffsetY", -20, m_iniFilePath.c_str());
     GetPrivateProfileStringW(L"Layout_NextTrack", L"LabelFontSize", L"12.0", buf, 32, m_iniFilePath.c_str());
     try { m_nextLabelFontSize = std::stof(buf); } catch (...) { m_nextLabelFontSize = 12.0f; }
+    GetPrivateProfileStringW(L"Layout_NextTrack", L"LabelFontFamily", L"Meiryo", buf, 32, m_iniFilePath.c_str());
+    m_nextLabelFontFamily = buf;
 
     m_nextTitleOffsetX = GetPrivateProfileIntW(L"Layout_NextTrack", L"TitleOffsetX", 50, m_iniFilePath.c_str());
     m_nextTitleOffsetY = GetPrivateProfileIntW(L"Layout_NextTrack", L"TitleOffsetY", 0, m_iniFilePath.c_str());
     GetPrivateProfileStringW(L"Layout_NextTrack", L"TitleFontSize", L"14.0", buf, 32, m_iniFilePath.c_str());
     try { m_nextTitleFontSize = std::stof(buf); } catch (...) { m_nextTitleFontSize = 14.0f; }
+    GetPrivateProfileStringW(L"Layout_NextTrack", L"TitleFontFamily", L"Meiryo", buf, 32, m_iniFilePath.c_str());
+    m_nextTitleFontFamily = buf;
 
     m_nextArtistOffsetX = GetPrivateProfileIntW(L"Layout_NextTrack", L"ArtistOffsetX", 50, m_iniFilePath.c_str());
     m_nextArtistOffsetY = GetPrivateProfileIntW(L"Layout_NextTrack", L"ArtistOffsetY", 20, m_iniFilePath.c_str());
     GetPrivateProfileStringW(L"Layout_NextTrack", L"ArtistFontSize", L"12.0", buf, 32, m_iniFilePath.c_str());
     try { m_nextArtistFontSize = std::stof(buf); } catch (...) { m_nextArtistFontSize = 12.0f; }
+    GetPrivateProfileStringW(L"Layout_NextTrack", L"ArtistFontFamily", L"Meiryo", buf, 32, m_iniFilePath.c_str());
+    m_nextArtistFontFamily = buf;
 
     wchar_t pathBuf[MAX_PATH];
     GetPrivateProfileStringW(L"Playlist", L"DefaultPlaylistPath", L"", pathBuf, MAX_PATH, m_iniFilePath.c_str());
@@ -162,60 +242,11 @@ void ConfigManager::LoadSettings() {
 }
 
 void ConfigManager::SaveDefaultSettings() {
-    WritePrivateProfileStringW(L"Window", L"ShowTitleBar", L"0", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Window", L"ShowWindowFrame", L"0", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Window", L"ShowTaskbar", L"0", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Window", L"WindowX", std::to_wstring(CW_USEDEFAULT).c_str(), m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Window", L"WindowY", std::to_wstring(CW_USEDEFAULT).c_str(), m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Window", L"WindowWidth", L"1024", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Window", L"WindowHeight", L"512", m_iniFilePath.c_str());
-
-    WritePrivateProfileStringW(L"Layout_AppLogo", L"X", L"16", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_AppLogo", L"Y", L"16", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_AppLogo", L"Width", L"64", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_AppLogo", L"Height", L"64", m_iniFilePath.c_str());
-
-    WritePrivateProfileStringW(L"Layout_NowPlaying", L"BaseX", L"30", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NowPlaying", L"BaseY", L"350", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtOffsetX", L"0", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtOffsetY", L"0", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtSize", L"120", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NowPlaying", L"BgOpacity", L"0.3", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NowPlaying", L"FallbackArtOpacity", L"0.5", m_iniFilePath.c_str());
-
-    WritePrivateProfileStringW(L"Layout_NowPlaying", L"TitleOffsetX", L"140", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NowPlaying", L"TitleOffsetY", L"10", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NowPlaying", L"TitleFontSize", L"32.0", m_iniFilePath.c_str());
-    
-    WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtistOffsetX", L"140", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtistOffsetY", L"55", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtistFontSize", L"18.0", m_iniFilePath.c_str());
-
-    WritePrivateProfileStringW(L"Layout_SeekBar", L"WidthRatio", L"0.95", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_SeekBar", L"Height", L"3", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_SeekBar", L"BottomOffset", L"50", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_SeekBar", L"BgOpacity", L"0.3", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_SeekBar", L"TimeFontFamily", L"Consolas", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_SeekBar", L"TimeFontSize", L"12.0", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_SeekBar", L"TimeAreaWidth", L"100", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_SeekBar", L"TimeLetterSpacing", L"0.0", m_iniFilePath.c_str());
-
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"BaseRightOffset", L"250", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"BaseBottomOffset", L"80", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"ArtOffsetX", L"0", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"ArtOffsetY", L"0", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"ArtSize", L"40", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"BgOpacity", L"0.3", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"FallbackArtOpacity", L"0.5", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"LabelOffsetX", L"0", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"LabelOffsetY", L"-20", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"LabelFontSize", L"12.0", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"TitleOffsetX", L"50", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"TitleOffsetY", L"0", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"TitleFontSize", L"14.0", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"ArtistOffsetX", L"50", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"ArtistOffsetY", L"20", m_iniFilePath.c_str());
-    WritePrivateProfileStringW(L"Layout_NextTrack", L"ArtistFontSize", L"12.0", m_iniFilePath.c_str());
+    std::ofstream ofs(m_iniFilePath);
+    if (ofs) {
+        ofs << DEFAULT_INI_CONTENT;
+        ofs.close();
+    }
 
     std::wstring exePath = GetExecutablePath();
     std::wstring defPlaylistPath;

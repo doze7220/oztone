@@ -36,7 +36,7 @@ public:
     int GetLogoHeight() const { return m_logoHeight; }
 
     int GetBaseX() const { return m_baseX; }
-    int GetBaseY() const { return m_baseY; }
+    int GetBaseBottomOffset() const { return m_baseBottomOffset; }
     int GetArtOffsetX() const { return m_artOffsetX; }
     int GetArtOffsetY() const { return m_artOffsetY; }
     int GetArtSize() const { return m_artSize; }
@@ -46,10 +46,12 @@ public:
     int GetTitleOffsetX() const { return m_titleOffsetX; }
     int GetTitleOffsetY() const { return m_titleOffsetY; }
     float GetTitleFontSize() const { return m_titleFontSize; }
+    std::wstring GetTitleFontFamily() const { return m_titleFontFamily; }
 
     int GetArtistOffsetX() const { return m_artistOffsetX; }
     int GetArtistOffsetY() const { return m_artistOffsetY; }
     float GetArtistFontSize() const { return m_artistFontSize; }
+    std::wstring GetArtistFontFamily() const { return m_artistFontFamily; }
 
     float GetSeekBarWidthRatio() const { return m_seekBarWidthRatio; }
     int GetSeekBarHeight() const { return m_seekBarHeight; }
@@ -71,14 +73,17 @@ public:
     int GetNextLabelOffsetX() const { return m_nextLabelOffsetX; }
     int GetNextLabelOffsetY() const { return m_nextLabelOffsetY; }
     float GetNextLabelFontSize() const { return m_nextLabelFontSize; }
+    std::wstring GetNextLabelFontFamily() const { return m_nextLabelFontFamily; }
 
     int GetNextTitleOffsetX() const { return m_nextTitleOffsetX; }
     int GetNextTitleOffsetY() const { return m_nextTitleOffsetY; }
     float GetNextTitleFontSize() const { return m_nextTitleFontSize; }
+    std::wstring GetNextTitleFontFamily() const { return m_nextTitleFontFamily; }
 
     int GetNextArtistOffsetX() const { return m_nextArtistOffsetX; }
     int GetNextArtistOffsetY() const { return m_nextArtistOffsetY; }
     float GetNextArtistFontSize() const { return m_nextArtistFontSize; }
+    std::wstring GetNextArtistFontFamily() const { return m_nextArtistFontFamily; }
     std::wstring GetDefaultPlaylistPath() const { return m_defaultPlaylistPath; }
 
 private:
@@ -99,7 +104,7 @@ private:
     int m_logoHeight;
 
     int m_baseX;
-    int m_baseY;
+    int m_baseBottomOffset;
     int m_artOffsetX;
     int m_artOffsetY;
     int m_artSize;
@@ -109,10 +114,12 @@ private:
     int m_titleOffsetX;
     int m_titleOffsetY;
     float m_titleFontSize;
+    std::wstring m_titleFontFamily;
 
     int m_artistOffsetX;
     int m_artistOffsetY;
     float m_artistFontSize;
+    std::wstring m_artistFontFamily;
 
     float m_seekBarWidthRatio;
     int m_seekBarHeight;
@@ -134,14 +141,17 @@ private:
     int m_nextLabelOffsetX;
     int m_nextLabelOffsetY;
     float m_nextLabelFontSize;
+    std::wstring m_nextLabelFontFamily;
 
     int m_nextTitleOffsetX;
     int m_nextTitleOffsetY;
     float m_nextTitleFontSize;
+    std::wstring m_nextTitleFontFamily;
 
     int m_nextArtistOffsetX;
     int m_nextArtistOffsetY;
     float m_nextArtistFontSize;
+    std::wstring m_nextArtistFontFamily;
 
     std::wstring m_defaultPlaylistPath;
 

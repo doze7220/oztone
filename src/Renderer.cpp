@@ -148,7 +148,7 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     if (FAILED(hr)) return false;
 
     hr = m_dwriteFactory->CreateTextFormat(
-        L"Meiryo",
+        m_config->GetTitleFontFamily().c_str(),
         nullptr,
         DWRITE_FONT_WEIGHT_BOLD,
         DWRITE_FONT_STYLE_NORMAL,
@@ -160,7 +160,7 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     if (FAILED(hr)) return false;
 
     hr = m_dwriteFactory->CreateTextFormat(
-        L"Meiryo",
+        m_config->GetArtistFontFamily().c_str(),
         nullptr,
         DWRITE_FONT_WEIGHT_NORMAL,
         DWRITE_FONT_STYLE_NORMAL,
@@ -172,7 +172,7 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     if (FAILED(hr)) return false;
 
     hr = m_dwriteFactory->CreateTextFormat(
-        L"Meiryo",
+        m_config->GetNextLabelFontFamily().c_str(),
         nullptr,
         DWRITE_FONT_WEIGHT_NORMAL,
         DWRITE_FONT_STYLE_NORMAL,
@@ -184,7 +184,7 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     if (FAILED(hr)) return false;
 
     hr = m_dwriteFactory->CreateTextFormat(
-        L"Meiryo",
+        m_config->GetNextTitleFontFamily().c_str(),
         nullptr,
         DWRITE_FONT_WEIGHT_BOLD,
         DWRITE_FONT_STYLE_NORMAL,
@@ -196,7 +196,7 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     if (FAILED(hr)) return false;
 
     hr = m_dwriteFactory->CreateTextFormat(
-        L"Meiryo",
+        m_config->GetNextArtistFontFamily().c_str(),
         nullptr,
         DWRITE_FONT_WEIGHT_NORMAL,
         DWRITE_FONT_STYLE_NORMAL,
@@ -419,9 +419,11 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
 
     // 4. 左下アルバムアートの描画
     if (m_config) {
+        D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
+        float logicHeight = rtSize.height / m_dpiScale;
         float size = static_cast<float>(m_config->GetArtSize());
         float x = static_cast<float>(m_config->GetBaseX() + m_config->GetArtOffsetX());
-        float y = static_cast<float>(m_config->GetBaseY() + m_config->GetArtOffsetY());
+        float y = logicHeight - static_cast<float>(m_config->GetBaseBottomOffset()) + static_cast<float>(m_config->GetArtOffsetY());
 
         if (m_currentArtBitmap) {
             D2D1_SIZE_F bitmapSize = m_currentArtBitmap->GetSize();
@@ -458,8 +460,10 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
 
     // 5. 曲情報テキストの描画
     if (m_textBrush && m_titleTextFormat && m_artistTextFormat && m_config) {
+        D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
+        float logicHeight = rtSize.height / m_dpiScale;
         float baseX = static_cast<float>(m_config->GetBaseX());
-        float baseY = static_cast<float>(m_config->GetBaseY());
+        float baseY = logicHeight - static_cast<float>(m_config->GetBaseBottomOffset());
 
         // 曲名描画
         float titleX = baseX + static_cast<float>(m_config->GetTitleOffsetX());
