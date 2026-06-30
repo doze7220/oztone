@@ -5,7 +5,7 @@
 #include <algorithm>
 
 namespace {
-    const size_t FFT_SIZE = 1024;
+    const size_t FFT_SIZE = 4096;
     const double PI = 3.14159265358979323846;
 
     unsigned int ReverseBits(unsigned int n, int bits) {

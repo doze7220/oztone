@@ -11,6 +11,7 @@
 #include <dwrite_1.h>
 #include <string>
 #include <vector>
+#include "Visualizer.h"
 
 class ConfigManager;
 
@@ -110,6 +111,7 @@ private:
     HWND m_hwnd;
     const ConfigManager* m_config;
     float m_dpiScale = 1.0f;
+    Visualizer m_visualizer;
 
     /**
      * @brief 画像をファイルまたはリソースからロードする
