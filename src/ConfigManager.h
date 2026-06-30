@@ -26,7 +26,8 @@ public:
     float GetShadowOpacity() const { return m_shadowOpacity; }
     float GetBgDarkenOpacity() const { return m_bgDarkenOpacity; }
     float GetBgOpacity() const { return m_bgOpacity; }
-
+    int GetBackgroundArtMode() const { return m_backgroundArtMode; }
+    void SetBackgroundArtMode(int mode);
 
     int GetWindowX() const { return m_windowX; }
     int GetWindowY() const { return m_windowY; }
@@ -133,6 +134,7 @@ private:
     float m_shadowOpacity;
     float m_bgDarkenOpacity;
     float m_bgOpacity;
+    int m_backgroundArtMode;
 
 
     int m_logoX;

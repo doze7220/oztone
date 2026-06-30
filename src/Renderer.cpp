@@ -389,7 +389,14 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
     m_d2dContext->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
     
     // 2. 背景アルバムアートの描画 (Cover)
-    ID2D1Bitmap* artBitmap = m_currentArtBitmap ? m_currentArtBitmap.Get() : m_placeholderArtBitmap.Get();
+    int bgMode = m_config ? m_config->GetBackgroundArtMode() : 0;
+    ID2D1Bitmap* artBitmap = nullptr;
+    if (bgMode == 0) {
+        artBitmap = m_currentArtBitmap ? m_currentArtBitmap.Get() : m_placeholderArtBitmap.Get();
+    } else if (bgMode == 2) {
+        artBitmap = m_placeholderArtBitmap.Get();
+    }
+    
     if (artBitmap && m_config) {
         D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
         // 96DPIターゲットから得た物理サイズを論理サイズに変換

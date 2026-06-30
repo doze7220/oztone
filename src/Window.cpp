@@ -9,6 +9,10 @@ constexpr UINT TRAY_MENU_ORDER[] = {
     Window::ID_TRAY_ZORDER_TOPMOST,
     Window::ID_TRAY_ZORDER_BOTTOM,
     0, // separator
+    Window::ID_TRAY_BG_NOWPLAYING,
+    Window::ID_TRAY_BG_HIDDEN,
+    Window::ID_TRAY_BG_DEFAULT,
+    0, // separator
     Window::ID_TRAY_SAVE_POS,
     Window::ID_TRAY_RESET_POS,
     Window::ID_TRAY_RESET_ALL,
@@ -321,6 +325,9 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                             case ID_TRAY_RESET_POS: text = L"位置とサイズをリセット (Reset Position)"; break;
                             case ID_TRAY_RESET_ALL: text = L"設定を初期化 (Reset All Settings)"; break;
                             case ID_TRAY_CLEAR_PLAYLIST: text = L"プレイリストをクリア (Clear Playlist)"; break;
+                            case ID_TRAY_BG_NOWPLAYING: text = L"背景: 再生中 (Now Playing)"; break;
+                            case ID_TRAY_BG_HIDDEN: text = L"背景: 非表示 (Hidden)"; break;
+                            case ID_TRAY_BG_DEFAULT: text = L"背景: デフォルト固定 (Default)"; break;
                             case ID_TRAY_EXIT: text = L"終了 (Exit)"; break;
                         }
                         AppendMenuW(hMenu, MF_STRING, id, text.c_str());
@@ -331,6 +338,9 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                     int zOrder = m_config->GetZOrder();
                     CheckMenuRadioItem(hMenu, ID_TRAY_ZORDER_NORMAL, ID_TRAY_ZORDER_BOTTOM, 
                                        ID_TRAY_ZORDER_NORMAL + zOrder, MF_BYCOMMAND);
+                    int bgMode = m_config->GetBackgroundArtMode();
+                    CheckMenuRadioItem(hMenu, ID_TRAY_BG_NOWPLAYING, ID_TRAY_BG_DEFAULT,
+                                       ID_TRAY_BG_NOWPLAYING + bgMode, MF_BYCOMMAND);
                     if (m_config->GetSavePositionOnExit()) {
                         CheckMenuItem(hMenu, ID_TRAY_SAVE_POS, MF_BYCOMMAND | MF_CHECKED);
                     }
@@ -357,6 +367,14 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                     if (zOrder == 1) insertAfter = HWND_TOPMOST;
                     else if (zOrder == 2) insertAfter = HWND_BOTTOM;
                     SetWindowPos(hwnd, insertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+                    break;
+                }
+                case ID_TRAY_BG_NOWPLAYING:
+                case ID_TRAY_BG_HIDDEN:
+                case ID_TRAY_BG_DEFAULT: {
+                    if (m_config) {
+                        m_config->SetBackgroundArtMode(wmId - ID_TRAY_BG_NOWPLAYING);
+                    }
                     break;
                 }
                 case ID_TRAY_SAVE_POS: {

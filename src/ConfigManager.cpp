@@ -22,6 +22,7 @@ ShadowOffsetY=2.0
 ShadowOpacity=0.7
 BgOpacity=0.8
 BgDarkenOpacity=0.4
+BackgroundArtMode=0
 
 [Layout_AppLogo]
 X=16
@@ -86,7 +87,7 @@ ConfigManager::ConfigManager()
     : m_showTitleBar(false), m_showWindowFrame(false), m_showTaskbar(false),
       m_zOrder(0), m_savePositionOnExit(true),
       m_windowX(CW_USEDEFAULT), m_windowY(CW_USEDEFAULT), m_windowWidth(1024), m_windowHeight(512),
-      m_enableShadow(true), m_shadowOffsetX(2.0f), m_shadowOffsetY(2.0f), m_shadowOpacity(0.7f), m_bgDarkenOpacity(0.3f), m_bgOpacity(0.8f),
+      m_enableShadow(true), m_shadowOffsetX(2.0f), m_shadowOffsetY(2.0f), m_shadowOpacity(0.7f), m_bgDarkenOpacity(0.3f), m_bgOpacity(0.8f), m_backgroundArtMode(0),
       m_logoX(16), m_logoY(16), m_logoWidth(64), m_logoHeight(64),
       m_baseX(30), m_baseBottomOffset(162), m_artOffsetX(0), m_artOffsetY(0), m_artSize(120),
       m_fallbackArtOpacity(0.5f),
@@ -172,6 +173,7 @@ void ConfigManager::LoadSettings() {
     try { m_bgDarkenOpacity = std::stof(buf); } catch (...) { m_bgDarkenOpacity = 0.3f; }
     GetPrivateProfileStringW(L"Layout_Window", L"BgOpacity", L"0.8", buf, 32, m_iniFilePath.c_str());
     try { m_bgOpacity = std::stof(buf); } catch (...) { m_bgOpacity = 0.8f; }
+    m_backgroundArtMode = GetPrivateProfileIntW(L"Layout_Window", L"BackgroundArtMode", 0, m_iniFilePath.c_str());
 
     m_logoX = GetPrivateProfileIntW(L"Layout_AppLogo", L"X", 16, m_iniFilePath.c_str());
 
@@ -313,4 +315,9 @@ void ConfigManager::SetZOrder(int zOrder) {
 void ConfigManager::SetSavePositionOnExit(bool save) {
     m_savePositionOnExit = save;
     WritePrivateProfileStringW(L"Window", L"SavePositionOnExit", save ? L"1" : L"0", m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetBackgroundArtMode(int mode) {
+    m_backgroundArtMode = mode;
+    WritePrivateProfileStringW(L"Layout_Window", L"BackgroundArtMode", std::to_wstring(mode).c_str(), m_iniFilePath.c_str());
 }

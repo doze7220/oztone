@@ -54,6 +54,9 @@ public:
     static constexpr UINT ID_TRAY_RESET_POS = 1014;
     static constexpr UINT ID_TRAY_RESET_ALL = 1015;
     static constexpr UINT ID_TRAY_CLEAR_PLAYLIST = 1016;
+    static constexpr UINT ID_TRAY_BG_NOWPLAYING = 1017;
+    static constexpr UINT ID_TRAY_BG_HIDDEN = 1018;
+    static constexpr UINT ID_TRAY_BG_DEFAULT = 1019;
     static constexpr UINT ID_TRAY_EXIT = 1001;
 
     /**
