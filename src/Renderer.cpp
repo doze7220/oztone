@@ -101,7 +101,7 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
 
     // 3. D2D1 ファクトリの作成
     D2D1_FACTORY_OPTIONS options = {};
-    hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory1), &options, (void**)&m_d2dFactory);
+    hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, __uuidof(ID2D1Factory1), &options, (void**)&m_d2dFactory);
     if (FAILED(hr)) return false;
 
     // 4. D2D1 デバイスとデバイスコンテキストの作成

@@ -46,6 +46,12 @@ public:
      */
     bool IsPlaying();
 
+    /**
+     * @brief 現在の音声が最後まで再生されたか検知する
+     * @return 終了していればtrue
+     */
+    bool IsAtEnd();
+
 private:
     ma_engine* m_engine;
     bool m_initialized;

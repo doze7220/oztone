@@ -22,6 +22,17 @@ public:
      */
     std::string GetCurrentTrack() const;
 
+    /**
+     * @brief キューを次の曲へ進める（末尾の場合は先頭に戻る）
+     */
+    void Advance();
+
+    /**
+     * @brief 次に再生される曲のファイルパスを取得する
+     * @return 次の曲のファイルパス。リストが空の場合は空文字を返す。
+     */
+    std::string GetNextTrack() const;
+
 private:
     std::vector<std::string> m_playlist;
     size_t m_currentIndex;

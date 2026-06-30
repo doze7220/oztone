@@ -1,5 +1,7 @@
 #pragma once
 #include <windows.h>
+#include <atomic>
+#include <thread>
 #include "Window.h"
 #include "ConfigManager.h"
 #include "Renderer.h"
@@ -29,10 +31,23 @@ public:
     void Run();
 
 private:
+    /**
+     * @brief 次の曲のタグ情報と画像を先読みする
+     */
+    void PrefetchNextTrack();
+
     ConfigManager m_config;
     Window m_window;
     Renderer m_renderer;
     AudioPlayer m_audioPlayer;
     TagManager m_tagManager;
     PlaylistManager m_playlistManager;
+
+    // 先読みデータ
+    std::atomic<bool> m_isPrefetchReady{false};
+    std::thread m_prefetchThread;
+    
+    std::wstring m_prefetchedTitle;
+    std::wstring m_prefetchedArtist;
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_prefetchedAlbumArt;
 };

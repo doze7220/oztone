@@ -14,3 +14,14 @@ std::string PlaylistManager::GetCurrentTrack() const {
     }
     return m_playlist[m_currentIndex];
 }
+
+void PlaylistManager::Advance() {
+    if (m_playlist.empty()) return;
+    m_currentIndex = (m_currentIndex + 1) % m_playlist.size();
+}
+
+std::string PlaylistManager::GetNextTrack() const {
+    if (m_playlist.empty()) return "";
+    size_t nextIndex = (m_currentIndex + 1) % m_playlist.size();
+    return m_playlist[nextIndex];
+}

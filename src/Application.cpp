@@ -4,6 +4,9 @@
 Application::Application() {}
 
 Application::~Application() {
+    if (m_prefetchThread.joinable()) {
+        m_prefetchThread.join();
+    }
     m_audioPlayer.Uninitialize();
 }
 
@@ -26,9 +29,16 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         std::filesystem::path exePath(exePathBuf);
         // build/Debug/OZtone.exe または build/Release/OZtone.exe を想定して3つ上へ
         std::filesystem::path projectRoot = exePath.parent_path().parent_path().parent_path();
-        std::filesystem::path assetPath = projectRoot / L"assets" / L"test.mp3";
         
-        m_playlistManager.Add(assetPath.string());
+        // FIXME: 一時的なテストコード。次のステップ(D&D実装)で削除・置換する
+        std::filesystem::path assetPath1 = projectRoot / L"assets" / L"test1.mp3";
+        std::filesystem::path assetPath2 = projectRoot / L"assets" / L"test2.mp3";
+        std::filesystem::path assetPath3 = projectRoot / L"assets" / L"test3.mp3";
+        
+        m_playlistManager.Add(assetPath1.string());
+        m_playlistManager.Add(assetPath2.string());
+        m_playlistManager.Add(assetPath3.string());
+
         std::string testFile = m_playlistManager.GetCurrentTrack();
 
         bool loadResult = m_tagManager.Load(testFile);
@@ -62,6 +72,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         }
 
         m_audioPlayer.Play(testFile);
+        PrefetchNextTrack();
     }
 
     return true;
@@ -69,6 +80,24 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
 
 void Application::Run() {
     while (m_window.ProcessMessages()) {
+        if (m_audioPlayer.IsAtEnd()) {
+            // ロードが完了するまで待機（このフレームはスキップして待つ）
+            if (m_isPrefetchReady.load()) {
+                // 自動的に次の曲へ移行
+                m_playlistManager.Advance();
+                
+                // 先読みデータをRendererに即時反映
+                m_renderer.SetTrackInfo(m_prefetchedTitle, m_prefetchedArtist);
+                m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
+
+                // 次の曲を再生
+                m_audioPlayer.Play(m_playlistManager.GetCurrentTrack());
+
+                // さらにその次の曲を先読み
+                PrefetchNextTrack();
+            }
+        }
+
         float posSec = m_audioPlayer.GetPositionSeconds();
         float lenSec = m_audioPlayer.GetLengthSeconds();
 
@@ -91,4 +120,46 @@ void Application::Run() {
         m_renderer.Render(m_window.IsHovered(), progress, timeString);
         Sleep(1); // CPU使用率を抑えるための仮のスリープ
     }
+}
+
+void Application::PrefetchNextTrack() {
+    m_isPrefetchReady.store(false);
+
+    if (m_prefetchThread.joinable()) {
+        m_prefetchThread.join();
+    }
+
+    m_prefetchThread = std::thread([this]() {
+        HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
+        m_prefetchedTitle.clear();
+        m_prefetchedArtist.clear();
+        m_prefetchedAlbumArt.Reset();
+
+        std::string nextFile = m_playlistManager.GetNextTrack();
+        if (!nextFile.empty()) {
+            if (m_tagManager.Load(nextFile)) {
+                m_prefetchedTitle = m_tagManager.GetTitle();
+                m_prefetchedArtist = m_tagManager.GetArtist();
+                
+                if (m_prefetchedTitle.empty()) {
+                    m_prefetchedTitle = std::filesystem::path(nextFile).filename().wstring();
+                }
+                if (m_prefetchedArtist.empty()) {
+                    m_prefetchedArtist = L"---";
+                }
+
+                const auto& artBytes = m_tagManager.GetAlbumArtBytes();
+                if (!artBytes.empty()) {
+                    m_renderer.LoadBitmapFromMemory(artBytes, &m_prefetchedAlbumArt);
+                }
+            }
+        }
+
+        m_isPrefetchReady.store(true);
+
+        if (SUCCEEDED(hr)) {
+            CoUninitialize();
+        }
+    });
 }

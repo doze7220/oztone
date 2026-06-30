@@ -85,3 +85,10 @@ bool AudioPlayer::IsPlaying() {
     }
     return ma_sound_is_playing(&m_sound) == MA_TRUE;
 }
+
+bool AudioPlayer::IsAtEnd() {
+    if (!m_isSoundLoaded) {
+        return false;
+    }
+    return ma_sound_at_end(&m_sound) == MA_TRUE;
+}
