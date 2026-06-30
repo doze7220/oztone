@@ -28,6 +28,7 @@ set(SOURCES
     src/Renderer.cpp
     src/AudioPlayer.cpp
     src/TagManager.cpp
+    src/PlaylistManager.cpp
     src/OZtone.rc
 )
 
@@ -38,6 +39,7 @@ set(HEADERS
     src/Renderer.h
     src/AudioPlayer.h
     src/TagManager.h
+    src/PlaylistManager.h
 )
 
 # 実行ファイルの作成 (WIN32 を指定してコンソールウィンドウを非表示にする)
@@ -72,8 +74,4 @@ add_custom_command(TARGET OZtone POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_SOURCE_DIR}/assets/placeholder_art.png"
     "$<TARGET_FILE_DIR:OZtone>/placeholder_art.png"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:OZtone>/assets"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_SOURCE_DIR}/assets/test.mp3"
-    "$<TARGET_FILE_DIR:OZtone>/assets/test.mp3"
 )

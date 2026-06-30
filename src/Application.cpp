@@ -21,7 +21,15 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     }
 
     if (m_audioPlayer.Initialize()) {
-        std::string testFile = "assets/test.mp3";
+        wchar_t exePathBuf[MAX_PATH];
+        GetModuleFileNameW(NULL, exePathBuf, MAX_PATH);
+        std::filesystem::path exePath(exePathBuf);
+        // build/Debug/OZtone.exe または build/Release/OZtone.exe を想定して3つ上へ
+        std::filesystem::path projectRoot = exePath.parent_path().parent_path().parent_path();
+        std::filesystem::path assetPath = projectRoot / L"assets" / L"test.mp3";
+        
+        m_playlistManager.Add(assetPath.string());
+        std::string testFile = m_playlistManager.GetCurrentTrack();
 
         bool loadResult = m_tagManager.Load(testFile);
         

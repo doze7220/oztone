@@ -5,6 +5,7 @@
 #include "Renderer.h"
 #include "AudioPlayer.h"
 #include "TagManager.h"
+#include "PlaylistManager.h"
 
 /**
  * @brief アプリケーション全体のライフサイクルとメインループを管理するクラス
@@ -33,4 +34,5 @@ private:
     Renderer m_renderer;
     AudioPlayer m_audioPlayer;
     TagManager m_tagManager;
+    PlaylistManager m_playlistManager;
 };
