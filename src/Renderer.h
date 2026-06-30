@@ -39,8 +39,9 @@ public:
      * @param isHovered ロゴ領域がホバーされているか
      * @param progress 再生進捗度 (0.0f - 1.0f)
      * @param timeString フォーマット済みの再生時間文字列
+     * @param spectrum スペクトルデータ
      */
-    void Render(bool isHovered, float progress, const std::wstring& timeString);
+    void Render(bool isHovered, float progress, const std::wstring& timeString, const std::vector<float>& spectrum);
 
     /**
      * @brief 再生中の曲情報を設定する

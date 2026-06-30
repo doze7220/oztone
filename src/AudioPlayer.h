@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <vector>
+#include <mutex>
 #include "miniaudio.h"
 
 /**
@@ -62,10 +64,26 @@ public:
      */
     bool IsAtEnd();
 
+    /**
+     * @brief スペクトルデータ（FFT結果）を取得する
+     * @param outSpectrum 取得したスペクトルデータを格納するベクター
+     */
+    void GetSpectrumData(std::vector<float>& outSpectrum);
+
+    /**
+     * @brief 内部用：音声フレームを処理し、バッファリングとFFT解析を行う
+     */
+    void ProcessAudioFrames(const float* pFrames, ma_uint64 frameCount, ma_uint32 channels);
+
 private:
     ma_engine* m_engine;
     bool m_initialized;
     ma_sound m_sound;
     bool m_isSoundLoaded;
     float m_cachedLengthSeconds;
+
+    std::vector<float> m_audioBuffer;
+    std::mutex m_bufferMutex;
+    std::vector<float> m_spectrumData;
+    std::mutex m_spectrumMutex;
 };

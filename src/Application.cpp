@@ -381,7 +381,10 @@ void Application::Run() {
             m_prefetchedArtist
         );
 
-        m_renderer.Render(m_window.IsHovered(), progress, timeString);
+        std::vector<float> spectrum;
+        m_audioPlayer.GetSpectrumData(spectrum);
+
+        m_renderer.Render(m_window.IsHovered(), progress, timeString, spectrum);
         Sleep(1); // CPU使用率を抑えるための仮のスリープ
     }
 }

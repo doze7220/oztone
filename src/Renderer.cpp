@@ -377,7 +377,7 @@ bool Renderer::LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitma
     return true;
 }
 
-void Renderer::Render(bool isHovered, float progress, const std::wstring& timeString) {
+void Renderer::Render(bool isHovered, float progress, const std::wstring& timeString, const std::vector<float>& spectrum) {
     if (!m_d2dContext) return;
 
     m_d2dContext->BeginDraw();
@@ -838,6 +838,38 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
                 &artistRect,
                 m_textBrush.Get()
             );
+        }
+    }
+
+    // 8. スペクトルアナライザの描画 (仮実装)
+    if (!spectrum.empty() && m_textBrush) {
+        D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
+        renderTargetSize.width /= m_dpiScale;
+        renderTargetSize.height /= m_dpiScale;
+        
+        float width = renderTargetSize.width;
+        float height = renderTargetSize.height;
+        float bottomY = height;
+        
+        // 描画領域の高さを画面下半分に制限
+        float maxBarHeight = height * 0.5f; 
+        
+        size_t numBands = spectrum.size();
+        float barWidth = width / static_cast<float>(numBands);
+        
+        // スペクトルデータの値(0.0~1.0程度、音量によって変動)を描画用にスケール
+        float amplitudeScale = 50.0f; // 適当な倍率
+        
+        for (size_t i = 0; i < numBands; ++i) {
+            float val = spectrum[i] * amplitudeScale;
+            if (val > maxBarHeight) val = maxBarHeight;
+            
+            float x = i * barWidth;
+            float y = bottomY - val;
+            
+            // バーとバーの間に少し隙間を空ける
+            D2D1_RECT_F barRect = D2D1::RectF(x, y, x + barWidth * 0.8f, bottomY);
+            m_d2dContext->FillRectangle(&barRect, m_textBrush.Get());
         }
     }
 
