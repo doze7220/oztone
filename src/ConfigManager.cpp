@@ -52,12 +52,12 @@ Height=5
 BottomOffset=25
 BgOpacity=0.3
 TimeFontFamily="Courier New"
-TimeFontSize=14.0
+TimeFontSize=18.0
 TimeAreaWidth=100
 TimeLetterSpacing=-3.0
 
 [Layout_NextTrack]
-BaseRightOffset=250
+BaseRightOffset=300
 BaseBottomOffset=80
 ArtOffsetX=0
 ArtOffsetY=0
@@ -69,25 +69,29 @@ LabelOffsetY=-20
 LabelFontSize=12.0
 LabelFontFamily=Meiryo
 TitleOffsetX=45
-TitleOffsetY=20
-TitleFontSize=14.0
+TitleOffsetY=18
+TitleFontSize=20.0
 TitleFontFamily=Meiryo
-ArtistOffsetX=45
-ArtistOffsetY=0
+ArtistOffsetX=47
+ArtistOffsetY=4
 ArtistFontSize=12.0
 ArtistFontFamily=Meiryo
+
 
 
 [Playlist]
 
 DefaultPlaylistPath=oztone_playlist.lst
+
+[Visualizer]
+VisualizerMode=1
 )";
 
 ConfigManager::ConfigManager()
     : m_showTitleBar(false), m_showWindowFrame(false), m_showTaskbar(false),
       m_zOrder(0), m_savePositionOnExit(true),
       m_windowX(CW_USEDEFAULT), m_windowY(CW_USEDEFAULT), m_windowWidth(1024), m_windowHeight(512),
-      m_enableShadow(true), m_shadowOffsetX(2.0f), m_shadowOffsetY(2.0f), m_shadowOpacity(0.7f), m_bgDarkenOpacity(0.3f), m_bgOpacity(0.8f), m_backgroundArtMode(0),
+      m_enableShadow(true), m_shadowOffsetX(2.0f), m_shadowOffsetY(2.0f), m_shadowOpacity(0.7f), m_bgDarkenOpacity(0.3f), m_bgOpacity(0.8f), m_backgroundArtMode(0), m_visualizerMode(0),
       m_logoX(16), m_logoY(16), m_logoWidth(64), m_logoHeight(64),
       m_baseX(30), m_baseBottomOffset(162), m_artOffsetX(0), m_artOffsetY(0), m_artSize(120),
       m_fallbackArtOpacity(0.5f),
@@ -174,6 +178,8 @@ void ConfigManager::LoadSettings() {
     GetPrivateProfileStringW(L"Layout_Window", L"BgOpacity", L"0.8", buf, 32, m_iniFilePath.c_str());
     try { m_bgOpacity = std::stof(buf); } catch (...) { m_bgOpacity = 0.8f; }
     m_backgroundArtMode = GetPrivateProfileIntW(L"Layout_Window", L"BackgroundArtMode", 0, m_iniFilePath.c_str());
+
+    m_visualizerMode = GetPrivateProfileIntW(L"Visualizer", L"VisualizerMode", 0, m_iniFilePath.c_str());
 
     m_logoX = GetPrivateProfileIntW(L"Layout_AppLogo", L"X", 16, m_iniFilePath.c_str());
 
@@ -320,4 +326,9 @@ void ConfigManager::SetSavePositionOnExit(bool save) {
 void ConfigManager::SetBackgroundArtMode(int mode) {
     m_backgroundArtMode = mode;
     WritePrivateProfileStringW(L"Layout_Window", L"BackgroundArtMode", std::to_wstring(mode).c_str(), m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetVisualizerMode(int mode) {
+    m_visualizerMode = mode;
+    WritePrivateProfileStringW(L"Visualizer", L"VisualizerMode", std::to_wstring(mode).c_str(), m_iniFilePath.c_str());
 }

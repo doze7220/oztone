@@ -29,6 +29,9 @@ public:
     int GetBackgroundArtMode() const { return m_backgroundArtMode; }
     void SetBackgroundArtMode(int mode);
 
+    int GetVisualizerMode() const { return m_visualizerMode; }
+    void SetVisualizerMode(int mode);
+
     int GetWindowX() const { return m_windowX; }
     int GetWindowY() const { return m_windowY; }
     int GetWindowWidth() const { return m_windowWidth; }
@@ -135,6 +138,7 @@ private:
     float m_bgDarkenOpacity;
     float m_bgOpacity;
     int m_backgroundArtMode;
+    int m_visualizerMode;
 
 
     int m_logoX;

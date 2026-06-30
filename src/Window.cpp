@@ -18,6 +18,9 @@ constexpr UINT TRAY_MENU_ORDER[] = {
     Window::ID_TRAY_RESET_ALL,
     Window::ID_TRAY_CLEAR_PLAYLIST,
     0, // separator
+    Window::ID_TRAY_VIS_PRISM,
+    Window::ID_TRAY_VIS_CIRCLE,
+    0, // separator
     Window::ID_TRAY_EXIT
 };
 
@@ -331,16 +334,18 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                     } else {
                         std::wstring text;
                         switch (id) {
-                            case ID_TRAY_ZORDER_NORMAL: text = L"Z-Order: 通常 (Normal)"; break;
-                            case ID_TRAY_ZORDER_TOPMOST: text = L"Z-Order: 最前面 (TopMost)"; break;
-                            case ID_TRAY_ZORDER_BOTTOM: text = L"Z-Order: 最背面 (Bottom)"; break;
-                            case ID_TRAY_SAVE_POS: text = L"位置とサイズを記憶する (Save Position)"; break;
-                            case ID_TRAY_RESET_POS: text = L"位置とサイズをリセット (Reset Position)"; break;
-                            case ID_TRAY_RESET_ALL: text = L"設定を初期化 (Reset All Settings)"; break;
-                            case ID_TRAY_CLEAR_PLAYLIST: text = L"プレイリストをクリア (Clear Playlist)"; break;
-                            case ID_TRAY_BG_NOWPLAYING: text = L"背景: 再生中 (Now Playing)"; break;
-                            case ID_TRAY_BG_HIDDEN: text = L"背景: 非表示 (Hidden)"; break;
-                            case ID_TRAY_BG_DEFAULT: text = L"背景: デフォルト固定 (Default)"; break;
+                            case ID_TRAY_ZORDER_NORMAL: text = L"ウィンドウ順序: 通常"; break;
+                            case ID_TRAY_ZORDER_TOPMOST: text = L"ウィンドウ順序: 最前面"; break;
+                            case ID_TRAY_ZORDER_BOTTOM: text = L"ウィンドウ順序: 最背面"; break;
+                            case ID_TRAY_SAVE_POS: text = L"終了時に位置とサイズを記憶"; break;
+                            case ID_TRAY_RESET_POS: text = L"位置とサイズをリセット"; break;
+                            case ID_TRAY_RESET_ALL: text = L"設定を初期化"; break;
+                            case ID_TRAY_CLEAR_PLAYLIST: text = L"プレイリストをクリア"; break;
+                            case ID_TRAY_BG_NOWPLAYING: text = L"背景: アルバムアート"; break;
+                            case ID_TRAY_BG_HIDDEN: text = L"背景: 非表示"; break;
+                            case ID_TRAY_BG_DEFAULT: text = L"背景: デフォルト背景"; break;
+                            case ID_TRAY_VIS_PRISM: text = L"ビジュアライザ: プリズム・ビート"; break;
+                            case ID_TRAY_VIS_CIRCLE: text = L"ビジュアライザ: ヘイロー・ダスト"; break;
                             case ID_TRAY_EXIT: text = L"終了 (Exit)"; break;
                         }
                         AppendMenuW(hMenu, MF_STRING, id, text.c_str());
@@ -354,6 +359,9 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                     int bgMode = m_config->GetBackgroundArtMode();
                     CheckMenuRadioItem(hMenu, ID_TRAY_BG_NOWPLAYING, ID_TRAY_BG_DEFAULT,
                                        ID_TRAY_BG_NOWPLAYING + bgMode, MF_BYCOMMAND);
+                    int visMode = m_config->GetVisualizerMode();
+                    CheckMenuRadioItem(hMenu, ID_TRAY_VIS_PRISM, ID_TRAY_VIS_CIRCLE,
+                                       ID_TRAY_VIS_PRISM + visMode, MF_BYCOMMAND);
                     if (m_config->GetSavePositionOnExit()) {
                         CheckMenuItem(hMenu, ID_TRAY_SAVE_POS, MF_BYCOMMAND | MF_CHECKED);
                     }
@@ -387,6 +395,13 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                 case ID_TRAY_BG_DEFAULT: {
                     if (m_config) {
                         m_config->SetBackgroundArtMode(wmId - ID_TRAY_BG_NOWPLAYING);
+                    }
+                    break;
+                }
+                case ID_TRAY_VIS_PRISM:
+                case ID_TRAY_VIS_CIRCLE: {
+                    if (m_config) {
+                        m_config->SetVisualizerMode(wmId - ID_TRAY_VIS_PRISM);
                     }
                     break;
                 }

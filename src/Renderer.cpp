@@ -243,6 +243,8 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     hr = m_d2dContext->CreateEffect(CLSID_D2D1Shadow, &m_shadowEffect);
     if (FAILED(hr)) return false;
 
+    m_visualizer.SetConfig(m_config);
+
     return true;
 
 }
@@ -448,7 +450,7 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
         renderTargetSize.height /= m_dpiScale;
         
         D2D1_RECT_F drawRect = D2D1::RectF(0.0f, 0.0f, renderTargetSize.width, renderTargetSize.height);
-        m_visualizer.Draw(m_d2dContext.Get(), spectrum, drawRect);
+        m_visualizer.Draw(m_d2dContext.Get(), spectrum, drawRect, m_trackTitle, m_trackArtist);
     }
 
     // 3. アイコンの描画
