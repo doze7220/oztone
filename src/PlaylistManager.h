@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <set>
 
 /**
  * @brief 再生待ちキュー（プレイリスト）を管理するクラス
@@ -13,8 +14,9 @@ public:
     /**
      * @brief プレイリストに曲のファイルパスを追加する
      * @param filepath 曲のファイルパス（絶対パス推奨）
+     * @return 追加に成功した（重複しなかった）場合はtrue、既に存在した場合はfalse
      */
-    void Add(const std::string& filepath);
+    bool Add(const std::string& filepath);
 
     /**
      * @brief 現在の曲のファイルパスを取得する
@@ -33,7 +35,20 @@ public:
      */
     std::string GetNextTrack() const;
 
+    /**
+     * @brief プレイリストをファイルに保存する
+     * @param outPath 保存先のファイルパス
+     */
+    void SaveToFile(const std::string& outPath) const;
+
+    /**
+     * @brief プレイリストが空かどうかを返す
+     * @return 空の場合はtrue
+     */
+    bool IsEmpty() const;
+
 private:
     std::vector<std::string> m_playlist;
+    std::set<std::string> m_playlistSet;
     size_t m_currentIndex;
 };

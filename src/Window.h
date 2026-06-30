@@ -1,7 +1,30 @@
 #pragma once
 #include <windows.h>
+#include <ole2.h>
+#include <functional>
+#include <string>
+#include <vector>
 
 class ConfigManager;
+class Window;
+
+class DropTarget : public IDropTarget {
+public:
+    DropTarget(Window* pWindow);
+    // IUnknown
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppvObject) override;
+    ULONG STDMETHODCALLTYPE AddRef() override;
+    ULONG STDMETHODCALLTYPE Release() override;
+
+    // IDropTarget
+    HRESULT STDMETHODCALLTYPE DragEnter(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) override;
+    HRESULT STDMETHODCALLTYPE DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) override;
+    HRESULT STDMETHODCALLTYPE DragLeave() override;
+    HRESULT STDMETHODCALLTYPE Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) override;
+private:
+    LONG m_refCount;
+    Window* m_pWindow;
+};
 
 /**
  * @brief メインウィンドウを管理するクラス
@@ -38,12 +61,30 @@ public:
      * @brief マウスがロゴのホバー領域にあるかどうかを返す
      */
     bool IsHovered() const { return m_isHovered; }
+    void SetHovered(bool hovered) { m_isHovered = hovered; }
+
+    /**
+     * @brief 座標がロゴ領域内にあるかを判定する
+     */
+    bool IsInLogoRegion(int x, int y) const;
+
+    /**
+     * @brief ファイルドロップを通知する
+     */
+    void NotifyFilesDropped(const std::vector<std::wstring>& files) {
+        if (m_onFilesDropped) m_onFilesDropped(files);
+    }
+
+    /**
+     * @brief ファイルがドロップされた時のコールバックを設定する
+     */
+    void SetOnFilesDroppedCallback(std::function<void(const std::vector<std::wstring>&)> cb) {
+        m_onFilesDropped = cb;
+    }
 
 private:
     static LRESULT CALLBACK WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-    bool IsInLogoRegion(int x, int y) const;
 
     HWND m_hwnd;
     HINSTANCE m_hInstance;
@@ -52,4 +93,6 @@ private:
     ConfigManager* m_config;
     bool m_isHovered;
     bool m_isTrackingMouse;
+    std::function<void(const std::vector<std::wstring>&)> m_onFilesDropped;
+    DropTarget* m_pDropTarget;
 };

@@ -1,5 +1,7 @@
 #include "Application.h"
 #include <filesystem>
+#include <fstream>
+#include <algorithm>
 
 Application::Application() {}
 
@@ -19,63 +21,120 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         return false;
     }
     
+    m_window.SetOnFilesDroppedCallback([this](const std::vector<std::wstring>& files) {
+        this->OnFilesDropped(files);
+    });
+    
     if (!m_renderer.Initialize(m_window.GetHandle(), m_config)) {
         return false;
     }
 
     if (m_audioPlayer.Initialize()) {
-        wchar_t exePathBuf[MAX_PATH];
-        GetModuleFileNameW(NULL, exePathBuf, MAX_PATH);
-        std::filesystem::path exePath(exePathBuf);
-        // build/Debug/OZtone.exe または build/Release/OZtone.exe を想定して3つ上へ
-        std::filesystem::path projectRoot = exePath.parent_path().parent_path().parent_path();
-        
-        // FIXME: 一時的なテストコード。次のステップ(D&D実装)で削除・置換する
-        std::filesystem::path assetPath1 = projectRoot / L"assets" / L"test1.mp3";
-        std::filesystem::path assetPath2 = projectRoot / L"assets" / L"test2.mp3";
-        std::filesystem::path assetPath3 = projectRoot / L"assets" / L"test3.mp3";
-        
-        m_playlistManager.Add(assetPath1.string());
-        m_playlistManager.Add(assetPath2.string());
-        m_playlistManager.Add(assetPath3.string());
-
-        std::string testFile = m_playlistManager.GetCurrentTrack();
-
-        bool loadResult = m_tagManager.Load(testFile);
-        
-        if (loadResult) {
-            std::wstring title = m_tagManager.GetTitle();
-            std::wstring artist = m_tagManager.GetArtist();
-            
-            // フォールバック処理: 曲名が空ならファイル名を抽出、アーティストが空なら「---」
-            if (title.empty()) {
-                title = std::filesystem::path(testFile).filename().wstring();
-            }
-            if (artist.empty()) {
-                artist = L"---";
-            }
-            
-            m_renderer.SetTrackInfo(title, artist);
-
-            const auto& artBytes = m_tagManager.GetAlbumArtBytes();
-            
-            if (!artBytes.empty()) {
-                Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-                if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
-                    m_renderer.SetAlbumArt(artBitmap.Get());
-                } else {
-                    m_renderer.SetAlbumArt(nullptr);
-                }
-            } else {
-                m_renderer.SetAlbumArt(nullptr);
-            }
-        }
-
-        m_audioPlayer.Play(testFile);
-        PrefetchNextTrack();
+        // UIの初期表示（空状態）
+        m_renderer.SetTrackInfo(L"No Track", L"---");
+        m_renderer.SetAlbumArt(nullptr);
     }
 
     return true;
+}
+
+void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
+    bool wasEmpty = m_playlistManager.IsEmpty();
+    bool addedAny = false;
+
+    auto IsMp3File = [](const std::filesystem::path& p) {
+        if (p.extension().wstring() == L".mp3" || p.extension().wstring() == L".MP3") return true;
+        std::wstring ext = p.extension().wstring();
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::towlower);
+        return ext == L".mp3";
+    };
+
+    auto IsValidMp3 = [](const std::filesystem::path& p) {
+        std::ifstream file(p, std::ios::binary);
+        if (!file.is_open()) return false;
+        unsigned char header[3] = {0};
+        file.read(reinterpret_cast<char*>(header), 3);
+        if (file.gcount() >= 2) {
+            // ID3v2: "ID3"
+            if (header[0] == 'I' && header[1] == 'D' && header[2] == '3') return true;
+            // MP3 Sync word: 0xFF 0xFB, 0xFF 0xFA, 0xFF 0xF3, etc...
+            if (header[0] == 0xFF && (header[1] & 0xE0) == 0xE0) return true;
+        }
+        return false;
+    };
+
+    for (const auto& pathWStr : paths) {
+        try {
+            std::filesystem::path p(pathWStr);
+            if (std::filesystem::is_directory(p)) {
+                for (auto it = std::filesystem::recursive_directory_iterator(p); it != std::filesystem::recursive_directory_iterator(); ++it) {
+                    if (it->is_regular_file()) {
+                        bool isMp3 = IsMp3File(it->path());
+                        bool isValid = IsValidMp3(it->path());
+                        char dbg[1024];
+                        sprintf_s(dbg, "File: %ls, IsMp3: %d, IsValid: %d\n", it->path().wstring().c_str(), isMp3, isValid);
+                        OutputDebugStringA(dbg);
+                        
+                        if (isMp3 && isValid) {
+                            if (m_playlistManager.Add(it->path().string())) {
+                                addedAny = true;
+                            }
+                        }
+                    }
+                }
+            } else if (std::filesystem::is_regular_file(p)) {
+                bool isMp3 = IsMp3File(p);
+                bool isValid = IsValidMp3(p);
+                char dbg[1024];
+                sprintf_s(dbg, "File: %ls, IsMp3: %d, IsValid: %d\n", p.wstring().c_str(), isMp3, isValid);
+                OutputDebugStringA(dbg);
+                
+                if (isMp3 && isValid) {
+                    if (m_playlistManager.Add(p.string())) {
+                        addedAny = true;
+                    }
+                }
+            }
+        } catch (...) {
+            // アクセス拒否などのエラーは無視
+        }
+    }
+
+    if (addedAny) {
+        wchar_t exePathBuf[MAX_PATH];
+        GetModuleFileNameW(NULL, exePathBuf, MAX_PATH);
+        std::filesystem::path exePath(exePathBuf);
+        std::filesystem::path playlistDir = exePath.parent_path() / L"playlists";
+        if (!std::filesystem::exists(playlistDir)) {
+            std::filesystem::create_directories(playlistDir);
+        }
+        m_playlistManager.SaveToFile((playlistDir / L"current_playlist.txt").string());
+
+        if (wasEmpty && !m_audioPlayer.IsPlaying()) {
+            std::string firstTrack = m_playlistManager.GetCurrentTrack();
+            if (m_tagManager.Load(firstTrack)) {
+                std::wstring title = m_tagManager.GetTitle();
+                std::wstring artist = m_tagManager.GetArtist();
+                if (title.empty()) title = std::filesystem::path(firstTrack).filename().wstring();
+                if (artist.empty()) artist = L"---";
+                m_renderer.SetTrackInfo(title, artist);
+
+                const auto& artBytes = m_tagManager.GetAlbumArtBytes();
+                if (!artBytes.empty()) {
+                    Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+                    if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
+                        m_renderer.SetAlbumArt(artBitmap.Get());
+                    } else {
+                        m_renderer.SetAlbumArt(nullptr);
+                    }
+                } else {
+                    m_renderer.SetAlbumArt(nullptr);
+                }
+            }
+            m_audioPlayer.Play(firstTrack);
+            PrefetchNextTrack();
+        }
+    }
 }
 
 void Application::Run() {

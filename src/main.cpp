@@ -13,8 +13,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // High DPI対応 (Per-Monitor V2) を有効化
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
-    // COMの初期化 (WICなどを使用するため)
-    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    // OLEの初期化 (ドラッグ＆ドロップおよびWIC等に必要)
+    HRESULT hr = OleInitialize(nullptr);
     if (FAILED(hr)) {
         return -1;
     }
@@ -33,6 +33,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     app.Run();
 
-    CoUninitialize();
+    OleUninitialize();
     return 0;
 }

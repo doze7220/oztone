@@ -36,6 +36,12 @@ private:
      */
     void PrefetchNextTrack();
 
+    /**
+     * @brief ファイルがドロップされた時の処理
+     * @param paths ドロップされたファイルのパスのリスト
+     */
+    void OnFilesDropped(const std::vector<std::wstring>& paths);
+
     ConfigManager m_config;
     Window m_window;
     Renderer m_renderer;
