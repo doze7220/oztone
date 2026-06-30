@@ -30,9 +30,41 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     }
 
     if (m_audioPlayer.Initialize()) {
-        // UIの初期表示（空状態）
-        m_renderer.SetTrackInfo(L"No Track", L"---");
-        m_renderer.SetAlbumArt(nullptr);
+        std::string defPlaylist = std::filesystem::path(m_config.GetDefaultPlaylistPath()).string();
+        m_playlistManager.LoadFromFile(defPlaylist);
+
+        if (!m_playlistManager.IsEmpty()) {
+            std::string firstTrack = m_playlistManager.GetCurrentTrack();
+            if (m_tagManager.Load(firstTrack)) {
+                std::wstring title = m_tagManager.GetTitle();
+                std::wstring artist = m_tagManager.GetArtist();
+                if (title.empty()) title = std::filesystem::path(firstTrack).filename().wstring();
+                if (artist.empty()) artist = L"---";
+                m_renderer.SetTrackInfo(title, artist);
+
+                const auto& artBytes = m_tagManager.GetAlbumArtBytes();
+                if (!artBytes.empty()) {
+                    Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+                    if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
+                        m_renderer.SetAlbumArt(artBitmap.Get());
+                    } else {
+                        m_renderer.SetAlbumArt(nullptr);
+                    }
+                } else {
+                    m_renderer.SetAlbumArt(nullptr);
+                }
+            } else {
+                std::wstring title = std::filesystem::path(firstTrack).filename().wstring();
+                m_renderer.SetTrackInfo(title, L"---");
+                m_renderer.SetAlbumArt(nullptr);
+            }
+            m_audioPlayer.Play(firstTrack);
+            PrefetchNextTrack();
+        } else {
+            // UIの初期表示（空状態）
+            m_renderer.SetTrackInfo(L"No Track", L"---");
+            m_renderer.SetAlbumArt(nullptr);
+        }
     }
 
     return true;
@@ -101,14 +133,12 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
     }
 
     if (addedAny) {
-        wchar_t exePathBuf[MAX_PATH];
-        GetModuleFileNameW(NULL, exePathBuf, MAX_PATH);
-        std::filesystem::path exePath(exePathBuf);
-        std::filesystem::path playlistDir = exePath.parent_path() / L"playlists";
-        if (!std::filesystem::exists(playlistDir)) {
+        std::filesystem::path defaultPath = m_config.GetDefaultPlaylistPath();
+        std::filesystem::path playlistDir = defaultPath.parent_path();
+        if (!playlistDir.empty() && !std::filesystem::exists(playlistDir)) {
             std::filesystem::create_directories(playlistDir);
         }
-        m_playlistManager.SaveToFile((playlistDir / L"current_playlist.txt").string());
+        m_playlistManager.SaveToFile(defaultPath.string());
 
         if (wasEmpty && !m_audioPlayer.IsPlaying()) {
             std::string firstTrack = m_playlistManager.GetCurrentTrack();

@@ -42,6 +42,12 @@ public:
     void SaveToFile(const std::string& outPath) const;
 
     /**
+     * @brief ファイルからプレイリストを読み込む
+     * @param inPath 読み込み元のファイルパス
+     */
+    void LoadFromFile(const std::string& inPath);
+
+    /**
      * @brief プレイリストが空かどうかを返す
      * @return 空の場合はtrue
      */

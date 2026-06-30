@@ -110,6 +110,22 @@ void ConfigManager::LoadSettings() {
 
     GetPrivateProfileStringW(L"Layout_SeekBar", L"TimeLetterSpacing", L"0.0", buf, 32, m_iniFilePath.c_str());
     try { m_seekBarTimeLetterSpacing = std::stof(buf); } catch (...) { m_seekBarTimeLetterSpacing = 0.0f; }
+
+    wchar_t pathBuf[MAX_PATH];
+    GetPrivateProfileStringW(L"Playlist", L"DefaultPlaylistPath", L"", pathBuf, MAX_PATH, m_iniFilePath.c_str());
+    std::wstring loadedPlaylistPath = pathBuf;
+    if (loadedPlaylistPath.empty()) {
+        std::wstring exePath = GetExecutablePath();
+        size_t pos = exePath.find_last_of(L"\\/");
+        if (pos != std::wstring::npos) {
+            m_defaultPlaylistPath = exePath.substr(0, pos) + L"\\oztone_playlist.lst";
+        } else {
+            m_defaultPlaylistPath = L"oztone_playlist.lst";
+        }
+        WritePrivateProfileStringW(L"Playlist", L"DefaultPlaylistPath", m_defaultPlaylistPath.c_str(), m_iniFilePath.c_str());
+    } else {
+        m_defaultPlaylistPath = loadedPlaylistPath;
+    }
 }
 
 void ConfigManager::SaveDefaultSettings() {
@@ -150,6 +166,16 @@ void ConfigManager::SaveDefaultSettings() {
     WritePrivateProfileStringW(L"Layout_SeekBar", L"TimeFontSize", L"12.0", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Layout_SeekBar", L"TimeAreaWidth", L"100", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Layout_SeekBar", L"TimeLetterSpacing", L"0.0", m_iniFilePath.c_str());
+
+    std::wstring exePath = GetExecutablePath();
+    std::wstring defPlaylistPath;
+    size_t pos = exePath.find_last_of(L"\\/");
+    if (pos != std::wstring::npos) {
+        defPlaylistPath = exePath.substr(0, pos) + L"\\oztone_playlist.lst";
+    } else {
+        defPlaylistPath = L"oztone_playlist.lst";
+    }
+    WritePrivateProfileStringW(L"Playlist", L"DefaultPlaylistPath", defPlaylistPath.c_str(), m_iniFilePath.c_str());
 }
 
 void ConfigManager::SaveWindowPosition(int x, int y, int width, int height) {

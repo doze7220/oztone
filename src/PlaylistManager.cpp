@@ -1,5 +1,6 @@
 #include "PlaylistManager.h"
 #include <fstream>
+#include <filesystem>
 
 PlaylistManager::PlaylistManager() : m_currentIndex(0) {}
 
@@ -37,6 +38,25 @@ void PlaylistManager::SaveToFile(const std::string& outPath) const {
     if (!ofs) return;
     for (const auto& path : m_playlist) {
         ofs << path << "\n";
+    }
+}
+
+void PlaylistManager::LoadFromFile(const std::string& inPath) {
+    std::ifstream ifs(inPath);
+    if (!ifs) return;
+
+    std::string line;
+    while (std::getline(ifs, line)) {
+        if (line.empty()) continue;
+
+        try {
+            std::filesystem::path p(line);
+            if (std::filesystem::exists(p) && std::filesystem::is_regular_file(p)) {
+                Add(line);
+            }
+        } catch (...) {
+            // パスが無効な場合は無視
+        }
     }
 }
 

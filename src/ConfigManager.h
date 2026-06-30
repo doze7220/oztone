@@ -60,6 +60,8 @@ public:
     int GetSeekBarTimeAreaWidth() const { return m_seekBarTimeAreaWidth; }
     float GetSeekBarTimeLetterSpacing() const { return m_seekBarTimeLetterSpacing; }
 
+    std::wstring GetDefaultPlaylistPath() const { return m_defaultPlaylistPath; }
+
 private:
     std::wstring m_iniFilePath;
 
@@ -101,6 +103,8 @@ private:
     float m_seekBarTimeFontSize;
     int m_seekBarTimeAreaWidth;
     float m_seekBarTimeLetterSpacing;
+
+    std::wstring m_defaultPlaylistPath;
 
     std::wstring GetExecutablePath() const;
     void LoadSettings();
