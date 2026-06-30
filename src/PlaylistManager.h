@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <random>
 
 /**
  * @brief 再生待ちキュー（プレイリスト）を管理するクラス
@@ -25,7 +26,7 @@ public:
     std::string GetCurrentTrack() const;
 
     /**
-     * @brief キューを次の曲へ進める（末尾の場合は先頭に戻る）
+     * @brief キューを次の曲へ進める（末尾の場合は次周のシャッフルリストに移行する）
      */
     void Advance();
 
@@ -55,9 +56,25 @@ public:
      */
     size_t GetCount() const;
 
+    /**
+     * @brief 現在および次周のシャッフルリストを初期化・生成する
+     */
+    void InitializeShuffle();
+
+    /**
+     * @brief 次周のシャッフルリストのみをシャッフルし直す
+     */
+    void ShuffleNextLoop();
 
 private:
+    void GenerateShuffleList(std::vector<size_t>& targetList);
+
     std::vector<std::string> m_playlist;
     std::set<std::string> m_playlistSet;
-    size_t m_currentIndex;
+    
+    std::vector<size_t> m_shuffleIndices;
+    std::vector<size_t> m_nextShuffleIndices;
+    size_t m_shuffleIndex;
+
+    std::mt19937 m_mt;
 };

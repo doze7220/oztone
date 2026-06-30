@@ -159,6 +159,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
             std::filesystem::create_directories(playlistDir);
         }
         m_playlistManager.SaveToFile(defaultPath.string());
+        m_playlistManager.ShuffleNextLoop();
 
         if (wasEmpty && !m_audioPlayer.IsPlaying()) {
             size_t skipCount = 0;
