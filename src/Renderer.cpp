@@ -171,6 +171,23 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     );
     if (FAILED(hr)) return false;
 
+    hr = m_dwriteFactory->CreateTextFormat(
+        m_config->GetSeekBarTimeFontFamily().c_str(),
+        nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        m_config->GetSeekBarTimeFontSize(),
+        L"en-us",
+        &m_timeTextFormat
+    );
+    if (FAILED(hr)) return false;
+
+    hr = m_timeTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
+    if (FAILED(hr)) return false;
+    hr = m_timeTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+    if (FAILED(hr)) return false;
+
     hr = m_d2dContext->CreateSolidColorBrush(
         D2D1::ColorF(D2D1::ColorF::White),
         &m_textBrush
@@ -244,7 +261,7 @@ bool Renderer::LoadBitmapResource(const std::wstring& filename, int resourceId, 
     return SUCCEEDED(hr);
 }
 
-void Renderer::Render(bool isHovered) {
+void Renderer::Render(bool isHovered, float progress, const std::wstring& timeString) {
     if (!m_d2dContext) return;
 
     m_d2dContext->BeginDraw();
@@ -342,6 +359,58 @@ void Renderer::Render(bool isHovered) {
             &artistRect,
             m_textBrush.Get()
         );
+    }
+
+    // 6. シークバーと時間テキストの描画
+    if (m_textBrush && m_timeTextFormat && m_config) {
+        D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
+        renderTargetSize.width /= m_dpiScale;
+        renderTargetSize.height /= m_dpiScale;
+
+        float totalWidth = renderTargetSize.width * m_config->GetSeekBarWidthRatio();
+        float startX = (renderTargetSize.width - totalWidth) / 2.0f;
+        float barAreaWidth = totalWidth - static_cast<float>(m_config->GetSeekBarTimeAreaWidth());
+        float y = renderTargetSize.height - static_cast<float>(m_config->GetSeekBarBottomOffset());
+        float h = static_cast<float>(m_config->GetSeekBarHeight());
+
+        // シークバーの背景 (BgOpacity)
+        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> bgBrush;
+        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, m_config->GetSeekBarBgOpacity()), &bgBrush);
+        if (bgBrush) {
+            D2D1_RECT_F bgRect = D2D1::RectF(startX, y, startX + barAreaWidth, y + h);
+            m_d2dContext->FillRectangle(&bgRect, bgBrush.Get());
+        }
+
+        // シークバーの現在位置 (不透明な白)
+        D2D1_RECT_F fgRect = D2D1::RectF(startX, y, startX + barAreaWidth * progress, y + h);
+        m_d2dContext->FillRectangle(&fgRect, m_textBrush.Get());
+
+        // 時間テキストの描画
+        Microsoft::WRL::ComPtr<IDWriteTextLayout> textLayout;
+        HRESULT hrLayout = m_dwriteFactory->CreateTextLayout(
+            timeString.c_str(),
+            static_cast<UINT32>(timeString.length()),
+            m_timeTextFormat.Get(),
+            totalWidth - barAreaWidth,
+            h,
+            &textLayout
+        );
+
+        if (SUCCEEDED(hrLayout)) {
+            Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
+            if (SUCCEEDED(textLayout.As(&textLayout1))) {
+                DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(timeString.length())};
+                textLayout1->SetCharacterSpacing(0.0f, m_config->GetSeekBarTimeLetterSpacing(), 0.0f, textRange);
+            }
+
+            D2D1_POINT_2F origin = D2D1::Point2F(startX + barAreaWidth, y);
+            m_d2dContext->DrawTextLayout(
+                origin,
+                textLayout.Get(),
+                m_textBrush.Get(),
+                D2D1_DRAW_TEXT_OPTIONS_NONE
+            );
+        }
     }
 
     HRESULT hr = m_d2dContext->EndDraw();

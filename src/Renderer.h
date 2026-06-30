@@ -8,6 +8,7 @@
 #include <wincodec.h>
 #include <wrl/client.h>
 #include <dwrite.h>
+#include <dwrite_1.h>
 #include <string>
 
 class ConfigManager;
@@ -35,8 +36,10 @@ public:
     /**
      * @brief 毎フレーム呼び出される描画処理
      * @param isHovered ロゴ領域がホバーされているか
+     * @param progress 再生進捗度 (0.0f - 1.0f)
+     * @param timeString フォーマット済みの再生時間文字列
      */
-    void Render(bool isHovered);
+    void Render(bool isHovered, float progress, const std::wstring& timeString);
 
 private:
     // D3D11 リソース
@@ -55,10 +58,10 @@ private:
     Microsoft::WRL::ComPtr<ID2D1DeviceContext> m_d2dContext;
     Microsoft::WRL::ComPtr<ID2D1Bitmap1> m_d2dTargetBitmap;
 
-    // DWrite リソース
     Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_titleTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_artistTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_timeTextFormat;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_textBrush;
 
     // WIC および 画像リソース

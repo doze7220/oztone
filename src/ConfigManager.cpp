@@ -7,7 +7,11 @@ ConfigManager::ConfigManager()
       m_logoX(16), m_logoY(16), m_logoWidth(64), m_logoHeight(64),
       m_baseX(30), m_baseY(350), m_artOffsetX(0), m_artOffsetY(0), m_artSize(120), m_bgOpacity(0.3f),
       m_titleOffsetX(140), m_titleOffsetY(10), m_titleFontSize(32.0f),
-      m_artistOffsetX(140), m_artistOffsetY(55), m_artistFontSize(18.0f) {
+      m_artistOffsetX(140), m_artistOffsetY(55), m_artistFontSize(18.0f),
+      m_seekBarWidthRatio(0.95f), m_seekBarHeight(3), m_seekBarBottomOffset(50),
+      m_seekBarBgOpacity(0.3f), m_seekBarTimeFontFamily(L"Consolas"),
+      m_seekBarTimeFontSize(12.0f), m_seekBarTimeAreaWidth(100),
+      m_seekBarTimeLetterSpacing(0.0f) {
 }
 
 ConfigManager::~ConfigManager() {}
@@ -82,6 +86,26 @@ void ConfigManager::LoadSettings() {
     m_artistOffsetY = GetPrivateProfileIntW(L"Layout_NowPlaying", L"ArtistOffsetY", 55, m_iniFilePath.c_str());
     GetPrivateProfileStringW(L"Layout_NowPlaying", L"ArtistFontSize", L"18.0", buf, 32, m_iniFilePath.c_str());
     try { m_artistFontSize = std::stof(buf); } catch (...) { m_artistFontSize = 18.0f; }
+
+    GetPrivateProfileStringW(L"Layout_SeekBar", L"WidthRatio", L"0.95", buf, 32, m_iniFilePath.c_str());
+    try { m_seekBarWidthRatio = std::stof(buf); } catch (...) { m_seekBarWidthRatio = 0.95f; }
+    
+    m_seekBarHeight = GetPrivateProfileIntW(L"Layout_SeekBar", L"Height", 3, m_iniFilePath.c_str());
+    m_seekBarBottomOffset = GetPrivateProfileIntW(L"Layout_SeekBar", L"BottomOffset", 50, m_iniFilePath.c_str());
+    
+    GetPrivateProfileStringW(L"Layout_SeekBar", L"BgOpacity", L"0.3", buf, 32, m_iniFilePath.c_str());
+    try { m_seekBarBgOpacity = std::stof(buf); } catch (...) { m_seekBarBgOpacity = 0.3f; }
+    
+    GetPrivateProfileStringW(L"Layout_SeekBar", L"TimeFontFamily", L"Consolas", buf, 32, m_iniFilePath.c_str());
+    m_seekBarTimeFontFamily = buf;
+    
+    GetPrivateProfileStringW(L"Layout_SeekBar", L"TimeFontSize", L"12.0", buf, 32, m_iniFilePath.c_str());
+    try { m_seekBarTimeFontSize = std::stof(buf); } catch (...) { m_seekBarTimeFontSize = 12.0f; }
+    
+    m_seekBarTimeAreaWidth = GetPrivateProfileIntW(L"Layout_SeekBar", L"TimeAreaWidth", 100, m_iniFilePath.c_str());
+
+    GetPrivateProfileStringW(L"Layout_SeekBar", L"TimeLetterSpacing", L"0.0", buf, 32, m_iniFilePath.c_str());
+    try { m_seekBarTimeLetterSpacing = std::stof(buf); } catch (...) { m_seekBarTimeLetterSpacing = 0.0f; }
 }
 
 void ConfigManager::SaveDefaultSettings() {
@@ -112,6 +136,15 @@ void ConfigManager::SaveDefaultSettings() {
     WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtistOffsetX", L"140", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtistOffsetY", L"55", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtistFontSize", L"18.0", m_iniFilePath.c_str());
+
+    WritePrivateProfileStringW(L"Layout_SeekBar", L"WidthRatio", L"0.95", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_SeekBar", L"Height", L"3", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_SeekBar", L"BottomOffset", L"50", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_SeekBar", L"BgOpacity", L"0.3", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_SeekBar", L"TimeFontFamily", L"Consolas", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_SeekBar", L"TimeFontSize", L"12.0", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_SeekBar", L"TimeAreaWidth", L"100", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_SeekBar", L"TimeLetterSpacing", L"0.0", m_iniFilePath.c_str());
 }
 
 void ConfigManager::SaveWindowPosition(int x, int y, int width, int height) {

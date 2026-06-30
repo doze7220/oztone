@@ -50,6 +50,15 @@ public:
     int GetArtistOffsetY() const { return m_artistOffsetY; }
     float GetArtistFontSize() const { return m_artistFontSize; }
 
+    float GetSeekBarWidthRatio() const { return m_seekBarWidthRatio; }
+    int GetSeekBarHeight() const { return m_seekBarHeight; }
+    int GetSeekBarBottomOffset() const { return m_seekBarBottomOffset; }
+    float GetSeekBarBgOpacity() const { return m_seekBarBgOpacity; }
+    const std::wstring& GetSeekBarTimeFontFamily() const { return m_seekBarTimeFontFamily; }
+    float GetSeekBarTimeFontSize() const { return m_seekBarTimeFontSize; }
+    int GetSeekBarTimeAreaWidth() const { return m_seekBarTimeAreaWidth; }
+    float GetSeekBarTimeLetterSpacing() const { return m_seekBarTimeLetterSpacing; }
+
 private:
     std::wstring m_iniFilePath;
 
@@ -81,6 +90,15 @@ private:
     int m_artistOffsetX;
     int m_artistOffsetY;
     float m_artistFontSize;
+
+    float m_seekBarWidthRatio;
+    int m_seekBarHeight;
+    int m_seekBarBottomOffset;
+    float m_seekBarBgOpacity;
+    std::wstring m_seekBarTimeFontFamily;
+    float m_seekBarTimeFontSize;
+    int m_seekBarTimeAreaWidth;
+    float m_seekBarTimeLetterSpacing;
 
     std::wstring GetExecutablePath() const;
     void LoadSettings();
