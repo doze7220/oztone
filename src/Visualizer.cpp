@@ -270,8 +270,13 @@ void Visualizer::DrawCircleParticle(ID2D1DeviceContext* context, const std::vect
     else if(240 <= hue && hue < 300) { r = x_val; g = 0; b = c; }
     else { r = c; g = 0; b = x_val; }
     
-    D2D1_COLOR_F themeColorFill = D2D1::ColorF(r + m, g + m, b + m, CIRCLE_FILL_OPACITY);
-    D2D1_COLOR_F themeColorGlow = D2D1::ColorF(r + m, g + m, b + m, CIRCLE_GLOW_OPACITY);
+    // Additive synthesis with #888888 (0.533f) base for realistic neon glow
+    float finalR = (std::min)(1.0f, r + m + 0.533f);
+    float finalG = (std::min)(1.0f, g + m + 0.533f);
+    float finalB = (std::min)(1.0f, b + m + 0.533f);
+
+    D2D1_COLOR_F themeColorFill = D2D1::ColorF(finalR, finalG, finalB, CIRCLE_FILL_OPACITY);
+    D2D1_COLOR_F themeColorGlow = D2D1::ColorF(finalR, finalG, finalB, CIRCLE_GLOW_OPACITY);
 
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> fillBrush;
     context->CreateSolidColorBrush(themeColorFill, &fillBrush);
@@ -419,7 +424,7 @@ void Visualizer::DrawCircleParticle(ID2D1DeviceContext* context, const std::vect
         
         float fade = it->life / it->maxLife;
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> currentRayBrush;
-        context->CreateSolidColorBrush(D2D1::ColorF(r + m, g + m, b + m, CIRCLE_LASER_OPACITY * fade), &currentRayBrush);
+        context->CreateSolidColorBrush(D2D1::ColorF(finalR, finalG, finalB, CIRCLE_LASER_OPACITY * fade), &currentRayBrush);
         
         D2D1_RECT_F rayRect = D2D1::RectF(centerX - 1.0f, centerY - baseRadius - it->distance - it->length, centerX + 1.0f, centerY - baseRadius - it->distance);
         if (currentRayBrush) {
@@ -497,8 +502,8 @@ void Visualizer::DrawCircleParticle(ID2D1DeviceContext* context, const std::vect
             Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> pGlowBrush;
             Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> pCoreBrush;
             float lifeFade = it->life / it->maxLife;
-            context->CreateSolidColorBrush(D2D1::ColorF(r + m, g + m, b + m, lifeFade * CIRCLE_FILL_OPACITY), &pFillBrush);
-            context->CreateSolidColorBrush(D2D1::ColorF(r + m, g + m, b + m, lifeFade * CIRCLE_GLOW_OPACITY), &pGlowBrush);
+            context->CreateSolidColorBrush(D2D1::ColorF(finalR, finalG, finalB, lifeFade * CIRCLE_FILL_OPACITY), &pFillBrush);
+            context->CreateSolidColorBrush(D2D1::ColorF(finalR, finalG, finalB, lifeFade * CIRCLE_GLOW_OPACITY), &pGlowBrush);
             context->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, lifeFade), &pCoreBrush);
             
             if (pFillBrush && pGlowBrush && pCoreBrush) {
