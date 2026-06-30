@@ -274,6 +274,19 @@ bool Window::IsInLogoRegion(int x, int y) const {
 
 LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
+        case WM_WINDOWPOSCHANGING: {
+            if (m_config && m_config->GetZOrder() == 2) {
+                WINDOWPOS* pos = reinterpret_cast<WINDOWPOS*>(lParam);
+                pos->hwndInsertAfter = HWND_BOTTOM;
+            }
+            break;
+        }
+        case WM_MOUSEACTIVATE: {
+            if (m_config && m_config->GetZOrder() == 2) {
+                return MA_NOACTIVATE;
+            }
+            break;
+        }
         case WM_MOUSEMOVE: {
             if (m_config) {
                 int xPos = GET_X_LPARAM(lParam);
