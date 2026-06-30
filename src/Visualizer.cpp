@@ -64,7 +64,7 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
     size_t spectrumSize = spectrum.size();
     float hzResolution = 44100.0f / 8192.0f;
     float minHz = 20.0f;
-    float maxHz = 20000.0f;
+    float maxHz = 11000.0f;
     float WAVE_STEP_X = 4.0f;
 
     struct BandConfig {
@@ -82,7 +82,7 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
         {500.0f,   2000.0f, 3, 1.00f, 0.0f},
         {2000.0f,  4000.0f, 4, 1.20f, 0.0f},
         {4000.0f,  6000.0f, 5, 1.40f, 0.0f},
-        {6000.0f,  20000.0f,6, 1.60f, 0.0f}
+        {6000.0f,  11000.0f,6, 1.60f, 0.0f}
     };
 
     struct ColorSegment {
@@ -94,59 +94,83 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
     int currentColor = -1;
     ColorSegment* currentSegment = nullptr;
     int flip = 0;
+    int x_index = 0;
 
     for (float x = drawRect.left; x <= drawRect.right; x += WAVE_STEP_X) {
         float t = (x - drawRect.left) / width;
         float y = centerY;
         int bandColor = 6;
         
-        if (t <= 0.05f || t >= 0.95f) {
-            // マージン領域
-            if (isPlaying) {
-                y += noiseDist(rng);
-            }
-            bandColor = (t <= 0.05f) ? 0 : 6;
+        if (x_index >= m_smoothedAmplitudes.size()) {
+            m_smoothedAmplitudes.push_back(0.0f);
+        }
+        
+        float ct = (t - 0.05f) / 0.90f;
+        float clamped_ct = (std::max)(0.0f, (std::min)(ct, 1.0f));
+        
+        float freq = minHz * std::pow(maxHz / minHz, clamped_ct);
+        
+        // 色と帯域パラメータを、X座標(clamped_ct)の均等7分割で決定する
+        int colorIndex = static_cast<int>(clamped_ct * 7.0f);
+        if (colorIndex < 0) colorIndex = 0;
+        if (colorIndex > 6) colorIndex = 6;
+        
+        const BandConfig* band = &BANDS[colorIndex];
+        bandColor = band->colorIndex;
+        
+        float floatIndex = freq / hzResolution;
+        if (floatIndex < 0.0f) floatIndex = 0.0f;
+        if (floatIndex > spectrumSize - 1) floatIndex = spectrumSize - 1;
+        
+        size_t idx1 = static_cast<size_t>(floatIndex);
+        size_t idx2 = idx1 + 1;
+        if (idx2 > spectrumSize - 1) idx2 = spectrumSize - 1;
+        
+        float frac = floatIndex - idx1;
+        float val = spectrum[idx1] + frac * (spectrum[idx2] - spectrum[idx1]);
+        
+        float raw_amp = std::sqrt(val) / 60.0f;
+        
+        // アタック＆ディケイ処理（落下減衰）
+        if (raw_amp > m_smoothedAmplitudes[x_index]) {
+            m_smoothedAmplitudes[x_index] = raw_amp; // 瞬時に跳ね上がる（アタック）
         } else {
-            // 中央90%領域
-            float ct = (t - 0.05f) / 0.90f;
-            float freq = minHz * std::pow(maxHz / minHz, ct);
-            
-            const BandConfig* band = &BANDS[6];
-            for (int b = 0; b < 7; ++b) {
-                if (freq >= BANDS[b].minHz && freq <= BANDS[b].maxHz) {
-                    band = &BANDS[b];
-                    break;
-                }
-            }
-            bandColor = band->colorIndex;
-            
-            float floatIndex = freq / hzResolution;
-            if (floatIndex < 0.0f) floatIndex = 0.0f;
-            if (floatIndex > spectrumSize - 1) floatIndex = spectrumSize - 1;
-            
-            size_t idx1 = static_cast<size_t>(floatIndex);
-            size_t idx2 = idx1 + 1;
-            if (idx2 > spectrumSize - 1) idx2 = spectrumSize - 1;
-            
-            float frac = floatIndex - idx1;
-            float val = spectrum[idx1] + frac * (spectrum[idx2] - spectrum[idx1]);
-            
-            float normalized = std::sqrt(val) / 60.0f;
-            if (normalized <= band->threshold) {
-                normalized = 0.0f;
-            } else {
-                normalized *= band->ratio;
-            }
-            
-            float boost = 1.0f + ct * HIGH_FREQ_BOOST;
-            float amplitude = normalized * boost * (height * 0.3f) * AMPLITUDE_MULTIPLIER;
-            amplitude = (std::min)(amplitude, height * AMPLITUDE_MAX_RATIO);
-            
-            if (flip % 2 == 0) {
-                y -= amplitude;
-            } else {
-                y += amplitude;
-            }
+            m_smoothedAmplitudes[x_index] -= m_smoothedAmplitudes[x_index] * 0.15f; // 滑らかに落ちる（ディケイ）
+        }
+        
+        float normalized = m_smoothedAmplitudes[x_index];
+        if (normalized <= band->threshold) {
+            normalized = 0.0f;
+        } else {
+            normalized *= band->ratio;
+        }
+        
+        float boost = 1.0f + clamped_ct * HIGH_FREQ_BOOST;
+        float amplitude = normalized * boost * (height * 0.3f) * AMPLITUDE_MULTIPLIER;
+        amplitude = (std::min)(amplitude, height * AMPLITUDE_MAX_RATIO);
+        
+        // 減衰係数（フェードアウト）の計算
+        float fade = 1.0f;
+        if (t < 0.05f) {
+            fade = t / 0.05f; // 左端で0.0、境界で1.0
+        } else if (t > 0.95f) {
+            fade = (1.0f - t) / 0.05f; // 右端で0.0、境界で1.0
+        }
+        // スムーズなカーブにする
+        fade = fade * fade;
+        
+        amplitude *= fade;
+        
+        // アナログノイズもfadeを使って画面端で自然に直線へ収束させる
+        float noise = 0.0f;
+        if (isPlaying) {
+            noise = noiseDist(rng) * fade;
+        }
+        
+        if (flip % 2 == 0) {
+            y -= (amplitude + noise);
+        } else {
+            y += (amplitude + noise);
         }
         
         D2D1_POINT_2F p = D2D1::Point2F(x, y);
@@ -164,6 +188,7 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
         }
         currentSegment->points.push_back(p);
         flip++;
+        x_index++;
     }
 
     Microsoft::WRL::ComPtr<ID2D1Factory> factory;

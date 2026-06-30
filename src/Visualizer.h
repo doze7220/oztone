@@ -29,5 +29,6 @@ public:
 private:
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_neonBrushes[7];
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_coreBrush;
+    std::vector<float> m_smoothedAmplitudes;
     bool m_initialized;
 };
