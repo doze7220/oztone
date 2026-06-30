@@ -288,6 +288,17 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             }
             break;
         }
+        case WM_COPYDATA: {
+            COPYDATASTRUCT* pcds = reinterpret_cast<COPYDATASTRUCT*>(lParam);
+            if (pcds && pcds->lpData && m_onCopyDataCallback) {
+                std::wstring path(reinterpret_cast<LPCWSTR>(pcds->lpData), pcds->cbData / sizeof(wchar_t));
+                if (!path.empty() && path.back() == L'\0') {
+                    path.pop_back();
+                }
+                m_onCopyDataCallback(path);
+            }
+            return 1;
+        }
         case WM_DESTROY: {
             Shell_NotifyIconW(NIM_DELETE, &m_nid);
             if (m_config) {

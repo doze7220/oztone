@@ -25,6 +25,11 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         this->OnFilesDropped(files);
     });
     
+    m_window.SetCopyDataCallback([this](const std::wstring& path) {
+        std::vector<std::wstring> files = { path };
+        this->OnFilesDropped(files);
+    });
+    
     m_window.SetMediaCommandCallback([this](int cmd) {
         if (cmd == APPCOMMAND_MEDIA_PLAY_PAUSE) {
             m_audioPlayer.TogglePlayPause();
@@ -429,4 +434,15 @@ void Application::PrefetchNextTrack() {
             CoUninitialize();
         }
     });
+}
+
+void Application::ProcessCommandLineArgs(int argc, LPWSTR* argv) {
+    if (argc <= 1 || !argv) return;
+    std::vector<std::wstring> files;
+    for (int i = 1; i < argc; ++i) {
+        files.push_back(argv[i]);
+    }
+    if (!files.empty()) {
+        OnFilesDropped(files);
+    }
 }

@@ -90,6 +90,13 @@ public:
         m_onMediaCommand = cb;
     }
 
+    /**
+     * @brief 外部プロセスからファイルパス文字列（WM_COPYDATA）を受信した際のコールバックを設定する
+     */
+    void SetCopyDataCallback(std::function<void(const std::wstring&)> cb) {
+        m_onCopyDataCallback = cb;
+    }
+
 private:
     static LRESULT CALLBACK WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -103,6 +110,7 @@ private:
     bool m_isTrackingMouse;
     std::function<void(const std::vector<std::wstring>&)> m_onFilesDropped;
     std::function<void(int)> m_onMediaCommand;
+    std::function<void(const std::wstring&)> m_onCopyDataCallback;
     DropTarget* m_pDropTarget;
 
     static constexpr UINT WM_TRAYICON = WM_APP + 1;

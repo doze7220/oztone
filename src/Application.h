@@ -30,6 +30,13 @@ public:
      */
     void Run();
 
+    /**
+     * @brief 起動直後のコマンドライン引数を処理する
+     * @param argc 引数の数
+     * @param argv 引数の文字列配列
+     */
+    void ProcessCommandLineArgs(int argc, LPWSTR* argv);
+
 private:
     /**
      * @brief 次の曲のタグ情報と画像を先読みする
