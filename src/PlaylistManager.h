@@ -13,6 +13,11 @@ public:
     ~PlaylistManager();
 
     /**
+     * @brief プレイリストの内部キューおよびシャッフルインデックスを全て空にする
+     */
+    void Clear();
+
+    /**
      * @brief プレイリストに曲のファイルパスを追加する
      * @param filepath 曲のファイルパス（絶対パス推奨）
      * @return 追加に成功した（重複しなかった）場合はtrue、既に存在した場合はfalse

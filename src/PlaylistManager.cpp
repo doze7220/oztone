@@ -11,6 +11,14 @@ PlaylistManager::PlaylistManager() : m_shuffleIndex(0) {
 
 PlaylistManager::~PlaylistManager() {}
 
+void PlaylistManager::Clear() {
+    m_playlist.clear();
+    m_playlistSet.clear();
+    m_shuffleIndices.clear();
+    m_nextShuffleIndices.clear();
+    m_shuffleIndex = 0;
+}
+
 void PlaylistManager::GenerateShuffleList(std::vector<size_t>& targetList) {
     targetList.clear();
     if (m_playlist.empty()) return;

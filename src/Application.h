@@ -37,6 +37,11 @@ public:
      */
     void ProcessCommandLineArgs(int argc, LPWSTR* argv);
 
+    /**
+     * @brief プレイリストをクリアし、UIを初期状態に戻す
+     */
+    void ClearPlaylist();
+
 private:
     /**
      * @brief 次の曲のタグ情報と画像を先読みする

@@ -30,6 +30,10 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         this->OnFilesDropped(files);
     });
     
+    m_window.SetClearPlaylistCallback([this]() {
+        this->ClearPlaylist();
+    });
+    
     m_window.SetMediaCommandCallback([this](int cmd) {
         if (cmd == APPCOMMAND_MEDIA_PLAY_PAUSE) {
             m_audioPlayer.TogglePlayPause();
@@ -445,4 +449,17 @@ void Application::ProcessCommandLineArgs(int argc, LPWSTR* argv) {
     if (!files.empty()) {
         OnFilesDropped(files);
     }
+}
+
+void Application::ClearPlaylist() {
+    m_playlistManager.Clear();
+    
+    std::string defaultPath = std::filesystem::path(m_config.GetDefaultPlaylistPath()).string();
+    m_playlistManager.SaveToFile(defaultPath);
+    
+    m_audioPlayer.Stop();
+    
+    m_isPrefetchReady.store(false);
+    m_renderer.SetTrackInfo(L"No Track", L"---");
+    m_renderer.SetAlbumArt(nullptr);
 }

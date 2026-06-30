@@ -12,6 +12,7 @@ constexpr UINT TRAY_MENU_ORDER[] = {
     Window::ID_TRAY_SAVE_POS,
     Window::ID_TRAY_RESET_POS,
     Window::ID_TRAY_RESET_ALL,
+    Window::ID_TRAY_CLEAR_PLAYLIST,
     0, // separator
     Window::ID_TRAY_EXIT
 };
@@ -319,6 +320,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                             case ID_TRAY_SAVE_POS: text = L"位置とサイズを記憶する (Save Position)"; break;
                             case ID_TRAY_RESET_POS: text = L"位置とサイズをリセット (Reset Position)"; break;
                             case ID_TRAY_RESET_ALL: text = L"設定を初期化 (Reset All Settings)"; break;
+                            case ID_TRAY_CLEAR_PLAYLIST: text = L"プレイリストをクリア (Clear Playlist)"; break;
                             case ID_TRAY_EXIT: text = L"終了 (Exit)"; break;
                         }
                         AppendMenuW(hMenu, MF_STRING, id, text.c_str());
@@ -381,6 +383,12 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                     }
                     MessageBoxW(hwnd, L"設定を初期化しました。アプリを再起動します。", L"通知", MB_OK | MB_ICONINFORMATION);
                     PostMessage(hwnd, WM_CLOSE, 0, 0);
+                    break;
+                }
+                case ID_TRAY_CLEAR_PLAYLIST: {
+                    if (m_onClearPlaylistCommand) {
+                        m_onClearPlaylistCommand();
+                    }
                     break;
                 }
             }

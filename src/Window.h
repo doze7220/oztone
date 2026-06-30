@@ -53,6 +53,7 @@ public:
     static constexpr UINT ID_TRAY_SAVE_POS = 1013;
     static constexpr UINT ID_TRAY_RESET_POS = 1014;
     static constexpr UINT ID_TRAY_RESET_ALL = 1015;
+    static constexpr UINT ID_TRAY_CLEAR_PLAYLIST = 1016;
     static constexpr UINT ID_TRAY_EXIT = 1001;
 
     /**
@@ -105,6 +106,13 @@ public:
         m_onCopyDataCallback = cb;
     }
 
+    /**
+     * @brief プレイリスト初期化コマンドが入力された時のコールバックを設定する
+     */
+    void SetClearPlaylistCallback(std::function<void()> cb) {
+        m_onClearPlaylistCommand = cb;
+    }
+
 private:
     static LRESULT CALLBACK WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -119,6 +127,7 @@ private:
     std::function<void(const std::vector<std::wstring>&)> m_onFilesDropped;
     std::function<void(int)> m_onMediaCommand;
     std::function<void(const std::wstring&)> m_onCopyDataCallback;
+    std::function<void()> m_onClearPlaylistCommand;
     DropTarget* m_pDropTarget;
 
     static constexpr UINT WM_TRAYICON = WM_APP + 1;
