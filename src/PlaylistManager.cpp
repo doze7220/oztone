@@ -63,3 +63,7 @@ void PlaylistManager::LoadFromFile(const std::string& inPath) {
 bool PlaylistManager::IsEmpty() const {
     return m_playlist.empty();
 }
+
+size_t PlaylistManager::GetCount() const {
+    return m_playlist.size();
+}

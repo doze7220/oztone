@@ -47,11 +47,14 @@ public:
      */
     void LoadFromFile(const std::string& inPath);
 
-    /**
-     * @brief プレイリストが空かどうかを返す
-     * @return 空の場合はtrue
-     */
     bool IsEmpty() const;
+
+    /**
+     * @brief プレイリストの曲数を取得する
+     * @return 曲数
+     */
+    size_t GetCount() const;
+
 
 private:
     std::vector<std::string> m_playlist;
