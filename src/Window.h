@@ -83,6 +83,13 @@ public:
         m_onFilesDropped = cb;
     }
 
+    /**
+     * @brief メディアキーのコマンドが入力された時のコールバックを設定する
+     */
+    void SetMediaCommandCallback(std::function<void(int)> cb) {
+        m_onMediaCommand = cb;
+    }
+
 private:
     static LRESULT CALLBACK WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -95,6 +102,7 @@ private:
     bool m_isHovered;
     bool m_isTrackingMouse;
     std::function<void(const std::vector<std::wstring>&)> m_onFilesDropped;
+    std::function<void(int)> m_onMediaCommand;
     DropTarget* m_pDropTarget;
 
     static constexpr UINT WM_TRAYICON = WM_APP + 1;

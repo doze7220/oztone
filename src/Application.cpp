@@ -25,6 +25,78 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         this->OnFilesDropped(files);
     });
     
+    m_window.SetMediaCommandCallback([this](int cmd) {
+        if (cmd == APPCOMMAND_MEDIA_PLAY_PAUSE) {
+            m_audioPlayer.TogglePlayPause();
+        } else if (cmd == APPCOMMAND_MEDIA_STOP) {
+            m_audioPlayer.Stop();
+        } else if (cmd == APPCOMMAND_MEDIA_NEXTTRACK || cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) {
+            if (cmd == APPCOMMAND_MEDIA_NEXTTRACK) {
+                m_playlistManager.Advance();
+            } else {
+                m_playlistManager.Previous();
+            }
+            
+            size_t skipCount = 0;
+            bool played = false;
+            size_t totalCount = m_playlistManager.GetCount();
+            
+            m_audioPlayer.Stop();
+            
+            while (skipCount < totalCount) {
+                std::string track = m_playlistManager.GetCurrentTrack();
+
+                if (cmd == APPCOMMAND_MEDIA_NEXTTRACK && skipCount == 0 && m_isPrefetchReady.load()) {
+                    m_renderer.SetTrackInfo(m_prefetchedTitle, m_prefetchedArtist);
+                    m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
+                } else {
+                    if (m_tagManager.Load(track)) {
+                        std::wstring title = m_tagManager.GetTitle();
+                        std::wstring artist = m_tagManager.GetArtist();
+                        if (title.empty()) title = std::filesystem::path(track).filename().wstring();
+                        if (artist.empty()) artist = L"---";
+                        m_renderer.SetTrackInfo(title, artist);
+
+                        const auto& artBytes = m_tagManager.GetAlbumArtBytes();
+                        if (!artBytes.empty()) {
+                            Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+                            if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
+                                m_renderer.SetAlbumArt(artBitmap.Get());
+                            } else {
+                                m_renderer.SetAlbumArt(nullptr);
+                            }
+                        } else {
+                            m_renderer.SetAlbumArt(nullptr);
+                        }
+                    } else {
+                        std::wstring title;
+                        try { title = std::filesystem::path(track).filename().wstring(); } catch(...) { title = L"Unknown"; }
+                        m_renderer.SetTrackInfo(title, L"---");
+                        m_renderer.SetAlbumArt(nullptr);
+                    }
+                }
+
+                if (m_audioPlayer.Play(track)) {
+                    PrefetchNextTrack();
+                    played = true;
+                    break;
+                }
+
+                if (cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) {
+                    m_playlistManager.Previous();
+                } else {
+                    m_playlistManager.Advance();
+                }
+                skipCount++;
+            }
+
+            if (!played) {
+                m_renderer.SetTrackInfo(L"No Track", L"---");
+                m_renderer.SetAlbumArt(nullptr);
+            }
+        }
+    });
+    
     if (!m_renderer.Initialize(m_window.GetHandle(), m_config)) {
         return false;
     }

@@ -73,6 +73,16 @@ void PlaylistManager::Advance() {
     }
 }
 
+void PlaylistManager::Previous() {
+    if (m_playlist.empty() || m_shuffleIndices.empty()) return;
+    
+    if (m_shuffleIndex == 0) {
+        m_shuffleIndex = m_shuffleIndices.size() - 1;
+    } else {
+        m_shuffleIndex--;
+    }
+}
+
 std::string PlaylistManager::GetNextTrack() const {
     if (m_playlist.empty() || m_shuffleIndices.empty()) return "";
     

@@ -38,6 +38,21 @@ void AudioPlayer::Uninitialize() {
     }
 }
 
+void AudioPlayer::TogglePlayPause() {
+    if (!m_isSoundLoaded) return;
+    if (ma_sound_is_playing(&m_sound) == MA_TRUE) {
+        ma_sound_stop(&m_sound);
+    } else {
+        ma_sound_start(&m_sound);
+    }
+}
+
+void AudioPlayer::Stop() {
+    if (!m_isSoundLoaded) return;
+    ma_sound_stop(&m_sound);
+    ma_sound_seek_to_pcm_frame(&m_sound, 0);
+}
+
 bool AudioPlayer::Play(const std::string& filepath) {
     if (!m_initialized || !m_engine) {
         return false;

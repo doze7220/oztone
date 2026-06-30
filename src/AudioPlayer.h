@@ -22,6 +22,16 @@ public:
     void Uninitialize();
 
     /**
+     * @brief 再生/一時停止を切り替える
+     */
+    void TogglePlayPause();
+
+    /**
+     * @brief 再生を停止し、先頭に巻き戻す
+     */
+    void Stop();
+
+    /**
      * @brief 指定されたMP3ファイルの再生
      * @param filepath 再生するファイルのパス
      * @return 成功ならtrue

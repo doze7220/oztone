@@ -275,6 +275,19 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             }
             return 0;
         }
+        case WM_APPCOMMAND: {
+            if (m_onMediaCommand) {
+                int cmd = GET_APPCOMMAND_LPARAM(lParam);
+                if (cmd == APPCOMMAND_MEDIA_PLAY_PAUSE ||
+                    cmd == APPCOMMAND_MEDIA_STOP ||
+                    cmd == APPCOMMAND_MEDIA_NEXTTRACK ||
+                    cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) {
+                    m_onMediaCommand(cmd);
+                    return 1;
+                }
+            }
+            break;
+        }
         case WM_DESTROY: {
             Shell_NotifyIconW(NIM_DELETE, &m_nid);
             if (m_config) {
