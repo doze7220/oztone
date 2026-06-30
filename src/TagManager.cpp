@@ -1,0 +1,61 @@
+#include "TagManager.h"
+#include <taglib/tag.h>
+#include <taglib/mpeg/mpegfile.h>
+#include <taglib/mpeg/id3v2/id3v2tag.h>
+#include <taglib/mpeg/id3v2/id3v2frame.h>
+#include <taglib/mpeg/id3v2/frames/attachedpictureframe.h>
+#include <windows.h>
+
+TagManager::TagManager() {}
+
+TagManager::~TagManager() {}
+
+bool TagManager::Load(const std::string& filepath) {
+    m_title.clear();
+    m_artist.clear();
+    m_albumArtBytes.clear();
+
+    if (filepath.empty()) return false;
+
+    // MPEG::File を一度だけ開き、タイトル・アーティスト・APICを全て取得する。
+    // FileRef と MPEG::File を別々に開くと、Windowsのファイルロックにより
+    // 2回目のオープンが失敗し、APICフレームを取得できない。
+    TagLib::MPEG::File mpegFile(filepath.c_str());
+    if (!mpegFile.isValid()) {
+        return false;
+    }
+
+    // 基本タグ情報の取得
+    TagLib::Tag* tag = mpegFile.tag();
+    if (tag) {
+        m_title = tag->title().toWString();
+        m_artist = tag->artist().toWString();
+    }
+
+    // アルバムアートの取得 (ID3v2 APICフレーム)
+    TagLib::ID3v2::Tag* id3v2tag = mpegFile.ID3v2Tag();
+    if (id3v2tag) {
+        const TagLib::ID3v2::FrameList& frameList = id3v2tag->frameListMap()["APIC"];
+        if (!frameList.isEmpty()) {
+            auto* picFrame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frameList.front());
+            if (picFrame) {
+                TagLib::ByteVector pictureData = picFrame->picture();
+                m_albumArtBytes.assign(pictureData.data(), pictureData.data() + pictureData.size());
+            }
+        }
+    }
+
+    return true;
+}
+
+std::wstring TagManager::GetTitle() const {
+    return m_title;
+}
+
+std::wstring TagManager::GetArtist() const {
+    return m_artist;
+}
+
+const std::vector<uint8_t>& TagManager::GetAlbumArtBytes() const {
+    return m_albumArtBytes;
+}

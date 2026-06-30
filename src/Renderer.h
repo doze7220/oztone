@@ -10,6 +10,7 @@
 #include <dwrite.h>
 #include <dwrite_1.h>
 #include <string>
+#include <vector>
 
 class ConfigManager;
 
@@ -41,6 +42,21 @@ public:
      */
     void Render(bool isHovered, float progress, const std::wstring& timeString);
 
+    /**
+     * @brief 再生中の曲情報を設定する
+     */
+    void SetTrackInfo(const std::wstring& title, const std::wstring& artist);
+
+    /**
+     * @brief アルバムアートを設定する。nullptrの場合はプレースホルダーが使用される。
+     */
+    void SetAlbumArt(ID2D1Bitmap* bitmap);
+
+    /**
+     * @brief メモリ上のバイナリデータからID2D1Bitmapを生成する
+     */
+    bool LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitmap** ppBitmap);
+
 private:
     // D3D11 リソース
     Microsoft::WRL::ComPtr<ID3D11Device> m_d3dDevice;
@@ -69,6 +85,10 @@ private:
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_appLogoBitmap;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_appLogoHoverBitmap;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_placeholderArtBitmap;
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_currentArtBitmap; // 現在再生中のアルバムアート
+
+    std::wstring m_trackTitle = L"Unknown";
+    std::wstring m_trackArtist = L"Unknown";
 
     HWND m_hwnd;
     const ConfigManager* m_config;

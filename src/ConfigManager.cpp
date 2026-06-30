@@ -6,6 +6,7 @@ ConfigManager::ConfigManager()
       m_windowX(CW_USEDEFAULT), m_windowY(CW_USEDEFAULT), m_windowWidth(1024), m_windowHeight(512),
       m_logoX(16), m_logoY(16), m_logoWidth(64), m_logoHeight(64),
       m_baseX(30), m_baseY(350), m_artOffsetX(0), m_artOffsetY(0), m_artSize(120), m_bgOpacity(0.3f),
+      m_fallbackArtOpacity(0.5f),
       m_titleOffsetX(140), m_titleOffsetY(10), m_titleFontSize(32.0f),
       m_artistOffsetX(140), m_artistOffsetY(55), m_artistFontSize(18.0f),
       m_seekBarWidthRatio(0.95f), m_seekBarHeight(3), m_seekBarBottomOffset(50),
@@ -77,6 +78,9 @@ void ConfigManager::LoadSettings() {
     GetPrivateProfileStringW(L"Layout_NowPlaying", L"BgOpacity", L"0.3", buf, 32, m_iniFilePath.c_str());
     try { m_bgOpacity = std::stof(buf); } catch (...) { m_bgOpacity = 0.3f; }
 
+    GetPrivateProfileStringW(L"Layout_NowPlaying", L"FallbackArtOpacity", L"0.5", buf, 32, m_iniFilePath.c_str());
+    try { m_fallbackArtOpacity = std::stof(buf); } catch (...) { m_fallbackArtOpacity = 0.5f; }
+
     m_titleOffsetX = GetPrivateProfileIntW(L"Layout_NowPlaying", L"TitleOffsetX", 140, m_iniFilePath.c_str());
     m_titleOffsetY = GetPrivateProfileIntW(L"Layout_NowPlaying", L"TitleOffsetY", 10, m_iniFilePath.c_str());
     GetPrivateProfileStringW(L"Layout_NowPlaying", L"TitleFontSize", L"32.0", buf, 32, m_iniFilePath.c_str());
@@ -128,6 +132,7 @@ void ConfigManager::SaveDefaultSettings() {
     WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtOffsetY", L"0", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Layout_NowPlaying", L"ArtSize", L"120", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Layout_NowPlaying", L"BgOpacity", L"0.3", m_iniFilePath.c_str());
+    WritePrivateProfileStringW(L"Layout_NowPlaying", L"FallbackArtOpacity", L"0.5", m_iniFilePath.c_str());
 
     WritePrivateProfileStringW(L"Layout_NowPlaying", L"TitleOffsetX", L"140", m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Layout_NowPlaying", L"TitleOffsetY", L"10", m_iniFilePath.c_str());

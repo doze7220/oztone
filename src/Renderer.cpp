@@ -261,6 +261,65 @@ bool Renderer::LoadBitmapResource(const std::wstring& filename, int resourceId, 
     return SUCCEEDED(hr);
 }
 
+void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artist) {
+    m_trackTitle = title;
+    m_trackArtist = artist;
+}
+
+void Renderer::SetAlbumArt(ID2D1Bitmap* bitmap) {
+    m_currentArtBitmap = bitmap;
+}
+
+bool Renderer::LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitmap** ppBitmap) {
+    if (data.empty() || !m_wicFactory || !m_d2dContext) return false;
+
+    Microsoft::WRL::ComPtr<IWICStream> stream;
+    HRESULT hr = m_wicFactory->CreateStream(&stream);
+    if (FAILED(hr)) return false;
+
+    hr = stream->InitializeFromMemory(const_cast<BYTE*>(data.data()), static_cast<DWORD>(data.size()));
+    if (FAILED(hr)) return false;
+
+    Microsoft::WRL::ComPtr<IWICBitmapDecoder> decoder;
+    hr = m_wicFactory->CreateDecoderFromStream(
+        stream.Get(),
+        nullptr,
+        WICDecodeMetadataCacheOnLoad,
+        &decoder
+    );
+    if (FAILED(hr)) {
+        char buf[256];
+        sprintf_s(buf, "LoadBitmapFromMemory: CreateDecoderFromStream failed with hr=0x%08X\n", hr);
+        OutputDebugStringA(buf);
+        return false;
+    }
+
+    Microsoft::WRL::ComPtr<IWICBitmapFrameDecode> frame;
+    hr = decoder->GetFrame(0, &frame);
+    if (FAILED(hr)) return false;
+
+    Microsoft::WRL::ComPtr<IWICFormatConverter> converter;
+    hr = m_wicFactory->CreateFormatConverter(&converter);
+    if (FAILED(hr)) return false;
+
+    hr = converter->Initialize(
+        frame.Get(),
+        GUID_WICPixelFormat32bppPBGRA,
+        WICBitmapDitherTypeNone,
+        nullptr,
+        0.0f,
+        WICBitmapPaletteTypeMedianCut
+    );
+    if (FAILED(hr)) return false;
+
+    hr = m_d2dContext->CreateBitmapFromWicBitmap(converter.Get(), nullptr, ppBitmap);
+    if (FAILED(hr)) {
+        OutputDebugStringA("LoadBitmapFromMemory: CreateBitmapFromWicBitmap failed\n");
+        return false;
+    }
+    return true;
+}
+
 void Renderer::Render(bool isHovered, float progress, const std::wstring& timeString) {
     if (!m_d2dContext) return;
 
@@ -273,13 +332,14 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
     m_d2dContext->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
     
     // 2. 背景アルバムアートの描画 (Cover)
-    if (m_placeholderArtBitmap && m_config) {
+    ID2D1Bitmap* artBitmap = m_currentArtBitmap ? m_currentArtBitmap.Get() : m_placeholderArtBitmap.Get();
+    if (artBitmap && m_config) {
         D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
         // 96DPIターゲットから得た物理サイズを論理サイズに変換
         renderTargetSize.width /= m_dpiScale;
         renderTargetSize.height /= m_dpiScale;
         
-        D2D1_SIZE_F bitmapSize = m_placeholderArtBitmap->GetSize();
+        D2D1_SIZE_F bitmapSize = artBitmap->GetSize();
         
         float scaleX = renderTargetSize.width / bitmapSize.width;
         float scaleY = renderTargetSize.height / bitmapSize.height;
@@ -294,7 +354,7 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
         D2D1_RECT_F destRect = D2D1::RectF(0.0f, 0.0f, renderTargetSize.width, renderTargetSize.height);
         
         m_d2dContext->DrawBitmap(
-            m_placeholderArtBitmap.Get(),
+            artBitmap,
             &destRect,
             m_config->GetBgOpacity(),
             D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
@@ -315,24 +375,46 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
     }
 
     // 4. 左下アルバムアートの描画
-    if (m_placeholderArtBitmap && m_config) {
+    if (m_config) {
         float size = static_cast<float>(m_config->GetArtSize());
         float x = static_cast<float>(m_config->GetBaseX() + m_config->GetArtOffsetX());
         float y = static_cast<float>(m_config->GetBaseY() + m_config->GetArtOffsetY());
-        D2D1_RECT_F destRectArt = D2D1::RectF(x, y, x + size, y + size);
-        m_d2dContext->DrawBitmap(
-            m_placeholderArtBitmap.Get(),
-            &destRectArt,
-            1.0f,
-            D2D1_BITMAP_INTERPOLATION_MODE_LINEAR
-        );
+
+        if (m_currentArtBitmap) {
+            D2D1_SIZE_F bitmapSize = m_currentArtBitmap->GetSize();
+            float scaleX = size / bitmapSize.width;
+            float scaleY = size / bitmapSize.height;
+            float scale = (std::min)(scaleX, scaleY);
+            
+            float drawWidth = bitmapSize.width * scale;
+            float drawHeight = bitmapSize.height * scale;
+            
+            float drawX = x + (size - drawWidth) / 2.0f;
+            float drawY = y + (size - drawHeight) / 2.0f;
+            
+            D2D1_RECT_F destRectArt = D2D1::RectF(drawX, drawY, drawX + drawWidth, drawY + drawHeight);
+            m_d2dContext->DrawBitmap(
+                m_currentArtBitmap.Get(),
+                &destRectArt,
+                1.0f,
+                D2D1_BITMAP_INTERPOLATION_MODE_LINEAR
+            );
+        } else {
+            // 正規の画像がない場合は黒い板を描画
+            Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> blackBrush;
+            m_d2dContext->CreateSolidColorBrush(
+                D2D1::ColorF(0.0f, 0.0f, 0.0f, m_config->GetFallbackArtOpacity()),
+                &blackBrush
+            );
+            if (blackBrush) {
+                D2D1_RECT_F destRectArt = D2D1::RectF(x, y, x + size, y + size);
+                m_d2dContext->FillRectangle(&destRectArt, blackBrush.Get());
+            }
+        }
     }
 
     // 5. 曲情報テキストの描画
     if (m_textBrush && m_titleTextFormat && m_artistTextFormat && m_config) {
-        std::wstring dummyTitle = L"Dummy Track Title";
-        std::wstring dummyArtist = L"Dummy Artist Name";
-
         float baseX = static_cast<float>(m_config->GetBaseX());
         float baseY = static_cast<float>(m_config->GetBaseY());
 
@@ -341,8 +423,8 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
         float titleY = baseY + static_cast<float>(m_config->GetTitleOffsetY());
         D2D1_RECT_F titleRect = D2D1::RectF(titleX, titleY, titleX + 800.0f, titleY + 100.0f);
         m_d2dContext->DrawText(
-            dummyTitle.c_str(),
-            static_cast<UINT32>(dummyTitle.length()),
+            m_trackTitle.c_str(),
+            static_cast<UINT32>(m_trackTitle.length()),
             m_titleTextFormat.Get(),
             &titleRect,
             m_textBrush.Get()
@@ -353,8 +435,8 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
         float artistY = baseY + static_cast<float>(m_config->GetArtistOffsetY());
         D2D1_RECT_F artistRect = D2D1::RectF(artistX, artistY, artistX + 800.0f, artistY + 50.0f);
         m_d2dContext->DrawText(
-            dummyArtist.c_str(),
-            static_cast<UINT32>(dummyArtist.length()),
+            m_trackArtist.c_str(),
+            static_cast<UINT32>(m_trackArtist.length()),
             m_artistTextFormat.Get(),
             &artistRect,
             m_textBrush.Get()

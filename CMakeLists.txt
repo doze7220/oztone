@@ -4,6 +4,21 @@ project(OZtone VERSION 0.1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include(FetchContent)
+
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(BUILD_BINDINGS OFF CACHE BOOL "" FORCE)
+set(WITH_ZLIB OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    taglib
+    GIT_REPOSITORY https://github.com/taglib/taglib.git
+    GIT_TAG v2.0.2
+)
+FetchContent_MakeAvailable(taglib)
+
 # ソースファイル
 set(SOURCES
     src/main.cpp
@@ -12,6 +27,7 @@ set(SOURCES
     src/ConfigManager.cpp
     src/Renderer.cpp
     src/AudioPlayer.cpp
+    src/TagManager.cpp
     src/OZtone.rc
 )
 
@@ -21,13 +37,25 @@ set(HEADERS
     src/ConfigManager.h
     src/Renderer.h
     src/AudioPlayer.h
+    src/TagManager.h
 )
 
 # 実行ファイルの作成 (WIN32 を指定してコンソールウィンドウを非表示にする)
 add_executable(OZtone WIN32 ${SOURCES} ${HEADERS})
 
+target_include_directories(OZtone PRIVATE 
+    ${CMAKE_CURRENT_BINARY_DIR}/_deps/taglib-src
+    ${CMAKE_CURRENT_BINARY_DIR}/_deps/taglib-src/taglib
+    ${CMAKE_CURRENT_BINARY_DIR}/_deps/taglib-src/taglib/toolkit
+    ${CMAKE_CURRENT_BINARY_DIR}/_deps/taglib-src/taglib/mpeg
+    ${CMAKE_CURRENT_BINARY_DIR}/_deps/taglib-src/taglib/mpeg/id3v2
+    ${CMAKE_CURRENT_BINARY_DIR}/_deps/taglib-src/taglib/mpeg/id3v2/frames
+)
+
+target_compile_definitions(OZtone PRIVATE TAGLIB_STATIC)
+
 # 必要なWin32ライブラリをリンク
-target_link_libraries(OZtone PRIVATE user32.lib gdi32.lib d3d11.lib d2d1.lib dxgi.lib windowscodecs.lib dwrite.lib dcomp.lib)
+target_link_libraries(OZtone PRIVATE user32.lib gdi32.lib d3d11.lib d2d1.lib dxgi.lib windowscodecs.lib dwrite.lib dcomp.lib tag)
 
 if(MSVC)
     target_compile_options(OZtone PRIVATE /utf-8)

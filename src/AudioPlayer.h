@@ -51,4 +51,5 @@ private:
     bool m_initialized;
     ma_sound m_sound;
     bool m_isSoundLoaded;
+    float m_cachedLengthSeconds;
 };

@@ -41,6 +41,7 @@ public:
     int GetArtOffsetY() const { return m_artOffsetY; }
     int GetArtSize() const { return m_artSize; }
     float GetBgOpacity() const { return m_bgOpacity; }
+    float GetFallbackArtOpacity() const { return m_fallbackArtOpacity; }
 
     int GetTitleOffsetX() const { return m_titleOffsetX; }
     int GetTitleOffsetY() const { return m_titleOffsetY; }
@@ -82,6 +83,7 @@ private:
     int m_artOffsetY;
     int m_artSize;
     float m_bgOpacity;
+    float m_fallbackArtOpacity;
 
     int m_titleOffsetX;
     int m_titleOffsetY;

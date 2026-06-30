@@ -1,7 +1,7 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "AudioPlayer.h"
 
-AudioPlayer::AudioPlayer() : m_engine(nullptr), m_initialized(false), m_isSoundLoaded(false) {}
+AudioPlayer::AudioPlayer() : m_engine(nullptr), m_initialized(false), m_isSoundLoaded(false), m_cachedLengthSeconds(0.0f) {}
 
 AudioPlayer::~AudioPlayer() {
     Uninitialize();
@@ -55,6 +55,10 @@ bool AudioPlayer::Play(const std::string& filepath) {
 
     m_isSoundLoaded = true;
     
+    float length = 0.0f;
+    ma_sound_get_length_in_seconds(&m_sound, &length);
+    m_cachedLengthSeconds = length;
+    
     result = ma_sound_start(&m_sound);
     return (result == MA_SUCCESS);
 }
@@ -72,9 +76,7 @@ float AudioPlayer::GetLengthSeconds() {
     if (!m_isSoundLoaded) {
         return 0.0f;
     }
-    float length = 0.0f;
-    ma_sound_get_length_in_seconds(&m_sound, &length);
-    return length;
+    return m_cachedLengthSeconds;
 }
 
 bool AudioPlayer::IsPlaying() {
