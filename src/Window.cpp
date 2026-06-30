@@ -4,6 +4,18 @@
 #include <windowsx.h>
 #include <shellapi.h>
 
+constexpr UINT TRAY_MENU_ORDER[] = {
+    Window::ID_TRAY_ZORDER_NORMAL,
+    Window::ID_TRAY_ZORDER_TOPMOST,
+    Window::ID_TRAY_ZORDER_BOTTOM,
+    0, // separator
+    Window::ID_TRAY_SAVE_POS,
+    Window::ID_TRAY_RESET_POS,
+    Window::ID_TRAY_RESET_ALL,
+    0, // separator
+    Window::ID_TRAY_EXIT
+};
+
 HWND Window::s_hwnd = nullptr;
 
 Window::Window() : m_hwnd(nullptr), m_hInstance(nullptr), m_config(nullptr), m_isHovered(false), m_isTrackingMouse(false), m_pDropTarget(nullptr), m_keyboardHook(nullptr) {}
@@ -173,6 +185,13 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow, ConfigManager& config
 
     ShowWindow(m_hwnd, nCmdShow);
     UpdateWindow(m_hwnd);
+
+    // Initialize Z-Order
+    int zOrder = m_config->GetZOrder();
+    HWND hWndInsertAfter = HWND_NOTOPMOST;
+    if (zOrder == 1) hWndInsertAfter = HWND_TOPMOST;
+    else if (zOrder == 2) hWndInsertAfter = HWND_BOTTOM;
+    SetWindowPos(m_hwnd, hWndInsertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     
     // OLE Drag and Drop を有効化
     m_pDropTarget = new DropTarget(this);
@@ -287,7 +306,34 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                 POINT pt;
                 GetCursorPos(&pt);
                 HMENU hMenu = CreatePopupMenu();
-                InsertMenuW(hMenu, -1, MF_BYPOSITION | MF_STRING, 1001, L"終了 (Exit)");
+                
+                for (UINT id : TRAY_MENU_ORDER) {
+                    if (id == 0) {
+                        AppendMenuW(hMenu, MF_SEPARATOR, 0, nullptr);
+                    } else {
+                        std::wstring text;
+                        switch (id) {
+                            case ID_TRAY_ZORDER_NORMAL: text = L"Z-Order: 通常 (Normal)"; break;
+                            case ID_TRAY_ZORDER_TOPMOST: text = L"Z-Order: 最前面 (TopMost)"; break;
+                            case ID_TRAY_ZORDER_BOTTOM: text = L"Z-Order: 最背面 (Bottom)"; break;
+                            case ID_TRAY_SAVE_POS: text = L"位置とサイズを記憶する (Save Position)"; break;
+                            case ID_TRAY_RESET_POS: text = L"位置とサイズをリセット (Reset Position)"; break;
+                            case ID_TRAY_RESET_ALL: text = L"設定を初期化 (Reset All Settings)"; break;
+                            case ID_TRAY_EXIT: text = L"終了 (Exit)"; break;
+                        }
+                        AppendMenuW(hMenu, MF_STRING, id, text.c_str());
+                    }
+                }
+
+                if (m_config) {
+                    int zOrder = m_config->GetZOrder();
+                    CheckMenuRadioItem(hMenu, ID_TRAY_ZORDER_NORMAL, ID_TRAY_ZORDER_BOTTOM, 
+                                       ID_TRAY_ZORDER_NORMAL + zOrder, MF_BYCOMMAND);
+                    if (m_config->GetSavePositionOnExit()) {
+                        CheckMenuItem(hMenu, ID_TRAY_SAVE_POS, MF_BYCOMMAND | MF_CHECKED);
+                    }
+                }
+
                 SetForegroundWindow(hwnd);
                 TrackPopupMenu(hMenu, TPM_RIGHTBUTTON | TPM_BOTTOMALIGN, pt.x, pt.y, 0, hwnd, nullptr);
                 DestroyMenu(hMenu);
@@ -295,8 +341,48 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             return 0;
         }
         case WM_COMMAND: {
-            if (LOWORD(wParam) == 1001) {
-                PostMessage(hwnd, WM_CLOSE, 0, 0);
+            int wmId = LOWORD(wParam);
+            switch (wmId) {
+                case ID_TRAY_EXIT:
+                    PostMessage(hwnd, WM_CLOSE, 0, 0);
+                    break;
+                case ID_TRAY_ZORDER_NORMAL:
+                case ID_TRAY_ZORDER_TOPMOST:
+                case ID_TRAY_ZORDER_BOTTOM: {
+                    int zOrder = wmId - ID_TRAY_ZORDER_NORMAL;
+                    if (m_config) m_config->SetZOrder(zOrder);
+                    HWND insertAfter = HWND_NOTOPMOST;
+                    if (zOrder == 1) insertAfter = HWND_TOPMOST;
+                    else if (zOrder == 2) insertAfter = HWND_BOTTOM;
+                    SetWindowPos(hwnd, insertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+                    break;
+                }
+                case ID_TRAY_SAVE_POS: {
+                    if (m_config) {
+                        bool current = m_config->GetSavePositionOnExit();
+                        m_config->SetSavePositionOnExit(!current);
+                    }
+                    break;
+                }
+                case ID_TRAY_RESET_POS: {
+                    UINT dpi = GetDpiForSystem();
+                    int width = MulDiv(1024, dpi, 96);
+                    int height = MulDiv(512, dpi, 96);
+                    int screenW = GetSystemMetrics(SM_CXSCREEN);
+                    int screenH = GetSystemMetrics(SM_CYSCREEN);
+                    int x = (screenW - width) / 2;
+                    int y = (screenH - height) / 2;
+                    SetWindowPos(hwnd, nullptr, x, y, width, height, SWP_NOZORDER | SWP_NOACTIVATE);
+                    break;
+                }
+                case ID_TRAY_RESET_ALL: {
+                    if (m_config) {
+                        m_config->SaveDefaultSettings();
+                    }
+                    MessageBoxW(hwnd, L"設定を初期化しました。アプリを再起動します。", L"通知", MB_OK | MB_ICONINFORMATION);
+                    PostMessage(hwnd, WM_CLOSE, 0, 0);
+                    break;
+                }
             }
             return 0;
         }
@@ -333,7 +419,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         }
         case WM_DESTROY: {
             Shell_NotifyIconW(NIM_DELETE, &m_nid);
-            if (m_config) {
+            if (m_config && m_config->GetSavePositionOnExit()) {
                 RECT wndRect, clientRect;
                 if (GetWindowRect(hwnd, &wndRect) && GetClientRect(hwnd, &clientRect)) {
                     UINT dpi = GetDpiForWindow(hwnd);

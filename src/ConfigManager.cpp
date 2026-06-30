@@ -8,6 +8,8 @@ constexpr const char* DEFAULT_INI_CONTENT = R"(; OZtone Default Configuration
 ShowTitleBar=0
 ShowWindowFrame=0
 ShowTaskbar=0
+ZOrder=0
+SavePositionOnExit=1
 WindowX=-2147483648
 WindowY=-2147483648
 WindowWidth=1024
@@ -82,6 +84,7 @@ DefaultPlaylistPath=oztone_playlist.lst
 
 ConfigManager::ConfigManager()
     : m_showTitleBar(false), m_showWindowFrame(false), m_showTaskbar(false),
+      m_zOrder(0), m_savePositionOnExit(true),
       m_windowX(CW_USEDEFAULT), m_windowY(CW_USEDEFAULT), m_windowWidth(1024), m_windowHeight(512),
       m_enableShadow(true), m_shadowOffsetX(2.0f), m_shadowOffsetY(2.0f), m_shadowOpacity(0.7f), m_bgDarkenOpacity(0.3f), m_bgOpacity(0.8f),
       m_logoX(16), m_logoY(16), m_logoWidth(64), m_logoHeight(64),
@@ -147,6 +150,9 @@ void ConfigManager::LoadSettings() {
     m_showTitleBar = GetPrivateProfileIntW(L"Window", L"ShowTitleBar", 0, m_iniFilePath.c_str()) != 0;
     m_showWindowFrame = GetPrivateProfileIntW(L"Window", L"ShowWindowFrame", 0, m_iniFilePath.c_str()) != 0;
     m_showTaskbar = GetPrivateProfileIntW(L"Window", L"ShowTaskbar", 0, m_iniFilePath.c_str()) != 0;
+
+    m_zOrder = GetPrivateProfileIntW(L"Window", L"ZOrder", 0, m_iniFilePath.c_str());
+    m_savePositionOnExit = GetPrivateProfileIntW(L"Window", L"SavePositionOnExit", 1, m_iniFilePath.c_str()) != 0;
 
     m_windowX = GetPrivateProfileIntW(L"Window", L"WindowX", CW_USEDEFAULT, m_iniFilePath.c_str());
     m_windowY = GetPrivateProfileIntW(L"Window", L"WindowY", CW_USEDEFAULT, m_iniFilePath.c_str());
@@ -297,4 +303,14 @@ void ConfigManager::SaveWindowPosition(int x, int y, int width, int height) {
     WritePrivateProfileStringW(L"Window", L"WindowY", std::to_wstring(y).c_str(), m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Window", L"WindowWidth", std::to_wstring(width).c_str(), m_iniFilePath.c_str());
     WritePrivateProfileStringW(L"Window", L"WindowHeight", std::to_wstring(height).c_str(), m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetZOrder(int zOrder) {
+    m_zOrder = zOrder;
+    WritePrivateProfileStringW(L"Window", L"ZOrder", std::to_wstring(zOrder).c_str(), m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetSavePositionOnExit(bool save) {
+    m_savePositionOnExit = save;
+    WritePrivateProfileStringW(L"Window", L"SavePositionOnExit", save ? L"1" : L"0", m_iniFilePath.c_str());
 }

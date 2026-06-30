@@ -32,6 +32,12 @@ public:
     int GetWindowY() const { return m_windowY; }
     int GetWindowWidth() const { return m_windowWidth; }
     int GetWindowHeight() const { return m_windowHeight; }
+    
+    int GetZOrder() const { return m_zOrder; }
+    void SetZOrder(int zOrder);
+
+    bool GetSavePositionOnExit() const { return m_savePositionOnExit; }
+    void SetSavePositionOnExit(bool save);
 
     /**
      * @brief ウィンドウの表示位置とサイズを保存する
@@ -42,6 +48,12 @@ public:
     int GetLogoY() const { return m_logoY; }
     int GetLogoWidth() const { return m_logoWidth; }
     int GetLogoHeight() const { return m_logoHeight; }
+
+    /**
+     * @brief デフォルト設定で上書き保存する
+     */
+    void SaveDefaultSettings();
+
 
 
 
@@ -106,6 +118,9 @@ private:
     bool m_showTitleBar;
     bool m_showWindowFrame;
     bool m_showTaskbar;
+
+    int m_zOrder;
+    bool m_savePositionOnExit;
 
     int m_windowX;
     int m_windowY;
@@ -185,5 +200,4 @@ private:
 
     std::wstring GetExecutablePath() const;
     void LoadSettings();
-    void SaveDefaultSettings();
 };

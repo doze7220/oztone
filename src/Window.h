@@ -47,6 +47,14 @@ public:
      */
     bool Initialize(HINSTANCE hInstance, int nCmdShow, ConfigManager& config);
 
+    static constexpr UINT ID_TRAY_ZORDER_NORMAL = 1010;
+    static constexpr UINT ID_TRAY_ZORDER_TOPMOST = 1011;
+    static constexpr UINT ID_TRAY_ZORDER_BOTTOM = 1012;
+    static constexpr UINT ID_TRAY_SAVE_POS = 1013;
+    static constexpr UINT ID_TRAY_RESET_POS = 1014;
+    static constexpr UINT ID_TRAY_RESET_ALL = 1015;
+    static constexpr UINT ID_TRAY_EXIT = 1001;
+
     /**
      * @brief ウィンドウのメッセージ処理を行う（1フレーム分）
      * @return アプリケーションを終了すべき場合はfalse、継続する場合はtrue
