@@ -1,5 +1,6 @@
 #pragma once
 #include <windows.h>
+#include <shellapi.h>
 #include <ole2.h>
 #include <functional>
 #include <string>
@@ -95,4 +96,7 @@ private:
     bool m_isTrackingMouse;
     std::function<void(const std::vector<std::wstring>&)> m_onFilesDropped;
     DropTarget* m_pDropTarget;
+
+    static constexpr UINT WM_TRAYICON = WM_APP + 1;
+    NOTIFYICONDATAW m_nid;
 };

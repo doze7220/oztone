@@ -20,7 +20,7 @@
     *   下部：シークバー、操作ボタン。
     *   右下：「次の曲」の極小アルバムアートと曲名・アーティスト名を先読みして表示（ロード中はプレースホルダーを表示）。
     *   プレースホルダー：アルバムアート未設定時のデフォルト画像を用意。
-    *   **スキン・リソース仕様**: 各種画像（アプリアイコン等）は、基本的にはexeの埋め込みリソース(`RCDATA`)を使用しますが、exeと同階層に同名の画像ファイルが存在する場合はそれを優先して読み込むハイブリッド（フォールバック）方式を採用しています。
+    *   **スキン・リソース仕様**: 各種画像（アプリアイコン等）は、基本的にはexeの埋め込みリソース(`RCDATA` や `ICON`)を使用しますが、一部の画像はexeと同階層に同名の画像ファイルが存在する場合はそれを優先して読み込むハイブリッド（フォールバック）方式を採用しています。アプリアイコンには `app_icon.ico` が埋め込まれ、システムトレイおよびタスクバーで表示されます。
     *   **画像描画・デコード**: 画像のデコードには **WIC (Windows Imaging Component)** を使用し、Direct2Dのビットマップとしてロード・描画します。テキスト描画には **DirectWrite** を用いて高品質なレンダリングを行います。
     *   **ウィンドウ透過方式**: `CreateSwapChainForComposition` により `DXGI_ALPHA_MODE_PREMULTIPLIED` のスワップチェインを作成し、**DirectComposition** (`IDCompositionDevice`) を介してウィンドウに合成する方式を採用。`CreateSwapChainForHwnd` では PREMULTIPLIED アルファが未サポートのため、この構成が必須となる。
     *   **High DPI (Per-Monitor V2) 対応**: `SetProcessDpiAwarenessContext` によりDPI対応を有効化し、ウィンドウサイズおよびD2Dレンダーターゲットの自動スケーリングに対応。
@@ -93,14 +93,16 @@ oztone/
 #### `Window` クラス (src/Window.h, cpp)
 Win32 APIのウィンドウ生成・破棄、メッセージディスパッチ処理を隠蔽・カプセル化するクラス。
 *   **`bool Initialize(HINSTANCE hInstance, int nCmdShow)`**
-    *   ウィンドウクラス (`WNDCLASSEXW`) の登録と、`CreateWindowExW` によるウィンドウ生成。
+    *   ウィンドウクラス (`WNDCLASSEXW`) の登録と、`CreateWindowExW` によるウィンドウ生成。`hIcon` および `hIconSm` に `IDI_APP_ICON` を指定し、EXEとタスクバーのアイコンを設定。
+    *   `Shell_NotifyIcon` を用いてシステムトレイ（通知領域）にアプリのアイコンを常駐させる。
 *   **`bool ProcessMessages()`**
     *   `PeekMessage` を使用したノンブロッキングなメッセージ処理。`WM_QUIT` 受信で false を返し、メインループを終了させる。
 *   **`LRESULT CALLBACK WindowProcStatic(HWND, UINT, WPARAM, LPARAM)`**
     *   Win32 APIから直接呼び出される静的コールバック関数。`WM_NCCREATE` 時に `GWLP_USERDATA` に自身の `this` ポインタを保存し、以降のメッセージではポインタを復元して非静的な `WindowProc` へ処理を転送する。
 *   **`LRESULT WindowProc(HWND, UINT, WPARAM, LPARAM)`**
     *   実際のメッセージハンドラ。責務分離のため、ここには描画ロジックなどを書かない。
-    *   アプリアイコン上でのクリックイベント（ドラッグ移動、右クリック終了）や通常のホバー状態の判定を処理する。
+    *   アプリアイコン上でのクリックイベント（ドラッグ移動）や通常のホバー状態の判定を処理する。
+    *   システムトレイのアイコンからのメッセージ (`WM_TRAYICON`) を処理し、右クリック時にコンテキストメニュー（「終了」）を表示。選択時 (`WM_COMMAND`) に `WM_CLOSE` を発行してアプリを終了させる。
 *   **`DropTarget` クラス (IDropTarget 実装)**
     *   OLE Drag and Drop によるファイルドロップを受け付けるクラス。`DragEnter` や `DragOver` を処理し、ドラッグ中であってもロゴ領域内にマウスがある場合は `Window` 側のホバー状態を強制的にオンにすることで、ドラッグ中の視覚的フィードバック（ハイライト）を実現している。
 *   **`bool IsInLogoRegion(int x, int y) const`**

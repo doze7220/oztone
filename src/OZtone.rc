@@ -3,3 +3,4 @@
 IDI_APP_LOGO       RCDATA "../assets/app_logo.png"
 IDI_APP_LOGO_HOVER RCDATA "../assets/app_logo_hover.png"
 IDI_PLACEHOLDER_ART RCDATA "../assets/placeholder_art.png"
+IDI_APP_ICON       ICON   "../assets/app_icon.ico"

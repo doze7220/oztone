@@ -1,5 +1,6 @@
 #include "Window.h"
 #include "ConfigManager.h"
+#include "resource.h"
 #include <windowsx.h>
 #include <shellapi.h>
 
@@ -100,9 +101,11 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow, ConfigManager& config
     wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = WindowProcStatic;
     wc.hInstance = m_hInstance;
+    wc.hIcon = LoadIcon(m_hInstance, MAKEINTRESOURCE(IDI_APP_ICON));
     wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     wc.lpszClassName = m_className;
+    wc.hIconSm = LoadIcon(m_hInstance, MAKEINTRESOURCE(IDI_APP_ICON));
 
     if (!RegisterClassExW(&wc)) {
         return false;
@@ -165,6 +168,16 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow, ConfigManager& config
     // OLE Drag and Drop を有効化
     m_pDropTarget = new DropTarget(this);
     RegisterDragDrop(m_hwnd, m_pDropTarget);
+
+    m_nid = {};
+    m_nid.cbSize = sizeof(NOTIFYICONDATAW);
+    m_nid.hWnd = m_hwnd;
+    m_nid.uID = 1;
+    m_nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+    m_nid.uCallbackMessage = WM_TRAYICON;
+    m_nid.hIcon = LoadIcon(m_hInstance, MAKEINTRESOURCE(IDI_APP_ICON));
+    wcscpy_s(m_nid.szTip, L"OZtone");
+    Shell_NotifyIconW(NIM_ADD, &m_nid);
 
     return true;
 }
@@ -244,15 +257,26 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             }
             return 0;
         }
-        case WM_RBUTTONDOWN: {
-            int xPos = GET_X_LPARAM(lParam);
-            int yPos = GET_Y_LPARAM(lParam);
-            if (IsInLogoRegion(xPos, yPos)) {
+        case WM_TRAYICON: {
+            if (lParam == WM_RBUTTONUP) {
+                POINT pt;
+                GetCursorPos(&pt);
+                HMENU hMenu = CreatePopupMenu();
+                InsertMenuW(hMenu, -1, MF_BYPOSITION | MF_STRING, 1001, L"終了 (Exit)");
+                SetForegroundWindow(hwnd);
+                TrackPopupMenu(hMenu, TPM_RIGHTBUTTON | TPM_BOTTOMALIGN, pt.x, pt.y, 0, hwnd, nullptr);
+                DestroyMenu(hMenu);
+            }
+            return 0;
+        }
+        case WM_COMMAND: {
+            if (LOWORD(wParam) == 1001) {
                 PostMessage(hwnd, WM_CLOSE, 0, 0);
             }
             return 0;
         }
         case WM_DESTROY: {
+            Shell_NotifyIconW(NIM_DELETE, &m_nid);
             if (m_config) {
                 RECT wndRect, clientRect;
                 if (GetWindowRect(hwnd, &wndRect) && GetClientRect(hwnd, &clientRect)) {
