@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
-
-struct ma_engine;
+#include "miniaudio.h"
 
 /**
  * @brief 音声再生（バックグラウンドMP3再生）を管理するクラス
@@ -29,7 +28,27 @@ public:
      */
     bool Play(const std::string& filepath);
 
+    /**
+     * @brief 現在の再生位置（秒）を取得
+     * @return 再生位置（秒）
+     */
+    float GetPositionSeconds();
+
+    /**
+     * @brief 曲の総時間（秒）を取得
+     * @return 総時間（秒）
+     */
+    float GetLengthSeconds();
+
+    /**
+     * @brief 現在再生中かどうかを取得
+     * @return 再生中ならtrue
+     */
+    bool IsPlaying();
+
 private:
     ma_engine* m_engine;
     bool m_initialized;
+    ma_sound m_sound;
+    bool m_isSoundLoaded;
 };

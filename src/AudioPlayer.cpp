@@ -1,9 +1,7 @@
+#define MINIAUDIO_IMPLEMENTATION
 #include "AudioPlayer.h"
 
-#define MINIAUDIO_IMPLEMENTATION
-#include "miniaudio.h"
-
-AudioPlayer::AudioPlayer() : m_engine(nullptr), m_initialized(false) {}
+AudioPlayer::AudioPlayer() : m_engine(nullptr), m_initialized(false), m_isSoundLoaded(false) {}
 
 AudioPlayer::~AudioPlayer() {
     Uninitialize();
@@ -27,6 +25,11 @@ bool AudioPlayer::Initialize() {
 }
 
 void AudioPlayer::Uninitialize() {
+    if (m_isSoundLoaded) {
+        ma_sound_uninit(&m_sound);
+        m_isSoundLoaded = false;
+    }
+
     if (m_initialized && m_engine) {
         ma_engine_uninit(m_engine);
         delete m_engine;
@@ -40,6 +43,43 @@ bool AudioPlayer::Play(const std::string& filepath) {
         return false;
     }
 
-    ma_result result = ma_engine_play_sound(m_engine, filepath.c_str(), NULL);
+    if (m_isSoundLoaded) {
+        ma_sound_uninit(&m_sound);
+        m_isSoundLoaded = false;
+    }
+
+    ma_result result = ma_sound_init_from_file(m_engine, filepath.c_str(), 0, NULL, NULL, &m_sound);
+    if (result != MA_SUCCESS) {
+        return false;
+    }
+
+    m_isSoundLoaded = true;
+    
+    result = ma_sound_start(&m_sound);
     return (result == MA_SUCCESS);
+}
+
+float AudioPlayer::GetPositionSeconds() {
+    if (!m_isSoundLoaded) {
+        return 0.0f;
+    }
+    float cursor = 0.0f;
+    ma_sound_get_cursor_in_seconds(&m_sound, &cursor);
+    return cursor;
+}
+
+float AudioPlayer::GetLengthSeconds() {
+    if (!m_isSoundLoaded) {
+        return 0.0f;
+    }
+    float length = 0.0f;
+    ma_sound_get_length_in_seconds(&m_sound, &length);
+    return length;
+}
+
+bool AudioPlayer::IsPlaying() {
+    if (!m_isSoundLoaded) {
+        return false;
+    }
+    return ma_sound_is_playing(&m_sound) == MA_TRUE;
 }
