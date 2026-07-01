@@ -112,10 +112,39 @@ ShadowOpacity=0.7
 DefaultVolume=1.0
 
 [Visualizer]
-VisualizerMode=0
+VisualizerMode=2
 
 [Playlist]
 DefaultPlaylistPath=oztone_playlist.lst
+
+[Layout_Playlist]
+PlaylistHoverWidth=120
+TrackCountFontFamily="Courier New"
+TrackCountFontSize=22.0
+TrackCountRightOffset=20
+TrackCountBottomOffset=30
+TrackCountLetterSpacing=-3.0
+TrackCountShadowOffsetX=0.0
+TrackCountShadowOffsetY=0.0
+TrackCountShadowOpacity=0.0
+PlaylistWidth=250
+PlaylistItemOffsetY=45
+PlaylistTitleFontSize=16.0
+PlaylistTitleFontFamily=Meiryo
+PlaylistTitleOffsetX=20
+PlaylistTitleOffsetY=4
+PlaylistArtistFontSize=12.0
+PlaylistArtistColor=#888888
+PlaylistArtistFontFamily=Meiryo
+PlaylistArtistOffsetX=20
+PlaylistArtistOffsetY=25
+PlaylistTimeFontSize=12.0
+PlaylistTimeColor=#888888
+PlaylistTimeFontFamily=Meiryo
+PlaylistTimeOffsetX=10
+PlaylistTimeOffsetY=25
+PlaylistTimeLetterSpacing=0.0
+PlaylistBgOpacity=0.8
 
 )";
 
@@ -160,6 +189,21 @@ ConfigManager::ConfigManager()
     m_volShadowOffsetX = 2.0f;
     m_volShadowOffsetY = 2.0f;
     m_volShadowOpacity = 0.7f;
+    
+    m_trackCountFontFamily = L"Courier New";
+    m_trackCountFontSize = 14.0f;
+    m_trackCountRightOffset = 30;
+    m_trackCountBottomOffset = 50;
+    m_trackCountLetterSpacing = -1.0f;
+    m_trackCountShadowOffsetX = 2.0f;
+    m_trackCountShadowOffsetY = 2.0f;
+    m_trackCountShadowOpacity = 0.7f;
+    m_playlistHoverWidth = 30;
+    m_playlistWidth = 400;
+    m_playlistItemOffsetY = 45;
+    m_playlistTitleFontSize = 16.0f;
+    m_playlistArtistFontSize = 12.0f;
+    m_playlistTimeFontSize = 12.0f;
 }
 
 ConfigManager::~ConfigManager() {}
@@ -354,8 +398,66 @@ void ConfigManager::LoadSettings() {
     m_playbackButtonSpacing = GetPrivateProfileIntW(L"Layout_PlaybackControls", L"ButtonSpacing", 40, m_iniFilePath.c_str());
     m_playbackButtonSize = GetPrivateProfileIntW(L"Layout_PlaybackControls", L"ButtonSize", 20, m_iniFilePath.c_str());
 
-    wchar_t pathBuf[MAX_PATH];
+    GetPrivateProfileStringW(L"Layout_Playlist", L"TrackCountFontFamily", L"Courier New", buf, 32, m_iniFilePath.c_str());
+    m_trackCountFontFamily = buf;
+    GetPrivateProfileStringW(L"Layout_Playlist", L"TrackCountFontSize", L"14.0", buf, 32, m_iniFilePath.c_str());
+    try { m_trackCountFontSize = std::stof(buf); } catch (...) { m_trackCountFontSize = 14.0f; }
+    m_trackCountRightOffset = GetPrivateProfileIntW(L"Layout_Playlist", L"TrackCountRightOffset", 30, m_iniFilePath.c_str());
+    m_trackCountBottomOffset = GetPrivateProfileIntW(L"Layout_Playlist", L"TrackCountBottomOffset", 50, m_iniFilePath.c_str());
+    GetPrivateProfileStringW(L"Layout_Playlist", L"TrackCountLetterSpacing", L"-1.0", buf, 32, m_iniFilePath.c_str());
+    try { m_trackCountLetterSpacing = std::stof(buf); } catch (...) { m_trackCountLetterSpacing = -1.0f; }
+    GetPrivateProfileStringW(L"Layout_Playlist", L"TrackCountShadowOffsetX", L"2.0", buf, 32, m_iniFilePath.c_str());
+    try { m_trackCountShadowOffsetX = std::stof(buf); } catch (...) { m_trackCountShadowOffsetX = 2.0f; }
+    GetPrivateProfileStringW(L"Layout_Playlist", L"TrackCountShadowOffsetY", L"2.0", buf, 32, m_iniFilePath.c_str());
+    try { m_trackCountShadowOffsetY = std::stof(buf); } catch (...) { m_trackCountShadowOffsetY = 2.0f; }
+    GetPrivateProfileStringW(L"Layout_Playlist", L"TrackCountShadowOpacity", L"0.7", buf, 32, m_iniFilePath.c_str());
+    try { m_trackCountShadowOpacity = std::stof(buf); } catch (...) { m_trackCountShadowOpacity = 0.7f; }
 
+    m_playlistHoverWidth = GetPrivateProfileIntW(L"Layout_Playlist", L"PlaylistHoverWidth", 30, m_iniFilePath.c_str());
+
+    m_playlistWidth = GetPrivateProfileIntW(L"Layout_Playlist", L"PlaylistWidth", 400, m_iniFilePath.c_str());
+    m_playlistItemOffsetY = GetPrivateProfileIntW(L"Layout_Playlist", L"PlaylistItemOffsetY", 45, m_iniFilePath.c_str());
+    GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistTitleFontSize", L"16.0", buf, 32, m_iniFilePath.c_str());
+    try { m_playlistTitleFontSize = std::stof(buf); } catch (...) { m_playlistTitleFontSize = 16.0f; }
+
+    GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistArtistFontSize", L"12.0", buf, 32, m_iniFilePath.c_str());
+    try { m_playlistArtistFontSize = std::stof(buf); } catch (...) { m_playlistArtistFontSize = 12.0f; }
+
+    GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistTimeFontSize", L"12.0", buf, 32, m_iniFilePath.c_str());
+    try { m_playlistTimeFontSize = std::stof(buf); } catch (...) { m_playlistTimeFontSize = 12.0f; }
+
+    wchar_t fontBuf[256];
+    GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistTitleFontFamily", L"Meiryo", fontBuf, 256, m_iniFilePath.c_str());
+    m_playlistTitleFontFamily = fontBuf;
+
+    GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistArtistFontFamily", L"Meiryo", fontBuf, 256, m_iniFilePath.c_str());
+    m_playlistArtistFontFamily = fontBuf;
+
+    GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistTimeFontFamily", L"Courier New", fontBuf, 256, m_iniFilePath.c_str());
+    m_playlistTimeFontFamily = fontBuf;
+
+    GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistTimeLetterSpacing", L"0.0", buf, 32, m_iniFilePath.c_str());
+    try { m_playlistTimeLetterSpacing = std::stof(buf); } catch (...) { m_playlistTimeLetterSpacing = 0.0f; }
+
+    GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistArtistColor", L"#AAAAAA", fontBuf, 256, m_iniFilePath.c_str());
+    m_playlistArtistColor = fontBuf;
+
+    GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistTimeColor", L"#FFFFFF", fontBuf, 256, m_iniFilePath.c_str());
+    m_playlistTimeColor = fontBuf;
+
+    GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistBgOpacity", L"0.8", buf, 32, m_iniFilePath.c_str());
+    try { m_playlistBgOpacity = std::stof(buf); } catch (...) { m_playlistBgOpacity = 0.8f; }
+
+    m_playlistTitleOffsetX = GetPrivateProfileIntW(L"Layout_Playlist", L"PlaylistTitleOffsetX", 20, m_iniFilePath.c_str());
+    m_playlistTitleOffsetY = GetPrivateProfileIntW(L"Layout_Playlist", L"PlaylistTitleOffsetY", 10, m_iniFilePath.c_str());
+
+    m_playlistArtistOffsetX = GetPrivateProfileIntW(L"Layout_Playlist", L"PlaylistArtistOffsetX", 20, m_iniFilePath.c_str());
+    m_playlistArtistOffsetY = GetPrivateProfileIntW(L"Layout_Playlist", L"PlaylistArtistOffsetY", 35, m_iniFilePath.c_str());
+
+    m_playlistTimeOffsetX = GetPrivateProfileIntW(L"Layout_Playlist", L"PlaylistTimeOffsetX", 20, m_iniFilePath.c_str());
+    m_playlistTimeOffsetY = GetPrivateProfileIntW(L"Layout_Playlist", L"PlaylistTimeOffsetY", 35, m_iniFilePath.c_str());
+
+    wchar_t pathBuf[MAX_PATH];
 
     GetPrivateProfileStringW(L"Playlist", L"DefaultPlaylistPath", L"", pathBuf, MAX_PATH, m_iniFilePath.c_str());
     std::wstring loadedPlaylistPath = pathBuf;

@@ -28,7 +28,7 @@ constexpr UINT TRAY_MENU_ORDER[] = {
 
 HWND Window::s_hwnd = nullptr;
 
-Window::Window() : m_hwnd(nullptr), m_hInstance(nullptr), m_config(nullptr), m_isHovered(false), m_isControlHovered(false), m_isTrackingMouse(false), m_pDropTarget(nullptr), m_keyboardHook(nullptr) {}
+Window::Window() : m_hwnd(nullptr), m_hInstance(nullptr), m_config(nullptr), m_isHovered(false), m_isControlHovered(false), m_isPlaylistHovered(false), m_isTrackingMouse(false), m_pDropTarget(nullptr), m_keyboardHook(nullptr) {}
 
 Window::~Window() {
     if (m_keyboardHook) {
@@ -316,6 +316,27 @@ bool Window::IsInVolumeControlRegion(int x, int y) const {
     return (logicalX >= volX && logicalX <= volX + width && logicalY >= volY - height/2 && logicalY <= volY + height/2);
 }
 
+bool Window::IsInPlaylistRegion(int x, int y) const {
+    if (!m_config || !m_hwnd) return false;
+    UINT dpi = GetDpiForWindow(m_hwnd);
+    int logicalX = MulDiv(x, 96, dpi);
+    int logicalY = MulDiv(y, 96, dpi);
+    RECT rect;
+    GetClientRect(m_hwnd, &rect);
+    int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
+    int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
+
+    float hoverWidth = m_isPlaylistHovered 
+        ? static_cast<float>(m_config->GetPlaylistWidth())
+        : static_cast<float>(m_config->GetPlaylistHoverWidth());
+    float controlHeight = m_config->GetControlHoverHeight();
+
+    bool isXMatch = logicalX >= logicalWidth - hoverWidth;
+    bool isYMatch = logicalY < logicalHeight - controlHeight;
+
+    return isXMatch && isYMatch;
+}
+
 int Window::GetPlaybackButtonAt(int x, int y) const {
     if (!m_config || !m_hwnd) return 0;
     
@@ -399,8 +420,15 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                 int xPos = GET_X_LPARAM(lParam);
                 int yPos = GET_Y_LPARAM(lParam);
 
-                m_isHovered = IsInLogoRegion(xPos, yPos);
-                m_isControlHovered = IsInPlaybackControlRegion(xPos, yPos);
+                m_isPlaylistHovered = IsInPlaylistRegion(xPos, yPos);
+
+                if (m_isPlaylistHovered) {
+                    m_isHovered = false;
+                    m_isControlHovered = false;
+                } else {
+                    m_isHovered = IsInLogoRegion(xPos, yPos);
+                    m_isControlHovered = IsInPlaybackControlRegion(xPos, yPos);
+                }
 
                 if (!m_isTrackingMouse) {
                     TRACKMOUSEEVENT tme = {};
@@ -416,6 +444,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         case WM_MOUSELEAVE: {
             m_isHovered = false;
             m_isControlHovered = false;
+            m_isPlaylistHovered = false;
             m_isTrackingMouse = false;
             return 0;
         }
@@ -423,6 +452,10 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             int xPos = GET_X_LPARAM(lParam);
             int yPos = GET_Y_LPARAM(lParam);
             
+            if (m_isPlaylistHovered) {
+                return 0; 
+            }
+
             int btnId = GetPlaybackButtonAt(xPos, yPos);
             if (btnId > 0) {
                 if (m_onMediaCommand) {
@@ -445,6 +478,11 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                 pt.x = GET_X_LPARAM(lParam);
                 pt.y = GET_Y_LPARAM(lParam);
                 ScreenToClient(hwnd, &pt);
+
+                if (m_isPlaylistHovered) {
+                    return 0;
+                }
+
                 if (IsInVolumeControlRegion(pt.x, pt.y)) {
                     int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
                     m_onVolumeScroll(zDelta);
@@ -479,7 +517,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                             case ID_TRAY_VIS_NONE: text = L"ビジュアライザ: 非表示"; break;
                             case ID_TRAY_VIS_PRISM: text = L"ビジュアライザ: プリズム・ビート"; break;
                             case ID_TRAY_VIS_CIRCLE: text = L"ビジュアライザ: ヘイロー・ダスト"; break;
-                            case ID_TRAY_EXIT: text = L"終了 (Exit)"; break;
+                            case ID_TRAY_EXIT: text = L"終了"; break;
                         }
                         AppendMenuW(hMenu, MF_STRING, id, text.c_str());
                     }

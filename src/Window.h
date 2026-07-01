@@ -97,6 +97,17 @@ public:
     bool IsInPlaybackControlRegion(int x, int y) const;
 
     /**
+     * @brief プレイリストのホバー状態
+     */
+    bool IsPlaylistHovered() const { return m_isPlaylistHovered; }
+    void SetPlaylistHovered(bool hovered) { m_isPlaylistHovered = hovered; }
+
+    /**
+     * @brief 座標がプレイリスト（TRACK表示）領域内にあるかを判定する
+     */
+    bool IsInPlaylistRegion(int x, int y) const;
+
+    /**
      * @brief クリックされた再生コントロールボタンのIDを取得する (0:なし, 1:Prev, 2:Play/Pause, 3:Next)
      */
     int GetPlaybackButtonAt(int x, int y) const;
@@ -167,6 +178,7 @@ private:
     ConfigManager* m_config;
     bool m_isHovered;
     bool m_isControlHovered;
+    bool m_isPlaylistHovered;
     bool m_isTrackingMouse;
     std::function<void(const std::vector<std::wstring>&)> m_onFilesDropped;
     std::function<void(int)> m_onMediaCommand;

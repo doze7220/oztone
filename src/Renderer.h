@@ -36,16 +36,9 @@ public:
     bool Initialize(HWND hwnd, const ConfigManager& config);
 
     /**
-     * @brief 毎フレーム呼び出される描画処理
-     * @param isHovered ロゴ領域がホバーされているか
-     * @param isControlHovered コントロール領域がホバーされているか
-     * @param isPlaying 再生中かどうか
-     * @param progress 再生進捗度 (0.0f - 1.0f)
-     * @param timeString フォーマット済みの再生時間文字列
-     * @param spectrum スペクトルデータ
-     * @param volume 現在の音量
+     * @brief D2DレンダーターゲットにUIを描画する
      */
-    void Render(bool isHovered, bool isControlHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum, float volume);
+    void Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList);
 
     /**
      * @brief ウィンドウサイズ変更時にスワップチェインとバッファをリサイズする
@@ -97,6 +90,14 @@ private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_artistTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_timeTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_volumeTextFormat;
+    
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_trackCountTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistTitleTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistArtistTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistTimeTextFormat;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistArtistBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistTimeBrush;
+    float m_playlistSlideX;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextLabelTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextTitleTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextArtistTextFormat;

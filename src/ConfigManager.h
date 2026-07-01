@@ -152,6 +152,39 @@ public:
     float GetVolumeShadowOffsetY() const { return m_volShadowOffsetY; }
     float GetVolumeShadowOpacity() const { return m_volShadowOpacity; }
 
+    std::wstring GetTrackCountFontFamily() const { return m_trackCountFontFamily; }
+    float GetTrackCountFontSize() const { return m_trackCountFontSize; }
+    int GetTrackCountRightOffset() const { return m_trackCountRightOffset; }
+    int GetTrackCountBottomOffset() const { return m_trackCountBottomOffset; }
+    float GetTrackCountLetterSpacing() const { return m_trackCountLetterSpacing; }
+    float GetTrackCountShadowOffsetX() const { return m_trackCountShadowOffsetX; }
+    float GetTrackCountShadowOffsetY() const { return m_trackCountShadowOffsetY; }
+    float GetTrackCountShadowOpacity() const { return m_trackCountShadowOpacity; }
+
+    int GetPlaylistWidth() const { return m_playlistWidth; }
+    int GetPlaylistItemOffsetY() const { return m_playlistItemOffsetY; }
+    float GetPlaylistTitleFontSize() const { return m_playlistTitleFontSize; }
+    std::wstring GetPlaylistTitleFontFamily() const { return m_playlistTitleFontFamily; }
+    int GetPlaylistTitleOffsetX() const { return m_playlistTitleOffsetX; }
+    int GetPlaylistTitleOffsetY() const { return m_playlistTitleOffsetY; }
+
+    float GetPlaylistArtistFontSize() const { return m_playlistArtistFontSize; }
+    std::wstring GetPlaylistArtistFontFamily() const { return m_playlistArtistFontFamily; }
+    int GetPlaylistArtistOffsetX() const { return m_playlistArtistOffsetX; }
+    int GetPlaylistArtistOffsetY() const { return m_playlistArtistOffsetY; }
+    std::wstring GetPlaylistArtistColor() const { return m_playlistArtistColor; }
+
+    float GetPlaylistTimeFontSize() const { return m_playlistTimeFontSize; }
+    std::wstring GetPlaylistTimeFontFamily() const { return m_playlistTimeFontFamily; }
+    int GetPlaylistTimeOffsetX() const { return m_playlistTimeOffsetX; }
+    int GetPlaylistTimeOffsetY() const { return m_playlistTimeOffsetY; }
+    float GetPlaylistTimeLetterSpacing() const { return m_playlistTimeLetterSpacing; }
+    std::wstring GetPlaylistTimeColor() const { return m_playlistTimeColor; }
+
+    int GetPlaylistHoverWidth() const { return m_playlistHoverWidth; }
+
+    float GetPlaylistBgOpacity() const { return m_playlistBgOpacity; }
+
 private:
     std::wstring m_iniFilePath;
 
@@ -271,6 +304,40 @@ private:
     float m_volShadowOffsetX;
     float m_volShadowOffsetY;
     float m_volShadowOpacity;
+
+    std::wstring m_trackCountFontFamily;
+    float m_trackCountFontSize;
+    int m_trackCountRightOffset;
+    int m_trackCountBottomOffset;
+    float m_trackCountLetterSpacing;
+    float m_trackCountShadowOffsetX;
+    float m_trackCountShadowOffsetY;
+    float m_trackCountShadowOpacity;
+
+    int m_playlistWidth;
+    int m_playlistItemOffsetY;
+
+    float m_playlistTitleFontSize;
+    std::wstring m_playlistTitleFontFamily;
+    int m_playlistTitleOffsetX;
+    int m_playlistTitleOffsetY;
+
+    float m_playlistArtistFontSize;
+    std::wstring m_playlistArtistFontFamily;
+    int m_playlistArtistOffsetX;
+    int m_playlistArtistOffsetY;
+    std::wstring m_playlistArtistColor;
+
+    float m_playlistTimeFontSize;
+    std::wstring m_playlistTimeFontFamily;
+    int m_playlistTimeOffsetX;
+    int m_playlistTimeOffsetY;
+    float m_playlistTimeLetterSpacing;
+    std::wstring m_playlistTimeColor;
+
+    int m_playlistHoverWidth;
+
+    float m_playlistBgOpacity;
 
     void LoadSettings();
 };

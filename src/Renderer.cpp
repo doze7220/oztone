@@ -5,9 +5,10 @@
 #include <d2d1effects.h>
 #pragma comment(lib, "dxguid.lib")
 #include <algorithm>
+#include <filesystem>
 
 
-Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_controlAlpha(0.0f) {}
+Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_controlAlpha(0.0f), m_playlistSlideX(9999.0f) {}
 
 Renderer::~Renderer() {}
 
@@ -235,6 +236,54 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     );
     if (FAILED(hr)) return false;
 
+    hr = m_dwriteFactory->CreateTextFormat(
+        m_config->GetTrackCountFontFamily().c_str(),
+        nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        m_config->GetTrackCountFontSize(),
+        L"en-us",
+        &m_trackCountTextFormat
+    );
+    if (FAILED(hr)) return false;
+
+    hr = m_dwriteFactory->CreateTextFormat(
+        m_config->GetPlaylistTitleFontFamily().c_str(),
+        nullptr,
+        DWRITE_FONT_WEIGHT_BOLD,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        m_config->GetPlaylistTitleFontSize(),
+        L"ja-jp",
+        &m_playlistTitleTextFormat
+    );
+    if (FAILED(hr)) return false;
+
+    hr = m_dwriteFactory->CreateTextFormat(
+        m_config->GetPlaylistArtistFontFamily().c_str(),
+        nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        m_config->GetPlaylistArtistFontSize(),
+        L"ja-jp",
+        &m_playlistArtistTextFormat
+    );
+    if (FAILED(hr)) return false;
+
+    hr = m_dwriteFactory->CreateTextFormat(
+        m_config->GetPlaylistTimeFontFamily().c_str(),
+        nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        m_config->GetPlaylistTimeFontSize(),
+        L"en-us",
+        &m_playlistTimeTextFormat
+    );
+    if (FAILED(hr)) return false;
+
     // 7.5 テキストトリミングの設定
     auto ApplyTrimming = [&](Microsoft::WRL::ComPtr<IDWriteTextFormat>& format) {
         if (!format) return;
@@ -252,10 +301,42 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     ApplyTrimming(m_nextLabelTextFormat);
     ApplyTrimming(m_nextTitleTextFormat);
     ApplyTrimming(m_nextArtistTextFormat);
+    ApplyTrimming(m_trackCountTextFormat);
+    ApplyTrimming(m_playlistTitleTextFormat);
+    ApplyTrimming(m_playlistArtistTextFormat);
+    ApplyTrimming(m_playlistTimeTextFormat);
 
     hr = m_timeTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
     if (FAILED(hr)) return false;
     hr = m_timeTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+    if (FAILED(hr)) return false;
+
+    hr = m_trackCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
+    if (FAILED(hr)) return false;
+
+    hr = m_playlistTimeTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
+    if (FAILED(hr)) return false;
+
+    // HEXから D2D1_COLOR_F への変換ラムダ
+    auto ParseHexColor = [](const std::wstring& hexColor) -> D2D1_COLOR_F {
+        if (hexColor.empty() || hexColor[0] != L'#') return D2D1::ColorF(D2D1::ColorF::White);
+        try {
+            unsigned int hexValue = std::stoul(hexColor.substr(1), nullptr, 16);
+            if (hexColor.length() == 7) { // #RRGGBB
+                return D2D1::ColorF(
+                    ((hexValue >> 16) & 0xFF) / 255.0f,
+                    ((hexValue >> 8) & 0xFF) / 255.0f,
+                    (hexValue & 0xFF) / 255.0f
+                );
+            }
+        } catch (...) {}
+        return D2D1::ColorF(D2D1::ColorF::White);
+    };
+
+    hr = m_d2dContext->CreateSolidColorBrush(ParseHexColor(m_config->GetPlaylistArtistColor()), &m_playlistArtistBrush);
+    if (FAILED(hr)) return false;
+
+    hr = m_d2dContext->CreateSolidColorBrush(ParseHexColor(m_config->GetPlaylistTimeColor()), &m_playlistTimeBrush);
     if (FAILED(hr)) return false;
 
     hr = m_d2dContext->CreateSolidColorBrush(
@@ -409,7 +490,7 @@ bool Renderer::LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitma
     return true;
 }
 
-void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum, float volume) {
+void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList) {
     if (!m_d2dContext) return;
 
     m_d2dContext->BeginDraw();
@@ -797,7 +878,6 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
                 
                 float drawX = artX + (artSize - drawWidth) / 2.0f;
                 float drawY = artY + (artSize - drawHeight) / 2.0f;
-                
                 if (m_shadowBrush && m_config->GetEnableShadow()) {
                     m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
                     D2D1_RECT_F shadowRect = D2D1::RectF(
@@ -1083,6 +1163,137 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
                 );
             }
             }
+        }
+    }
+    // 9. プレイリスト TRACK XXX/XXX と スライドインUI
+    if (m_config && m_trackCountTextFormat && m_textBrush) {
+        D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
+        renderTargetSize.width /= m_dpiScale;
+        renderTargetSize.height /= m_dpiScale;
+        
+        float trackCountRightOffset = static_cast<float>(m_config->GetTrackCountRightOffset());
+        float trackCountBottomOffset = static_cast<float>(m_config->GetTrackCountBottomOffset());
+        
+        float trackCountX = renderTargetSize.width - trackCountRightOffset - 200.0f;
+        float trackCountY = renderTargetSize.height - trackCountBottomOffset - 30.0f;
+        
+        wchar_t trackCountBuf[64];
+        if (totalTracks == 0) {
+            swprintf_s(trackCountBuf, L"TRACK ---/---");
+        } else {
+            swprintf_s(trackCountBuf, L"TRACK %zu/%zu", currentTrackIndex + 1, totalTracks);
+        }
+        std::wstring trackCountStr(trackCountBuf);
+        
+        Microsoft::WRL::ComPtr<IDWriteTextLayout> trackCountLayout;
+        HRESULT hrLayout = m_dwriteFactory->CreateTextLayout(
+            trackCountStr.c_str(),
+            static_cast<UINT32>(trackCountStr.length()),
+            m_trackCountTextFormat.Get(),
+            200.0f,
+            30.0f,
+            &trackCountLayout
+        );
+        if (SUCCEEDED(hrLayout)) {
+            Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
+            if (SUCCEEDED(trackCountLayout.As(&textLayout1))) {
+                DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(trackCountStr.length())};
+                textLayout1->SetCharacterSpacing(0.0f, m_config->GetTrackCountLetterSpacing(), 0.0f, textRange);
+            }
+            
+            D2D1_POINT_2F origin = D2D1::Point2F(trackCountX, trackCountY);
+            
+            if (m_shadowBrush && m_config->GetTrackCountShadowOpacity() > 0.0f) {
+                m_shadowBrush->SetOpacity(m_config->GetTrackCountShadowOpacity());
+                D2D1_POINT_2F shadowOrigin = D2D1::Point2F(trackCountX + m_config->GetTrackCountShadowOffsetX(), trackCountY + m_config->GetTrackCountShadowOffsetY());
+                m_d2dContext->DrawTextLayout(shadowOrigin, trackCountLayout.Get(), m_shadowBrush.Get());
+            }
+            m_d2dContext->DrawTextLayout(origin, trackCountLayout.Get(), m_textBrush.Get());
+        }
+
+        // スライドインアニメーション
+        float playlistWidth = static_cast<float>(m_config->GetPlaylistWidth());
+        if (m_playlistSlideX > playlistWidth * 2.0f) m_playlistSlideX = playlistWidth;
+
+        float targetSlideX = isPlaylistHovered ? 0.0f : playlistWidth;
+        m_playlistSlideX += (targetSlideX - m_playlistSlideX) * 0.2f;
+
+        if (m_playlistSlideX < playlistWidth - 0.5f) {
+            float playlistX = renderTargetSize.width - playlistWidth + m_playlistSlideX;
+            float playlistY = 0.0f;
+            float playlistHeight = renderTargetSize.height;
+
+            Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> bgBrush;
+            m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, m_config->GetPlaylistBgOpacity()), &bgBrush);
+            if (bgBrush) {
+                D2D1_RECT_F bgRect = D2D1::RectF(playlistX, playlistY, playlistX + playlistWidth, playlistY + playlistHeight);
+                m_d2dContext->FillRectangle(&bgRect, bgBrush.Get());
+            }
+
+            D2D1_RECT_F clipRect = D2D1::RectF(playlistX, playlistY, renderTargetSize.width, renderTargetSize.height);
+            m_d2dContext->PushAxisAlignedClip(&clipRect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+
+            float itemHeight = static_cast<float>(m_config->GetPlaylistItemOffsetY());
+            float scrollY = (playlistHeight / 2.0f) - (currentTrackIndex * itemHeight);
+            float maxScroll = 0.0f;
+            float minScroll = playlistHeight - (totalTracks * itemHeight);
+            if (minScroll > 0) minScroll = 0;
+            scrollY = std::clamp(scrollY, minScroll, maxScroll);
+
+            float currentY = scrollY;
+            
+            Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> highlightBrush;
+            m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.2f), &highlightBrush);
+
+            for (size_t i = 0; i < totalTracks && i < shuffleList.size(); ++i) {
+                if (currentY + itemHeight > 0 && currentY < playlistHeight) {
+                    if (i == currentTrackIndex && highlightBrush) {
+                        D2D1_RECT_F hlRect = D2D1::RectF(playlistX, currentY, playlistX + playlistWidth, currentY + itemHeight);
+                        m_d2dContext->FillRectangle(&hlRect, highlightBrush.Get());
+                    }
+
+                    std::wstring path = shuffleList[i];
+                    std::wstring title;
+                    try { title = std::filesystem::path(path).filename().wstring(); } catch(...) { title = L"Unknown"; }
+                    std::wstring artist = L"Unknown Artist";
+                    std::wstring timeStr = L"00:00";
+
+                    float textX = playlistX + static_cast<float>(m_config->GetPlaylistTitleOffsetX());
+                    float textY = currentY + static_cast<float>(m_config->GetPlaylistTitleOffsetY());
+                    D2D1_RECT_F titleRect = D2D1::RectF(textX, textY, playlistX + playlistWidth - 10.0f, textY + 30.0f);
+                    m_d2dContext->DrawText(title.c_str(), static_cast<UINT32>(title.length()), m_playlistTitleTextFormat.Get(), &titleRect, m_textBrush.Get());
+
+                    float artistX = playlistX + static_cast<float>(m_config->GetPlaylistArtistOffsetX());
+                    float artistY = currentY + static_cast<float>(m_config->GetPlaylistArtistOffsetY());
+                    D2D1_RECT_F artistRect = D2D1::RectF(artistX, artistY, playlistX + playlistWidth - 100.0f, artistY + 20.0f);
+                    m_d2dContext->DrawText(artist.c_str(), static_cast<UINT32>(artist.length()), m_playlistArtistTextFormat.Get(), &artistRect, m_playlistArtistBrush ? m_playlistArtistBrush.Get() : m_textBrush.Get());
+
+                    float itemRightX = playlistX + playlistWidth;
+                    float timeX = itemRightX - 100.0f - static_cast<float>(m_config->GetPlaylistTimeOffsetX());
+                    float timeY = currentY + static_cast<float>(m_config->GetPlaylistTimeOffsetY());
+                    
+                    Microsoft::WRL::ComPtr<IDWriteTextLayout> timeLayout;
+                    HRESULT hrTime = m_dwriteFactory->CreateTextLayout(
+                        timeStr.c_str(),
+                        static_cast<UINT32>(timeStr.length()),
+                        m_playlistTimeTextFormat.Get(),
+                        100.0f,
+                        20.0f,
+                        &timeLayout
+                    );
+                    if (SUCCEEDED(hrTime)) {
+                        Microsoft::WRL::ComPtr<IDWriteTextLayout1> timeLayout1;
+                        if (SUCCEEDED(timeLayout.As(&timeLayout1))) {
+                            DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(timeStr.length())};
+                            timeLayout1->SetCharacterSpacing(0.0f, m_config->GetPlaylistTimeLetterSpacing(), 0.0f, textRange);
+                        }
+                        m_d2dContext->DrawTextLayout(D2D1::Point2F(timeX, timeY), timeLayout.Get(), m_playlistTimeBrush ? m_playlistTimeBrush.Get() : m_textBrush.Get());
+                    }
+                }
+                currentY += itemHeight;
+            }
+
+            m_d2dContext->PopAxisAlignedClip();
         }
     }
 

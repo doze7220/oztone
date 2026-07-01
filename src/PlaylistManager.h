@@ -67,6 +67,18 @@ public:
     size_t GetCount() const;
 
     /**
+     * @brief 現在のシャッフルインデックス（自分が今何曲目にいるか）を取得する
+     * @return 現在のインデックス（0始まり）
+     */
+    size_t GetCurrentIndex() const;
+
+    /**
+     * @brief 現在のシャッフルリスト全体（次に再生される順番）のファイルパス一覧を取得する
+     * @return ファイルパスの配列
+     */
+    std::vector<std::wstring> GetShuffleList() const;
+
+    /**
      * @brief 現在および次周のシャッフルリストを初期化・生成する
      */
     void InitializeShuffle();

@@ -157,3 +157,19 @@ bool PlaylistManager::IsEmpty() const {
 size_t PlaylistManager::GetCount() const {
     return m_playlist.size();
 }
+
+size_t PlaylistManager::GetCurrentIndex() const {
+    return m_shuffleIndex;
+}
+
+std::vector<std::wstring> PlaylistManager::GetShuffleList() const {
+    std::vector<std::wstring> list;
+    if (m_playlist.empty() || m_shuffleIndices.empty()) {
+        return list;
+    }
+    list.reserve(m_shuffleIndices.size());
+    for (size_t idx : m_shuffleIndices) {
+        list.push_back(m_playlist[idx]);
+    }
+    return list;
+}
