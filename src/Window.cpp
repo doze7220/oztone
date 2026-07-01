@@ -332,7 +332,10 @@ bool Window::IsInPlaylistRegion(int x, int y) const {
     float controlHeight = m_config->GetControlHoverHeight();
 
     bool isXMatch = logicalX >= logicalWidth - hoverWidth;
-    bool isYMatch = logicalY < logicalHeight - controlHeight;
+    
+    // プレイリストが展開されている場合は、画面下部であってもリスト上にマウスがあればホバーを維持する。
+    // 展開されていない場合のみ、右下のリサイズやコントロールとの干渉を避けるためY座標を制限する。
+    bool isYMatch = m_isPlaylistHovered || (logicalY < logicalHeight - controlHeight);
 
     return isXMatch && isYMatch;
 }
