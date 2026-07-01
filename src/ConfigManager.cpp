@@ -15,6 +15,14 @@ WindowY=-2147483648
 WindowWidth=1024
 WindowHeight=512
 
+[Visibility]
+ShowAppLogo=1
+ShowNowPlaying=1
+ShowNextTrack=1
+ShowSeekBar=1
+ShowPlaybackControls=1
+ShowVolumeControl=1
+
 [Layout_Window]
 EnableShadow=1
 ShadowOffsetX=2.0
@@ -102,7 +110,7 @@ ShadowOpacity=0.7
 DefaultVolume=1.0
 
 [Visualizer]
-VisualizerMode=1
+VisualizerMode=0
 
 [Playlist]
 DefaultPlaylistPath=oztone_playlist.lst
@@ -111,6 +119,8 @@ DefaultPlaylistPath=oztone_playlist.lst
 
 ConfigManager::ConfigManager()
     : m_showTitleBar(false), m_showWindowFrame(false), m_showTaskbar(false),
+      m_showAppLogo(true), m_showNowPlaying(true), m_showNextTrack(true),
+      m_showSeekBar(true), m_showPlaybackControls(true), m_showVolumeControl(true),
       m_zOrder(0), m_savePositionOnExit(true),
       m_windowX(CW_USEDEFAULT), m_windowY(CW_USEDEFAULT), m_windowWidth(1024), m_windowHeight(512),
       m_enableShadow(true), m_shadowOffsetX(2.0f), m_shadowOffsetY(2.0f), m_shadowOpacity(0.7f), m_bgDarkenOpacity(0.3f), m_bgOpacity(0.8f), m_backgroundArtMode(0), m_visualizerMode(0),
@@ -242,6 +252,13 @@ void ConfigManager::LoadSettings() {
     try { m_volShadowOpacity = std::stof(buf); } catch (...) { m_volShadowOpacity = 0.7f; }
 
     m_visualizerMode = GetPrivateProfileIntW(L"Visualizer", L"VisualizerMode", 0, m_iniFilePath.c_str());
+
+    m_showAppLogo = GetPrivateProfileIntW(L"Visibility", L"ShowAppLogo", 1, m_iniFilePath.c_str()) != 0;
+    m_showNowPlaying = GetPrivateProfileIntW(L"Visibility", L"ShowNowPlaying", 1, m_iniFilePath.c_str()) != 0;
+    m_showNextTrack = GetPrivateProfileIntW(L"Visibility", L"ShowNextTrack", 1, m_iniFilePath.c_str()) != 0;
+    m_showSeekBar = GetPrivateProfileIntW(L"Visibility", L"ShowSeekBar", 1, m_iniFilePath.c_str()) != 0;
+    m_showPlaybackControls = GetPrivateProfileIntW(L"Visibility", L"ShowPlaybackControls", 1, m_iniFilePath.c_str()) != 0;
+    m_showVolumeControl = GetPrivateProfileIntW(L"Visibility", L"ShowVolumeControl", 1, m_iniFilePath.c_str()) != 0;
 
     m_logoX = GetPrivateProfileIntW(L"Layout_AppLogo", L"X", 16, m_iniFilePath.c_str());
 

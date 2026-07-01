@@ -57,8 +57,9 @@ public:
     static constexpr UINT ID_TRAY_BG_NOWPLAYING = 1017;
     static constexpr UINT ID_TRAY_BG_HIDDEN = 1018;
     static constexpr UINT ID_TRAY_BG_DEFAULT = 1019;
-    static constexpr UINT ID_TRAY_VIS_PRISM = 1020;
-    static constexpr UINT ID_TRAY_VIS_CIRCLE = 1021;
+    static constexpr UINT ID_TRAY_VIS_NONE = 1020;
+    static constexpr UINT ID_TRAY_VIS_PRISM = 1021;
+    static constexpr UINT ID_TRAY_VIS_CIRCLE = 1022;
     static constexpr UINT ID_TRAY_EXIT = 1001;
 
     /**

@@ -64,9 +64,9 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
     if (spectrum.empty() || !m_initialized) return;
 
     int mode = m_config ? m_config->GetVisualizerMode() : 0;
-    if (mode == 1) {
+    if (mode == 2) {
         DrawCircleParticle(context, spectrum, drawRect, trackTitle, trackArtist);
-    } else {
+    } else if (mode == 1) {
         DrawPrismBeat(context, spectrum, drawRect);
     }
 }

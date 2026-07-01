@@ -20,6 +20,13 @@ public:
     bool GetShowWindowFrame() const { return m_showWindowFrame; }
     bool GetShowTaskbar() const { return m_showTaskbar; }
 
+    bool GetShowAppLogo() const { return m_showAppLogo; }
+    bool GetShowNowPlaying() const { return m_showNowPlaying; }
+    bool GetShowNextTrack() const { return m_showNextTrack; }
+    bool GetShowSeekBar() const { return m_showSeekBar; }
+    bool GetShowPlaybackControls() const { return m_showPlaybackControls; }
+    bool GetShowVolumeControl() const { return m_showVolumeControl; }
+
     bool GetEnableShadow() const { return m_enableShadow; }
     float GetShadowOffsetX() const { return m_shadowOffsetX; }
     float GetShadowOffsetY() const { return m_shadowOffsetY; }
@@ -146,6 +153,13 @@ private:
     bool m_showTitleBar;
     bool m_showWindowFrame;
     bool m_showTaskbar;
+
+    bool m_showAppLogo;
+    bool m_showNowPlaying;
+    bool m_showNextTrack;
+    bool m_showSeekBar;
+    bool m_showPlaybackControls;
+    bool m_showVolumeControl;
 
     int m_zOrder;
     bool m_savePositionOnExit;

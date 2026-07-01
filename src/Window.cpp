@@ -18,6 +18,7 @@ constexpr UINT TRAY_MENU_ORDER[] = {
     Window::ID_TRAY_RESET_ALL,
     Window::ID_TRAY_CLEAR_PLAYLIST,
     0, // separator
+    Window::ID_TRAY_VIS_NONE,
     Window::ID_TRAY_VIS_PRISM,
     Window::ID_TRAY_VIS_CIRCLE,
     0, // separator
@@ -321,9 +322,9 @@ int Window::GetPlaybackButtonAt(int x, int y) const {
     int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
 
     float centerX = (logicalWidth / 2.0f) + m_config->GetPlaybackCenterOffsetX();
-    float centerY = logicalHeight - m_config->GetPlaybackBaseBottomOffset();
-    float size = m_config->GetPlaybackButtonSize();
-    float spacing = m_config->GetPlaybackButtonSpacing();
+    float centerY = logicalHeight - static_cast<float>(m_config->GetPlaybackBaseBottomOffset());
+    float size = static_cast<float>(m_config->GetPlaybackButtonSize());
+    float spacing = static_cast<float>(m_config->GetPlaybackButtonSpacing());
     float halfSize = size / 2.0f;
 
     if (logicalY >= centerY - halfSize && logicalY <= centerY + halfSize) {
@@ -431,6 +432,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                             case ID_TRAY_BG_NOWPLAYING: text = L"背景: アルバムアート"; break;
                             case ID_TRAY_BG_HIDDEN: text = L"背景: 非表示"; break;
                             case ID_TRAY_BG_DEFAULT: text = L"背景: デフォルト背景"; break;
+                            case ID_TRAY_VIS_NONE: text = L"ビジュアライザ: 非表示"; break;
                             case ID_TRAY_VIS_PRISM: text = L"ビジュアライザ: プリズム・ビート"; break;
                             case ID_TRAY_VIS_CIRCLE: text = L"ビジュアライザ: ヘイロー・ダスト"; break;
                             case ID_TRAY_EXIT: text = L"終了 (Exit)"; break;
@@ -447,8 +449,8 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                     CheckMenuRadioItem(hMenu, ID_TRAY_BG_NOWPLAYING, ID_TRAY_BG_DEFAULT,
                                        ID_TRAY_BG_NOWPLAYING + bgMode, MF_BYCOMMAND);
                     int visMode = m_config->GetVisualizerMode();
-                    CheckMenuRadioItem(hMenu, ID_TRAY_VIS_PRISM, ID_TRAY_VIS_CIRCLE,
-                                       ID_TRAY_VIS_PRISM + visMode, MF_BYCOMMAND);
+                    CheckMenuRadioItem(hMenu, ID_TRAY_VIS_NONE, ID_TRAY_VIS_CIRCLE,
+                                       ID_TRAY_VIS_NONE + visMode, MF_BYCOMMAND);
                     if (m_config->GetSavePositionOnExit()) {
                         CheckMenuItem(hMenu, ID_TRAY_SAVE_POS, MF_BYCOMMAND | MF_CHECKED);
                     }
@@ -485,10 +487,11 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                     }
                     break;
                 }
+                case ID_TRAY_VIS_NONE:
                 case ID_TRAY_VIS_PRISM:
                 case ID_TRAY_VIS_CIRCLE: {
                     if (m_config) {
-                        m_config->SetVisualizerMode(wmId - ID_TRAY_VIS_PRISM);
+                        m_config->SetVisualizerMode(wmId - ID_TRAY_VIS_NONE);
                     }
                     break;
                 }

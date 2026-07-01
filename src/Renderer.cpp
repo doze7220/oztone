@@ -456,7 +456,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
     }
 
     // 2.5 7色ネオン心電図ビジュアライザの描画
-    if (!spectrum.empty()) {
+    if (m_config && m_config->GetVisualizerMode() != 0 && !spectrum.empty()) {
         D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
         renderTargetSize.width /= m_dpiScale;
         renderTargetSize.height /= m_dpiScale;
@@ -468,7 +468,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
     // 3. アイコンの描画
 
     ID2D1Bitmap* bitmapToDraw = isHovered ? m_appLogoHoverBitmap.Get() : m_appLogoBitmap.Get();
-    if (bitmapToDraw && m_config) {
+    if (m_config && m_config->GetShowAppLogo() && bitmapToDraw) {
         float x = static_cast<FLOAT>(m_config->GetLogoX());
         float y = static_cast<FLOAT>(m_config->GetLogoY());
         float w = static_cast<FLOAT>(m_config->GetLogoWidth());
@@ -488,7 +488,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
 
 
     // 4. 左下アルバムアートの描画
-    if (m_config) {
+    if (m_config && m_config->GetShowNowPlaying()) {
         D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
         float logicHeight = rtSize.height / m_dpiScale;
         float size = static_cast<float>(m_config->GetArtSize());
@@ -542,7 +542,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
     }
 
     // 5. 曲情報テキストの描画
-    if (m_textBrush && m_titleTextFormat && m_artistTextFormat && m_config) {
+    if (m_config && m_config->GetShowNowPlaying() && m_textBrush && m_titleTextFormat && m_artistTextFormat) {
         D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
         float logicHeight = rtSize.height / m_dpiScale;
         float baseX = static_cast<float>(m_config->GetBaseX());
@@ -613,7 +613,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
     }
 
     // 6. シークバーと時間テキストの描画
-    if (m_textBrush && m_timeTextFormat && m_config) {
+    if (m_config && m_config->GetShowSeekBar() && m_textBrush && m_timeTextFormat) {
         D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
         renderTargetSize.width /= m_dpiScale;
         renderTargetSize.height /= m_dpiScale;
@@ -672,7 +672,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
     }
 
     // 7. 「次の曲」表示の描画
-    if (m_config && m_textBrush && m_nextTitleTextFormat && m_nextArtistTextFormat) {
+    if (m_config && m_config->GetShowNextTrack() && m_textBrush && m_nextTitleTextFormat && m_nextArtistTextFormat) {
         D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
         renderTargetSize.width /= m_dpiScale;
         renderTargetSize.height /= m_dpiScale;
@@ -922,7 +922,8 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
                 m_d2dContext->FillRectangle(rect, controlBrush.Get());
             };
 
-            // Previous Button (⏮)
+            if (m_config->GetShowPlaybackControls()) {
+                // Previous Button (⏮)
             float prevX = centerX - spacing;
             DrawRect(prevX - half + size*0.1f, centerY, size*0.2f, size);
             DrawTriangle(prevX - size*0.1f, centerY, size*0.4f, size, false);
@@ -943,9 +944,11 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
             DrawTriangle(nextX - size*0.3f, centerY, size*0.4f, size, true);
             DrawTriangle(nextX + size*0.1f, centerY, size*0.4f, size, true);
             DrawRect(nextX + half - size*0.1f, centerY, size*0.2f, size);
+            }
 
             // 8.5 音量UIの描画
-            float volX = static_cast<float>(m_config->GetVolumeBaseLeftOffset());
+            if (m_config->GetShowVolumeControl()) {
+                float volX = static_cast<float>(m_config->GetVolumeBaseLeftOffset());
             float volY = renderTargetSize.height - static_cast<float>(m_config->GetVolumeBaseBottomOffset());
             float volSize = static_cast<float>(m_config->GetVolumeIconSize());
             
@@ -1054,6 +1057,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
                     volTextLayout.Get(),
                     controlBrush.Get()
                 );
+            }
             }
         }
     }
