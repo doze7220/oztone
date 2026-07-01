@@ -13,6 +13,7 @@ constexpr UINT TRAY_MENU_ORDER[] = {
     Window::ID_TRAY_BG_HIDDEN,
     Window::ID_TRAY_BG_DEFAULT,
     0, // separator
+    Window::ID_TRAY_ENABLE_RESIZE,
     Window::ID_TRAY_SAVE_POS,
     Window::ID_TRAY_RESET_POS,
     Window::ID_TRAY_RESET_ALL,
@@ -338,6 +339,34 @@ int Window::GetPlaybackButtonAt(int x, int y) const {
 
 LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
+        case WM_SIZE: {
+            if (wParam != SIZE_MINIMIZED && m_onResize) {
+                int width = LOWORD(lParam);
+                int height = HIWORD(lParam);
+                m_onResize(width, height);
+            }
+            return 0;
+        }
+        case WM_NCHITTEST: {
+            LRESULT hit = DefWindowProc(hwnd, uMsg, wParam, lParam);
+            if (hit == HTCLIENT && m_config && m_config->GetEnableResize()) {
+                POINT pt;
+                pt.x = GET_X_LPARAM(lParam);
+                pt.y = GET_Y_LPARAM(lParam);
+                ScreenToClient(hwnd, &pt);
+                
+                RECT rect;
+                GetClientRect(hwnd, &rect);
+                
+                UINT dpi = GetDpiForWindow(hwnd);
+                int gripSize = MulDiv(15, dpi, 96);
+                
+                if (pt.x >= rect.right - gripSize && pt.y >= rect.bottom - gripSize) {
+                    return HTBOTTOMRIGHT;
+                }
+            }
+            return hit;
+        }
         case WM_WINDOWPOSCHANGING: {
             if (m_config && m_config->GetZOrder() == 2) {
                 WINDOWPOS* pos = reinterpret_cast<WINDOWPOS*>(lParam);
@@ -425,6 +454,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                             case ID_TRAY_ZORDER_NORMAL: text = L"ウィンドウ順序: 通常"; break;
                             case ID_TRAY_ZORDER_TOPMOST: text = L"ウィンドウ順序: 最前面"; break;
                             case ID_TRAY_ZORDER_BOTTOM: text = L"ウィンドウ順序: 最背面"; break;
+                            case ID_TRAY_ENABLE_RESIZE: text = L"リサイズモードを有効化"; break;
                             case ID_TRAY_SAVE_POS: text = L"終了時に位置とサイズを記憶"; break;
                             case ID_TRAY_RESET_POS: text = L"位置とサイズをリセット"; break;
                             case ID_TRAY_RESET_ALL: text = L"設定を初期化"; break;
@@ -453,6 +483,9 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                                        ID_TRAY_VIS_NONE + visMode, MF_BYCOMMAND);
                     if (m_config->GetSavePositionOnExit()) {
                         CheckMenuItem(hMenu, ID_TRAY_SAVE_POS, MF_BYCOMMAND | MF_CHECKED);
+                    }
+                    if (m_config->GetEnableResize()) {
+                        CheckMenuItem(hMenu, ID_TRAY_ENABLE_RESIZE, MF_BYCOMMAND | MF_CHECKED);
                     }
                 }
 
@@ -492,6 +525,13 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                 case ID_TRAY_VIS_CIRCLE: {
                     if (m_config) {
                         m_config->SetVisualizerMode(wmId - ID_TRAY_VIS_NONE);
+                    }
+                    break;
+                }
+                case ID_TRAY_ENABLE_RESIZE: {
+                    if (m_config) {
+                        bool current = m_config->GetEnableResize();
+                        m_config->SetEnableResize(!current);
                     }
                     break;
                 }

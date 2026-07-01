@@ -31,6 +31,11 @@ public:
     void Run();
 
     /**
+     * @brief 強制的に1フレーム描画を行う（リサイズ中の追従用）
+     */
+    void ForceRender();
+
+    /**
      * @brief 起動直後のコマンドライン引数を処理する
      * @param argc 引数の数
      * @param argv 引数の文字列配列

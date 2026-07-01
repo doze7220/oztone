@@ -60,6 +60,7 @@ public:
     static constexpr UINT ID_TRAY_VIS_NONE = 1020;
     static constexpr UINT ID_TRAY_VIS_PRISM = 1021;
     static constexpr UINT ID_TRAY_VIS_CIRCLE = 1022;
+    static constexpr UINT ID_TRAY_ENABLE_RESIZE = 1023;
     static constexpr UINT ID_TRAY_EXIT = 1001;
 
     /**
@@ -148,6 +149,13 @@ public:
         m_onVolumeScroll = cb;
     }
 
+    /**
+     * @brief ウィンドウサイズが変更された時のコールバックを設定する
+     */
+    void SetOnResizeCallback(std::function<void(int, int)> cb) {
+        m_onResize = cb;
+    }
+
 private:
     static LRESULT CALLBACK WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -165,6 +173,7 @@ private:
     std::function<void(const std::wstring&)> m_onCopyDataCallback;
     std::function<void()> m_onClearPlaylistCommand;
     std::function<void(int)> m_onVolumeScroll;
+    std::function<void(int, int)> m_onResize;
     DropTarget* m_pDropTarget;
 
     static constexpr UINT WM_TRAYICON = WM_APP + 1;

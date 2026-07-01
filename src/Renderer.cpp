@@ -1062,10 +1062,58 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
         }
     }
 
+    if (m_config && m_config->GetEnableResize()) {
+        D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
+        renderTargetSize.width /= m_dpiScale;
+        renderTargetSize.height /= m_dpiScale;
+        
+        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> gripBrush;
+        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.5f), &gripBrush);
+        if (gripBrush) {
+            float size = 15.0f;
+            Microsoft::WRL::ComPtr<ID2D1PathGeometry> gripPath;
+            m_d2dFactory->CreatePathGeometry(&gripPath);
+            Microsoft::WRL::ComPtr<ID2D1GeometrySink> gripSink;
+            gripPath->Open(&gripSink);
+            gripSink->SetFillMode(D2D1_FILL_MODE_WINDING);
+            gripSink->BeginFigure(D2D1::Point2F(renderTargetSize.width - size, renderTargetSize.height), D2D1_FIGURE_BEGIN_FILLED);
+            gripSink->AddLine(D2D1::Point2F(renderTargetSize.width, renderTargetSize.height));
+            gripSink->AddLine(D2D1::Point2F(renderTargetSize.width, renderTargetSize.height - size));
+            gripSink->EndFigure(D2D1_FIGURE_END_CLOSED);
+            gripSink->Close();
+            m_d2dContext->FillGeometry(gripPath.Get(), gripBrush.Get());
+        }
+    }
+
     HRESULT hr = m_d2dContext->EndDraw();
 
     if (SUCCEEDED(hr) || hr == D2DERR_RECREATE_TARGET) {
         // VSync同期でPresent (1)
         m_swapChain->Present(1, 0);
+    }
+}
+
+void Renderer::Resize(UINT width, UINT height) {
+    if (!m_d2dContext || !m_swapChain) return;
+
+    m_d2dContext->SetTarget(nullptr);
+    m_d2dTargetBitmap.Reset();
+
+    HRESULT hr = m_swapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
+    if (SUCCEEDED(hr)) {
+        Microsoft::WRL::ComPtr<IDXGISurface> dxgiBackBuffer;
+        hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(&dxgiBackBuffer));
+        if (SUCCEEDED(hr)) {
+            D2D1_BITMAP_PROPERTIES1 bitmapProperties = D2D1::BitmapProperties1(
+                D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
+                D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
+                96.0f,
+                96.0f
+            );
+            hr = m_d2dContext->CreateBitmapFromDxgiSurface(dxgiBackBuffer.Get(), &bitmapProperties, &m_d2dTargetBitmap);
+            if (SUCCEEDED(hr)) {
+                m_d2dContext->SetTarget(m_d2dTargetBitmap.Get());
+            }
+        }
     }
 }

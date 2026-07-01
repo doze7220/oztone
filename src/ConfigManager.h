@@ -50,6 +50,10 @@ public:
     bool GetSavePositionOnExit() const { return m_savePositionOnExit; }
     void SetSavePositionOnExit(bool save);
 
+    bool GetEnableResize() const { return m_enableResize; }
+    void SetEnableResize(bool enable);
+
+
     /**
      * @brief ウィンドウの表示位置とサイズを保存する
      */
@@ -163,6 +167,8 @@ private:
 
     int m_zOrder;
     bool m_savePositionOnExit;
+    bool m_enableResize;
+
 
     int m_windowX;
     int m_windowY;

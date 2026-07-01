@@ -48,6 +48,14 @@ public:
     void Render(bool isHovered, bool isControlHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum, float volume);
 
     /**
+     * @brief ウィンドウサイズ変更時にスワップチェインとバッファをリサイズする
+     * @param width 新しい幅
+     * @param height 新しい高さ
+     */
+    void Resize(UINT width, UINT height);
+
+
+    /**
      * @brief 再生中の曲情報を設定する
      */
     void SetTrackInfo(const std::wstring& title, const std::wstring& artist);
