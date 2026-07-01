@@ -186,24 +186,52 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
     bool wasEmpty = m_playlistManager.IsEmpty();
     bool addedAny = false;
 
-    auto IsMp3File = [](const std::filesystem::path& p) {
-        if (p.extension().wstring() == L".mp3" || p.extension().wstring() == L".MP3") return true;
+    auto IsSupportedAudioFile = [](const std::filesystem::path& p) {
         std::wstring ext = p.extension().wstring();
         std::transform(ext.begin(), ext.end(), ext.begin(), ::towlower);
-        return ext == L".mp3";
+        if (ext == L".mp3" || ext == L".flac" || ext == L".wav" || ext == L".ogg") {
+            return true;
+        }
+        // [EXPERIMENTAL] MP4/M4A Support
+        if (ext == L".mp4" || ext == L".m4a") {
+            return true;
+        }
+        return false;
     };
 
-    auto IsValidMp3 = [](const std::filesystem::path& p) {
+    auto IsValidAudioFile = [](const std::filesystem::path& p) {
+        std::wstring ext = p.extension().wstring();
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::towlower);
+
+        // [EXPERIMENTAL] MP4/M4A Support
+        // 動画コンテナ構造は検証が複雑なためマジックナンバー検証をスキップ
+        if (ext == L".mp4" || ext == L".m4a") {
+            return true;
+        }
+
         std::ifstream file(p, std::ios::binary);
         if (!file.is_open()) return false;
-        unsigned char header[3] = {0};
-        file.read(reinterpret_cast<char*>(header), 3);
-        if (file.gcount() >= 2) {
+        
+        unsigned char header[4] = {0};
+        file.read(reinterpret_cast<char*>(header), 4);
+        std::streamsize bytesRead = file.gcount();
+
+        if (bytesRead >= 4) {
+            // FLAC: "fLaC"
+            if (header[0] == 'f' && header[1] == 'L' && header[2] == 'a' && header[3] == 'C') return true;
+            // OGG: "OggS"
+            if (header[0] == 'O' && header[1] == 'g' && header[2] == 'g' && header[3] == 'S') return true;
+            // WAV: "RIFF"
+            if (header[0] == 'R' && header[1] == 'I' && header[2] == 'F' && header[3] == 'F') return true;
+        }
+        
+        if (bytesRead >= 2) {
             // ID3v2: "ID3"
             if (header[0] == 'I' && header[1] == 'D' && header[2] == '3') return true;
             // MP3 Sync word: 0xFF 0xFB, 0xFF 0xFA, 0xFF 0xF3, etc...
             if (header[0] == 0xFF && (header[1] & 0xE0) == 0xE0) return true;
         }
+        
         return false;
     };
 
@@ -213,13 +241,13 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
             if (std::filesystem::is_directory(p)) {
                 for (auto it = std::filesystem::recursive_directory_iterator(p); it != std::filesystem::recursive_directory_iterator(); ++it) {
                     if (it->is_regular_file()) {
-                        bool isMp3 = IsMp3File(it->path());
-                        bool isValid = IsValidMp3(it->path());
+                        bool isSupported = IsSupportedAudioFile(it->path());
+                        bool isValid = IsValidAudioFile(it->path());
                         char dbg[1024];
-                        sprintf_s(dbg, "File: %ls, IsMp3: %d, IsValid: %d\n", it->path().wstring().c_str(), isMp3, isValid);
+                        sprintf_s(dbg, "File: %ls, IsSupported: %d, IsValid: %d\n", it->path().wstring().c_str(), isSupported, isValid);
                         OutputDebugStringA(dbg);
                         
-                        if (isMp3 && isValid) {
+                        if (isSupported && isValid) {
                             if (m_playlistManager.Add(it->path().string())) {
                                 addedAny = true;
                             }
@@ -227,13 +255,13 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
                     }
                 }
             } else if (std::filesystem::is_regular_file(p)) {
-                bool isMp3 = IsMp3File(p);
-                bool isValid = IsValidMp3(p);
+                bool isSupported = IsSupportedAudioFile(p);
+                bool isValid = IsValidAudioFile(p);
                 char dbg[1024];
-                sprintf_s(dbg, "File: %ls, IsMp3: %d, IsValid: %d\n", p.wstring().c_str(), isMp3, isValid);
+                sprintf_s(dbg, "File: %ls, IsSupported: %d, IsValid: %d\n", p.wstring().c_str(), isSupported, isValid);
                 OutputDebugStringA(dbg);
                 
-                if (isMp3 && isValid) {
+                if (isSupported && isValid) {
                     if (m_playlistManager.Add(p.string())) {
                         addedAny = true;
                     }
