@@ -77,14 +77,18 @@ ArtistOffsetY=4
 ArtistFontSize=12.0
 ArtistFontFamily=Meiryo
 
-
-
-[Playlist]
-
-DefaultPlaylistPath=oztone_playlist.lst
+[Layout_PlaybackControls]
+BaseBottomOffset=22
+CenterOffsetX=0
+ButtonSpacing=55
+ButtonSize=30
 
 [Visualizer]
 VisualizerMode=1
+
+[Playlist]
+DefaultPlaylistPath=oztone_playlist.lst
+
 )";
 
 ConfigManager::ConfigManager()
@@ -110,7 +114,8 @@ ConfigManager::ConfigManager()
       m_nextLabelOffsetX(0), m_nextLabelOffsetY(-20), m_nextLabelFontSize(12.0f), m_nextLabelFontFamily(L"Meiryo"),
 
       m_nextTitleOffsetX(50), m_nextTitleOffsetY(0), m_nextTitleFontSize(14.0f), m_nextTitleFontFamily(L"Meiryo"),
-      m_nextArtistOffsetX(50), m_nextArtistOffsetY(20), m_nextArtistFontSize(12.0f), m_nextArtistFontFamily(L"Meiryo") {
+      m_nextArtistOffsetX(50), m_nextArtistOffsetY(20), m_nextArtistFontSize(12.0f), m_nextArtistFontFamily(L"Meiryo"),
+      m_playbackBaseBottomOffset(40), m_playbackCenterOffsetX(0), m_playbackButtonSpacing(40), m_playbackButtonSize(20) {
 }
 
 ConfigManager::~ConfigManager() {}
@@ -265,7 +270,13 @@ void ConfigManager::LoadSettings() {
     GetPrivateProfileStringW(L"Layout_NextTrack", L"ArtistFontFamily", L"Meiryo", buf, 32, m_iniFilePath.c_str());
     m_nextArtistFontFamily = buf;
 
+    m_playbackBaseBottomOffset = GetPrivateProfileIntW(L"Layout_PlaybackControls", L"BaseBottomOffset", 40, m_iniFilePath.c_str());
+    m_playbackCenterOffsetX = GetPrivateProfileIntW(L"Layout_PlaybackControls", L"CenterOffsetX", 0, m_iniFilePath.c_str());
+    m_playbackButtonSpacing = GetPrivateProfileIntW(L"Layout_PlaybackControls", L"ButtonSpacing", 40, m_iniFilePath.c_str());
+    m_playbackButtonSize = GetPrivateProfileIntW(L"Layout_PlaybackControls", L"ButtonSize", 20, m_iniFilePath.c_str());
+
     wchar_t pathBuf[MAX_PATH];
+
 
     GetPrivateProfileStringW(L"Playlist", L"DefaultPlaylistPath", L"", pathBuf, MAX_PATH, m_iniFilePath.c_str());
     std::wstring loadedPlaylistPath = pathBuf;

@@ -84,6 +84,23 @@ public:
     bool IsInLogoRegion(int x, int y) const;
 
     /**
+     * @brief 再生コントロールのホバー状態
+     */
+    bool IsControlHovered() const { return m_isControlHovered; }
+    void SetControlHovered(bool hovered) { m_isControlHovered = hovered; }
+
+    /**
+     * @brief 座標が再生コントロール領域内にあるかを判定する
+     */
+    bool IsInPlaybackControlRegion(int x, int y) const;
+
+    /**
+     * @brief クリックされた再生コントロールボタンのIDを取得する (0:なし, 1:Prev, 2:Play/Pause, 3:Next)
+     */
+    int GetPlaybackButtonAt(int x, int y) const;
+
+
+    /**
      * @brief ファイルドロップを通知する
      */
     void NotifyFilesDropped(const std::vector<std::wstring>& files) {
@@ -128,6 +145,7 @@ private:
 
     ConfigManager* m_config;
     bool m_isHovered;
+    bool m_isControlHovered;
     bool m_isTrackingMouse;
     std::function<void(const std::vector<std::wstring>&)> m_onFilesDropped;
     std::function<void(int)> m_onMediaCommand;

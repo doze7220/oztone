@@ -7,7 +7,7 @@
 #include <algorithm>
 
 
-Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f) {}
+Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_controlAlpha(0.0f) {}
 
 Renderer::~Renderer() {}
 
@@ -379,7 +379,7 @@ bool Renderer::LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitma
     return true;
 }
 
-void Renderer::Render(bool isHovered, float progress, const std::wstring& timeString, const std::vector<float>& spectrum) {
+void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum) {
     if (!m_d2dContext) return;
 
     m_d2dContext->BeginDraw();
@@ -850,6 +850,80 @@ void Renderer::Render(bool isHovered, float progress, const std::wstring& timeSt
                 &artistRect,
                 m_textBrush.Get()
             );
+        }
+    }
+
+    // 8. 再生コントロールの描画
+    if (isControlHovered) {
+        m_controlAlpha += 0.05f;
+        if (m_controlAlpha > 1.0f) m_controlAlpha = 1.0f;
+    } else {
+        m_controlAlpha -= 0.05f;
+        if (m_controlAlpha < 0.0f) m_controlAlpha = 0.0f;
+    }
+
+    if (m_controlAlpha > 0.0f && m_config) {
+        D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
+        renderTargetSize.width /= m_dpiScale;
+        renderTargetSize.height /= m_dpiScale;
+
+        float centerX = (renderTargetSize.width / 2.0f) + m_config->GetPlaybackCenterOffsetX();
+        float centerY = renderTargetSize.height - m_config->GetPlaybackBaseBottomOffset();
+        float size = static_cast<float>(m_config->GetPlaybackButtonSize());
+        float spacing = static_cast<float>(m_config->GetPlaybackButtonSpacing());
+        
+        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> controlBrush;
+        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, m_controlAlpha), &controlBrush);
+        
+        if (controlBrush) {
+            float half = size / 2.0f;
+            
+            auto DrawTriangle = [&](float cx, float cy, float w, float h, bool right) {
+                Microsoft::WRL::ComPtr<ID2D1PathGeometry> path;
+                m_d2dFactory->CreatePathGeometry(&path);
+                Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+                path->Open(&sink);
+                sink->SetFillMode(D2D1_FILL_MODE_WINDING);
+                if (right) {
+                    sink->BeginFigure(D2D1::Point2F(cx - w/2, cy - h/2), D2D1_FIGURE_BEGIN_FILLED);
+                    sink->AddLine(D2D1::Point2F(cx + w/2, cy));
+                    sink->AddLine(D2D1::Point2F(cx - w/2, cy + h/2));
+                } else {
+                    sink->BeginFigure(D2D1::Point2F(cx + w/2, cy - h/2), D2D1_FIGURE_BEGIN_FILLED);
+                    sink->AddLine(D2D1::Point2F(cx - w/2, cy));
+                    sink->AddLine(D2D1::Point2F(cx + w/2, cy + h/2));
+                }
+                sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+                sink->Close();
+                m_d2dContext->FillGeometry(path.Get(), controlBrush.Get());
+            };
+
+            auto DrawRect = [&](float cx, float cy, float w, float h) {
+                D2D1_RECT_F rect = D2D1::RectF(cx - w/2, cy - h/2, cx + w/2, cy + h/2);
+                m_d2dContext->FillRectangle(rect, controlBrush.Get());
+            };
+
+            // Previous Button (⏮)
+            float prevX = centerX - spacing;
+            DrawRect(prevX - half + size*0.1f, centerY, size*0.2f, size);
+            DrawTriangle(prevX - size*0.1f, centerY, size*0.4f, size, false);
+            DrawTriangle(prevX + size*0.3f, centerY, size*0.4f, size, false);
+
+            // Play/Pause Button
+            if (isPlaying) {
+                // Pause (⏸)
+                DrawRect(centerX - size*0.2f, centerY, size*0.3f, size);
+                DrawRect(centerX + size*0.2f, centerY, size*0.3f, size);
+            } else {
+                // Play (▶)
+                DrawTriangle(centerX, centerY, size, size, true);
+            }
+
+            // Next Button (⏭)
+            float nextX = centerX + spacing;
+            DrawTriangle(nextX - size*0.3f, centerY, size*0.4f, size, true);
+            DrawTriangle(nextX + size*0.1f, centerY, size*0.4f, size, true);
+            DrawRect(nextX + half - size*0.1f, centerY, size*0.2f, size);
         }
     }
 

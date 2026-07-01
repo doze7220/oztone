@@ -116,6 +116,11 @@ public:
     std::wstring GetNextArtistFontFamily() const { return m_nextArtistFontFamily; }
     std::wstring GetDefaultPlaylistPath() const { return m_defaultPlaylistPath; }
 
+    int GetPlaybackBaseBottomOffset() const { return m_playbackBaseBottomOffset; }
+    int GetPlaybackCenterOffsetX() const { return m_playbackCenterOffsetX; }
+    int GetPlaybackButtonSpacing() const { return m_playbackButtonSpacing; }
+    int GetPlaybackButtonSize() const { return m_playbackButtonSize; }
+
 private:
     std::wstring m_iniFilePath;
 
@@ -203,6 +208,11 @@ private:
     std::wstring m_nextArtistFontFamily;
 
     std::wstring m_defaultPlaylistPath;
+
+    int m_playbackBaseBottomOffset;
+    int m_playbackCenterOffsetX;
+    int m_playbackButtonSpacing;
+    int m_playbackButtonSize;
 
     std::wstring GetExecutablePath() const;
     void LoadSettings();

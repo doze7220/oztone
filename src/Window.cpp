@@ -26,7 +26,7 @@ constexpr UINT TRAY_MENU_ORDER[] = {
 
 HWND Window::s_hwnd = nullptr;
 
-Window::Window() : m_hwnd(nullptr), m_hInstance(nullptr), m_config(nullptr), m_isHovered(false), m_isTrackingMouse(false), m_pDropTarget(nullptr), m_keyboardHook(nullptr) {}
+Window::Window() : m_hwnd(nullptr), m_hInstance(nullptr), m_config(nullptr), m_isHovered(false), m_isControlHovered(false), m_isTrackingMouse(false), m_pDropTarget(nullptr), m_keyboardHook(nullptr) {}
 
 Window::~Window() {
     if (m_keyboardHook) {
@@ -275,6 +275,60 @@ bool Window::IsInLogoRegion(int x, int y) const {
             logicalY >= m_config->GetLogoY() && logicalY <= m_config->GetLogoY() + m_config->GetLogoHeight());
 }
 
+bool Window::IsInPlaybackControlRegion(int x, int y) const {
+    if (!m_config || !m_hwnd) return false;
+    
+    UINT dpi = GetDpiForWindow(m_hwnd);
+    int logicalX = MulDiv(x, 96, dpi);
+    int logicalY = MulDiv(y, 96, dpi);
+
+    RECT rect;
+    GetClientRect(m_hwnd, &rect);
+    int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
+    int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
+
+    float centerX = (logicalWidth / 2.0f) + m_config->GetPlaybackCenterOffsetX();
+    float centerY = logicalHeight - m_config->GetPlaybackBaseBottomOffset();
+    float size = m_config->GetPlaybackButtonSize();
+    float spacing = m_config->GetPlaybackButtonSpacing();
+
+    float halfSize = size / 2.0f;
+    float leftBound = centerX - spacing - halfSize - 10.0f;
+    float rightBound = centerX + spacing + halfSize + 10.0f;
+    float topBound = centerY - halfSize - 10.0f;
+    float bottomBound = centerY + halfSize + 10.0f;
+
+    return (logicalX >= leftBound && logicalX <= rightBound &&
+            logicalY >= topBound && logicalY <= bottomBound);
+}
+
+int Window::GetPlaybackButtonAt(int x, int y) const {
+    if (!m_config || !m_hwnd) return 0;
+    
+    UINT dpi = GetDpiForWindow(m_hwnd);
+    int logicalX = MulDiv(x, 96, dpi);
+    int logicalY = MulDiv(y, 96, dpi);
+
+    RECT rect;
+    GetClientRect(m_hwnd, &rect);
+    int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
+    int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
+
+    float centerX = (logicalWidth / 2.0f) + m_config->GetPlaybackCenterOffsetX();
+    float centerY = logicalHeight - m_config->GetPlaybackBaseBottomOffset();
+    float size = m_config->GetPlaybackButtonSize();
+    float spacing = m_config->GetPlaybackButtonSpacing();
+    float halfSize = size / 2.0f;
+
+    if (logicalY >= centerY - halfSize && logicalY <= centerY + halfSize) {
+        if (logicalX >= centerX - spacing - halfSize && logicalX <= centerX - spacing + halfSize) return 1; // Previous
+        if (logicalX >= centerX - halfSize && logicalX <= centerX + halfSize) return 2; // Play/Pause
+        if (logicalX >= centerX + spacing - halfSize && logicalX <= centerX + spacing + halfSize) return 3; // Next
+    }
+    return 0;
+}
+
+
 LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
         case WM_WINDOWPOSCHANGING: {
@@ -296,6 +350,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                 int yPos = GET_Y_LPARAM(lParam);
 
                 m_isHovered = IsInLogoRegion(xPos, yPos);
+                m_isControlHovered = IsInPlaybackControlRegion(xPos, yPos);
 
                 if (!m_isTrackingMouse) {
                     TRACKMOUSEEVENT tme = {};
@@ -310,12 +365,24 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         }
         case WM_MOUSELEAVE: {
             m_isHovered = false;
+            m_isControlHovered = false;
             m_isTrackingMouse = false;
             return 0;
         }
         case WM_LBUTTONDOWN: {
             int xPos = GET_X_LPARAM(lParam);
             int yPos = GET_Y_LPARAM(lParam);
+            
+            int btnId = GetPlaybackButtonAt(xPos, yPos);
+            if (btnId > 0) {
+                if (m_onMediaCommand) {
+                    if (btnId == 1) m_onMediaCommand(APPCOMMAND_MEDIA_PREVIOUSTRACK);
+                    else if (btnId == 2) m_onMediaCommand(APPCOMMAND_MEDIA_PLAY_PAUSE);
+                    else if (btnId == 3) m_onMediaCommand(APPCOMMAND_MEDIA_NEXTTRACK);
+                }
+                return 0;
+            }
+
             if (IsInLogoRegion(xPos, yPos)) {
                 ReleaseCapture();
                 SendMessage(hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);

@@ -384,7 +384,7 @@ void Application::Run() {
         std::vector<float> spectrum;
         m_audioPlayer.GetSpectrumData(spectrum);
 
-        m_renderer.Render(m_window.IsHovered(), progress, timeString, spectrum);
+        m_renderer.Render(m_window.IsHovered(), m_window.IsControlHovered(), m_audioPlayer.IsPlaying(), progress, timeString, spectrum);
         Sleep(1); // CPU使用率を抑えるための仮のスリープ
     }
 }

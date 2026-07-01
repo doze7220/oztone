@@ -38,11 +38,13 @@ public:
     /**
      * @brief 毎フレーム呼び出される描画処理
      * @param isHovered ロゴ領域がホバーされているか
+     * @param isControlHovered コントロール領域がホバーされているか
+     * @param isPlaying 再生中かどうか
      * @param progress 再生進捗度 (0.0f - 1.0f)
      * @param timeString フォーマット済みの再生時間文字列
      * @param spectrum スペクトルデータ
      */
-    void Render(bool isHovered, float progress, const std::wstring& timeString, const std::vector<float>& spectrum);
+    void Render(bool isHovered, bool isControlHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum);
 
     /**
      * @brief 再生中の曲情報を設定する
@@ -111,6 +113,7 @@ private:
     HWND m_hwnd;
     const ConfigManager* m_config;
     float m_dpiScale = 1.0f;
+    float m_controlAlpha = 0.0f;
     Visualizer m_visualizer;
 
     /**
