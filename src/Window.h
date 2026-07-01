@@ -161,6 +161,20 @@ public:
     }
 
     /**
+     * @brief プレイリスト上でマウスホイールが回転されたときのコールバックを設定する
+     */
+    void SetPlaylistScrollCallback(std::function<void(int)> cb) {
+        m_onPlaylistScroll = cb;
+    }
+
+    /**
+     * @brief プレイリスト上がクリックされたときのコールバックを設定する
+     */
+    void SetPlaylistClickCallback(std::function<void(int, int)> cb) {
+        m_onPlaylistClick = cb;
+    }
+
+    /**
      * @brief ウィンドウサイズが変更された時のコールバックを設定する
      */
     void SetOnResizeCallback(std::function<void(int, int)> cb) {
@@ -185,6 +199,8 @@ private:
     std::function<void(const std::wstring&)> m_onCopyDataCallback;
     std::function<void()> m_onClearPlaylistCommand;
     std::function<void(int)> m_onVolumeScroll;
+    std::function<void(int)> m_onPlaylistScroll;
+    std::function<void(int, int)> m_onPlaylistClick;
     std::function<void(int, int)> m_onResize;
     DropTarget* m_pDropTarget;
 

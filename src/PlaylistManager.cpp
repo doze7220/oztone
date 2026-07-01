@@ -162,6 +162,12 @@ size_t PlaylistManager::GetCurrentIndex() const {
     return m_shuffleIndex;
 }
 
+void PlaylistManager::JumpToIndex(size_t index) {
+    if (m_playlist.empty() || m_shuffleIndices.empty()) return;
+    if (index >= m_shuffleIndices.size()) return;
+    m_shuffleIndex = index;
+}
+
 std::vector<std::wstring> PlaylistManager::GetShuffleList() const {
     std::vector<std::wstring> list;
     if (m_playlist.empty() || m_shuffleIndices.empty()) {

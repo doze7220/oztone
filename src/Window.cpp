@@ -456,6 +456,9 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             int yPos = GET_Y_LPARAM(lParam);
             
             if (m_isPlaylistHovered) {
+                if (m_onPlaylistClick) {
+                    m_onPlaylistClick(xPos, yPos);
+                }
                 return 0; 
             }
 
@@ -476,17 +479,21 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             return 0;
         }
         case WM_MOUSEWHEEL: {
-            if (m_config && m_onVolumeScroll) {
+            if (m_config) {
                 POINT pt;
                 pt.x = GET_X_LPARAM(lParam);
                 pt.y = GET_Y_LPARAM(lParam);
                 ScreenToClient(hwnd, &pt);
 
                 if (m_isPlaylistHovered) {
+                    if (m_onPlaylistScroll) {
+                        int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+                        m_onPlaylistScroll(zDelta);
+                    }
                     return 0;
                 }
 
-                if (IsInVolumeControlRegion(pt.x, pt.y)) {
+                if (m_onVolumeScroll && IsInVolumeControlRegion(pt.x, pt.y)) {
                     int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
                     m_onVolumeScroll(zDelta);
                     return 0;

@@ -112,6 +112,84 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
             }
         }
     });
+
+    m_window.SetPlaylistScrollCallback([this](int delta) {
+        float itemHeight = static_cast<float>(m_config.GetPlaylistItemOffsetY());
+        float scrollDelta = (static_cast<float>(delta) / WHEEL_DELTA) * itemHeight * 2.0f; 
+        m_renderer.AddPlaylistScroll(scrollDelta);
+    });
+
+    m_window.SetPlaylistClickCallback([this](int x, int y) {
+        HWND hwnd = m_window.GetHandle();
+        UINT dpi = GetDpiForWindow(hwnd);
+        float logicalY = static_cast<float>(y) / (static_cast<float>(dpi) / 96.0f);
+
+        int totalTracks = static_cast<int>(m_playlistManager.GetCount());
+        if (totalTracks == 0) return;
+        
+        int currentTrackIndex = static_cast<int>(m_playlistManager.GetCurrentIndex());
+        float itemHeight = static_cast<float>(m_config.GetPlaylistItemOffsetY());
+        float playlistHeight = static_cast<float>(m_config.GetWindowHeight());
+        
+        float baseScrollY = (playlistHeight / 2.0f) - (currentTrackIndex * itemHeight);
+        float scrollY = baseScrollY + m_renderer.GetPlaylistManualScrollY();
+        
+        float maxScroll = 0.0f;
+        float minScroll = playlistHeight - (totalTracks * itemHeight);
+        if (minScroll > 0) minScroll = 0;
+        scrollY = std::clamp(scrollY, minScroll, maxScroll);
+        
+        float clickedY = logicalY - scrollY;
+        int index = static_cast<int>(clickedY / itemHeight);
+        
+        if (clickedY >= 0.0f && index >= 0 && index < totalTracks) {
+            int oldIndex = static_cast<int>(m_playlistManager.GetCurrentIndex());
+            m_playlistManager.JumpToIndex(index);
+            
+            float offsetCorrection = static_cast<float>(index - oldIndex) * itemHeight;
+            m_renderer.AddPlaylistScroll(offsetCorrection);
+            
+            m_audioPlayer.Stop();
+            
+            auto list = m_playlistManager.GetShuffleList();
+            if (index < list.size()) {
+                std::wstring track = list[index];
+                
+                if (m_tagManager.Load(track)) {
+                    std::wstring title = m_tagManager.GetTitle();
+                    std::wstring artist = m_tagManager.GetArtist();
+                    if (title.empty()) title = std::filesystem::path(track).filename().wstring();
+                    if (artist.empty()) artist = L"---";
+                    m_renderer.SetTrackInfo(title, artist);
+
+                    const auto& artBytes = m_tagManager.GetAlbumArtBytes();
+                    if (!artBytes.empty()) {
+                        Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+                        if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
+                            m_renderer.SetAlbumArt(artBitmap.Get());
+                        } else {
+                            m_renderer.SetAlbumArt(nullptr);
+                        }
+                    } else {
+                        m_renderer.SetAlbumArt(nullptr);
+                    }
+                } else {
+                    std::wstring title;
+                    try { title = std::filesystem::path(track).filename().wstring(); } catch(...) { title = L"Unknown"; }
+                    m_renderer.SetTrackInfo(title, L"---");
+                    m_renderer.SetAlbumArt(nullptr);
+                }
+
+                if (m_audioPlayer.Play(track)) {
+                    PrefetchNextTrack();
+                } else {
+                    m_renderer.SetTrackInfo(L"No Track", L"---");
+                    m_renderer.SetAlbumArt(nullptr);
+                }
+            }
+        }
+    });
+
     
     if (!m_renderer.Initialize(m_window.GetHandle(), m_config)) {
         return false;

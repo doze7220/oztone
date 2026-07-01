@@ -64,6 +64,16 @@ public:
     void SetNextTrackInfo(bool isReady, ID2D1Bitmap* art, const std::wstring& title, const std::wstring& artist);
 
     /**
+     * @brief プレイリストのスクロール量を加算する
+     */
+    void AddPlaylistScroll(float delta);
+
+    /**
+     * @brief プレイリストの現在の手動スクロールオフセットを取得する
+     */
+    float GetPlaylistManualScrollY() const;
+
+    /**
      * @brief メモリ上のバイナリデータからID2D1Bitmapを生成する
      */
     bool LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitmap** ppBitmap);
@@ -98,6 +108,7 @@ private:
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistArtistBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistTimeBrush;
     float m_playlistSlideX;
+    float m_playlistManualScrollY = 0.0f;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextLabelTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextTitleTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextArtistTextFormat;

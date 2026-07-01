@@ -73,6 +73,12 @@ public:
     size_t GetCurrentIndex() const;
 
     /**
+     * @brief 指定したシャッフルインデックスへ直接ジャンプする
+     * @param index ジャンプ先のインデックス
+     */
+    void JumpToIndex(size_t index);
+
+    /**
      * @brief 現在のシャッフルリスト全体（次に再生される順番）のファイルパス一覧を取得する
      * @return ファイルパスの配列
      */

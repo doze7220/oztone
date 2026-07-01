@@ -490,6 +490,14 @@ bool Renderer::LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitma
     return true;
 }
 
+void Renderer::AddPlaylistScroll(float delta) {
+    m_playlistManualScrollY += delta;
+}
+
+float Renderer::GetPlaylistManualScrollY() const {
+    return m_playlistManualScrollY;
+}
+
 void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList) {
     if (!m_d2dContext) return;
 
@@ -1218,6 +1226,10 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHove
         float targetSlideX = isPlaylistHovered ? 0.0f : playlistWidth;
         m_playlistSlideX += (targetSlideX - m_playlistSlideX) * 0.2f;
 
+        if (!isPlaylistHovered) {
+            m_playlistManualScrollY = 0.0f;
+        }
+
         if (m_playlistSlideX < playlistWidth - 0.5f) {
             float playlistX = renderTargetSize.width - playlistWidth + m_playlistSlideX;
             float playlistY = 0.0f;
@@ -1234,11 +1246,14 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHove
             m_d2dContext->PushAxisAlignedClip(&clipRect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 
             float itemHeight = static_cast<float>(m_config->GetPlaylistItemOffsetY());
-            float scrollY = (playlistHeight / 2.0f) - (currentTrackIndex * itemHeight);
+            float baseScrollY = (playlistHeight / 2.0f) - (currentTrackIndex * itemHeight);
+            float scrollY = baseScrollY + m_playlistManualScrollY;
             float maxScroll = 0.0f;
             float minScroll = playlistHeight - (totalTracks * itemHeight);
             if (minScroll > 0) minScroll = 0;
             scrollY = std::clamp(scrollY, minScroll, maxScroll);
+            
+            m_playlistManualScrollY = scrollY - baseScrollY;
 
             float currentY = scrollY;
             
