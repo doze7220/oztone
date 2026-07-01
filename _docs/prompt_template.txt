@@ -55,3 +55,7 @@ OK、これで実装とチェックは完了！お疲れ様！ありがとう！
 各種パラメータ計算式：PROJECT_MATH_AND_BALANCE.md
 エフェクト定義：PROJECT_EFFECT.md
 
+WindowX=-1086
+WindowY=1348
+WindowWidth=1086
+WindowHeight=524

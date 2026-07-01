@@ -339,6 +339,14 @@ int Window::GetPlaybackButtonAt(int x, int y) const {
 
 LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
+        case WM_GETMINMAXINFO: {
+            MINMAXINFO* pMinMaxInfo = reinterpret_cast<MINMAXINFO*>(lParam);
+            UINT dpi = GetDpiForWindow(hwnd);
+            if (dpi == 0) dpi = 96;
+            pMinMaxInfo->ptMinTrackSize.x = MulDiv(495, dpi, 96);
+            pMinMaxInfo->ptMinTrackSize.y = MulDiv(260, dpi, 96);
+            return 0;
+        }
         case WM_SIZE: {
             if (wParam != SIZE_MINIMIZED && m_onResize) {
                 int width = LOWORD(lParam);
