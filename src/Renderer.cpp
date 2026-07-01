@@ -354,6 +354,30 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     hr = m_d2dContext->CreateEffect(CLSID_D2D1Shadow, &m_shadowEffect);
     if (FAILED(hr)) return false;
 
+    D2D1_COLOR_F gripLineColor = ParseHexColor(m_config->GetPlaylistGripLineColor());
+    hr = m_d2dContext->CreateSolidColorBrush(gripLineColor, &m_playlistGripLineBrush);
+    if (FAILED(hr)) return false;
+
+    D2D1_COLOR_F gripArrowColor = ParseHexColor(m_config->GetPlaylistGripArrowColor());
+    hr = m_d2dContext->CreateSolidColorBrush(gripArrowColor, &m_playlistGripArrowBrush);
+    if (FAILED(hr)) return false;
+
+    hr = m_d2dFactory->CreatePathGeometry(&m_playlistGripArrowGeometry);
+    if (SUCCEEDED(hr)) {
+        Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+        hr = m_playlistGripArrowGeometry->Open(&sink);
+        if (SUCCEEDED(hr)) {
+            float width = m_config->GetPlaylistGripArrowWidth();
+            float height = m_config->GetPlaylistGripArrowHeight();
+            
+            sink->BeginFigure(D2D1::Point2F(0.0f, -height / 2.0f), D2D1_FIGURE_BEGIN_FILLED);
+            sink->AddLine(D2D1::Point2F(-width, 0.0f));
+            sink->AddLine(D2D1::Point2F(0.0f, height / 2.0f));
+            sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+            sink->Close();
+        }
+    }
+
     m_visualizer.SetConfig(m_config);
 
     return true;
@@ -1230,10 +1254,37 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHove
             m_playlistManualScrollY = 0.0f;
         }
 
+        float playlistX = renderTargetSize.width - playlistWidth + m_playlistSlideX;
+        float playlistY = 0.0f;
+        float playlistHeight = renderTargetSize.height;
+
+        float gripRightOffset = m_config->GetPlaylistGripRightOffset();
+        float gripX = playlistX - gripRightOffset;
+        float gripLineWidth = m_config->GetPlaylistGripLineWidth();
+        
+        if (m_playlistGripLineBrush && m_playlistGripArrowBrush && m_playlistGripArrowGeometry) {
+            if (m_shadowBrush && m_config->GetPlaylistGripShadowOpacity() > 0.0f) {
+                m_shadowBrush->SetOpacity(m_config->GetPlaylistGripShadowOpacity());
+                float sx = gripX + m_config->GetPlaylistGripShadowOffsetX();
+                float sy = playlistY + m_config->GetPlaylistGripShadowOffsetY();
+                
+                m_d2dContext->DrawLine(D2D1::Point2F(sx, playlistY), D2D1::Point2F(sx, playlistY + playlistHeight), m_shadowBrush.Get(), gripLineWidth);
+                
+                D2D1_MATRIX_3X2_F shadowTransform = D2D1::Matrix3x2F::Translation(sx, sy + playlistHeight / 2.0f);
+                m_d2dContext->SetTransform(shadowTransform * D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
+                m_d2dContext->FillGeometry(m_playlistGripArrowGeometry.Get(), m_shadowBrush.Get());
+                m_d2dContext->SetTransform(D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
+            }
+
+            m_d2dContext->DrawLine(D2D1::Point2F(gripX, playlistY), D2D1::Point2F(gripX, playlistY + playlistHeight), m_playlistGripLineBrush.Get(), gripLineWidth);
+
+            D2D1_MATRIX_3X2_F arrowTransform = D2D1::Matrix3x2F::Translation(gripX, playlistY + playlistHeight / 2.0f);
+            m_d2dContext->SetTransform(arrowTransform * D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
+            m_d2dContext->FillGeometry(m_playlistGripArrowGeometry.Get(), m_playlistGripArrowBrush.Get());
+            m_d2dContext->SetTransform(D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
+        }
+
         if (m_playlistSlideX < playlistWidth - 0.5f) {
-            float playlistX = renderTargetSize.width - playlistWidth + m_playlistSlideX;
-            float playlistY = 0.0f;
-            float playlistHeight = renderTargetSize.height;
 
             Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> bgBrush;
             m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, m_config->GetPlaylistBgOpacity()), &bgBrush);

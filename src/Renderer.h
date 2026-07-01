@@ -107,6 +107,9 @@ private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistTimeTextFormat;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistArtistBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistTimeBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistGripLineBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistGripArrowBrush;
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_playlistGripArrowGeometry;
     float m_playlistSlideX;
     float m_playlistManualScrollY = 0.0f;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextLabelTextFormat;

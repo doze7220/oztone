@@ -185,6 +185,16 @@ public:
 
     float GetPlaylistBgOpacity() const { return m_playlistBgOpacity; }
 
+    float GetPlaylistGripRightOffset() const { return m_playlistGripRightOffset; }
+    float GetPlaylistGripLineWidth() const { return m_playlistGripLineWidth; }
+    std::wstring GetPlaylistGripLineColor() const { return m_playlistGripLineColor; }
+    float GetPlaylistGripArrowHeight() const { return m_playlistGripArrowHeight; }
+    float GetPlaylistGripArrowWidth() const { return m_playlistGripArrowWidth; }
+    std::wstring GetPlaylistGripArrowColor() const { return m_playlistGripArrowColor; }
+    float GetPlaylistGripShadowOffsetX() const { return m_playlistGripShadowOffsetX; }
+    float GetPlaylistGripShadowOffsetY() const { return m_playlistGripShadowOffsetY; }
+    float GetPlaylistGripShadowOpacity() const { return m_playlistGripShadowOpacity; }
+
 private:
     std::wstring m_iniFilePath;
 
@@ -338,6 +348,16 @@ private:
     int m_playlistHoverWidth;
 
     float m_playlistBgOpacity;
+
+    float m_playlistGripRightOffset;
+    float m_playlistGripLineWidth;
+    std::wstring m_playlistGripLineColor;
+    float m_playlistGripArrowHeight;
+    float m_playlistGripArrowWidth;
+    std::wstring m_playlistGripArrowColor;
+    float m_playlistGripShadowOffsetX;
+    float m_playlistGripShadowOffsetY;
+    float m_playlistGripShadowOpacity;
 
     void LoadSettings();
 };
