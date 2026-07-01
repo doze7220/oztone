@@ -72,6 +72,7 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
 }
 
 void Visualizer::DrawPrismBeat(ID2D1DeviceContext* context, const std::vector<float>& spectrum, D2D1_RECT_F drawRect) {
+    if (spectrum.size() < 2) return;
 
     float width = drawRect.right - drawRect.left;
     float height = drawRect.bottom - drawRect.top;
@@ -247,6 +248,8 @@ void Visualizer::DrawPrismBeat(ID2D1DeviceContext* context, const std::vector<fl
 }
 
 void Visualizer::DrawCircleParticle(ID2D1DeviceContext* context, const std::vector<float>& spectrum, D2D1_RECT_F drawRect, const std::wstring& trackTitle, const std::wstring& trackArtist) {
+    if (spectrum.size() < 2) return;
+
     float width = drawRect.right - drawRect.left;
     float height = drawRect.bottom - drawRect.top;
     float centerX = drawRect.left + width / 2.0f;
