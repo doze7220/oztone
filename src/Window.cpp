@@ -190,6 +190,12 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow, ConfigManager& config
         return false;
     }
 
+    // DirectComposition使用時に、WS_EX_LAYEREDウィンドウの入力判定領域が
+    // リサイズ時に自動更新されないOSの仕様を回避するため、LWA_ALPHAを設定する。
+    if (dwExStyle & WS_EX_LAYERED) {
+        SetLayeredWindowAttributes(m_hwnd, 0, 255, LWA_ALPHA);
+    }
+
     s_hwnd = m_hwnd;
     m_keyboardHook = SetWindowsHookExW(WH_KEYBOARD_LL, LowLevelKeyboardProc, m_hInstance, 0);
 
@@ -247,7 +253,7 @@ LRESULT CALLBACK Window::WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, L
         return pThis->WindowProc(hwnd, uMsg, wParam, lParam);
     }
 
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }
 
 LRESULT CALLBACK Window::LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -626,5 +632,5 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             return 0;
         }
     }
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }
