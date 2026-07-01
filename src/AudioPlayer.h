@@ -41,6 +41,16 @@ public:
     bool Play(const std::string& filepath);
 
     /**
+     * @brief 音量を設定する (0.0f - 1.0f)
+     */
+    void SetVolume(float volume);
+
+    /**
+     * @brief 現在の音量を取得する
+     */
+    float GetVolume() const;
+
+    /**
      * @brief 現在の再生位置（秒）を取得
      * @return 再生位置（秒）
      */

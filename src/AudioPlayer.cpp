@@ -137,6 +137,19 @@ bool AudioPlayer::Play(const std::string& filepath) {
     return (result == MA_SUCCESS);
 }
 
+void AudioPlayer::SetVolume(float volume) {
+    if (m_initialized && m_engine) {
+        ma_engine_set_volume(m_engine, volume);
+    }
+}
+
+float AudioPlayer::GetVolume() const {
+    if (m_initialized && m_engine) {
+        return ma_engine_get_volume(m_engine);
+    }
+    return 1.0f;
+}
+
 float AudioPlayer::GetPositionSeconds() {
     if (!m_isSoundLoaded) {
         return 0.0f;

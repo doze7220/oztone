@@ -223,6 +223,18 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     );
     if (FAILED(hr)) return false;
 
+    hr = m_dwriteFactory->CreateTextFormat(
+        m_config->GetVolumeFontFamily().c_str(),
+        nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        m_config->GetVolumeFontSize(),
+        L"en-us",
+        &m_volumeTextFormat
+    );
+    if (FAILED(hr)) return false;
+
     hr = m_timeTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
     if (FAILED(hr)) return false;
     hr = m_timeTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -379,7 +391,7 @@ bool Renderer::LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitma
     return true;
 }
 
-void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum) {
+void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum, float volume) {
     if (!m_d2dContext) return;
 
     m_d2dContext->BeginDraw();
@@ -612,17 +624,24 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
         float y = renderTargetSize.height - static_cast<float>(m_config->GetSeekBarBottomOffset());
         float h = static_cast<float>(m_config->GetSeekBarHeight());
 
+        float dimFactor = 1.0f - (m_controlAlpha * 0.5f);
+
         // シークバーの背景 (BgOpacity)
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> bgBrush;
-        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, m_config->GetSeekBarBgOpacity()), &bgBrush);
+        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, m_config->GetSeekBarBgOpacity() * dimFactor), &bgBrush);
         if (bgBrush) {
             D2D1_RECT_F bgRect = D2D1::RectF(startX, y, startX + barAreaWidth, y + h);
             m_d2dContext->FillRectangle(&bgRect, bgBrush.Get());
         }
 
-        // シークバーの現在位置 (不透明な白)
-        D2D1_RECT_F fgRect = D2D1::RectF(startX, y, startX + barAreaWidth * progress, y + h);
-        m_d2dContext->FillRectangle(&fgRect, m_textBrush.Get());
+        // シークバーの現在位置および時間テキストのブラシ
+        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> fgBrush;
+        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, dimFactor), &fgBrush);
+
+        if (fgBrush) {
+            D2D1_RECT_F fgRect = D2D1::RectF(startX, y, startX + barAreaWidth * progress, y + h);
+            m_d2dContext->FillRectangle(&fgRect, fgBrush.Get());
+        }
 
         // 時間テキストの描画
         Microsoft::WRL::ComPtr<IDWriteTextLayout> textLayout;
@@ -646,7 +665,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
             m_d2dContext->DrawTextLayout(
                 origin,
                 textLayout.Get(),
-                m_textBrush.Get(),
+                fgBrush ? fgBrush.Get() : m_textBrush.Get(),
                 D2D1_DRAW_TEXT_OPTIONS_NONE
             );
         }
@@ -924,6 +943,118 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
             DrawTriangle(nextX - size*0.3f, centerY, size*0.4f, size, true);
             DrawTriangle(nextX + size*0.1f, centerY, size*0.4f, size, true);
             DrawRect(nextX + half - size*0.1f, centerY, size*0.2f, size);
+
+            // 8.5 音量UIの描画
+            float volX = static_cast<float>(m_config->GetVolumeBaseLeftOffset());
+            float volY = renderTargetSize.height - static_cast<float>(m_config->GetVolumeBaseBottomOffset());
+            float volSize = static_cast<float>(m_config->GetVolumeIconSize());
+            
+            Microsoft::WRL::ComPtr<ID2D1PathGeometry> spkPath;
+            m_d2dFactory->CreatePathGeometry(&spkPath);
+            Microsoft::WRL::ComPtr<ID2D1GeometrySink> spkSink;
+            spkPath->Open(&spkSink);
+            spkSink->SetFillMode(D2D1_FILL_MODE_WINDING);
+            
+            float spkW = volSize * 0.35f;
+            float spkH = volSize * 0.35f;
+            float spkConeW = volSize * 0.45f;
+            float spkConeH = volSize * 0.8f;
+            
+            // rect
+            spkSink->BeginFigure(D2D1::Point2F(volX, volY - spkH/2), D2D1_FIGURE_BEGIN_FILLED);
+            spkSink->AddLine(D2D1::Point2F(volX + spkW, volY - spkH/2));
+            spkSink->AddLine(D2D1::Point2F(volX + spkW, volY + spkH/2));
+            spkSink->AddLine(D2D1::Point2F(volX, volY + spkH/2));
+            spkSink->EndFigure(D2D1_FIGURE_END_CLOSED);
+            
+            // cone
+            spkSink->BeginFigure(D2D1::Point2F(volX + spkW, volY - spkH/2), D2D1_FIGURE_BEGIN_FILLED);
+            spkSink->AddLine(D2D1::Point2F(volX + spkW + spkConeW, volY - spkConeH/2));
+            spkSink->AddLine(D2D1::Point2F(volX + spkW + spkConeW, volY + spkConeH/2));
+            spkSink->AddLine(D2D1::Point2F(volX + spkW, volY + spkH/2));
+            spkSink->EndFigure(D2D1_FIGURE_END_CLOSED);
+            
+            spkSink->Close();
+
+            int volPercent = static_cast<int>(volume * 100.0f + 0.5f);
+            wchar_t volBuf[16];
+            swprintf_s(volBuf, L"%d%%", volPercent);
+            
+            Microsoft::WRL::ComPtr<IDWriteTextLayout> volTextLayout;
+            if (m_volumeTextFormat) {
+                float letterSpacing = m_config->GetVolumeTextLetterSpacing();
+                HRESULT hr = m_dwriteFactory->CreateTextLayout(
+                    volBuf,
+                    static_cast<UINT32>(wcslen(volBuf)),
+                    m_volumeTextFormat.Get(),
+                    100.0f,
+                    volSize * 2.0f,
+                    &volTextLayout
+                );
+                if (SUCCEEDED(hr) && letterSpacing != 0.0f) {
+                    Microsoft::WRL::ComPtr<IDWriteTextLayout1> volTextLayout1;
+                    if (SUCCEEDED(volTextLayout.As(&volTextLayout1))) {
+                        DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(wcslen(volBuf))};
+                        volTextLayout1->SetCharacterSpacing(0.0f, letterSpacing, 0.0f, textRange);
+                    }
+                }
+            }
+
+            if (m_shadowBrush && m_config->GetVolumeEnableShadow()) {
+                m_shadowBrush->SetOpacity(m_config->GetVolumeShadowOpacity() * m_controlAlpha);
+                float shadowX = m_config->GetVolumeShadowOffsetX();
+                float shadowY = m_config->GetVolumeShadowOffsetY();
+                
+                D2D1::Matrix3x2F oldTransform;
+                m_d2dContext->GetTransform(&oldTransform);
+                m_d2dContext->SetTransform(
+                    oldTransform * D2D1::Matrix3x2F::Translation(shadowX, shadowY)
+                );
+                
+                m_d2dContext->FillGeometry(spkPath.Get(), m_shadowBrush.Get());
+                
+                if (volume > 0.0f) {
+                    float arcX = volX + spkW + spkConeW + 4.0f;
+                    m_d2dContext->DrawLine(D2D1::Point2F(arcX, volY - volSize*0.2f), D2D1::Point2F(arcX, volY + volSize*0.2f), m_shadowBrush.Get(), 2.0f);
+                }
+                if (volume > 0.5f) {
+                    float arcX = volX + spkW + spkConeW + 8.0f;
+                    m_d2dContext->DrawLine(D2D1::Point2F(arcX, volY - volSize*0.35f), D2D1::Point2F(arcX, volY + volSize*0.35f), m_shadowBrush.Get(), 2.0f);
+                }
+                
+                m_d2dContext->SetTransform(oldTransform);
+
+                if (volTextLayout) {
+                    float textX = volX + static_cast<float>(m_config->GetVolumeTextOffsetX());
+                    float textY = volY + static_cast<float>(m_config->GetVolumeTextOffsetY());
+                    m_d2dContext->DrawTextLayout(
+                        D2D1::Point2F(textX + shadowX, textY + shadowY),
+                        volTextLayout.Get(),
+                        m_shadowBrush.Get()
+                    );
+                }
+            }
+
+            m_d2dContext->FillGeometry(spkPath.Get(), controlBrush.Get());
+            
+            if (volume > 0.0f) {
+                float arcX = volX + spkW + spkConeW + 4.0f;
+                m_d2dContext->DrawLine(D2D1::Point2F(arcX, volY - volSize*0.2f), D2D1::Point2F(arcX, volY + volSize*0.2f), controlBrush.Get(), 2.0f);
+            }
+            if (volume > 0.5f) {
+                float arcX = volX + spkW + spkConeW + 8.0f;
+                m_d2dContext->DrawLine(D2D1::Point2F(arcX, volY - volSize*0.35f), D2D1::Point2F(arcX, volY + volSize*0.35f), controlBrush.Get(), 2.0f);
+            }
+            
+            if (volTextLayout) {
+                float textX = volX + static_cast<float>(m_config->GetVolumeTextOffsetX());
+                float textY = volY + static_cast<float>(m_config->GetVolumeTextOffsetY());
+                m_d2dContext->DrawTextLayout(
+                    D2D1::Point2F(textX, textY),
+                    volTextLayout.Get(),
+                    controlBrush.Get()
+                );
+            }
         }
     }
 

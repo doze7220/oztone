@@ -43,8 +43,9 @@ public:
      * @param progress 再生進捗度 (0.0f - 1.0f)
      * @param timeString フォーマット済みの再生時間文字列
      * @param spectrum スペクトルデータ
+     * @param volume 現在の音量
      */
-    void Render(bool isHovered, bool isControlHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum);
+    void Render(bool isHovered, bool isControlHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum, float volume);
 
     /**
      * @brief 再生中の曲情報を設定する
@@ -87,6 +88,7 @@ private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_titleTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_artistTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_timeTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_volumeTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextLabelTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextTitleTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextArtistTextFormat;

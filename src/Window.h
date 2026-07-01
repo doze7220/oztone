@@ -99,6 +99,11 @@ public:
      */
     int GetPlaybackButtonAt(int x, int y) const;
 
+    /**
+     * @brief 座標が音量コントロール領域内にあるかを判定する
+     */
+    bool IsInVolumeControlRegion(int x, int y) const;
+
 
     /**
      * @brief ファイルドロップを通知する
@@ -135,6 +140,13 @@ public:
         m_onClearPlaylistCommand = cb;
     }
 
+    /**
+     * @brief 音量コントロール上でマウスホイールが回転されたときのコールバックを設定する
+     */
+    void SetVolumeScrollCallback(std::function<void(int)> cb) {
+        m_onVolumeScroll = cb;
+    }
+
 private:
     static LRESULT CALLBACK WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -151,6 +163,7 @@ private:
     std::function<void(int)> m_onMediaCommand;
     std::function<void(const std::wstring&)> m_onCopyDataCallback;
     std::function<void()> m_onClearPlaylistCommand;
+    std::function<void(int)> m_onVolumeScroll;
     DropTarget* m_pDropTarget;
 
     static constexpr UINT WM_TRAYICON = WM_APP + 1;

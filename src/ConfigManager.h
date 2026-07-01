@@ -121,6 +121,25 @@ public:
     int GetPlaybackButtonSpacing() const { return m_playbackButtonSpacing; }
     int GetPlaybackButtonSize() const { return m_playbackButtonSize; }
 
+    float GetDefaultVolume() const { return m_defaultVolume; }
+    void SetDefaultVolume(float volume);
+
+    float GetControlHoverHeight() const { return m_controlHoverHeight; }
+
+    int GetVolumeBaseLeftOffset() const { return m_volBaseLeftOffset; }
+    int GetVolumeBaseBottomOffset() const { return m_volBaseBottomOffset; }
+    int GetVolumeIconSize() const { return m_volIconSize; }
+    int GetVolumeTextOffsetX() const { return m_volTextOffsetX; }
+    int GetVolumeTextOffsetY() const { return m_volTextOffsetY; }
+    float GetVolumeTextLetterSpacing() const { return m_volTextLetterSpacing; }
+    float GetVolumeFontSize() const { return m_volFontSize; }
+    std::wstring GetVolumeFontFamily() const { return m_volFontFamily; }
+
+    bool GetVolumeEnableShadow() const { return m_volEnableShadow; }
+    float GetVolumeShadowOffsetX() const { return m_volShadowOffsetX; }
+    float GetVolumeShadowOffsetY() const { return m_volShadowOffsetY; }
+    float GetVolumeShadowOpacity() const { return m_volShadowOpacity; }
+
 private:
     std::wstring m_iniFilePath;
 
@@ -213,7 +232,23 @@ private:
     int m_playbackCenterOffsetX;
     int m_playbackButtonSpacing;
     int m_playbackButtonSize;
-
     std::wstring GetExecutablePath() const;
+
+    float m_defaultVolume;
+    float m_controlHoverHeight;
+    int m_volBaseLeftOffset;
+    int m_volBaseBottomOffset;
+    int m_volIconSize;
+    int m_volTextOffsetX;
+    int m_volTextOffsetY;
+    float m_volTextLetterSpacing;
+    float m_volFontSize;
+    std::wstring m_volFontFamily;
+
+    bool m_volEnableShadow;
+    float m_volShadowOffsetX;
+    float m_volShadowOffsetY;
+    float m_volShadowOpacity;
+
     void LoadSettings();
 };

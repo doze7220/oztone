@@ -23,6 +23,7 @@ ShadowOpacity=0.7
 BgOpacity=0.8
 BgDarkenOpacity=0.4
 BackgroundArtMode=0
+ControlHoverHeight=50.0
 
 [Layout_AppLogo]
 X=16
@@ -83,6 +84,23 @@ CenterOffsetX=0
 ButtonSpacing=55
 ButtonSize=30
 
+[Layout_VolumeControl]
+BaseLeftOffset=30
+BaseBottomOffset=22
+IconSize=30
+TextOffsetX=40
+TextOffsetY=-12
+FontSize=24.0
+TextLetterSpacing=-3.0
+FontFamily="Courier New"
+EnableShadow=1
+ShadowOffsetX=2.0
+ShadowOffsetY=2.0
+ShadowOpacity=0.7
+
+[Audio]
+DefaultVolume=1.0
+
 [Visualizer]
 VisualizerMode=1
 
@@ -116,6 +134,20 @@ ConfigManager::ConfigManager()
       m_nextTitleOffsetX(50), m_nextTitleOffsetY(0), m_nextTitleFontSize(14.0f), m_nextTitleFontFamily(L"Meiryo"),
       m_nextArtistOffsetX(50), m_nextArtistOffsetY(20), m_nextArtistFontSize(12.0f), m_nextArtistFontFamily(L"Meiryo"),
       m_playbackBaseBottomOffset(40), m_playbackCenterOffsetX(0), m_playbackButtonSpacing(40), m_playbackButtonSize(20) {
+    m_defaultVolume = 1.0f;
+    m_controlHoverHeight = 50.0f;
+    m_volBaseLeftOffset = 30;
+    m_volBaseBottomOffset = 22;
+    m_volIconSize = 16;
+    m_volTextOffsetX = 31;
+    m_volTextOffsetY = -12;
+    m_volTextLetterSpacing = 0.0f;
+    m_volFontSize = 14.0f;
+    m_volFontFamily = L"Meiryo";
+    m_volEnableShadow = true;
+    m_volShadowOffsetX = 2.0f;
+    m_volShadowOffsetY = 2.0f;
+    m_volShadowOpacity = 0.7f;
 }
 
 ConfigManager::~ConfigManager() {}
@@ -183,6 +215,31 @@ void ConfigManager::LoadSettings() {
     GetPrivateProfileStringW(L"Layout_Window", L"BgOpacity", L"0.8", buf, 32, m_iniFilePath.c_str());
     try { m_bgOpacity = std::stof(buf); } catch (...) { m_bgOpacity = 0.8f; }
     m_backgroundArtMode = GetPrivateProfileIntW(L"Layout_Window", L"BackgroundArtMode", 0, m_iniFilePath.c_str());
+    GetPrivateProfileStringW(L"Layout_Window", L"ControlHoverHeight", L"50.0", buf, 32, m_iniFilePath.c_str());
+    try { m_controlHoverHeight = std::stof(buf); } catch (...) { m_controlHoverHeight = 50.0f; }
+
+    GetPrivateProfileStringW(L"Audio", L"DefaultVolume", L"1.0", buf, 32, m_iniFilePath.c_str());
+    try { m_defaultVolume = std::stof(buf); } catch (...) { m_defaultVolume = 1.0f; }
+
+    m_volBaseLeftOffset = GetPrivateProfileIntW(L"Layout_VolumeControl", L"BaseLeftOffset", 30, m_iniFilePath.c_str());
+    m_volBaseBottomOffset = GetPrivateProfileIntW(L"Layout_VolumeControl", L"BaseBottomOffset", 22, m_iniFilePath.c_str());
+    m_volIconSize = GetPrivateProfileIntW(L"Layout_VolumeControl", L"IconSize", 16, m_iniFilePath.c_str());
+    m_volTextOffsetX = GetPrivateProfileIntW(L"Layout_VolumeControl", L"TextOffsetX", 31, m_iniFilePath.c_str());
+    m_volTextOffsetY = GetPrivateProfileIntW(L"Layout_VolumeControl", L"TextOffsetY", -12, m_iniFilePath.c_str());
+    GetPrivateProfileStringW(L"Layout_VolumeControl", L"TextLetterSpacing", L"0.0", buf, 32, m_iniFilePath.c_str());
+    try { m_volTextLetterSpacing = std::stof(buf); } catch (...) { m_volTextLetterSpacing = 0.0f; }
+    GetPrivateProfileStringW(L"Layout_VolumeControl", L"FontSize", L"14.0", buf, 32, m_iniFilePath.c_str());
+    try { m_volFontSize = std::stof(buf); } catch (...) { m_volFontSize = 14.0f; }
+    GetPrivateProfileStringW(L"Layout_VolumeControl", L"FontFamily", L"Meiryo", buf, 32, m_iniFilePath.c_str());
+    m_volFontFamily = buf;
+
+    m_volEnableShadow = GetPrivateProfileIntW(L"Layout_VolumeControl", L"EnableShadow", 1, m_iniFilePath.c_str()) != 0;
+    GetPrivateProfileStringW(L"Layout_VolumeControl", L"ShadowOffsetX", L"2.0", buf, 32, m_iniFilePath.c_str());
+    try { m_volShadowOffsetX = std::stof(buf); } catch (...) { m_volShadowOffsetX = 2.0f; }
+    GetPrivateProfileStringW(L"Layout_VolumeControl", L"ShadowOffsetY", L"2.0", buf, 32, m_iniFilePath.c_str());
+    try { m_volShadowOffsetY = std::stof(buf); } catch (...) { m_volShadowOffsetY = 2.0f; }
+    GetPrivateProfileStringW(L"Layout_VolumeControl", L"ShadowOpacity", L"0.7", buf, 32, m_iniFilePath.c_str());
+    try { m_volShadowOpacity = std::stof(buf); } catch (...) { m_volShadowOpacity = 0.7f; }
 
     m_visualizerMode = GetPrivateProfileIntW(L"Visualizer", L"VisualizerMode", 0, m_iniFilePath.c_str());
 
@@ -342,4 +399,9 @@ void ConfigManager::SetBackgroundArtMode(int mode) {
 void ConfigManager::SetVisualizerMode(int mode) {
     m_visualizerMode = mode;
     WritePrivateProfileStringW(L"Visualizer", L"VisualizerMode", std::to_wstring(mode).c_str(), m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetDefaultVolume(float volume) {
+    m_defaultVolume = volume;
+    WritePrivateProfileStringW(L"Audio", L"DefaultVolume", std::to_wstring(volume).c_str(), m_iniFilePath.c_str());
 }

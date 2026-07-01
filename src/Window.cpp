@@ -287,19 +287,25 @@ bool Window::IsInPlaybackControlRegion(int x, int y) const {
     int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
     int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
 
-    float centerX = (logicalWidth / 2.0f) + m_config->GetPlaybackCenterOffsetX();
-    float centerY = logicalHeight - m_config->GetPlaybackBaseBottomOffset();
-    float size = m_config->GetPlaybackButtonSize();
-    float spacing = m_config->GetPlaybackButtonSpacing();
+    return (logicalY >= logicalHeight - m_config->GetControlHoverHeight());
+}
 
-    float halfSize = size / 2.0f;
-    float leftBound = centerX - spacing - halfSize - 10.0f;
-    float rightBound = centerX + spacing + halfSize + 10.0f;
-    float topBound = centerY - halfSize - 10.0f;
-    float bottomBound = centerY + halfSize + 10.0f;
+bool Window::IsInVolumeControlRegion(int x, int y) const {
+    if (!m_config || !m_hwnd) return false;
+    UINT dpi = GetDpiForWindow(m_hwnd);
+    int logicalX = MulDiv(x, 96, dpi);
+    int logicalY = MulDiv(y, 96, dpi);
+    RECT rect;
+    GetClientRect(m_hwnd, &rect);
+    int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
 
-    return (logicalX >= leftBound && logicalX <= rightBound &&
-            logicalY >= topBound && logicalY <= bottomBound);
+    float volX = static_cast<float>(m_config->GetVolumeBaseLeftOffset());
+    float volY = logicalHeight - static_cast<float>(m_config->GetVolumeBaseBottomOffset());
+    float size = static_cast<float>(m_config->GetVolumeIconSize());
+    float width = size + 80.0f; 
+    float height = size + 20.0f;
+
+    return (logicalX >= volX && logicalX <= volX + width && logicalY >= volY - height/2 && logicalY <= volY + height/2);
 }
 
 int Window::GetPlaybackButtonAt(int x, int y) const {
@@ -388,6 +394,20 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                 SendMessage(hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
             }
             return 0;
+        }
+        case WM_MOUSEWHEEL: {
+            if (m_config && m_onVolumeScroll) {
+                POINT pt;
+                pt.x = GET_X_LPARAM(lParam);
+                pt.y = GET_Y_LPARAM(lParam);
+                ScreenToClient(hwnd, &pt);
+                if (IsInVolumeControlRegion(pt.x, pt.y)) {
+                    int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+                    m_onVolumeScroll(zDelta);
+                    return 0;
+                }
+            }
+            break;
         }
         case WM_TRAYICON: {
             if (lParam == WM_RBUTTONUP) {

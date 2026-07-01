@@ -110,7 +110,18 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         return false;
     }
 
+    m_window.SetVolumeScrollCallback([this](int delta) {
+        float vol = m_audioPlayer.GetVolume();
+        if (delta > 0) vol += 0.05f;
+        else if (delta < 0) vol -= 0.05f;
+        if (vol > 1.0f) vol = 1.0f;
+        if (vol < 0.0f) vol = 0.0f;
+        m_audioPlayer.SetVolume(vol);
+        m_config.SetDefaultVolume(vol);
+    });
+
     if (m_audioPlayer.Initialize()) {
+        m_audioPlayer.SetVolume(m_config.GetDefaultVolume());
         std::string defPlaylist = std::filesystem::path(m_config.GetDefaultPlaylistPath()).string();
         m_playlistManager.LoadFromFile(defPlaylist);
 
@@ -384,7 +395,7 @@ void Application::Run() {
         std::vector<float> spectrum;
         m_audioPlayer.GetSpectrumData(spectrum);
 
-        m_renderer.Render(m_window.IsHovered(), m_window.IsControlHovered(), m_audioPlayer.IsPlaying(), progress, timeString, spectrum);
+        m_renderer.Render(m_window.IsHovered(), m_window.IsControlHovered(), m_audioPlayer.IsPlaying(), progress, timeString, spectrum, m_audioPlayer.GetVolume());
         Sleep(1); // CPU使用率を抑えるための仮のスリープ
     }
 }
