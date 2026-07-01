@@ -38,7 +38,7 @@ public:
      * @param filepath 再生するファイルのパス
      * @return 成功ならtrue
      */
-    bool Play(const std::string& filepath);
+    bool Play(const std::wstring& filepath);
 
     /**
      * @brief 音量を設定する (0.0f - 1.0f)

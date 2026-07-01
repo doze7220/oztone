@@ -112,7 +112,7 @@ void AudioPlayer::Stop() {
     ma_sound_seek_to_pcm_frame(&m_sound, 0);
 }
 
-bool AudioPlayer::Play(const std::string& filepath) {
+bool AudioPlayer::Play(const std::wstring& filepath) {
     if (!m_initialized || !m_engine) {
         return false;
     }
@@ -122,7 +122,7 @@ bool AudioPlayer::Play(const std::string& filepath) {
         m_isSoundLoaded = false;
     }
 
-    ma_result result = ma_sound_init_from_file(m_engine, filepath.c_str(), 0, NULL, NULL, &m_sound);
+    ma_result result = ma_sound_init_from_file_w(m_engine, filepath.c_str(), 0, NULL, NULL, &m_sound);
     if (result != MA_SUCCESS) {
         return false;
     }

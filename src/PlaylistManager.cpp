@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <numeric>
 #include <algorithm>
+#include <windows.h>
 
 PlaylistManager::PlaylistManager() : m_shuffleIndex(0) {
     std::random_device rd;
@@ -41,7 +42,7 @@ void PlaylistManager::ShuffleNextLoop() {
     }
 }
 
-bool PlaylistManager::Add(const std::string& filepath) {
+bool PlaylistManager::Add(const std::wstring& filepath) {
     if (m_playlistSet.find(filepath) != m_playlistSet.end()) {
         return false;
     }
@@ -63,9 +64,9 @@ bool PlaylistManager::Add(const std::string& filepath) {
     return true;
 }
 
-std::string PlaylistManager::GetCurrentTrack() const {
+std::wstring PlaylistManager::GetCurrentTrack() const {
     if (m_playlist.empty() || m_shuffleIndices.empty() || m_shuffleIndex >= m_shuffleIndices.size()) {
-        return "";
+        return L"";
     }
     return m_playlist[m_shuffleIndices[m_shuffleIndex]];
 }
@@ -91,8 +92,8 @@ void PlaylistManager::Previous() {
     }
 }
 
-std::string PlaylistManager::GetNextTrack() const {
-    if (m_playlist.empty() || m_shuffleIndices.empty()) return "";
+std::wstring PlaylistManager::GetNextTrack() const {
+    if (m_playlist.empty() || m_shuffleIndices.empty()) return L"";
     
     size_t nextIndex = m_shuffleIndex + 1;
     if (nextIndex < m_shuffleIndices.size()) {
@@ -101,33 +102,46 @@ std::string PlaylistManager::GetNextTrack() const {
         if (!m_nextShuffleIndices.empty()) {
             return m_playlist[m_nextShuffleIndices[0]];
         }
-        return "";
+        return L"";
     }
 }
 
-void PlaylistManager::SaveToFile(const std::string& outPath) const {
-    std::ofstream ofs(outPath);
+void PlaylistManager::SaveToFile(const std::wstring& outPath) const {
+    std::ofstream ofs(outPath, std::ios::binary);
     if (!ofs) return;
     for (const auto& path : m_playlist) {
-        ofs << path << "\n";
+        if (path.empty()) continue;
+        int size_needed = WideCharToMultiByte(CP_UTF8, 0, path.c_str(), (int)path.length(), NULL, 0, NULL, NULL);
+        if (size_needed > 0) {
+            std::string utf8Str(size_needed, 0);
+            WideCharToMultiByte(CP_UTF8, 0, path.c_str(), (int)path.length(), &utf8Str[0], size_needed, NULL, NULL);
+            ofs << utf8Str << "\n";
+        }
     }
 }
 
-void PlaylistManager::LoadFromFile(const std::string& inPath) {
-    std::ifstream ifs(inPath);
+void PlaylistManager::LoadFromFile(const std::wstring& inPath) {
+    std::ifstream ifs(inPath, std::ios::binary);
     if (!ifs) return;
 
     std::string line;
     while (std::getline(ifs, line)) {
         if (line.empty()) continue;
+        if (line.back() == '\r') line.pop_back();
 
-        try {
-            std::filesystem::path p(line);
-            if (std::filesystem::exists(p) && std::filesystem::is_regular_file(p)) {
-                Add(line);
+        int size_needed = MultiByteToWideChar(CP_UTF8, 0, line.c_str(), (int)line.length(), NULL, 0);
+        if (size_needed > 0) {
+            std::wstring wline(size_needed, 0);
+            MultiByteToWideChar(CP_UTF8, 0, line.c_str(), (int)line.length(), &wline[0], size_needed);
+
+            try {
+                std::filesystem::path p(wline);
+                if (std::filesystem::exists(p) && std::filesystem::is_regular_file(p)) {
+                    Add(wline);
+                }
+            } catch (...) {
+                // パスが無効な場合は無視
             }
-        } catch (...) {
-            // パスが無効な場合は無視
         }
     }
     

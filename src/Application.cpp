@@ -60,7 +60,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
             m_audioPlayer.Stop();
             
             while (skipCount < totalCount) {
-                std::string track = m_playlistManager.GetCurrentTrack();
+                std::wstring track = m_playlistManager.GetCurrentTrack();
 
                 if (cmd == APPCOMMAND_MEDIA_NEXTTRACK && skipCount == 0 && m_isPrefetchReady.load()) {
                     m_renderer.SetTrackInfo(m_prefetchedTitle, m_prefetchedArtist);
@@ -129,7 +129,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
 
     if (m_audioPlayer.Initialize()) {
         m_audioPlayer.SetVolume(m_config.GetDefaultVolume());
-        std::string defPlaylist = std::filesystem::path(m_config.GetDefaultPlaylistPath()).string();
+        std::wstring defPlaylist = m_config.GetDefaultPlaylistPath();
         m_playlistManager.LoadFromFile(defPlaylist);
 
         if (!m_playlistManager.IsEmpty()) {
@@ -138,7 +138,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
             size_t totalCount = m_playlistManager.GetCount();
 
             while (skipCount < totalCount) {
-                std::string currentTrack = m_playlistManager.GetCurrentTrack();
+                std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
                 if (m_tagManager.Load(currentTrack)) {
                     std::wstring title = m_tagManager.GetTitle();
                     std::wstring artist = m_tagManager.GetArtist();
@@ -255,7 +255,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
                         OutputDebugStringA(dbg);
                         
                         if (isSupported && isValid) {
-                            if (m_playlistManager.Add(it->path().string())) {
+                            if (m_playlistManager.Add(it->path().wstring())) {
                                 addedAny = true;
                             }
                         }
@@ -269,7 +269,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
                 OutputDebugStringA(dbg);
                 
                 if (isSupported && isValid) {
-                    if (m_playlistManager.Add(p.string())) {
+                    if (m_playlistManager.Add(p.wstring())) {
                         addedAny = true;
                     }
                 }
@@ -285,7 +285,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
         if (!playlistDir.empty() && !std::filesystem::exists(playlistDir)) {
             std::filesystem::create_directories(playlistDir);
         }
-        m_playlistManager.SaveToFile(defaultPath.string());
+        m_playlistManager.SaveToFile(defaultPath.wstring());
         m_playlistManager.ShuffleNextLoop();
 
         if (wasEmpty && !m_audioPlayer.IsPlaying()) {
@@ -294,7 +294,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
             size_t totalCount = m_playlistManager.GetCount();
 
             while (skipCount < totalCount) {
-                std::string currentTrack = m_playlistManager.GetCurrentTrack();
+                std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
                 if (m_tagManager.Load(currentTrack)) {
                     std::wstring title = m_tagManager.GetTitle();
                     std::wstring artist = m_tagManager.GetArtist();
@@ -350,7 +350,7 @@ void Application::Run() {
                 size_t totalCount = m_playlistManager.GetCount();
                 
                 while (skipCount < totalCount) {
-                    std::string track = m_playlistManager.GetCurrentTrack();
+                    std::wstring track = m_playlistManager.GetCurrentTrack();
 
                     if (skipCount == 0) {
                         // 最初の曲は先読みデータを利用
@@ -453,7 +453,7 @@ void Application::PrefetchNextTrack() {
         m_prefetchedArtist.clear();
         m_prefetchedAlbumArt.Reset();
 
-        std::string nextFile = m_playlistManager.GetNextTrack();
+        std::wstring nextFile = m_playlistManager.GetNextTrack();
         if (!nextFile.empty()) {
             bool loadSuccess = false;
             try {
@@ -507,7 +507,7 @@ void Application::ProcessCommandLineArgs(int argc, LPWSTR* argv) {
 void Application::ClearPlaylist() {
     m_playlistManager.Clear();
     
-    std::string defaultPath = std::filesystem::path(m_config.GetDefaultPlaylistPath()).string();
+    std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
     m_playlistManager.SaveToFile(defaultPath);
     
     m_audioPlayer.Stop();

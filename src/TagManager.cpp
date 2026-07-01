@@ -10,7 +10,7 @@ TagManager::TagManager() {}
 
 TagManager::~TagManager() {}
 
-bool TagManager::Load(const std::string& filepath) {
+bool TagManager::Load(const std::wstring& filepath) {
     m_title.clear();
     m_artist.clear();
     m_albumArtBytes.clear();

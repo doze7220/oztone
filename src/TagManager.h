@@ -16,7 +16,7 @@ public:
      * @param filepath ファイルパス(UTF-8)
      * @return 成功ならtrue
      */
-    bool Load(const std::string& filepath);
+    bool Load(const std::wstring& filepath);
 
     /**
      * @brief 曲名を取得する
