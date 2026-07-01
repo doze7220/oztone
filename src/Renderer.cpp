@@ -456,7 +456,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
     }
 
     // 2.5 7色ネオン心電図ビジュアライザの描画
-    if (!spectrum.empty()) {
+    if (m_config && m_config->GetVisualizerMode() != 0 && !spectrum.empty()) {
         D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
         renderTargetSize.width /= m_dpiScale;
         renderTargetSize.height /= m_dpiScale;
@@ -468,7 +468,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
     // 3. アイコンの描画
 
     ID2D1Bitmap* bitmapToDraw = isHovered ? m_appLogoHoverBitmap.Get() : m_appLogoBitmap.Get();
-    if (bitmapToDraw && m_config) {
+    if (m_config && m_config->GetShowAppLogo() && bitmapToDraw) {
         float x = static_cast<FLOAT>(m_config->GetLogoX());
         float y = static_cast<FLOAT>(m_config->GetLogoY());
         float w = static_cast<FLOAT>(m_config->GetLogoWidth());
@@ -488,7 +488,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
 
 
     // 4. 左下アルバムアートの描画
-    if (m_config) {
+    if (m_config && m_config->GetShowNowPlaying()) {
         D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
         float logicHeight = rtSize.height / m_dpiScale;
         float size = static_cast<float>(m_config->GetArtSize());
@@ -542,7 +542,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
     }
 
     // 5. 曲情報テキストの描画
-    if (m_textBrush && m_titleTextFormat && m_artistTextFormat && m_config) {
+    if (m_config && m_config->GetShowNowPlaying() && m_textBrush && m_titleTextFormat && m_artistTextFormat) {
         D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
         float logicHeight = rtSize.height / m_dpiScale;
         float baseX = static_cast<float>(m_config->GetBaseX());
@@ -613,7 +613,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
     }
 
     // 6. シークバーと時間テキストの描画
-    if (m_textBrush && m_timeTextFormat && m_config) {
+    if (m_config && m_config->GetShowSeekBar() && m_textBrush && m_timeTextFormat) {
         D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
         renderTargetSize.width /= m_dpiScale;
         renderTargetSize.height /= m_dpiScale;
@@ -672,7 +672,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
     }
 
     // 7. 「次の曲」表示の描画
-    if (m_config && m_textBrush && m_nextTitleTextFormat && m_nextArtistTextFormat) {
+    if (m_config && m_config->GetShowNextTrack() && m_textBrush && m_nextTitleTextFormat && m_nextArtistTextFormat) {
         D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
         renderTargetSize.width /= m_dpiScale;
         renderTargetSize.height /= m_dpiScale;
@@ -922,7 +922,8 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
                 m_d2dContext->FillRectangle(rect, controlBrush.Get());
             };
 
-            // Previous Button (⏮)
+            if (m_config->GetShowPlaybackControls()) {
+                // Previous Button (⏮)
             float prevX = centerX - spacing;
             DrawRect(prevX - half + size*0.1f, centerY, size*0.2f, size);
             DrawTriangle(prevX - size*0.1f, centerY, size*0.4f, size, false);
@@ -943,9 +944,11 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
             DrawTriangle(nextX - size*0.3f, centerY, size*0.4f, size, true);
             DrawTriangle(nextX + size*0.1f, centerY, size*0.4f, size, true);
             DrawRect(nextX + half - size*0.1f, centerY, size*0.2f, size);
+            }
 
             // 8.5 音量UIの描画
-            float volX = static_cast<float>(m_config->GetVolumeBaseLeftOffset());
+            if (m_config->GetShowVolumeControl()) {
+                float volX = static_cast<float>(m_config->GetVolumeBaseLeftOffset());
             float volY = renderTargetSize.height - static_cast<float>(m_config->GetVolumeBaseBottomOffset());
             float volSize = static_cast<float>(m_config->GetVolumeIconSize());
             
@@ -1055,6 +1058,30 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
                     controlBrush.Get()
                 );
             }
+            }
+        }
+    }
+
+    if (m_config && m_config->GetEnableResize()) {
+        D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
+        renderTargetSize.width /= m_dpiScale;
+        renderTargetSize.height /= m_dpiScale;
+        
+        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> gripBrush;
+        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.5f), &gripBrush);
+        if (gripBrush) {
+            float size = 15.0f;
+            Microsoft::WRL::ComPtr<ID2D1PathGeometry> gripPath;
+            m_d2dFactory->CreatePathGeometry(&gripPath);
+            Microsoft::WRL::ComPtr<ID2D1GeometrySink> gripSink;
+            gripPath->Open(&gripSink);
+            gripSink->SetFillMode(D2D1_FILL_MODE_WINDING);
+            gripSink->BeginFigure(D2D1::Point2F(renderTargetSize.width - size, renderTargetSize.height), D2D1_FIGURE_BEGIN_FILLED);
+            gripSink->AddLine(D2D1::Point2F(renderTargetSize.width, renderTargetSize.height));
+            gripSink->AddLine(D2D1::Point2F(renderTargetSize.width, renderTargetSize.height - size));
+            gripSink->EndFigure(D2D1_FIGURE_END_CLOSED);
+            gripSink->Close();
+            m_d2dContext->FillGeometry(gripPath.Get(), gripBrush.Get());
         }
     }
 
@@ -1063,5 +1090,30 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
     if (SUCCEEDED(hr) || hr == D2DERR_RECREATE_TARGET) {
         // VSync同期でPresent (1)
         m_swapChain->Present(1, 0);
+    }
+}
+
+void Renderer::Resize(UINT width, UINT height) {
+    if (!m_d2dContext || !m_swapChain) return;
+
+    m_d2dContext->SetTarget(nullptr);
+    m_d2dTargetBitmap.Reset();
+
+    HRESULT hr = m_swapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
+    if (SUCCEEDED(hr)) {
+        Microsoft::WRL::ComPtr<IDXGISurface> dxgiBackBuffer;
+        hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(&dxgiBackBuffer));
+        if (SUCCEEDED(hr)) {
+            D2D1_BITMAP_PROPERTIES1 bitmapProperties = D2D1::BitmapProperties1(
+                D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
+                D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
+                96.0f,
+                96.0f
+            );
+            hr = m_d2dContext->CreateBitmapFromDxgiSurface(dxgiBackBuffer.Get(), &bitmapProperties, &m_d2dTargetBitmap);
+            if (SUCCEEDED(hr)) {
+                m_d2dContext->SetTarget(m_d2dTargetBitmap.Get());
+            }
+        }
     }
 }

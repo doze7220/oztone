@@ -25,6 +25,13 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         this->OnFilesDropped(files);
     });
     
+    m_window.SetOnResizeCallback([this](int width, int height) {
+        m_renderer.Resize(width, height);
+        this->ForceRender();
+    });
+
+
+    
     m_window.SetCopyDataCallback([this](const std::wstring& path) {
         std::vector<std::wstring> files = { path };
         this->OnFilesDropped(files);
@@ -394,38 +401,42 @@ void Application::Run() {
             }
         }
 
-        float posSec = m_audioPlayer.GetPositionSeconds();
-        float lenSec = m_audioPlayer.GetLengthSeconds();
-
-        int posM = static_cast<int>(posSec) / 60;
-        int posS = static_cast<int>(posSec) % 60;
-        int lenM = static_cast<int>(lenSec) / 60;
-        int lenS = static_cast<int>(lenSec) % 60;
-
-        wchar_t timeBuf[32];
-        swprintf_s(timeBuf, L"%d:%02d / %d:%02d", posM, posS, lenM, lenS);
-        std::wstring timeString(timeBuf);
-
-        float progress = 0.0f;
-        if (lenSec > 0.0f) {
-            progress = posSec / lenSec;
-            if (progress > 1.0f) progress = 1.0f;
-            if (progress < 0.0f) progress = 0.0f;
-        }
-
-        m_renderer.SetNextTrackInfo(
-            m_isPrefetchReady.load(),
-            m_prefetchedAlbumArt.Get(),
-            m_prefetchedTitle,
-            m_prefetchedArtist
-        );
-
-        std::vector<float> spectrum;
-        m_audioPlayer.GetSpectrumData(spectrum);
-
-        m_renderer.Render(m_window.IsHovered(), m_window.IsControlHovered(), m_audioPlayer.IsPlaying(), progress, timeString, spectrum, m_audioPlayer.GetVolume());
+        ForceRender();
         Sleep(1); // CPU使用率を抑えるための仮のスリープ
     }
+}
+
+void Application::ForceRender() {
+    float posSec = m_audioPlayer.GetPositionSeconds();
+    float lenSec = m_audioPlayer.GetLengthSeconds();
+
+    int posM = static_cast<int>(posSec) / 60;
+    int posS = static_cast<int>(posSec) % 60;
+    int lenM = static_cast<int>(lenSec) / 60;
+    int lenS = static_cast<int>(lenSec) % 60;
+
+    wchar_t timeBuf[32];
+    swprintf_s(timeBuf, L"%d:%02d / %d:%02d", posM, posS, lenM, lenS);
+    std::wstring timeString(timeBuf);
+
+    float progress = 0.0f;
+    if (lenSec > 0.0f) {
+        progress = posSec / lenSec;
+        if (progress > 1.0f) progress = 1.0f;
+        if (progress < 0.0f) progress = 0.0f;
+    }
+
+    m_renderer.SetNextTrackInfo(
+        m_isPrefetchReady.load(),
+        m_prefetchedAlbumArt.Get(),
+        m_prefetchedTitle,
+        m_prefetchedArtist
+    );
+
+    std::vector<float> spectrum;
+    m_audioPlayer.GetSpectrumData(spectrum);
+
+    m_renderer.Render(m_window.IsHovered(), m_window.IsControlHovered(), m_audioPlayer.IsPlaying(), progress, timeString, spectrum, m_audioPlayer.GetVolume());
 }
 
 void Application::PrefetchNextTrack() {

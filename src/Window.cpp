@@ -13,11 +13,13 @@ constexpr UINT TRAY_MENU_ORDER[] = {
     Window::ID_TRAY_BG_HIDDEN,
     Window::ID_TRAY_BG_DEFAULT,
     0, // separator
+    Window::ID_TRAY_ENABLE_RESIZE,
     Window::ID_TRAY_SAVE_POS,
     Window::ID_TRAY_RESET_POS,
     Window::ID_TRAY_RESET_ALL,
     Window::ID_TRAY_CLEAR_PLAYLIST,
     0, // separator
+    Window::ID_TRAY_VIS_NONE,
     Window::ID_TRAY_VIS_PRISM,
     Window::ID_TRAY_VIS_CIRCLE,
     0, // separator
@@ -188,6 +190,12 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow, ConfigManager& config
         return false;
     }
 
+    // DirectComposition使用時に、WS_EX_LAYEREDウィンドウの入力判定領域が
+    // リサイズ時に自動更新されないOSの仕様を回避するため、LWA_ALPHAを設定する。
+    if (dwExStyle & WS_EX_LAYERED) {
+        SetLayeredWindowAttributes(m_hwnd, 0, 255, LWA_ALPHA);
+    }
+
     s_hwnd = m_hwnd;
     m_keyboardHook = SetWindowsHookExW(WH_KEYBOARD_LL, LowLevelKeyboardProc, m_hInstance, 0);
 
@@ -245,7 +253,7 @@ LRESULT CALLBACK Window::WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, L
         return pThis->WindowProc(hwnd, uMsg, wParam, lParam);
     }
 
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }
 
 LRESULT CALLBACK Window::LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -321,9 +329,9 @@ int Window::GetPlaybackButtonAt(int x, int y) const {
     int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
 
     float centerX = (logicalWidth / 2.0f) + m_config->GetPlaybackCenterOffsetX();
-    float centerY = logicalHeight - m_config->GetPlaybackBaseBottomOffset();
-    float size = m_config->GetPlaybackButtonSize();
-    float spacing = m_config->GetPlaybackButtonSpacing();
+    float centerY = logicalHeight - static_cast<float>(m_config->GetPlaybackBaseBottomOffset());
+    float size = static_cast<float>(m_config->GetPlaybackButtonSize());
+    float spacing = static_cast<float>(m_config->GetPlaybackButtonSpacing());
     float halfSize = size / 2.0f;
 
     if (logicalY >= centerY - halfSize && logicalY <= centerY + halfSize) {
@@ -337,6 +345,42 @@ int Window::GetPlaybackButtonAt(int x, int y) const {
 
 LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
+        case WM_GETMINMAXINFO: {
+            MINMAXINFO* pMinMaxInfo = reinterpret_cast<MINMAXINFO*>(lParam);
+            UINT dpi = GetDpiForWindow(hwnd);
+            if (dpi == 0) dpi = 96;
+            pMinMaxInfo->ptMinTrackSize.x = MulDiv(495, dpi, 96);
+            pMinMaxInfo->ptMinTrackSize.y = MulDiv(260, dpi, 96);
+            return 0;
+        }
+        case WM_SIZE: {
+            if (wParam != SIZE_MINIMIZED && m_onResize) {
+                int width = LOWORD(lParam);
+                int height = HIWORD(lParam);
+                m_onResize(width, height);
+            }
+            return 0;
+        }
+        case WM_NCHITTEST: {
+            LRESULT hit = DefWindowProc(hwnd, uMsg, wParam, lParam);
+            if (hit == HTCLIENT && m_config && m_config->GetEnableResize()) {
+                POINT pt;
+                pt.x = GET_X_LPARAM(lParam);
+                pt.y = GET_Y_LPARAM(lParam);
+                ScreenToClient(hwnd, &pt);
+                
+                RECT rect;
+                GetClientRect(hwnd, &rect);
+                
+                UINT dpi = GetDpiForWindow(hwnd);
+                int gripSize = MulDiv(15, dpi, 96);
+                
+                if (pt.x >= rect.right - gripSize && pt.y >= rect.bottom - gripSize) {
+                    return HTBOTTOMRIGHT;
+                }
+            }
+            return hit;
+        }
         case WM_WINDOWPOSCHANGING: {
             if (m_config && m_config->GetZOrder() == 2) {
                 WINDOWPOS* pos = reinterpret_cast<WINDOWPOS*>(lParam);
@@ -424,6 +468,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                             case ID_TRAY_ZORDER_NORMAL: text = L"ウィンドウ順序: 通常"; break;
                             case ID_TRAY_ZORDER_TOPMOST: text = L"ウィンドウ順序: 最前面"; break;
                             case ID_TRAY_ZORDER_BOTTOM: text = L"ウィンドウ順序: 最背面"; break;
+                            case ID_TRAY_ENABLE_RESIZE: text = L"リサイズモードを有効化"; break;
                             case ID_TRAY_SAVE_POS: text = L"終了時に位置とサイズを記憶"; break;
                             case ID_TRAY_RESET_POS: text = L"位置とサイズをリセット"; break;
                             case ID_TRAY_RESET_ALL: text = L"設定を初期化"; break;
@@ -431,6 +476,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                             case ID_TRAY_BG_NOWPLAYING: text = L"背景: アルバムアート"; break;
                             case ID_TRAY_BG_HIDDEN: text = L"背景: 非表示"; break;
                             case ID_TRAY_BG_DEFAULT: text = L"背景: デフォルト背景"; break;
+                            case ID_TRAY_VIS_NONE: text = L"ビジュアライザ: 非表示"; break;
                             case ID_TRAY_VIS_PRISM: text = L"ビジュアライザ: プリズム・ビート"; break;
                             case ID_TRAY_VIS_CIRCLE: text = L"ビジュアライザ: ヘイロー・ダスト"; break;
                             case ID_TRAY_EXIT: text = L"終了 (Exit)"; break;
@@ -447,10 +493,13 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                     CheckMenuRadioItem(hMenu, ID_TRAY_BG_NOWPLAYING, ID_TRAY_BG_DEFAULT,
                                        ID_TRAY_BG_NOWPLAYING + bgMode, MF_BYCOMMAND);
                     int visMode = m_config->GetVisualizerMode();
-                    CheckMenuRadioItem(hMenu, ID_TRAY_VIS_PRISM, ID_TRAY_VIS_CIRCLE,
-                                       ID_TRAY_VIS_PRISM + visMode, MF_BYCOMMAND);
+                    CheckMenuRadioItem(hMenu, ID_TRAY_VIS_NONE, ID_TRAY_VIS_CIRCLE,
+                                       ID_TRAY_VIS_NONE + visMode, MF_BYCOMMAND);
                     if (m_config->GetSavePositionOnExit()) {
                         CheckMenuItem(hMenu, ID_TRAY_SAVE_POS, MF_BYCOMMAND | MF_CHECKED);
+                    }
+                    if (m_config->GetEnableResize()) {
+                        CheckMenuItem(hMenu, ID_TRAY_ENABLE_RESIZE, MF_BYCOMMAND | MF_CHECKED);
                     }
                 }
 
@@ -485,10 +534,18 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                     }
                     break;
                 }
+                case ID_TRAY_VIS_NONE:
                 case ID_TRAY_VIS_PRISM:
                 case ID_TRAY_VIS_CIRCLE: {
                     if (m_config) {
-                        m_config->SetVisualizerMode(wmId - ID_TRAY_VIS_PRISM);
+                        m_config->SetVisualizerMode(wmId - ID_TRAY_VIS_NONE);
+                    }
+                    break;
+                }
+                case ID_TRAY_ENABLE_RESIZE: {
+                    if (m_config) {
+                        bool current = m_config->GetEnableResize();
+                        m_config->SetEnableResize(!current);
                     }
                     break;
                 }
@@ -575,5 +632,5 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             return 0;
         }
     }
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }
