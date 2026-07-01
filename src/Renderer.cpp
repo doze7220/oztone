@@ -235,6 +235,24 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     );
     if (FAILED(hr)) return false;
 
+    // 7.5 テキストトリミングの設定
+    auto ApplyTrimming = [&](Microsoft::WRL::ComPtr<IDWriteTextFormat>& format) {
+        if (!format) return;
+        DWRITE_TRIMMING trimmingOptions = { DWRITE_TRIMMING_GRANULARITY_CHARACTER, 0, 0 };
+        Microsoft::WRL::ComPtr<IDWriteInlineObject> ellipsis;
+        HRESULT hrTrim = m_dwriteFactory->CreateEllipsisTrimmingSign(format.Get(), &ellipsis);
+        if (SUCCEEDED(hrTrim)) {
+            format->SetTrimming(&trimmingOptions, ellipsis.Get());
+            format->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+        }
+    };
+    ApplyTrimming(m_titleTextFormat);
+    ApplyTrimming(m_artistTextFormat);
+    ApplyTrimming(m_timeTextFormat);
+    ApplyTrimming(m_nextLabelTextFormat);
+    ApplyTrimming(m_nextTitleTextFormat);
+    ApplyTrimming(m_nextArtistTextFormat);
+
     hr = m_timeTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
     if (FAILED(hr)) return false;
     hr = m_timeTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -544,20 +562,24 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
     // 5. 曲情報テキストの描画
     if (m_config && m_config->GetShowNowPlaying() && m_textBrush && m_titleTextFormat && m_artistTextFormat) {
         D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
+        float logicWidth = rtSize.width / m_dpiScale;
         float logicHeight = rtSize.height / m_dpiScale;
         float baseX = static_cast<float>(m_config->GetBaseX());
         float baseY = logicHeight - static_cast<float>(m_config->GetBaseBottomOffset());
+        float rightMargin = 30.0f; // 右端の最低限のマージン
 
         // 曲名描画
         float titleX = baseX + static_cast<float>(m_config->GetTitleOffsetX());
         float titleY = baseY + static_cast<float>(m_config->GetTitleOffsetY());
+        float titleRight = logicWidth - rightMargin;
+        if (titleRight < titleX) titleRight = titleX + 1.0f; // 最小幅を確保
         
         if (m_shadowBrush && m_config->GetEnableShadow()) {
             m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
             D2D1_RECT_F titleShadowRect = D2D1::RectF(
                 titleX + m_config->GetShadowOffsetX(),
                 titleY + m_config->GetShadowOffsetY(),
-                titleX + m_config->GetShadowOffsetX() + 800.0f,
+                titleRight + m_config->GetShadowOffsetX(),
                 titleY + m_config->GetShadowOffsetY() + 100.0f
             );
             m_d2dContext->DrawText(
@@ -569,7 +591,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
             );
         }
 
-        D2D1_RECT_F titleRect = D2D1::RectF(titleX, titleY, titleX + 800.0f, titleY + 100.0f);
+        D2D1_RECT_F titleRect = D2D1::RectF(titleX, titleY, titleRight, titleY + 100.0f);
 
         m_d2dContext->DrawText(
             m_trackTitle.c_str(),
@@ -582,13 +604,15 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
         // アーティスト名描画
         float artistX = baseX + static_cast<float>(m_config->GetArtistOffsetX());
         float artistY = baseY + static_cast<float>(m_config->GetArtistOffsetY());
+        float artistRight = logicWidth - rightMargin;
+        if (artistRight < artistX) artistRight = artistX + 1.0f;
         
         if (m_shadowBrush && m_config->GetEnableShadow()) {
             m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
             D2D1_RECT_F artistShadowRect = D2D1::RectF(
                 artistX + m_config->GetShadowOffsetX(),
                 artistY + m_config->GetShadowOffsetY(),
-                artistX + m_config->GetShadowOffsetX() + 800.0f,
+                artistRight + m_config->GetShadowOffsetX(),
                 artistY + m_config->GetShadowOffsetY() + 50.0f
             );
             m_d2dContext->DrawText(
@@ -601,7 +625,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
             );
         }
 
-        D2D1_RECT_F artistRect = D2D1::RectF(artistX, artistY, artistX + 800.0f, artistY + 50.0f);
+        D2D1_RECT_F artistRect = D2D1::RectF(artistX, artistY, artistRight, artistY + 50.0f);
         m_d2dContext->DrawText(
             m_trackArtist.c_str(),
             static_cast<UINT32>(m_trackArtist.length()),
@@ -672,7 +696,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaying, flo
     }
 
     // 7. 「次の曲」表示の描画
-    if (m_config && m_config->GetShowNextTrack() && m_textBrush && m_nextTitleTextFormat && m_nextArtistTextFormat) {
+    if (m_config && m_config->GetShowNextTrack() && m_config->GetEnableNextTrack() && m_textBrush && m_nextTitleTextFormat && m_nextArtistTextFormat) {
         D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
         renderTargetSize.width /= m_dpiScale;
         renderTargetSize.height /= m_dpiScale;

@@ -67,6 +67,7 @@ TimeAreaWidth=100
 TimeLetterSpacing=-3.0
 
 [Layout_NextTrack]
+EnableNextTrack=0
 BaseRightOffset=300
 BaseBottomOffset=80
 ArtOffsetX=0
@@ -120,7 +121,7 @@ DefaultPlaylistPath=oztone_playlist.lst
 
 ConfigManager::ConfigManager()
     : m_showTitleBar(false), m_showWindowFrame(false), m_showTaskbar(false),
-      m_showAppLogo(true), m_showNowPlaying(true), m_showNextTrack(true),
+      m_showAppLogo(true), m_showNowPlaying(true), m_showNextTrack(true), m_enableNextTrack(false),
       m_showSeekBar(true), m_showPlaybackControls(true), m_showVolumeControl(true),
       m_zOrder(0), m_savePositionOnExit(true), m_enableResize(false),
       m_windowX(CW_USEDEFAULT), m_windowY(CW_USEDEFAULT), m_windowWidth(1024), m_windowHeight(512),
@@ -314,6 +315,7 @@ void ConfigManager::LoadSettings() {
     GetPrivateProfileStringW(L"Layout_SeekBar", L"TimeLetterSpacing", L"0.0", buf, 32, m_iniFilePath.c_str());
     try { m_seekBarTimeLetterSpacing = std::stof(buf); } catch (...) { m_seekBarTimeLetterSpacing = 0.0f; }
 
+    m_enableNextTrack = GetPrivateProfileIntW(L"Layout_NextTrack", L"EnableNextTrack", 0, m_iniFilePath.c_str()) != 0;
     m_nextBaseRightOffset = GetPrivateProfileIntW(L"Layout_NextTrack", L"BaseRightOffset", 250, m_iniFilePath.c_str());
     m_nextBaseBottomOffset = GetPrivateProfileIntW(L"Layout_NextTrack", L"BaseBottomOffset", 80, m_iniFilePath.c_str());
     m_nextArtOffsetX = GetPrivateProfileIntW(L"Layout_NextTrack", L"ArtOffsetX", 0, m_iniFilePath.c_str());

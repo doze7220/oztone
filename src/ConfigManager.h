@@ -23,6 +23,7 @@ public:
     bool GetShowAppLogo() const { return m_showAppLogo; }
     bool GetShowNowPlaying() const { return m_showNowPlaying; }
     bool GetShowNextTrack() const { return m_showNextTrack; }
+    bool GetEnableNextTrack() const { return m_enableNextTrack; }
     bool GetShowSeekBar() const { return m_showSeekBar; }
     bool GetShowPlaybackControls() const { return m_showPlaybackControls; }
     bool GetShowVolumeControl() const { return m_showVolumeControl; }
@@ -161,6 +162,7 @@ private:
     bool m_showAppLogo;
     bool m_showNowPlaying;
     bool m_showNextTrack;
+    bool m_enableNextTrack;
     bool m_showSeekBar;
     bool m_showPlaybackControls;
     bool m_showVolumeControl;
