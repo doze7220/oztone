@@ -57,7 +57,7 @@ ArtistFontSize=18.0
 ArtistFontFamily=Meiryo
 
 [Layout_SeekBar]
-WidthRatio=0.95
+SeekBarMargin=20.0
 Height=5
 BottomOffset=25
 BgOpacity=0.3
@@ -145,12 +145,12 @@ PlaylistTimeOffsetX=10
 PlaylistTimeOffsetY=25
 PlaylistTimeLetterSpacing=0.0
 PlaylistBgOpacity=0.8
-PlaylistGripRightOffset=10.0
-PlaylistGripLineWidth=2.0
-PlaylistGripLineColor=#FFFFFF
-PlaylistGripArrowHeight=10.0
-PlaylistGripArrowWidth=5.0
-PlaylistGripArrowColor=#FFFFFF
+PlaylistGripRightOffset=5.0
+PlaylistGripLineWidth=1.0
+PlaylistGripLineColor=#AAAAAA
+PlaylistGripArrowHeight=35.0
+PlaylistGripArrowWidth=15.0
+PlaylistGripArrowColor=#AAAAAA
 PlaylistGripShadowOffsetX=2.0
 PlaylistGripShadowOffsetY=2.0
 PlaylistGripShadowOpacity=0.7
@@ -174,7 +174,7 @@ ConfigManager::ConfigManager()
       m_titleOffsetX(140), m_titleOffsetY(10), m_titleFontSize(32.0f),
       m_titleFontFamily(L"Meiryo"), m_artistOffsetX(140), m_artistOffsetY(55),
       m_artistFontSize(18.0f), m_artistFontFamily(L"Meiryo"),
-      m_seekBarWidthRatio(0.95f), m_seekBarHeight(3), m_seekBarBottomOffset(50),
+      m_seekBarMargin(20.0f), m_seekBarHeight(3), m_seekBarBottomOffset(50),
       m_seekBarBgOpacity(0.3f), m_seekBarTimeFontFamily(L"Consolas"),
       m_seekBarTimeFontSize(12.0f), m_seekBarTimeAreaWidth(100),
       m_seekBarTimeLetterSpacing(0.0f), m_nextBaseRightOffset(250),
@@ -481,13 +481,13 @@ void ConfigManager::LoadSettings() {
                            buf, 32, m_iniFilePath.c_str());
   m_artistFontFamily = buf;
 
-  GetPrivateProfileStringW(L"Layout_SeekBar", L"WidthRatio", L"0.95", buf, 32,
-                           m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_SeekBar", L"SeekBarMargin", L"20.0", buf,
+                           32, m_iniFilePath.c_str());
 
   try {
-    m_seekBarWidthRatio = std::stof(buf);
+    m_seekBarMargin = std::stof(buf);
   } catch (...) {
-    m_seekBarWidthRatio = 0.95f;
+    m_seekBarMargin = 20.0f;
   }
 
   m_seekBarHeight = GetPrivateProfileIntW(L"Layout_SeekBar", L"Height", 3,

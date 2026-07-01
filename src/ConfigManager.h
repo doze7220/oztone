@@ -93,7 +93,7 @@ public:
     float GetArtistFontSize() const { return m_artistFontSize; }
     std::wstring GetArtistFontFamily() const { return m_artistFontFamily; }
 
-    float GetSeekBarWidthRatio() const { return m_seekBarWidthRatio; }
+    float GetSeekBarMargin() const { return m_seekBarMargin; }
     int GetSeekBarHeight() const { return m_seekBarHeight; }
     int GetSeekBarBottomOffset() const { return m_seekBarBottomOffset; }
     float GetSeekBarBgOpacity() const { return m_seekBarBgOpacity; }
@@ -257,7 +257,7 @@ private:
     float m_artistFontSize;
     std::wstring m_artistFontFamily;
 
-    float m_seekBarWidthRatio;
+    float m_seekBarMargin;
     int m_seekBarHeight;
     int m_seekBarBottomOffset;
     float m_seekBarBgOpacity;

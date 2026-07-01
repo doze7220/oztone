@@ -755,8 +755,9 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHove
         renderTargetSize.width /= m_dpiScale;
         renderTargetSize.height /= m_dpiScale;
 
-        float totalWidth = renderTargetSize.width * m_config->GetSeekBarWidthRatio();
-        float startX = (renderTargetSize.width - totalWidth) / 2.0f;
+        float margin = m_config->GetSeekBarMargin();
+        float totalWidth = renderTargetSize.width - (margin * 2.0f);
+        float startX = margin;
         float barAreaWidth = totalWidth - static_cast<float>(m_config->GetSeekBarTimeAreaWidth());
         float y = renderTargetSize.height - static_cast<float>(m_config->GetSeekBarBottomOffset());
         float h = static_cast<float>(m_config->GetSeekBarHeight());
