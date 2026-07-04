@@ -26,6 +26,7 @@ set(SOURCES
     src/Window.cpp
     src/ConfigManager.cpp
     src/Renderer.cpp
+    src/LayoutCalculator.cpp
     src/Visualizer.cpp
     src/AudioPlayer.cpp
     src/TagManager.cpp
@@ -38,6 +39,7 @@ set(HEADERS
     src/Window.h
     src/ConfigManager.h
     src/Renderer.h
+    src/LayoutCalculator.h
     src/Visualizer.h
     src/AudioPlayer.h
     src/TagManager.h

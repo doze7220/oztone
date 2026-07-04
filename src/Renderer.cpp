@@ -1,6 +1,10 @@
 #include "Renderer.h"
 #include "ConfigManager.h"
 #include "resource.h"
+#include "Visualizer.h"
+#include "AudioPlayer.h"
+#include "TagManager.h"
+#include "LayoutCalculator.h"
 #include <initguid.h>
 #include <d2d1effects.h>
 #pragma comment(lib, "dxguid.lib")
@@ -614,30 +618,17 @@ void Renderer::DrawBackground() {
     
     if (artBitmap && m_config) {
         D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-        // 96DPIターゲットから得た物理サイズを論理サイズに変換
-        renderTargetSize.width /= m_dpiScale;
-        renderTargetSize.height /= m_dpiScale;
+        float logicWidth = renderTargetSize.width / m_dpiScale;
+        float logicHeight = renderTargetSize.height / m_dpiScale;
         
-        D2D1_SIZE_F bitmapSize = artBitmap->GetSize();
-        
-        float scaleX = renderTargetSize.width / bitmapSize.width;
-        float scaleY = renderTargetSize.height / bitmapSize.height;
-        float scale = (std::max)(scaleX, scaleY);
-        
-        float newWidth = renderTargetSize.width / scale;
-        float newHeight = renderTargetSize.height / scale;
-        float srcX = (bitmapSize.width - newWidth) / 2.0f;
-        float srcY = (bitmapSize.height - newHeight) / 2.0f;
-        
-        D2D1_RECT_F srcRect = D2D1::RectF(srcX, srcY, srcX + newWidth, srcY + newHeight);
-        D2D1_RECT_F destRect = D2D1::RectF(0.0f, 0.0f, renderTargetSize.width, renderTargetSize.height);
+        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, artBitmap->GetSize());
         
         m_d2dContext->DrawBitmap(
             artBitmap,
-            &destRect,
+            &layout.destRect,
             m_config->GetBgOpacity(),
             D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
-            &srcRect
+            &layout.srcRect
         );
     }
 
@@ -651,8 +642,9 @@ void Renderer::DrawBackground() {
             D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
             float logicWidth = rtSize.width / m_dpiScale;
             float logicHeight = rtSize.height / m_dpiScale;
-            D2D1_RECT_F bgRect = D2D1::RectF(0.0f, 0.0f, logicWidth, logicHeight);
-            m_d2dContext->FillRectangle(&bgRect, darkenBrush.Get());
+            
+            BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, D2D1::SizeF(0.0f, 0.0f));
+            m_d2dContext->FillRectangle(&layout.overlayRect, darkenBrush.Get());
         }
     }
 }
@@ -660,11 +652,11 @@ void Renderer::DrawBackground() {
 void Renderer::DrawVisualizer(const std::vector<float>& spectrum) {
     if (m_config && m_config->GetVisualizerMode() != 0 && !spectrum.empty()) {
         D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-        renderTargetSize.width /= m_dpiScale;
-        renderTargetSize.height /= m_dpiScale;
+        float logicWidth = renderTargetSize.width / m_dpiScale;
+        float logicHeight = renderTargetSize.height / m_dpiScale;
         
-        D2D1_RECT_F drawRect = D2D1::RectF(0.0f, 0.0f, renderTargetSize.width, renderTargetSize.height);
-        m_visualizer.Draw(m_d2dContext.Get(), spectrum, drawRect, m_trackTitle, m_trackArtist);
+        VisualizerLayout layout = LayoutCalculator::CalculateVisualizerLayout(logicWidth, logicHeight);
+        m_visualizer.Draw(m_d2dContext.Get(), spectrum, layout.drawRect, m_trackTitle, m_trackArtist);
     }
 }
 
@@ -672,20 +664,15 @@ void Renderer::DrawAppLogo(bool isHovered) {
 
 ID2D1Bitmap* bitmapToDraw = isHovered ? m_appLogoHoverBitmap.Get() : m_appLogoBitmap.Get();
 if (m_config && m_config->GetShowAppLogo() && bitmapToDraw) {
-    float x = static_cast<FLOAT>(m_config->GetLogoX());
-    float y = static_cast<FLOAT>(m_config->GetLogoY());
-    float w = static_cast<FLOAT>(m_config->GetLogoWidth());
-    float h = static_cast<FLOAT>(m_config->GetLogoHeight());
-    D2D1_RECT_F destRect = D2D1::RectF(x, y, x + w, y + h);
+    AppLogoLayout layout = LayoutCalculator::CalculateAppLogoLayout(m_config);
     
     if (m_shadowEffect && m_config->GetEnableShadow()) {
         m_shadowEffect->SetInput(0, bitmapToDraw);
         m_shadowEffect->SetValue(D2D1_SHADOW_PROP_COLOR, D2D1::Vector4F(0.0f, 0.0f, 0.0f, m_config->GetShadowOpacity()));
-        D2D1_POINT_2F offset = D2D1::Point2F(x + m_config->GetShadowOffsetX(), y + m_config->GetShadowOffsetY());
-        m_d2dContext->DrawImage(m_shadowEffect.Get(), &offset, nullptr, D2D1_INTERPOLATION_MODE_LINEAR, D2D1_COMPOSITE_MODE_SOURCE_OVER);
+        m_d2dContext->DrawImage(m_shadowEffect.Get(), &layout.shadowOffset, nullptr, D2D1_INTERPOLATION_MODE_LINEAR, D2D1_COMPOSITE_MODE_SOURCE_OVER);
     }
 
-    m_d2dContext->DrawBitmap(bitmapToDraw, &destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+    m_d2dContext->DrawBitmap(bitmapToDraw, &layout.destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
 
 }
 
@@ -696,40 +683,21 @@ void Renderer::DrawTrackInfo() {
 // 4. 左下アルバムアートの描画
 if (m_config && m_config->GetShowNowPlaying()) {
     D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
+    float logicWidth = rtSize.width / m_dpiScale;
     float logicHeight = rtSize.height / m_dpiScale;
-    float size = static_cast<float>(m_config->GetArtSize());
-    float x = static_cast<float>(m_config->GetBaseX() + m_config->GetArtOffsetX());
-    float y = logicHeight - static_cast<float>(m_config->GetBaseBottomOffset()) + static_cast<float>(m_config->GetArtOffsetY());
+    
+    D2D1_SIZE_F bitmapSize = m_currentArtBitmap ? m_currentArtBitmap->GetSize() : D2D1::SizeF(0.0f, 0.0f);
+    TrackInfoLayout layout = LayoutCalculator::CalculateTrackInfoLayout(logicWidth, logicHeight, m_config, bitmapSize);
 
     if (m_currentArtBitmap) {
-        D2D1_SIZE_F bitmapSize = m_currentArtBitmap->GetSize();
-        float scaleX = size / bitmapSize.width;
-        float scaleY = size / bitmapSize.height;
-        float scale = (std::min)(scaleX, scaleY);
-        
-        float drawWidth = bitmapSize.width * scale;
-        float drawHeight = bitmapSize.height * scale;
-        
-        float drawX = x + (size - drawWidth) / 2.0f;
-        float drawY = y + (size - drawHeight) / 2.0f;
-        
         if (m_shadowBrush && m_config->GetEnableShadow()) {
             m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-            D2D1_RECT_F shadowRect = D2D1::RectF(
-                drawX + m_config->GetShadowOffsetX(),
-                drawY + m_config->GetShadowOffsetY(),
-                drawX + drawWidth + m_config->GetShadowOffsetX(),
-                drawY + drawHeight + m_config->GetShadowOffsetY()
-            );
-            m_d2dContext->FillRectangle(&shadowRect, m_shadowBrush.Get());
+            m_d2dContext->FillRectangle(&layout.artShadowRect, m_shadowBrush.Get());
         }
 
-        D2D1_RECT_F destRectArt = D2D1::RectF(drawX, drawY, drawX + drawWidth, drawY + drawHeight);
-
         m_d2dContext->DrawBitmap(
-
             m_currentArtBitmap.Get(),
-            &destRectArt,
+            &layout.artDestRect,
             1.0f,
             D2D1_BITMAP_INTERPOLATION_MODE_LINEAR
         );
@@ -741,86 +709,53 @@ if (m_config && m_config->GetShowNowPlaying()) {
             &blackBrush
         );
         if (blackBrush) {
-            D2D1_RECT_F destRectArt = D2D1::RectF(x, y, x + size, y + size);
-            m_d2dContext->FillRectangle(&destRectArt, blackBrush.Get());
+            m_d2dContext->FillRectangle(&layout.fallbackArtRect, blackBrush.Get());
         }
     }
-}
 
 // 5. 曲情報テキストの描画
 if (m_config && m_config->GetShowNowPlaying() && m_textBrush && m_titleTextFormat && m_artistTextFormat) {
-    D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
-    float logicWidth = rtSize.width / m_dpiScale;
-    float logicHeight = rtSize.height / m_dpiScale;
-    float baseX = static_cast<float>(m_config->GetBaseX());
-    float baseY = logicHeight - static_cast<float>(m_config->GetBaseBottomOffset());
-    float rightMargin = 30.0f; // 右端の最低限のマージン
-
     // 曲名描画
-    float titleX = baseX + static_cast<float>(m_config->GetTitleOffsetX());
-    float titleY = baseY + static_cast<float>(m_config->GetTitleOffsetY());
-    float titleRight = logicWidth - rightMargin;
-    if (titleRight < titleX) titleRight = titleX + 1.0f; // 最小幅を確保
-    
     if (m_shadowBrush && m_config->GetEnableShadow()) {
         m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-        D2D1_RECT_F titleShadowRect = D2D1::RectF(
-            titleX + m_config->GetShadowOffsetX(),
-            titleY + m_config->GetShadowOffsetY(),
-            titleRight + m_config->GetShadowOffsetX(),
-            titleY + m_config->GetShadowOffsetY() + 100.0f
-        );
         m_d2dContext->DrawText(
             m_trackTitle.c_str(),
             static_cast<UINT32>(m_trackTitle.length()),
             m_titleTextFormat.Get(),
-            &titleShadowRect,
+            &layout.titleShadowRect,
             m_shadowBrush.Get()
         );
     }
-
-    D2D1_RECT_F titleRect = D2D1::RectF(titleX, titleY, titleRight, titleY + 100.0f);
 
     m_d2dContext->DrawText(
         m_trackTitle.c_str(),
         static_cast<UINT32>(m_trackTitle.length()),
         m_titleTextFormat.Get(),
-        &titleRect,
+        &layout.titleRect,
         m_textBrush.Get()
     );
 
     // アーティスト名描画
-    float artistX = baseX + static_cast<float>(m_config->GetArtistOffsetX());
-    float artistY = baseY + static_cast<float>(m_config->GetArtistOffsetY());
-    float artistRight = logicWidth - rightMargin;
-    if (artistRight < artistX) artistRight = artistX + 1.0f;
-    
     if (m_shadowBrush && m_config->GetEnableShadow()) {
         m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-        D2D1_RECT_F artistShadowRect = D2D1::RectF(
-            artistX + m_config->GetShadowOffsetX(),
-            artistY + m_config->GetShadowOffsetY(),
-            artistRight + m_config->GetShadowOffsetX(),
-            artistY + m_config->GetShadowOffsetY() + 50.0f
-        );
         m_d2dContext->DrawText(
             m_trackArtist.c_str(),
-
             static_cast<UINT32>(m_trackArtist.length()),
             m_artistTextFormat.Get(),
-            &artistShadowRect,
+            &layout.artistShadowRect,
             m_shadowBrush.Get()
         );
     }
 
-    D2D1_RECT_F artistRect = D2D1::RectF(artistX, artistY, artistRight, artistY + 50.0f);
     m_d2dContext->DrawText(
         m_trackArtist.c_str(),
         static_cast<UINT32>(m_trackArtist.length()),
         m_artistTextFormat.Get(),
-        &artistRect,
+        &layout.artistRect,
         m_textBrush.Get()
     );
+
+}
 
 }
 
@@ -829,45 +764,30 @@ if (m_config && m_config->GetShowNowPlaying() && m_textBrush && m_titleTextForma
 void Renderer::DrawNextTrack() {
 if (m_config && m_config->GetShowNextTrack() && m_config->GetEnableNextTrack() && m_textBrush && m_nextTitleTextFormat && m_nextArtistTextFormat) {
     D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-    renderTargetSize.width /= m_dpiScale;
-    renderTargetSize.height /= m_dpiScale;
+    float logicWidth = renderTargetSize.width / m_dpiScale;
+    float logicHeight = renderTargetSize.height / m_dpiScale;
 
-    float baseX = renderTargetSize.width - static_cast<float>(m_config->GetNextBaseRightOffset());
-    float baseY = renderTargetSize.height - static_cast<float>(m_config->GetNextBaseBottomOffset());
-
-    float artSize = static_cast<float>(m_config->GetNextArtSize());
-    float artX = baseX + static_cast<float>(m_config->GetNextArtOffsetX());
-    float artY = baseY + static_cast<float>(m_config->GetNextArtOffsetY());
+    D2D1_SIZE_F bitmapSize = m_nextArtBitmap ? m_nextArtBitmap->GetSize() : D2D1::SizeF(0.0f, 0.0f);
+    NextTrackLayout layout = LayoutCalculator::CalculateNextTrackLayout(logicWidth, logicHeight, m_config, bitmapSize);
 
     if (m_nextLabelTextFormat) {
-        float labelX = baseX + static_cast<float>(m_config->GetNextLabelOffsetX());
-        float labelY = baseY + static_cast<float>(m_config->GetNextLabelOffsetY());
         std::wstring labelText = L"Next Track";
-        
         if (m_shadowBrush && m_config->GetEnableShadow()) {
             m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-            D2D1_RECT_F labelShadowRect = D2D1::RectF(
-                labelX + m_config->GetShadowOffsetX(),
-                labelY + m_config->GetShadowOffsetY(),
-                labelX + m_config->GetShadowOffsetX() + 200.0f,
-                labelY + m_config->GetShadowOffsetY() + 30.0f
-            );
             m_d2dContext->DrawText(
                 labelText.c_str(),
-
                 static_cast<UINT32>(labelText.length()),
                 m_nextLabelTextFormat.Get(),
-                &labelShadowRect,
+                &layout.labelShadowRect,
                 m_shadowBrush.Get()
             );
         }
 
-        D2D1_RECT_F labelRect = D2D1::RectF(labelX, labelY, labelX + 200.0f, labelY + 30.0f);
         m_d2dContext->DrawText(
             labelText.c_str(),
             static_cast<UINT32>(labelText.length()),
             m_nextLabelTextFormat.Get(),
-            &labelRect,
+            &layout.labelRect,
             m_textBrush.Get()
         );
     }
@@ -880,70 +800,40 @@ if (m_config && m_config->GetShowNextTrack() && m_config->GetEnableNextTrack() &
             &blackBrush
         );
         if (blackBrush) {
-            D2D1_RECT_F destRectArt = D2D1::RectF(artX, artY, artX + artSize, artY + artSize);
-            m_d2dContext->FillRectangle(&destRectArt, blackBrush.Get());
+            m_d2dContext->FillRectangle(&layout.fallbackArtRect, blackBrush.Get());
         }
 
-        float textX = baseX + static_cast<float>(m_config->GetNextTitleOffsetX());
-        float textY = baseY + static_cast<float>(m_config->GetNextTitleOffsetY());
         std::wstring loadingText = L"Loading...";
-        
         if (m_shadowBrush && m_config->GetEnableShadow()) {
             m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-            D2D1_RECT_F textShadowRect = D2D1::RectF(
-                textX + m_config->GetShadowOffsetX(),
-                textY + m_config->GetShadowOffsetY(),
-                textX + m_config->GetShadowOffsetX() + 300.0f,
-                textY + m_config->GetShadowOffsetY() + 50.0f
-            );
             m_d2dContext->DrawText(
                 loadingText.c_str(),
-
                 static_cast<UINT32>(loadingText.length()),
                 m_nextTitleTextFormat.Get(),
-                &textShadowRect,
+                &layout.titleShadowRect,
                 m_shadowBrush.Get()
             );
         }
 
-        D2D1_RECT_F textRect = D2D1::RectF(textX, textY, textX + 300.0f, textY + 50.0f);
         m_d2dContext->DrawText(
             loadingText.c_str(),
             static_cast<UINT32>(loadingText.length()),
             m_nextTitleTextFormat.Get(),
-            &textRect,
+            &layout.titleRect,
             m_textBrush.Get()
         );
 
     } else {
         // ロード完了
         if (m_nextArtBitmap) {
-            D2D1_SIZE_F bitmapSize = m_nextArtBitmap->GetSize();
-            float scaleX = artSize / bitmapSize.width;
-            float scaleY = artSize / bitmapSize.height;
-            float scale = (std::min)(scaleX, scaleY);
-            
-            float drawWidth = bitmapSize.width * scale;
-            float drawHeight = bitmapSize.height * scale;
-            
-            float drawX = artX + (artSize - drawWidth) / 2.0f;
-            float drawY = artY + (artSize - drawHeight) / 2.0f;
             if (m_shadowBrush && m_config->GetEnableShadow()) {
                 m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-                D2D1_RECT_F shadowRect = D2D1::RectF(
-                    drawX + m_config->GetShadowOffsetX(),
-                    drawY + m_config->GetShadowOffsetY(),
-                    drawX + drawWidth + m_config->GetShadowOffsetX(),
-                    drawY + drawHeight + m_config->GetShadowOffsetY()
-                );
-                m_d2dContext->FillRectangle(&shadowRect, m_shadowBrush.Get());
+                m_d2dContext->FillRectangle(&layout.artShadowRect, m_shadowBrush.Get());
             }
-
-            D2D1_RECT_F destRectArt = D2D1::RectF(drawX, drawY, drawX + drawWidth, drawY + drawHeight);
 
             m_d2dContext->DrawBitmap(
                 m_nextArtBitmap.Get(),
-                &destRectArt,
+                &layout.artDestRect,
                 1.0f,
                 D2D1_BITMAP_INTERPOLATION_MODE_LINEAR
             );
@@ -954,73 +844,48 @@ if (m_config && m_config->GetShowNextTrack() && m_config->GetEnableNextTrack() &
                 &blackBrush
             );
             if (blackBrush) {
-                D2D1_RECT_F destRectArt = D2D1::RectF(artX, artY, artX + artSize, artY + artSize);
-                m_d2dContext->FillRectangle(&destRectArt, blackBrush.Get());
+                m_d2dContext->FillRectangle(&layout.fallbackArtRect, blackBrush.Get());
             }
         }
 
         // Next曲名テキスト描画
-        float titleX = baseX + static_cast<float>(m_config->GetNextTitleOffsetX());
-        float titleY = baseY + static_cast<float>(m_config->GetNextTitleOffsetY());
         std::wstring nextText = m_nextTrackTitle;
-        
         if (m_shadowBrush && m_config->GetEnableShadow()) {
             m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-            D2D1_RECT_F titleShadowRect = D2D1::RectF(
-                titleX + m_config->GetShadowOffsetX(),
-                titleY + m_config->GetShadowOffsetY(),
-                titleX + m_config->GetShadowOffsetX() + 400.0f,
-                titleY + m_config->GetShadowOffsetY() + 50.0f
-            );
             m_d2dContext->DrawText(
                 nextText.c_str(),
-
                 static_cast<UINT32>(nextText.length()),
                 m_nextTitleTextFormat.Get(),
-                &titleShadowRect,
+                &layout.titleShadowRect,
                 m_shadowBrush.Get()
             );
         }
 
-        D2D1_RECT_F titleRect = D2D1::RectF(titleX, titleY, titleX + 400.0f, titleY + 50.0f);
         m_d2dContext->DrawText(
             nextText.c_str(),
-
             static_cast<UINT32>(nextText.length()),
             m_nextTitleTextFormat.Get(),
-            &titleRect,
+            &layout.titleRect,
             m_textBrush.Get()
         );
 
         // Nextアーティスト名テキスト描画
-        float artistX = baseX + static_cast<float>(m_config->GetNextArtistOffsetX());
-        float artistY = baseY + static_cast<float>(m_config->GetNextArtistOffsetY());
-        
         if (m_shadowBrush && m_config->GetEnableShadow()) {
             m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-            D2D1_RECT_F artistShadowRect = D2D1::RectF(
-                artistX + m_config->GetShadowOffsetX(),
-                artistY + m_config->GetShadowOffsetY(),
-                artistX + m_config->GetShadowOffsetX() + 400.0f,
-                artistY + m_config->GetShadowOffsetY() + 50.0f
-            );
             m_d2dContext->DrawText(
                 m_nextTrackArtist.c_str(),
-
                 static_cast<UINT32>(m_nextTrackArtist.length()),
                 m_nextArtistTextFormat.Get(),
-                &artistShadowRect,
+                &layout.artistShadowRect,
                 m_shadowBrush.Get()
             );
         }
 
-        D2D1_RECT_F artistRect = D2D1::RectF(artistX, artistY, artistX + 400.0f, artistY + 50.0f);
         m_d2dContext->DrawText(
             m_nextTrackArtist.c_str(),
-
             static_cast<UINT32>(m_nextTrackArtist.length()),
             m_nextArtistTextFormat.Get(),
-            &artistRect,
+            &layout.artistRect,
             m_textBrush.Get()
         );
     }
@@ -1031,15 +896,10 @@ if (m_config && m_config->GetShowNextTrack() && m_config->GetEnableNextTrack() &
 void Renderer::DrawSeekBar(float progress, const std::wstring& timeString) {
 if (m_config && m_config->GetShowSeekBar() && m_textBrush && m_timeTextFormat) {
     D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-    renderTargetSize.width /= m_dpiScale;
-    renderTargetSize.height /= m_dpiScale;
+    float logicWidth = renderTargetSize.width / m_dpiScale;
+    float logicHeight = renderTargetSize.height / m_dpiScale;
 
-    float margin = m_config->GetSeekBarMargin();
-    float totalWidth = renderTargetSize.width - (margin * 2.0f);
-    float startX = margin;
-    float barAreaWidth = totalWidth - static_cast<float>(m_config->GetSeekBarTimeAreaWidth());
-    float y = renderTargetSize.height - static_cast<float>(m_config->GetSeekBarBottomOffset());
-    float h = static_cast<float>(m_config->GetSeekBarHeight());
+    SeekBarLayout layout = LayoutCalculator::CalculateSeekBarLayout(logicWidth, logicHeight, m_config, progress);
 
     float dimFactor = 1.0f - (m_controlAlpha * 0.5f);
 
@@ -1047,8 +907,7 @@ if (m_config && m_config->GetShowSeekBar() && m_textBrush && m_timeTextFormat) {
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> bgBrush;
     m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, m_config->GetSeekBarBgOpacity() * dimFactor), &bgBrush);
     if (bgBrush) {
-        D2D1_RECT_F bgRect = D2D1::RectF(startX, y, startX + barAreaWidth, y + h);
-        m_d2dContext->FillRectangle(&bgRect, bgBrush.Get());
+        m_d2dContext->FillRectangle(&layout.bgRect, bgBrush.Get());
     }
 
     // シークバーの現在位置および時間テキストのブラシ
@@ -1056,8 +915,7 @@ if (m_config && m_config->GetShowSeekBar() && m_textBrush && m_timeTextFormat) {
     m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, dimFactor), &fgBrush);
 
     if (fgBrush) {
-        D2D1_RECT_F fgRect = D2D1::RectF(startX, y, startX + barAreaWidth * progress, y + h);
-        m_d2dContext->FillRectangle(&fgRect, fgBrush.Get());
+        m_d2dContext->FillRectangle(&layout.fgRect, fgBrush.Get());
     }
 
     // 時間テキストの描画
@@ -1066,8 +924,8 @@ if (m_config && m_config->GetShowSeekBar() && m_textBrush && m_timeTextFormat) {
         timeString.c_str(),
         static_cast<UINT32>(timeString.length()),
         m_timeTextFormat.Get(),
-        totalWidth - barAreaWidth,
-        h,
+        layout.textMaxWidth,
+        layout.textMaxHeight,
         &textLayout
     );
 
@@ -1078,9 +936,8 @@ if (m_config && m_config->GetShowSeekBar() && m_textBrush && m_timeTextFormat) {
             textLayout1->SetCharacterSpacing(0.0f, m_config->GetSeekBarTimeLetterSpacing(), 0.0f, textRange);
         }
 
-        D2D1_POINT_2F origin = D2D1::Point2F(startX + barAreaWidth, y);
         m_d2dContext->DrawTextLayout(
-            origin,
+            layout.textOrigin,
             textLayout.Get(),
             fgBrush ? fgBrush.Get() : m_textBrush.Get(),
             D2D1_DRAW_TEXT_OPTIONS_NONE
@@ -1094,20 +951,15 @@ void Renderer::DrawPlaybackControls(bool isPlaying) {
     if (m_controlAlpha <= 0.0f || !m_config || !m_config->GetShowPlaybackControls()) return;
 
     D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-    renderTargetSize.width /= m_dpiScale;
-    renderTargetSize.height /= m_dpiScale;
+    float logicWidth = renderTargetSize.width / m_dpiScale;
+    float logicHeight = renderTargetSize.height / m_dpiScale;
 
-    float centerX = (renderTargetSize.width / 2.0f) + m_config->GetPlaybackCenterOffsetX();
-    float centerY = renderTargetSize.height - m_config->GetPlaybackBaseBottomOffset();
-    float size = static_cast<float>(m_config->GetPlaybackButtonSize());
-    float spacing = static_cast<float>(m_config->GetPlaybackButtonSpacing());
+    PlaybackControlsLayout layout = LayoutCalculator::CalculatePlaybackControlsLayout(logicWidth, logicHeight, m_config);
     
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> controlBrush;
     m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, m_controlAlpha), &controlBrush);
     
     if (controlBrush) {
-        float half = size / 2.0f;
-        
         auto DrawTriangle = [&](float cx, float cy, float w, float h, bool right) {
             Microsoft::WRL::ComPtr<ID2D1PathGeometry> path;
             m_d2dFactory->CreatePathGeometry(&path);
@@ -1134,26 +986,26 @@ void Renderer::DrawPlaybackControls(bool isPlaying) {
         };
 
         // Previous Button (⏮)
-        float prevX = centerX - spacing;
-        DrawRect(prevX - half + size*0.1f, centerY, size*0.2f, size);
-        DrawTriangle(prevX - size*0.1f, centerY, size*0.4f, size, false);
-        DrawTriangle(prevX + size*0.3f, centerY, size*0.4f, size, false);
+        float prevX = layout.centerX - layout.spacing;
+        DrawRect(prevX - layout.half + layout.size*0.1f, layout.centerY, layout.size*0.2f, layout.size);
+        DrawTriangle(prevX - layout.size*0.1f, layout.centerY, layout.size*0.4f, layout.size, false);
+        DrawTriangle(prevX + layout.size*0.3f, layout.centerY, layout.size*0.4f, layout.size, false);
 
         // Play/Pause Button
         if (isPlaying) {
             // Pause (⏸)
-            DrawRect(centerX - size*0.2f, centerY, size*0.3f, size);
-            DrawRect(centerX + size*0.2f, centerY, size*0.3f, size);
+            DrawRect(layout.centerX - layout.size*0.2f, layout.centerY, layout.size*0.3f, layout.size);
+            DrawRect(layout.centerX + layout.size*0.2f, layout.centerY, layout.size*0.3f, layout.size);
         } else {
             // Play (▶)
-            DrawTriangle(centerX, centerY, size, size, true);
+            DrawTriangle(layout.centerX, layout.centerY, layout.size, layout.size, true);
         }
 
         // Next Button (⏭)
-        float nextX = centerX + spacing;
-        DrawTriangle(nextX - size*0.3f, centerY, size*0.4f, size, true);
-        DrawTriangle(nextX + size*0.1f, centerY, size*0.4f, size, true);
-        DrawRect(nextX + half - size*0.1f, centerY, size*0.2f, size);
+        float nextX = layout.centerX + layout.spacing;
+        DrawTriangle(nextX - layout.size*0.3f, layout.centerY, layout.size*0.4f, layout.size, true);
+        DrawTriangle(nextX + layout.size*0.1f, layout.centerY, layout.size*0.4f, layout.size, true);
+        DrawRect(nextX + layout.half - layout.size*0.1f, layout.centerY, layout.size*0.2f, layout.size);
     }
 }
 
@@ -1161,139 +1013,135 @@ void Renderer::DrawVolumeControl(float volume) {
     if (m_controlAlpha <= 0.0f || !m_config || !m_config->GetShowVolumeControl()) return;
 
     D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-    renderTargetSize.width /= m_dpiScale;
-    renderTargetSize.height /= m_dpiScale;
+    float logicWidth = renderTargetSize.width / m_dpiScale;
+    float logicHeight = renderTargetSize.height / m_dpiScale;
+
+    VolumeControlLayout layout = LayoutCalculator::CalculateVolumeControlLayout(logicWidth, logicHeight, m_config);
 
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> controlBrush;
     m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, m_controlAlpha), &controlBrush);
 
     if (controlBrush) {
-        float volX = static_cast<float>(m_config->GetVolumeBaseLeftOffset());
-    float volY = renderTargetSize.height - static_cast<float>(m_config->GetVolumeBaseBottomOffset());
-    float volSize = static_cast<float>(m_config->GetVolumeIconSize());
-    
-    Microsoft::WRL::ComPtr<ID2D1PathGeometry> spkPath;
-    m_d2dFactory->CreatePathGeometry(&spkPath);
-    Microsoft::WRL::ComPtr<ID2D1GeometrySink> spkSink;
-    spkPath->Open(&spkSink);
-    spkSink->SetFillMode(D2D1_FILL_MODE_WINDING);
-    
-    float spkW = volSize * 0.35f;
-    float spkH = volSize * 0.35f;
-    float spkConeW = volSize * 0.45f;
-    float spkConeH = volSize * 0.8f;
-    
-    // rect
-    spkSink->BeginFigure(D2D1::Point2F(volX, volY - spkH/2), D2D1_FIGURE_BEGIN_FILLED);
-    spkSink->AddLine(D2D1::Point2F(volX + spkW, volY - spkH/2));
-    spkSink->AddLine(D2D1::Point2F(volX + spkW, volY + spkH/2));
-    spkSink->AddLine(D2D1::Point2F(volX, volY + spkH/2));
-    spkSink->EndFigure(D2D1_FIGURE_END_CLOSED);
-    
-    // cone
-    spkSink->BeginFigure(D2D1::Point2F(volX + spkW, volY - spkH/2), D2D1_FIGURE_BEGIN_FILLED);
-    spkSink->AddLine(D2D1::Point2F(volX + spkW + spkConeW, volY - spkConeH/2));
-    spkSink->AddLine(D2D1::Point2F(volX + spkW + spkConeW, volY + spkConeH/2));
-    spkSink->AddLine(D2D1::Point2F(volX + spkW, volY + spkH/2));
-    spkSink->EndFigure(D2D1_FIGURE_END_CLOSED);
-    
-    spkSink->Close();
+        Microsoft::WRL::ComPtr<ID2D1PathGeometry> spkPath;
+        m_d2dFactory->CreatePathGeometry(&spkPath);
+        Microsoft::WRL::ComPtr<ID2D1GeometrySink> spkSink;
+        spkPath->Open(&spkSink);
+        spkSink->SetFillMode(D2D1_FILL_MODE_WINDING);
+        
+        // rect
+        spkSink->BeginFigure(D2D1::Point2F(layout.volX, layout.volY - layout.spkH/2), D2D1_FIGURE_BEGIN_FILLED);
+        spkSink->AddLine(D2D1::Point2F(layout.volX + layout.spkW, layout.volY - layout.spkH/2));
+        spkSink->AddLine(D2D1::Point2F(layout.volX + layout.spkW, layout.volY + layout.spkH/2));
+        spkSink->AddLine(D2D1::Point2F(layout.volX, layout.volY + layout.spkH/2));
+        spkSink->EndFigure(D2D1_FIGURE_END_CLOSED);
+        
+        // cone
+        spkSink->BeginFigure(D2D1::Point2F(layout.volX + layout.spkW, layout.volY - layout.spkH/2), D2D1_FIGURE_BEGIN_FILLED);
+        spkSink->AddLine(D2D1::Point2F(layout.volX + layout.spkW + layout.spkConeW, layout.volY - layout.spkConeH/2));
+        spkSink->AddLine(D2D1::Point2F(layout.volX + layout.spkW + layout.spkConeW, layout.volY + layout.spkConeH/2));
+        spkSink->AddLine(D2D1::Point2F(layout.volX + layout.spkW, layout.volY + layout.spkH/2));
+        spkSink->EndFigure(D2D1_FIGURE_END_CLOSED);
+        
+        spkSink->Close();
 
-    int volPercent = static_cast<int>(volume * 100.0f + 0.5f);
-    wchar_t volBuf[16];
-    swprintf_s(volBuf, L"%d%%", volPercent);
-    
-    Microsoft::WRL::ComPtr<IDWriteTextLayout> volTextLayout;
-    if (m_volumeTextFormat) {
-        float letterSpacing = m_config->GetVolumeTextLetterSpacing();
-        HRESULT hr = m_dwriteFactory->CreateTextLayout(
-            volBuf,
-            static_cast<UINT32>(wcslen(volBuf)),
-            m_volumeTextFormat.Get(),
-            100.0f,
-            volSize * 2.0f,
-            &volTextLayout
-        );
-        if (SUCCEEDED(hr) && letterSpacing != 0.0f) {
-            Microsoft::WRL::ComPtr<IDWriteTextLayout1> volTextLayout1;
-            if (SUCCEEDED(volTextLayout.As(&volTextLayout1))) {
-                DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(wcslen(volBuf))};
-                volTextLayout1->SetCharacterSpacing(0.0f, letterSpacing, 0.0f, textRange);
+        int volPercent = static_cast<int>(volume * 100.0f + 0.5f);
+        wchar_t volBuf[16];
+        swprintf_s(volBuf, L"%d%%", volPercent);
+        
+        Microsoft::WRL::ComPtr<IDWriteTextLayout> volTextLayout;
+        if (m_volumeTextFormat) {
+            float letterSpacing = m_config->GetVolumeTextLetterSpacing();
+            HRESULT hr = m_dwriteFactory->CreateTextLayout(
+                volBuf,
+                static_cast<UINT32>(wcslen(volBuf)),
+                m_volumeTextFormat.Get(),
+                layout.textMaxWidth,
+                layout.textMaxHeight,
+                &volTextLayout
+            );
+            if (SUCCEEDED(hr) && letterSpacing != 0.0f) {
+                Microsoft::WRL::ComPtr<IDWriteTextLayout1> volTextLayout1;
+                if (SUCCEEDED(volTextLayout.As(&volTextLayout1))) {
+                    DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(wcslen(volBuf))};
+                    volTextLayout1->SetCharacterSpacing(0.0f, letterSpacing, 0.0f, textRange);
+                }
             }
         }
-    }
 
-    if (m_shadowBrush && m_config->GetVolumeEnableShadow()) {
-        m_shadowBrush->SetOpacity(m_config->GetVolumeShadowOpacity() * m_controlAlpha);
-        float shadowX = m_config->GetVolumeShadowOffsetX();
-        float shadowY = m_config->GetVolumeShadowOffsetY();
-        
-        D2D1::Matrix3x2F oldTransform;
-        m_d2dContext->GetTransform(&oldTransform);
-        m_d2dContext->SetTransform(
-            oldTransform * D2D1::Matrix3x2F::Translation(shadowX, shadowY)
-        );
-        
-        m_d2dContext->FillGeometry(spkPath.Get(), m_shadowBrush.Get());
+        if (m_shadowBrush && m_config->GetVolumeEnableShadow()) {
+            m_shadowBrush->SetOpacity(m_config->GetVolumeShadowOpacity() * m_controlAlpha);
+            
+            D2D1::Matrix3x2F oldTransform;
+            m_d2dContext->GetTransform(&oldTransform);
+            m_d2dContext->SetTransform(
+                oldTransform * D2D1::Matrix3x2F::Translation(layout.shadowX, layout.shadowY)
+            );
+            
+            m_d2dContext->FillGeometry(spkPath.Get(), m_shadowBrush.Get());
+            
+            if (volume > 0.0f) {
+                float arcX = layout.volX + layout.spkW + layout.spkConeW + 4.0f;
+                m_d2dContext->DrawLine(D2D1::Point2F(arcX, layout.volY - layout.volSize*0.2f), D2D1::Point2F(arcX, layout.volY + layout.volSize*0.2f), m_shadowBrush.Get(), 2.0f);
+            }
+            if (volume > 0.5f) {
+                float arcX = layout.volX + layout.spkW + layout.spkConeW + 8.0f;
+                m_d2dContext->DrawLine(D2D1::Point2F(arcX, layout.volY - layout.volSize*0.35f), D2D1::Point2F(arcX, layout.volY + layout.volSize*0.35f), m_shadowBrush.Get(), 2.0f);
+            }
+            
+            m_d2dContext->SetTransform(oldTransform);
+
+            if (volTextLayout) {
+                m_d2dContext->DrawTextLayout(
+                    D2D1::Point2F(layout.textX + layout.shadowX, layout.textY + layout.shadowY),
+                    volTextLayout.Get(),
+                    m_shadowBrush.Get()
+                );
+            }
+        }
+
+        m_d2dContext->FillGeometry(spkPath.Get(), controlBrush.Get());
         
         if (volume > 0.0f) {
-            float arcX = volX + spkW + spkConeW + 4.0f;
-            m_d2dContext->DrawLine(D2D1::Point2F(arcX, volY - volSize*0.2f), D2D1::Point2F(arcX, volY + volSize*0.2f), m_shadowBrush.Get(), 2.0f);
+            float arcX = layout.volX + layout.spkW + layout.spkConeW + 4.0f;
+            m_d2dContext->DrawLine(D2D1::Point2F(arcX, layout.volY - layout.volSize*0.2f), D2D1::Point2F(arcX, layout.volY + layout.volSize*0.2f), controlBrush.Get(), 2.0f);
         }
         if (volume > 0.5f) {
-            float arcX = volX + spkW + spkConeW + 8.0f;
-            m_d2dContext->DrawLine(D2D1::Point2F(arcX, volY - volSize*0.35f), D2D1::Point2F(arcX, volY + volSize*0.35f), m_shadowBrush.Get(), 2.0f);
+            float arcX = layout.volX + layout.spkW + layout.spkConeW + 8.0f;
+            m_d2dContext->DrawLine(D2D1::Point2F(arcX, layout.volY - layout.volSize*0.35f), D2D1::Point2F(arcX, layout.volY + layout.volSize*0.35f), controlBrush.Get(), 2.0f);
         }
         
-        m_d2dContext->SetTransform(oldTransform);
-
         if (volTextLayout) {
-            float textX = volX + static_cast<float>(m_config->GetVolumeTextOffsetX());
-            float textY = volY + static_cast<float>(m_config->GetVolumeTextOffsetY());
             m_d2dContext->DrawTextLayout(
-                D2D1::Point2F(textX + shadowX, textY + shadowY),
+                D2D1::Point2F(layout.textX, layout.textY),
                 volTextLayout.Get(),
-                m_shadowBrush.Get()
+                controlBrush.Get()
             );
         }
     }
-
-    m_d2dContext->FillGeometry(spkPath.Get(), controlBrush.Get());
-    
-    if (volume > 0.0f) {
-        float arcX = volX + spkW + spkConeW + 4.0f;
-        m_d2dContext->DrawLine(D2D1::Point2F(arcX, volY - volSize*0.2f), D2D1::Point2F(arcX, volY + volSize*0.2f), controlBrush.Get(), 2.0f);
-    }
-    if (volume > 0.5f) {
-        float arcX = volX + spkW + spkConeW + 8.0f;
-        m_d2dContext->DrawLine(D2D1::Point2F(arcX, volY - volSize*0.35f), D2D1::Point2F(arcX, volY + volSize*0.35f), controlBrush.Get(), 2.0f);
-    }
-    
-    if (volTextLayout) {
-        float textX = volX + static_cast<float>(m_config->GetVolumeTextOffsetX());
-        float textY = volY + static_cast<float>(m_config->GetVolumeTextOffsetY());
-        m_d2dContext->DrawTextLayout(
-            D2D1::Point2F(textX, textY),
-            volTextLayout.Get(),
-            controlBrush.Get()
-        );
-    }
-}
-
 }
 
 void Renderer::DrawPlaylist(bool isPlaylistHovered, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList) {
 if (m_config && m_trackCountTextFormat && m_textBrush) {
     D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-    renderTargetSize.width /= m_dpiScale;
-    renderTargetSize.height /= m_dpiScale;
+    float logicWidth = renderTargetSize.width / m_dpiScale;
+    float logicHeight = renderTargetSize.height / m_dpiScale;
+
+    // スライドインアニメーション
+    float configPlaylistWidth = static_cast<float>(m_config->GetPlaylistWidth());
+    if (m_playlistSlideX > configPlaylistWidth * 2.0f) m_playlistSlideX = configPlaylistWidth;
+
+    float targetSlideX = isPlaylistHovered ? 0.0f : configPlaylistWidth;
+    m_playlistSlideX += (targetSlideX - m_playlistSlideX) * 0.2f;
+
+    if (!isPlaylistHovered) {
+        m_playlistManualScrollY = 0.0f;
+    }
+
+    PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
+        logicWidth, logicHeight, m_config, m_playlistSlideX, m_playlistManualScrollY, currentTrackIndex, totalTracks);
     
-    float trackCountRightOffset = static_cast<float>(m_config->GetTrackCountRightOffset());
-    float trackCountBottomOffset = static_cast<float>(m_config->GetTrackCountBottomOffset());
-    
-    float trackCountX = renderTargetSize.width - trackCountRightOffset - 200.0f;
-    float trackCountY = renderTargetSize.height - trackCountBottomOffset - 30.0f;
-    
+    m_playlistManualScrollY = layout.newManualScrollY;
+
     wchar_t trackCountBuf[64];
     if (totalTracks == 0) {
         swprintf_s(trackCountBuf, L"TRACK ---/---");
@@ -1307,8 +1155,8 @@ if (m_config && m_trackCountTextFormat && m_textBrush) {
         trackCountStr.c_str(),
         static_cast<UINT32>(trackCountStr.length()),
         m_trackCountTextFormat.Get(),
-        200.0f,
-        30.0f,
+        layout.trackCountMaxWidth,
+        layout.trackCountMaxHeight,
         &trackCountLayout
     );
     if (SUCCEEDED(hrLayout)) {
@@ -1318,89 +1166,54 @@ if (m_config && m_trackCountTextFormat && m_textBrush) {
             textLayout1->SetCharacterSpacing(0.0f, m_config->GetTrackCountLetterSpacing(), 0.0f, textRange);
         }
         
-        D2D1_POINT_2F origin = D2D1::Point2F(trackCountX, trackCountY);
-        
         if (m_shadowBrush && m_config->GetTrackCountShadowOpacity() > 0.0f) {
             m_shadowBrush->SetOpacity(m_config->GetTrackCountShadowOpacity());
-            D2D1_POINT_2F shadowOrigin = D2D1::Point2F(trackCountX + m_config->GetTrackCountShadowOffsetX(), trackCountY + m_config->GetTrackCountShadowOffsetY());
-            m_d2dContext->DrawTextLayout(shadowOrigin, trackCountLayout.Get(), m_shadowBrush.Get());
+            m_d2dContext->DrawTextLayout(layout.trackCountShadowOrigin, trackCountLayout.Get(), m_shadowBrush.Get());
         }
-        m_d2dContext->DrawTextLayout(origin, trackCountLayout.Get(), m_textBrush.Get());
+        m_d2dContext->DrawTextLayout(layout.trackCountOrigin, trackCountLayout.Get(), m_textBrush.Get());
     }
 
-    // スライドインアニメーション
-    float playlistWidth = static_cast<float>(m_config->GetPlaylistWidth());
-    if (m_playlistSlideX > playlistWidth * 2.0f) m_playlistSlideX = playlistWidth;
-
-    float targetSlideX = isPlaylistHovered ? 0.0f : playlistWidth;
-    m_playlistSlideX += (targetSlideX - m_playlistSlideX) * 0.2f;
-
-    if (!isPlaylistHovered) {
-        m_playlistManualScrollY = 0.0f;
-    }
-
-    float playlistX = renderTargetSize.width - playlistWidth + m_playlistSlideX;
-    float playlistY = 0.0f;
-    float playlistHeight = renderTargetSize.height;
-
-    float gripRightOffset = m_config->GetPlaylistGripRightOffset();
-    float gripX = playlistX - gripRightOffset;
-    float gripLineWidth = m_config->GetPlaylistGripLineWidth();
-    
     if (m_playlistGripLineBrush && m_playlistGripArrowBrush && m_playlistGripArrowGeometry) {
         if (m_shadowBrush && m_config->GetPlaylistGripShadowOpacity() > 0.0f) {
             m_shadowBrush->SetOpacity(m_config->GetPlaylistGripShadowOpacity());
-            float sx = gripX + m_config->GetPlaylistGripShadowOffsetX();
-            float sy = playlistY + m_config->GetPlaylistGripShadowOffsetY();
             
-            m_d2dContext->DrawLine(D2D1::Point2F(sx, playlistY), D2D1::Point2F(sx, playlistY + playlistHeight), m_shadowBrush.Get(), gripLineWidth);
+            m_d2dContext->DrawLine(D2D1::Point2F(layout.gripShadowX, layout.playlistY), D2D1::Point2F(layout.gripShadowX, layout.playlistY + layout.playlistHeight), m_shadowBrush.Get(), layout.gripLineWidth);
             
-            D2D1_MATRIX_3X2_F shadowTransform = D2D1::Matrix3x2F::Translation(sx, sy + playlistHeight / 2.0f);
+            D2D1_MATRIX_3X2_F shadowTransform = D2D1::Matrix3x2F::Translation(layout.gripShadowX, layout.gripShadowY + layout.playlistHeight / 2.0f);
             m_d2dContext->SetTransform(shadowTransform * D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
             m_d2dContext->FillGeometry(m_playlistGripArrowGeometry.Get(), m_shadowBrush.Get());
             m_d2dContext->SetTransform(D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
         }
 
-        m_d2dContext->DrawLine(D2D1::Point2F(gripX, playlistY), D2D1::Point2F(gripX, playlistY + playlistHeight), m_playlistGripLineBrush.Get(), gripLineWidth);
+        m_d2dContext->DrawLine(D2D1::Point2F(layout.gripX, layout.playlistY), D2D1::Point2F(layout.gripX, layout.playlistY + layout.playlistHeight), m_playlistGripLineBrush.Get(), layout.gripLineWidth);
 
-        D2D1_MATRIX_3X2_F arrowTransform = D2D1::Matrix3x2F::Translation(gripX, playlistY + playlistHeight / 2.0f);
+        D2D1_MATRIX_3X2_F arrowTransform = D2D1::Matrix3x2F::Translation(layout.gripX, layout.playlistY + layout.playlistHeight / 2.0f);
         m_d2dContext->SetTransform(arrowTransform * D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
         m_d2dContext->FillGeometry(m_playlistGripArrowGeometry.Get(), m_playlistGripArrowBrush.Get());
         m_d2dContext->SetTransform(D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
     }
 
-    if (m_playlistSlideX < playlistWidth - 0.5f) {
+    if (m_playlistSlideX < layout.playlistWidth - 0.5f) {
 
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> bgBrush;
         m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, m_config->GetPlaylistBgOpacity()), &bgBrush);
         if (bgBrush) {
-            D2D1_RECT_F bgRect = D2D1::RectF(playlistX, playlistY, playlistX + playlistWidth, playlistY + playlistHeight);
-            m_d2dContext->FillRectangle(&bgRect, bgBrush.Get());
+            m_d2dContext->FillRectangle(&layout.bgRect, bgBrush.Get());
         }
 
-        D2D1_RECT_F clipRect = D2D1::RectF(playlistX, playlistY, renderTargetSize.width, renderTargetSize.height);
-        m_d2dContext->PushAxisAlignedClip(&clipRect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+        m_d2dContext->PushAxisAlignedClip(&layout.clipRect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 
-        float itemHeight = static_cast<float>(m_config->GetPlaylistItemOffsetY());
-        float baseScrollY = (playlistHeight / 2.0f) - (currentTrackIndex * itemHeight);
-        float scrollY = baseScrollY + m_playlistManualScrollY;
-        float maxScroll = 0.0f;
-        float minScroll = playlistHeight - (totalTracks * itemHeight);
-        if (minScroll > 0) minScroll = 0;
-        scrollY = std::clamp(scrollY, minScroll, maxScroll);
-        
-        m_playlistManualScrollY = scrollY - baseScrollY;
-
-        float currentY = scrollY;
+        float currentY = layout.startY;
         
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> highlightBrush;
         m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.2f), &highlightBrush);
 
         for (size_t i = 0; i < totalTracks && i < shuffleList.size(); ++i) {
-            if (currentY + itemHeight > 0 && currentY < playlistHeight) {
+            if (currentY + layout.itemHeight > 0 && currentY < layout.playlistHeight) {
+                PlaylistItemLayout itemLayout = LayoutCalculator::CalculatePlaylistItemLayout(layout, m_config, currentY);
+
                 if (i == currentTrackIndex && highlightBrush) {
-                    D2D1_RECT_F hlRect = D2D1::RectF(playlistX, currentY, playlistX + playlistWidth, currentY + itemHeight);
-                    m_d2dContext->FillRectangle(&hlRect, highlightBrush.Get());
+                    m_d2dContext->FillRectangle(&itemLayout.hlRect, highlightBrush.Get());
                 }
 
                 std::wstring path = shuffleList[i];
@@ -1409,27 +1222,17 @@ if (m_config && m_trackCountTextFormat && m_textBrush) {
                 std::wstring artist = L"Unknown Artist";
                 std::wstring timeStr = L"00:00";
 
-                float textX = playlistX + static_cast<float>(m_config->GetPlaylistTitleOffsetX());
-                float textY = currentY + static_cast<float>(m_config->GetPlaylistTitleOffsetY());
-                D2D1_RECT_F titleRect = D2D1::RectF(textX, textY, playlistX + playlistWidth - 10.0f, textY + 30.0f);
-                m_d2dContext->DrawText(title.c_str(), static_cast<UINT32>(title.length()), m_playlistTitleTextFormat.Get(), &titleRect, m_textBrush.Get());
+                m_d2dContext->DrawText(title.c_str(), static_cast<UINT32>(title.length()), m_playlistTitleTextFormat.Get(), &itemLayout.titleRect, m_textBrush.Get());
 
-                float artistX = playlistX + static_cast<float>(m_config->GetPlaylistArtistOffsetX());
-                float artistY = currentY + static_cast<float>(m_config->GetPlaylistArtistOffsetY());
-                D2D1_RECT_F artistRect = D2D1::RectF(artistX, artistY, playlistX + playlistWidth - 100.0f, artistY + 20.0f);
-                m_d2dContext->DrawText(artist.c_str(), static_cast<UINT32>(artist.length()), m_playlistArtistTextFormat.Get(), &artistRect, m_playlistArtistBrush ? m_playlistArtistBrush.Get() : m_textBrush.Get());
+                m_d2dContext->DrawText(artist.c_str(), static_cast<UINT32>(artist.length()), m_playlistArtistTextFormat.Get(), &itemLayout.artistRect, m_playlistArtistBrush ? m_playlistArtistBrush.Get() : m_textBrush.Get());
 
-                float itemRightX = playlistX + playlistWidth;
-                float timeX = itemRightX - 100.0f - static_cast<float>(m_config->GetPlaylistTimeOffsetX());
-                float timeY = currentY + static_cast<float>(m_config->GetPlaylistTimeOffsetY());
-                
                 Microsoft::WRL::ComPtr<IDWriteTextLayout> timeLayout;
                 HRESULT hrTime = m_dwriteFactory->CreateTextLayout(
                     timeStr.c_str(),
                     static_cast<UINT32>(timeStr.length()),
                     m_playlistTimeTextFormat.Get(),
-                    100.0f,
-                    20.0f,
+                    itemLayout.timeMaxWidth,
+                    itemLayout.timeMaxHeight,
                     &timeLayout
                 );
                 if (SUCCEEDED(hrTime)) {
@@ -1438,10 +1241,10 @@ if (m_config && m_trackCountTextFormat && m_textBrush) {
                         DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(timeStr.length())};
                         timeLayout1->SetCharacterSpacing(0.0f, m_config->GetPlaylistTimeLetterSpacing(), 0.0f, textRange);
                     }
-                    m_d2dContext->DrawTextLayout(D2D1::Point2F(timeX, timeY), timeLayout.Get(), m_playlistTimeBrush ? m_playlistTimeBrush.Get() : m_textBrush.Get());
+                    m_d2dContext->DrawTextLayout(itemLayout.timeOrigin, timeLayout.Get(), m_playlistTimeBrush ? m_playlistTimeBrush.Get() : m_textBrush.Get());
                 }
             }
-            currentY += itemHeight;
+            currentY += layout.itemHeight;
         }
 
         m_d2dContext->PopAxisAlignedClip();
@@ -1453,21 +1256,22 @@ if (m_config && m_trackCountTextFormat && m_textBrush) {
 void Renderer::DrawResizeGrip() {
 if (m_config && m_config->GetEnableResize()) {
     D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-    renderTargetSize.width /= m_dpiScale;
-    renderTargetSize.height /= m_dpiScale;
+    float logicWidth = renderTargetSize.width / m_dpiScale;
+    float logicHeight = renderTargetSize.height / m_dpiScale;
     
+    ResizeGripLayout layout = LayoutCalculator::CalculateResizeGripLayout(logicWidth, logicHeight);
+
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> gripBrush;
     m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.5f), &gripBrush);
     if (gripBrush) {
-        float size = 15.0f;
         Microsoft::WRL::ComPtr<ID2D1PathGeometry> gripPath;
         m_d2dFactory->CreatePathGeometry(&gripPath);
         Microsoft::WRL::ComPtr<ID2D1GeometrySink> gripSink;
         gripPath->Open(&gripSink);
         gripSink->SetFillMode(D2D1_FILL_MODE_WINDING);
-        gripSink->BeginFigure(D2D1::Point2F(renderTargetSize.width - size, renderTargetSize.height), D2D1_FIGURE_BEGIN_FILLED);
-        gripSink->AddLine(D2D1::Point2F(renderTargetSize.width, renderTargetSize.height));
-        gripSink->AddLine(D2D1::Point2F(renderTargetSize.width, renderTargetSize.height - size));
+        gripSink->BeginFigure(layout.pt1, D2D1_FIGURE_BEGIN_FILLED);
+        gripSink->AddLine(layout.pt2);
+        gripSink->AddLine(layout.pt3);
         gripSink->EndFigure(D2D1_FIGURE_END_CLOSED);
         gripSink->Close();
         m_d2dContext->FillGeometry(gripPath.Get(), gripBrush.Get());
