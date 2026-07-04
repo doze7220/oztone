@@ -149,6 +149,7 @@ private:
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistGripLineBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistGripArrowBrush;
     Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_playlistGripArrowGeometry;
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_playlistGripArrowRightGeometry;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistBgBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistHighlightBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_textBrush;

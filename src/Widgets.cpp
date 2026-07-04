@@ -839,6 +839,20 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext* context, IWICImagingFac
                 sink->Close();
             }
         }
+        
+        d2dFactory->CreatePathGeometry(&m_playlistGripArrowRightGeometry);
+        if (m_playlistGripArrowRightGeometry) {
+            Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+            if (SUCCEEDED(m_playlistGripArrowRightGeometry->Open(&sink))) {
+                float width = config->GetPlaylistGripArrowWidth();
+                float height = config->GetPlaylistGripArrowHeight();
+                sink->BeginFigure(D2D1::Point2F(0.0f, -height / 2.0f), D2D1_FIGURE_BEGIN_FILLED);
+                sink->AddLine(D2D1::Point2F(width, 0.0f));
+                sink->AddLine(D2D1::Point2F(0.0f, height / 2.0f));
+                sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+                sink->Close();
+            }
+        }
     }
 }
 
@@ -851,6 +865,7 @@ void PlaylistWidget::ReleaseResources() {
     m_playlistGripLineBrush.Reset();
     m_playlistGripArrowBrush.Reset();
     m_playlistGripArrowGeometry.Reset();
+    m_playlistGripArrowRightGeometry.Reset();
     m_playlistBgBrush.Reset();
     m_playlistHighlightBrush.Reset();
     m_textBrush.Reset();
@@ -904,7 +919,8 @@ void PlaylistWidget::Draw(ID2D1DeviceContext* context, const WidgetContext& ctx,
     PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
         logicWidth, logicHeight, config, m_playlistSlideX, m_playlistManualScrollY, ctx.currentTrackIndex, ctx.totalTracks);
 
-    if (m_playlistGripLineBrush && m_playlistGripArrowBrush && m_playlistGripArrowGeometry) {
+    ID2D1PathGeometry* arrowGeometry = config->GetPlaylistPosition() == 0 ? m_playlistGripArrowRightGeometry.Get() : m_playlistGripArrowGeometry.Get();
+    if (m_playlistGripLineBrush && m_playlistGripArrowBrush && arrowGeometry) {
         if (m_shadowBrush && config->GetPlaylistGripShadowOpacity() > 0.0f) {
             m_shadowBrush->SetOpacity(config->GetPlaylistGripShadowOpacity());
             
@@ -912,7 +928,7 @@ void PlaylistWidget::Draw(ID2D1DeviceContext* context, const WidgetContext& ctx,
             
             D2D1_MATRIX_3X2_F shadowTransform = D2D1::Matrix3x2F::Translation(layout.gripShadowX, layout.gripShadowY + layout.playlistHeight / 2.0f);
             context->SetTransform(shadowTransform * D2D1::Matrix3x2F::Scale(ctx.dpiScale, ctx.dpiScale));
-            context->FillGeometry(m_playlistGripArrowGeometry.Get(), m_shadowBrush.Get());
+            context->FillGeometry(arrowGeometry, m_shadowBrush.Get());
             context->SetTransform(D2D1::Matrix3x2F::Scale(ctx.dpiScale, ctx.dpiScale));
         }
 
@@ -920,7 +936,7 @@ void PlaylistWidget::Draw(ID2D1DeviceContext* context, const WidgetContext& ctx,
 
         D2D1_MATRIX_3X2_F arrowTransform = D2D1::Matrix3x2F::Translation(layout.gripX, layout.playlistY + layout.playlistHeight / 2.0f);
         context->SetTransform(arrowTransform * D2D1::Matrix3x2F::Scale(ctx.dpiScale, ctx.dpiScale));
-        context->FillGeometry(m_playlistGripArrowGeometry.Get(), m_playlistGripArrowBrush.Get());
+        context->FillGeometry(arrowGeometry, m_playlistGripArrowBrush.Get());
         context->SetTransform(D2D1::Matrix3x2F::Scale(ctx.dpiScale, ctx.dpiScale));
     }
 

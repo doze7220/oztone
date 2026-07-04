@@ -186,7 +186,8 @@ public:
 
     float GetPlaylistBgOpacity() const { return m_playlistBgOpacity; }
 
-    float GetPlaylistGripRightOffset() const { return m_playlistGripRightOffset; }
+    int GetPlaylistPosition() const { return m_playlistPosition; }
+    float GetPlaylistGripOffset() const { return m_playlistGripOffset; }
     float GetPlaylistGripLineWidth() const { return m_playlistGripLineWidth; }
     std::wstring GetPlaylistGripLineColor() const { return m_playlistGripLineColor; }
     float GetPlaylistGripArrowHeight() const { return m_playlistGripArrowHeight; }
@@ -351,7 +352,8 @@ private:
 
     float m_playlistBgOpacity;
 
-    float m_playlistGripRightOffset;
+    int m_playlistPosition;
+    float m_playlistGripOffset;
     float m_playlistGripLineWidth;
     std::wstring m_playlistGripLineColor;
     float m_playlistGripArrowHeight;

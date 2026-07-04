@@ -317,6 +317,8 @@ bool Window::IsInVolumeControlRegion(int x, int y) const {
 }
 
 bool Window::IsInPlaylistRegion(int x, int y) const {
+    if (IsInLogoRegion(x, y)) return false;
+
     if (!m_config || !m_hwnd) return false;
     UINT dpi = GetDpiForWindow(m_hwnd);
     int logicalX = MulDiv(x, 96, dpi);
@@ -331,7 +333,12 @@ bool Window::IsInPlaylistRegion(int x, int y) const {
         : static_cast<float>(m_config->GetPlaylistHoverWidth());
     float controlHeight = m_config->GetControlHoverHeight();
 
-    bool isXMatch = logicalX >= logicalWidth - hoverWidth;
+    bool isXMatch = false;
+    if (m_config->GetPlaylistPosition() == 0) {
+        isXMatch = logicalX <= hoverWidth;
+    } else {
+        isXMatch = logicalX >= logicalWidth - hoverWidth;
+    }
     
     // プレイリストが展開されている場合は、画面下部であってもリスト上にマウスがあればホバーを維持する。
     // 展開されていない場合のみ、右下のリサイズやコントロールとの干渉を避けるためY座標を制限する。

@@ -261,16 +261,23 @@ PlaylistLayout LayoutCalculator::CalculatePlaylistLayout(float logicalWidth, flo
     // Playlist Area
     layout.playlistWidth = static_cast<float>(config->GetPlaylistWidth());
     layout.playlistHeight = logicalHeight;
-    layout.playlistX = logicalWidth - layout.playlistWidth + slideX;
     layout.playlistY = 0.0f;
 
-    layout.bgRect = D2D1::RectF(layout.playlistX, layout.playlistY, layout.playlistX + layout.playlistWidth, layout.playlistY + layout.playlistHeight);
-    layout.clipRect = D2D1::RectF(layout.playlistX, layout.playlistY, logicalWidth, logicalHeight);
-
-    // Grip
-    float gripRightOffset = config->GetPlaylistGripRightOffset();
-    layout.gripX = layout.playlistX - gripRightOffset;
+    float gripOffset = config->GetPlaylistGripOffset();
     layout.gripLineWidth = config->GetPlaylistGripLineWidth();
+
+    if (config->GetPlaylistPosition() == 0) {
+        layout.playlistX = -slideX;
+        layout.clipRect = D2D1::RectF(0.0f, layout.playlistY, layout.playlistX + layout.playlistWidth, logicalHeight);
+        layout.gripX = layout.playlistX + layout.playlistWidth + gripOffset;
+    } else {
+        layout.playlistX = logicalWidth - layout.playlistWidth + slideX;
+        layout.clipRect = D2D1::RectF(layout.playlistX, layout.playlistY, logicalWidth, logicalHeight);
+        layout.gripX = layout.playlistX - gripOffset;
+    }
+
+    layout.bgRect = D2D1::RectF(layout.playlistX, layout.playlistY, layout.playlistX + layout.playlistWidth, layout.playlistY + layout.playlistHeight);
+
     layout.gripShadowX = layout.gripX + config->GetPlaylistGripShadowOffsetX();
     layout.gripShadowY = layout.playlistY + config->GetPlaylistGripShadowOffsetY();
 

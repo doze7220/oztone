@@ -145,7 +145,8 @@ PlaylistTimeOffsetX=10
 PlaylistTimeOffsetY=25
 PlaylistTimeLetterSpacing=0.0
 PlaylistBgOpacity=0.8
-PlaylistGripRightOffset=5.0
+PlaylistPosition=1
+PlaylistGripOffset=5.0
 PlaylistGripLineWidth=1.0
 PlaylistGripLineColor=#AAAAAA
 PlaylistGripArrowHeight=35.0
@@ -220,7 +221,8 @@ ConfigManager::ConfigManager()
   m_playlistArtistFontSize = 12.0f;
   m_playlistTimeFontSize = 12.0f;
 
-  m_playlistGripRightOffset = 10.0f;
+  m_playlistPosition = 1;
+  m_playlistGripOffset = 10.0f;
   m_playlistGripLineWidth = 2.0f;
   m_playlistGripLineColor = L"#FFFFFF";
   m_playlistGripArrowHeight = 10.0f;
@@ -661,6 +663,9 @@ void ConfigManager::LoadSettings() {
   m_playlistHoverWidth = GetPrivateProfileIntW(
       L"Layout_Playlist", L"PlaylistHoverWidth", 30, m_iniFilePath.c_str());
 
+  m_playlistPosition = GetPrivateProfileIntW(
+      L"Layout_Playlist", L"PlaylistPosition", 1, m_iniFilePath.c_str());
+
   m_playlistWidth = GetPrivateProfileIntW(L"Layout_Playlist", L"PlaylistWidth",
                                           400, m_iniFilePath.c_str());
   m_playlistItemOffsetY = GetPrivateProfileIntW(
@@ -726,12 +731,12 @@ void ConfigManager::LoadSettings() {
     m_playlistBgOpacity = 0.8f;
   }
 
-  GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistGripRightOffset",
+  GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistGripOffset",
                            L"10.0", buf, 32, m_iniFilePath.c_str());
   try {
-    m_playlistGripRightOffset = std::stof(buf);
+    m_playlistGripOffset = std::stof(buf);
   } catch (...) {
-    m_playlistGripRightOffset = 10.0f;
+    m_playlistGripOffset = 10.0f;
   }
 
   GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistGripLineWidth", L"2.0",
