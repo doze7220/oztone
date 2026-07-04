@@ -4,6 +4,7 @@
 #include <taglib/mpeg/id3v2/id3v2tag.h>
 #include <taglib/mpeg/id3v2/id3v2frame.h>
 #include <taglib/mpeg/id3v2/frames/attachedpictureframe.h>
+#include <taglib/audioproperties.h>
 #include <windows.h>
 
 TagManager::TagManager() {}
@@ -13,6 +14,7 @@ TagManager::~TagManager() {}
 bool TagManager::Load(const std::wstring& filepath) {
     m_title.clear();
     m_artist.clear();
+    m_timeString.clear();
     m_albumArtBytes.clear();
 
     if (filepath.empty()) return false;
@@ -30,6 +32,17 @@ bool TagManager::Load(const std::wstring& filepath) {
     if (tag) {
         m_title = tag->title().toWString();
         m_artist = tag->artist().toWString();
+    }
+
+    // 音声プロパティから曲の長さを取得
+    TagLib::AudioProperties* properties = mpegFile.audioProperties();
+    if (properties) {
+        int seconds = properties->length();
+        int min = seconds / 60;
+        int sec = seconds % 60;
+        wchar_t buf[16];
+        swprintf(buf, 16, L"%02d:%02d", min, sec);
+        m_timeString = buf;
     }
 
     // アルバムアートの取得 (ID3v2 APICフレーム)
@@ -54,6 +67,10 @@ std::wstring TagManager::GetTitle() const {
 
 std::wstring TagManager::GetArtist() const {
     return m_artist;
+}
+
+std::wstring TagManager::GetTimeString() const {
+    return m_timeString;
 }
 
 const std::vector<uint8_t>& TagManager::GetAlbumArtBytes() const {

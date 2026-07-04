@@ -29,6 +29,11 @@ public:
     std::wstring GetArtist() const;
 
     /**
+     * @brief 再生時間文字列（MM:SS形式）を取得する
+     */
+    std::wstring GetTimeString() const;
+
+    /**
      * @brief アルバムアートのバイナリデータを取得する
      */
     const std::vector<uint8_t>& GetAlbumArtBytes() const;
@@ -36,5 +41,6 @@ public:
 private:
     std::wstring m_title;
     std::wstring m_artist;
+    std::wstring m_timeString;
     std::vector<uint8_t> m_albumArtBytes;
 };

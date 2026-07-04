@@ -3,6 +3,15 @@
 #include <vector>
 #include <set>
 #include <random>
+#include <mutex>
+
+struct TrackMetadata {
+    std::wstring filepath;
+    std::wstring title;
+    std::wstring artist;
+    std::wstring timeString; // 例: "03:45"
+    bool isLoaded = false;   // 解析済みかどうか
+};
 
 /**
  * @brief 再生待ちキュー（プレイリスト）を管理するクラス
@@ -97,7 +106,7 @@ public:
 private:
     void GenerateShuffleList(std::vector<size_t>& targetList);
 
-    std::vector<std::wstring> m_playlist;
+    std::vector<TrackMetadata> m_playlist;
     std::set<std::wstring> m_playlistSet;
     
     std::vector<size_t> m_shuffleIndices;
@@ -105,4 +114,5 @@ private:
     size_t m_shuffleIndex;
 
     std::mt19937 m_mt;
+    mutable std::mutex m_mutex;
 };
