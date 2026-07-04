@@ -45,6 +45,11 @@ public:
     void Advance();
 
     /**
+     * @brief 現在の曲をプレイリストから削除する
+     */
+    void RemoveCurrentTrack();
+
+    /**
      * @brief キューを前の曲へ戻す（先頭の場合はリストの末尾へ戻る）
      */
     void Previous();

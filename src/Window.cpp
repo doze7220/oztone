@@ -424,6 +424,29 @@ bool Window::IsInPlaylistRegion(int x, int y) const {
   return isXMatch && isYMatch;
 }
 
+int Window::GetPlaylistToolbarButtonAt(int x, int y) const {
+  if (!m_config || !m_hwnd || !m_isPlaylistHovered) return -1;
+  UINT dpi = GetDpiForWindow(m_hwnd);
+  int logicalX = MulDiv(x, 96, dpi);
+  int logicalY = MulDiv(y, 96, dpi);
+  
+  RECT rect;
+  GetClientRect(m_hwnd, &rect);
+  int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
+  int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
+  
+  PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(logicalWidth, logicalHeight, m_config, 0.0f, 0.0f, 0, 0);
+  for (int i = 0; i < 3; ++i) {
+      if (logicalX >= layout.toolbarLayout.buttonHitRects[i].left &&
+          logicalX <= layout.toolbarLayout.buttonHitRects[i].right &&
+          logicalY >= layout.toolbarLayout.buttonHitRects[i].top &&
+          logicalY <= layout.toolbarLayout.buttonHitRects[i].bottom) {
+          return i;
+      }
+  }
+  return -1;
+}
+
 int Window::GetPlaybackButtonAt(int x, int y) const {
   if (!m_config || !m_hwnd)
     return 0;
@@ -517,10 +540,12 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
       m_isPlaylistHovered = IsInPlaylistRegion(xPos, yPos);
 
       if (m_isPlaylistHovered) {
+        m_playlistToolbarHoveredIndex = GetPlaylistToolbarButtonAt(xPos, yPos);
         m_isHovered = false;
         m_isControlHovered = false;
         m_isLogoMenuHovered = false;
       } else {
+        m_playlistToolbarHoveredIndex = -1;
         m_isHovered = IsInLogoRegion(xPos, yPos);
         m_isControlHovered = IsInPlaybackControlRegion(xPos, yPos);
 
@@ -551,6 +576,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     m_isPlaylistHovered = false;
     m_isLogoMenuHovered = false;
     m_logoMenuHoveredIndex = -1;
+    m_playlistToolbarHoveredIndex = -1;
     m_isTrackingMouse = false;
     return 0;
   }
@@ -559,6 +585,13 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     int yPos = GET_Y_LPARAM(lParam);
 
     if (m_isPlaylistHovered) {
+      int btnIndex = GetPlaylistToolbarButtonAt(xPos, yPos);
+      if (btnIndex != -1) {
+        if (m_onPlaylistToolbarClick) {
+          m_onPlaylistToolbarClick(btnIndex);
+        }
+        return 0;
+      }
       if (m_onPlaylistClick) {
         m_onPlaylistClick(xPos, yPos);
       }

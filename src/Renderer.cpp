@@ -307,7 +307,7 @@ bool Renderer::LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitma
     return true;
 }
 
-void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks) {
+void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode) {
     if (isControlHovered) {
         m_controlAlpha += 0.05f;
         if (m_controlAlpha > 1.0f) m_controlAlpha = 1.0f;
@@ -322,6 +322,7 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPl
     ctx.isPlaylistHovered = isPlaylistHovered;
     ctx.isLogoMenuHovered = isLogoMenuHovered;
     ctx.logoMenuHoveredIndex = logoMenuHoveredIndex;
+    ctx.isPlaylistListViewMode = isPlaylistListViewMode;
     ctx.currentTrackIndex = currentTrackIndex;
     ctx.totalTracks = totalTracks;
     ctx.config = m_config;
@@ -350,7 +351,7 @@ void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, s
     }
 }
 
-void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList) {
+void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isPlaylistListViewMode, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList, int playlistToolbarHoveredIndex) {
     if (!m_d2dContext) return;
 
     m_d2dContext->BeginDraw();
@@ -367,6 +368,8 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHove
     ctx.isLogoMenuHovered = isLogoMenuHovered;
     ctx.logoMenuHoveredIndex = logoMenuHoveredIndex;
     ctx.logoMenuItems = logoMenuItems;
+    ctx.playlistToolbarHoveredIndex = playlistToolbarHoveredIndex;
+    ctx.isPlaylistListViewMode = isPlaylistListViewMode;
     ctx.isPlaying = isPlaying;
     ctx.progress = progress;
     ctx.spectrum = &spectrum;

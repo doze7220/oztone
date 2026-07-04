@@ -104,11 +104,19 @@ struct PlaylistItemLayout {
     float timeMaxHeight;
 };
 
+struct PlaylistToolbarLayout {
+    D2D1_RECT_F fullRect;
+    D2D1_RECT_F buttonHitRects[3];
+    D2D1_RECT_F textRect;
+};
+
 struct PlaylistLayout {
     float playlistWidth;
     float playlistHeight;
     float playlistX;
     float playlistY;
+
+    PlaylistToolbarLayout toolbarLayout;
 
     D2D1_RECT_F bgRect;
     D2D1_RECT_F clipRect;

@@ -105,4 +105,6 @@ private:
     std::condition_variable m_parseCV;
     std::queue<std::wstring> m_parseQueue;
     std::atomic<bool> m_parseThreadRunning{false};
+
+    bool m_isPlaylistListViewMode = false;
 };

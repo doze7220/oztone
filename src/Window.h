@@ -125,6 +125,8 @@ public:
      * @brief 座標がプレイリスト（TRACK表示）領域内にあるかを判定する
      */
     bool IsInPlaylistRegion(int x, int y) const;
+    int GetPlaylistToolbarButtonAt(int x, int y) const;
+    int GetPlaylistToolbarHoveredIndex() const { return m_playlistToolbarHoveredIndex; }
 
     /**
      * @brief クリックされた再生コントロールボタンのIDを取得する (0:なし, 1:Prev, 2:Play/Pause, 3:Next)
@@ -207,6 +209,10 @@ public:
         m_onPlaylistClick = cb;
     }
 
+    void SetPlaylistToolbarClickCallback(std::function<void(int)> cb) {
+        m_onPlaylistToolbarClick = cb;
+    }
+
     /**
      * @brief ウィンドウサイズが変更された時のコールバックを設定する
      */
@@ -245,6 +251,7 @@ private:
     std::function<void(int)> m_onVolumeScroll;
     std::function<void(int)> m_onPlaylistScroll;
     std::function<void(int, int)> m_onPlaylistClick;
+    std::function<void(int)> m_onPlaylistToolbarClick;
     std::function<void(int, int)> m_onResize;
     DropTarget* m_pDropTarget;
 
@@ -261,4 +268,5 @@ private:
     std::vector<LogoMenuItem> m_logoMenuItems;
     bool m_isLogoMenuHovered;
     int m_logoMenuHoveredIndex = -1;
+    int m_playlistToolbarHoveredIndex = -1;
 };

@@ -180,6 +180,11 @@ PlaylistGripArrowColor=#AAAAAA
 PlaylistGripShadowOffsetX=2.0
 PlaylistGripShadowOffsetY=2.0
 PlaylistGripShadowOpacity=0.7
+ToolbarHeight=60.0
+ToolbarIconSize=18.0
+ToolbarIconSpacing=10.0
+ToolbarTextOffsetY=30.0
+ToolbarTextFontSize=12.0
 
 )";
 
@@ -252,6 +257,12 @@ ConfigManager::ConfigManager()
   m_playlistTitleFontSize = 16.0f;
   m_playlistArtistFontSize = 12.0f;
   m_playlistTimeFontSize = 12.0f;
+
+  m_playlistToolbarHeight = 60.0f;
+  m_playlistToolbarIconSize = 18.0f;
+  m_playlistToolbarIconSpacing = 10.0f;
+  m_playlistToolbarTextOffsetY = 30.0f;
+  m_playlistToolbarTextFontSize = 12.0f;
 
   m_playlistPosition = 1;
   m_playlistGripOffset = 10.0f;
@@ -965,6 +976,21 @@ void ConfigManager::LoadSettings() {
       L"Layout_Playlist", L"PlaylistTimeOffsetX", 20, m_iniFilePath.c_str());
   m_playlistTimeOffsetY = GetPrivateProfileIntW(
       L"Layout_Playlist", L"PlaylistTimeOffsetY", 35, m_iniFilePath.c_str());
+
+  GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarHeight", L"60.0", buf, 32, m_iniFilePath.c_str());
+  try { m_playlistToolbarHeight = std::stof(buf); } catch (...) { m_playlistToolbarHeight = 60.0f; }
+
+  GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarIconSize", L"18.0", buf, 32, m_iniFilePath.c_str());
+  try { m_playlistToolbarIconSize = std::stof(buf); } catch (...) { m_playlistToolbarIconSize = 18.0f; }
+
+  GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarIconSpacing", L"10.0", buf, 32, m_iniFilePath.c_str());
+  try { m_playlistToolbarIconSpacing = std::stof(buf); } catch (...) { m_playlistToolbarIconSpacing = 10.0f; }
+
+  GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarTextOffsetY", L"30.0", buf, 32, m_iniFilePath.c_str());
+  try { m_playlistToolbarTextOffsetY = std::stof(buf); } catch (...) { m_playlistToolbarTextOffsetY = 30.0f; }
+
+  GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarTextFontSize", L"12.0", buf, 32, m_iniFilePath.c_str());
+  try { m_playlistToolbarTextFontSize = std::stof(buf); } catch (...) { m_playlistToolbarTextFontSize = 12.0f; }
 
   wchar_t pathBuf[MAX_PATH];
 

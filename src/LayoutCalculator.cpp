@@ -313,12 +313,34 @@ PlaylistLayout LayoutCalculator::CalculatePlaylistLayout(float logicalWidth, flo
 
     if (config->GetPlaylistPosition() == 0) {
         layout.playlistX = -slideX;
-        layout.clipRect = D2D1::RectF(0.0f, layout.playlistY, layout.playlistX + layout.playlistWidth, logicalHeight);
         layout.gripX = layout.playlistX + layout.playlistWidth + gripOffset;
     } else {
         layout.playlistX = logicalWidth - layout.playlistWidth + slideX;
-        layout.clipRect = D2D1::RectF(layout.playlistX, layout.playlistY, logicalWidth, logicalHeight);
         layout.gripX = layout.playlistX - gripOffset;
+    }
+
+    float toolbarHeight = config->GetPlaylistToolbarHeight();
+    layout.toolbarLayout.fullRect = D2D1::RectF(layout.playlistX, layout.playlistY, layout.playlistX + layout.playlistWidth, layout.playlistY + toolbarHeight);
+    
+    float btnSize = 30.0f;
+    float iconSpacing = config->GetPlaylistToolbarIconSpacing();
+    float totalWidth = 3 * btnSize + 2 * iconSpacing;
+    float startX = layout.playlistX + (layout.playlistWidth - totalWidth) / 2.0f;
+    float startY = layout.playlistY + 5.0f; // 上段に配置
+
+    // 左から 0, 1, 2 の順に配置 (0:左, 1:中, 2:右)
+    for (int i = 0; i < 3; ++i) {
+        layout.toolbarLayout.buttonHitRects[i] = D2D1::RectF(startX, startY, startX + btnSize, startY + btnSize);
+        startX += (btnSize + iconSpacing);
+    }
+    
+    float textOffsetY = config->GetPlaylistToolbarTextOffsetY();
+    layout.toolbarLayout.textRect = D2D1::RectF(layout.playlistX, layout.playlistY + textOffsetY, layout.playlistX + layout.playlistWidth, layout.playlistY + toolbarHeight);
+
+    if (config->GetPlaylistPosition() == 0) {
+        layout.clipRect = D2D1::RectF(0.0f, layout.playlistY + toolbarHeight, layout.playlistX + layout.playlistWidth, logicalHeight);
+    } else {
+        layout.clipRect = D2D1::RectF(layout.playlistX, layout.playlistY + toolbarHeight, logicalWidth, logicalHeight);
     }
 
     layout.bgRect = D2D1::RectF(layout.playlistX, layout.playlistY, layout.playlistX + layout.playlistWidth, layout.playlistY + layout.playlistHeight);
@@ -328,15 +350,16 @@ PlaylistLayout LayoutCalculator::CalculatePlaylistLayout(float logicalWidth, flo
 
     // Scroll
     layout.itemHeight = static_cast<float>(config->GetPlaylistItemOffsetY());
-    float baseScrollY = (layout.playlistHeight / 2.0f) - (currentTrackIndex * layout.itemHeight);
+    float listHeight = layout.playlistHeight - toolbarHeight;
+    float baseScrollY = (listHeight / 2.0f) - (currentTrackIndex * layout.itemHeight);
     float scrollY = baseScrollY + manualScrollY;
     float maxScroll = 0.0f;
-    float minScroll = layout.playlistHeight - (totalTracks * layout.itemHeight);
+    float minScroll = listHeight - (totalTracks * layout.itemHeight);
     if (minScroll > 0) minScroll = 0;
     scrollY = std::clamp(scrollY, minScroll, maxScroll);
     
     layout.newManualScrollY = scrollY - baseScrollY;
-    layout.startY = scrollY;
+    layout.startY = layout.playlistY + toolbarHeight + scrollY;
 
     return layout;
 }

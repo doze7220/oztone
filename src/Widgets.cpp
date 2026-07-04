@@ -1163,6 +1163,26 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
   if (m_playlistTimeTextFormat)
     m_playlistTimeTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
 
+  dwriteFactory->CreateTextFormat(
+      config->GetPlaylistTitleFontFamily().c_str(), nullptr,
+      DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
+      DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistToolbarTextFontSize(), L"ja-jp",
+      &m_toolbarTextFormat);
+  if (m_toolbarTextFormat) {
+      m_toolbarTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+      m_toolbarTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+  }
+
+  dwriteFactory->CreateTextFormat(
+      L"Segoe UI Emoji", nullptr,
+      DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
+      DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistToolbarIconSize(), L"ja-jp",
+      &m_toolbarIconFormat);
+  if (m_toolbarIconFormat) {
+      m_toolbarIconFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+      m_toolbarIconFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+  }
+
   auto ParseHexColor = [](const std::wstring &hexColor) -> D2D1_COLOR_F {
     if (hexColor.empty() || hexColor[0] != L'#')
       return D2D1::ColorF(D2D1::ColorF::White);
@@ -1237,6 +1257,8 @@ void PlaylistWidget::ReleaseResources() {
   m_playlistTitleTextFormat.Reset();
   m_playlistArtistTextFormat.Reset();
   m_playlistTimeTextFormat.Reset();
+  m_toolbarTextFormat.Reset();
+  m_toolbarIconFormat.Reset();
   m_playlistArtistBrush.Reset();
   m_playlistTimeBrush.Reset();
   m_playlistGripLineBrush.Reset();
@@ -1271,9 +1293,25 @@ void PlaylistWidget::UpdateAnimation(const WidgetContext &ctx) {
     float logicWidth = renderTargetSize.width / ctx.dpiScale;
     float logicHeight = renderTargetSize.height / ctx.dpiScale;
 
+    size_t activeIndex = ctx.currentTrackIndex;
+    size_t activeTotal = ctx.totalTracks;
+
+    if (ctx.isPlaylistListViewMode && ctx.config) {
+        std::vector<std::wstring> playlists = ctx.config->GetAvailablePlaylists();
+        activeTotal = playlists.size();
+        std::wstring currentPlaylist = ctx.config->GetDefaultPlaylistPath();
+        activeIndex = 0;
+        for (size_t i = 0; i < playlists.size(); ++i) {
+            if (playlists[i] == currentPlaylist) {
+                activeIndex = i;
+                break;
+            }
+        }
+    }
+
     PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
         logicWidth, logicHeight, ctx.config, m_playlistSlideX,
-        m_playlistManualScrollY, ctx.currentTrackIndex, ctx.totalTracks);
+        m_playlistManualScrollY, activeIndex, activeTotal);
     m_playlistManualScrollY = layout.newManualScrollY;
   }
 }
@@ -1296,9 +1334,25 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
   float logicWidth = renderTargetSize.width / ctx.dpiScale;
   float logicHeight = renderTargetSize.height / ctx.dpiScale;
 
+  size_t activeIndex = ctx.currentTrackIndex;
+  size_t activeTotal = ctx.totalTracks;
+
+  if (ctx.isPlaylistListViewMode && config) {
+      std::vector<std::wstring> playlists = config->GetAvailablePlaylists();
+      activeTotal = playlists.size();
+      std::wstring currentPlaylist = config->GetDefaultPlaylistPath();
+      activeIndex = 0;
+      for (size_t i = 0; i < playlists.size(); ++i) {
+          if (playlists[i] == currentPlaylist) {
+              activeIndex = i;
+              break;
+          }
+      }
+  }
+
   PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
       logicWidth, logicHeight, config, m_playlistSlideX,
-      m_playlistManualScrollY, ctx.currentTrackIndex, ctx.totalTracks);
+      m_playlistManualScrollY, activeIndex, activeTotal);
 
   ID2D1PathGeometry *arrowGeometry =
       config->GetPlaylistPosition() == 0
@@ -1342,6 +1396,55 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
       context->FillRectangle(&layout.bgRect, m_playlistBgBrush.Get());
     }
 
+    // Draw Toolbar
+    std::wstring hoverText = L"";
+    std::wstring icons[3];
+    if (ctx.isPlaylistListViewMode) {
+        icons[0] = L""; // (非表示)
+        icons[1] = L"➕"; 
+        icons[2] = L"🗑️"; 
+    } else {
+        icons[0] = L"📁"; 
+        icons[1] = L"➖"; 
+        icons[2] = L"🗑️"; 
+    }
+
+    if (ctx.playlistToolbarHoveredIndex >= 0 && ctx.playlistToolbarHoveredIndex <= 2) {
+        int idx = ctx.playlistToolbarHoveredIndex;
+        if (ctx.isPlaylistListViewMode) {
+            if (idx == 0) hoverText = L""; // (非表示)
+            if (idx == 1) hoverText = L"プレイリストを新規作成する";
+            if (idx == 2) hoverText = L"プレイリストを削除する";
+        } else {
+            if (idx == 0) hoverText = L"プレイリスト一覧を開く";
+            if (idx == 1) hoverText = L"再生中の曲をプレイリストから削除する";
+            if (idx == 2) hoverText = L"プレイリストの全曲を削除する";
+        }
+    }
+
+    if (!hoverText.empty() && m_toolbarTextFormat && m_textBrush) {
+        if (m_shadowBrush && config->GetEnableShadow()) {
+            m_shadowBrush->SetOpacity(config->GetShadowOpacity());
+            D2D1_RECT_F sRect = layout.toolbarLayout.textRect;
+            sRect.left += 1.0f; sRect.top += 1.0f; sRect.right += 1.0f; sRect.bottom += 1.0f;
+            context->DrawText(hoverText.c_str(), static_cast<UINT32>(hoverText.length()), m_toolbarTextFormat.Get(), &sRect, m_shadowBrush.Get());
+        }
+        context->DrawText(hoverText.c_str(), static_cast<UINT32>(hoverText.length()), m_toolbarTextFormat.Get(), &layout.toolbarLayout.textRect, m_textBrush.Get());
+    }
+
+    for (int i = 0; i < 3; ++i) {
+        if (ctx.isPlaylistListViewMode && i == 0) continue; // (非表示)
+
+        if (ctx.playlistToolbarHoveredIndex == i && m_playlistHighlightBrush) {
+            m_playlistHighlightBrush->SetOpacity(0.2f);
+            context->FillRectangle(&layout.toolbarLayout.buttonHitRects[i], m_playlistHighlightBrush.Get());
+        }
+
+        if (m_toolbarIconFormat && !icons[i].empty()) {
+            context->DrawText(icons[i].c_str(), static_cast<UINT32>(icons[i].length()), m_toolbarIconFormat.Get(), &layout.toolbarLayout.buttonHitRects[i], m_textBrush.Get());
+        }
+    }
+
     context->PushAxisAlignedClip(&layout.clipRect,
                                  D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 
@@ -1351,63 +1454,81 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
       m_playlistHighlightBrush->SetOpacity(0.2f);
     }
 
-    for (size_t i = 0; i < ctx.totalTracks && ctx.shuffleMetadataList &&
-                       i < ctx.shuffleMetadataList->size();
-         ++i) {
-      if (currentY + layout.itemHeight > 0 &&
-          currentY < layout.playlistHeight) {
-        PlaylistItemLayout itemLayout =
-            LayoutCalculator::CalculatePlaylistItemLayout(layout, config,
-                                                          currentY);
+    if (ctx.isPlaylistListViewMode) {
+        std::vector<std::wstring> playlists = config->GetAvailablePlaylists();
+        std::wstring currentPlaylist = config->GetDefaultPlaylistPath();
 
-        if (i == ctx.currentTrackIndex && m_playlistHighlightBrush) {
-          context->FillRectangle(&itemLayout.hlRect,
-                                 m_playlistHighlightBrush.Get());
+        for (size_t i = 0; i < playlists.size(); ++i) {
+            if (currentY + layout.itemHeight > 0 && currentY < layout.playlistHeight) {
+                PlaylistItemLayout itemLayout = LayoutCalculator::CalculatePlaylistItemLayout(layout, config, currentY);
+
+                if (playlists[i] == currentPlaylist && m_playlistHighlightBrush) {
+                    m_playlistHighlightBrush->SetOpacity(0.2f);
+                    context->FillRectangle(&itemLayout.hlRect, m_playlistHighlightBrush.Get());
+                }
+
+                std::wstring title;
+                try {
+                    title = std::filesystem::path(playlists[i]).filename().wstring();
+                } catch (...) {
+                    title = L"Unknown";
+                }
+
+                context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
+                                  m_playlistTitleTextFormat.Get(),
+                                  &itemLayout.titleRect, m_textBrush.Get());
+            }
+            currentY += layout.itemHeight;
         }
+    } else {
+        for (size_t i = 0; i < ctx.totalTracks && ctx.shuffleMetadataList && i < ctx.shuffleMetadataList->size(); ++i) {
+            if (currentY + layout.itemHeight > 0 && currentY < layout.playlistHeight) {
+                PlaylistItemLayout itemLayout = LayoutCalculator::CalculatePlaylistItemLayout(layout, config, currentY);
 
-        const TrackMetadata &meta = (*ctx.shuffleMetadataList)[i];
-        std::wstring title;
-        std::wstring artist;
-        std::wstring timeStr;
+                if (i == ctx.currentTrackIndex && m_playlistHighlightBrush) {
+                    m_playlistHighlightBrush->SetOpacity(0.2f);
+                    context->FillRectangle(&itemLayout.hlRect, m_playlistHighlightBrush.Get());
+                }
 
-        if (meta.isLoaded) {
-          title = meta.title;
-          artist = meta.artist;
-          timeStr = meta.timeString;
-        } else {
-          try {
-            title = std::filesystem::path(meta.filepath).filename().wstring();
-          } catch (...) {
-            title = L"Unknown";
-          }
-          artist = L"Unknown Artist";
+                const TrackMetadata &meta = (*ctx.shuffleMetadataList)[i];
+                std::wstring title;
+                std::wstring artist;
+                std::wstring timeStr;
+
+                if (meta.isLoaded) {
+                    title = meta.title;
+                    artist = meta.artist;
+                    timeStr = meta.timeString;
+                } else {
+                    try {
+                        title = std::filesystem::path(meta.filepath).filename().wstring();
+                    } catch (...) {
+                        title = L"Unknown";
+                    }
+                    artist = L"Unknown Artist";
+                }
+
+                context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
+                                  m_playlistTitleTextFormat.Get(),
+                                  &itemLayout.titleRect, m_textBrush.Get());
+
+                if (!artist.empty()) {
+                    context->DrawText(artist.c_str(), static_cast<UINT32>(artist.length()),
+                                      m_playlistArtistTextFormat.Get(), &itemLayout.artistRect,
+                                      m_playlistArtistBrush ? m_playlistArtistBrush.Get() : m_textBrush.Get());
+                }
+
+                if (!timeStr.empty() && m_playlistTimeTextFormat) {
+                    D2D1_RECT_F timeRect = D2D1::RectF(itemLayout.timeOrigin.x, itemLayout.timeOrigin.y,
+                                                       itemLayout.timeOrigin.x + itemLayout.timeMaxWidth,
+                                                       itemLayout.timeOrigin.y + itemLayout.timeMaxHeight);
+                    context->DrawText(timeStr.c_str(), static_cast<UINT32>(timeStr.length()),
+                                      m_playlistTimeTextFormat.Get(), &timeRect,
+                                      m_playlistTimeBrush ? m_playlistTimeBrush.Get() : m_textBrush.Get());
+                }
+            }
+            currentY += layout.itemHeight;
         }
-
-        context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
-                          m_playlistTitleTextFormat.Get(),
-                          &itemLayout.titleRect, m_textBrush.Get());
-
-        if (!artist.empty()) {
-          context->DrawText(
-              artist.c_str(), static_cast<UINT32>(artist.length()),
-              m_playlistArtistTextFormat.Get(), &itemLayout.artistRect,
-              m_playlistArtistBrush ? m_playlistArtistBrush.Get()
-                                    : m_textBrush.Get());
-        }
-
-        if (!timeStr.empty() && m_playlistTimeTextFormat) {
-          D2D1_RECT_F timeRect =
-              D2D1::RectF(itemLayout.timeOrigin.x, itemLayout.timeOrigin.y,
-                          itemLayout.timeOrigin.x + itemLayout.timeMaxWidth,
-                          itemLayout.timeOrigin.y + itemLayout.timeMaxHeight);
-          context->DrawText(timeStr.c_str(),
-                            static_cast<UINT32>(timeStr.length()),
-                            m_playlistTimeTextFormat.Get(), &timeRect,
-                            m_playlistTimeBrush ? m_playlistTimeBrush.Get()
-                                                : m_textBrush.Get());
-        }
-      }
-      currentY += layout.itemHeight;
     }
 
     context->PopAxisAlignedClip();

@@ -93,6 +93,36 @@ void PlaylistManager::Advance() {
     }
 }
 
+void PlaylistManager::RemoveCurrentTrack() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (m_playlist.empty() || m_shuffleIndices.empty() || m_shuffleIndex >= m_shuffleIndices.size()) return;
+    
+    size_t removedGlobalIndex = m_shuffleIndices[m_shuffleIndex];
+    std::wstring removedFilepath = m_playlist[removedGlobalIndex].filepath;
+    
+    m_playlist.erase(m_playlist.begin() + removedGlobalIndex);
+    m_playlistSet.erase(removedFilepath);
+    
+    m_shuffleIndices.erase(m_shuffleIndices.begin() + m_shuffleIndex);
+    for (size_t& idx : m_shuffleIndices) {
+        if (idx > removedGlobalIndex) idx--;
+    }
+    
+    auto it = std::find(m_nextShuffleIndices.begin(), m_nextShuffleIndices.end(), removedGlobalIndex);
+    if (it != m_nextShuffleIndices.end()) {
+        m_nextShuffleIndices.erase(it);
+    }
+    for (size_t& idx : m_nextShuffleIndices) {
+        if (idx > removedGlobalIndex) idx--;
+    }
+    
+    if (m_shuffleIndex >= m_shuffleIndices.size() && !m_shuffleIndices.empty()) {
+        m_shuffleIndices = std::move(m_nextShuffleIndices);
+        GenerateShuffleList(m_nextShuffleIndices);
+        m_shuffleIndex = 0;
+    }
+}
+
 void PlaylistManager::Previous() {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (m_playlist.empty() || m_shuffleIndices.empty()) return;

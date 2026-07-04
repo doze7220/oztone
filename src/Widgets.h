@@ -171,6 +171,8 @@ private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistTitleTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistArtistTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistTimeTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_toolbarTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_toolbarIconFormat;
 
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistArtistBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistTimeBrush;

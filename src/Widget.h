@@ -27,6 +27,8 @@ struct WidgetContext {
     const std::vector<Window::LogoMenuItem>* logoMenuItems;
     bool isControlHovered;
     bool isPlaylistHovered;
+    int playlistToolbarHoveredIndex;
+    bool isPlaylistListViewMode;
     bool isPlaying;
     float progress;
     const std::vector<float>* spectrum;
