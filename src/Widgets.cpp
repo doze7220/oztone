@@ -954,7 +954,7 @@ void PlaylistWidget::Draw(ID2D1DeviceContext* context, const WidgetContext& ctx,
             m_playlistHighlightBrush->SetOpacity(0.2f);
         }
 
-        for (size_t i = 0; i < ctx.totalTracks && ctx.shuffleList && i < ctx.shuffleList->size(); ++i) {
+        for (size_t i = 0; i < ctx.totalTracks && ctx.shuffleMetadataList && i < ctx.shuffleMetadataList->size(); ++i) {
             if (currentY + layout.itemHeight > 0 && currentY < layout.playlistHeight) {
                 PlaylistItemLayout itemLayout = LayoutCalculator::CalculatePlaylistItemLayout(layout, config, currentY);
 
@@ -962,14 +962,30 @@ void PlaylistWidget::Draw(ID2D1DeviceContext* context, const WidgetContext& ctx,
                     context->FillRectangle(&itemLayout.hlRect, m_playlistHighlightBrush.Get());
                 }
 
-                std::wstring path = (*ctx.shuffleList)[i];
+                const TrackMetadata& meta = (*ctx.shuffleMetadataList)[i];
                 std::wstring title;
-                try { title = std::filesystem::path(path).filename().wstring(); } catch(...) { title = L"Unknown"; }
-                std::wstring artist = L"Unknown Artist";
+                std::wstring artist;
+                std::wstring timeStr;
+
+                if (meta.isLoaded) {
+                    title = meta.title;
+                    artist = meta.artist;
+                    timeStr = meta.timeString;
+                } else {
+                    try { title = std::filesystem::path(meta.filepath).filename().wstring(); } catch(...) { title = L"Unknown"; }
+                    artist = L"Unknown Artist";
+                }
 
                 context->DrawText(title.c_str(), static_cast<UINT32>(title.length()), m_playlistTitleTextFormat.Get(), &itemLayout.titleRect, m_textBrush.Get());
 
-                context->DrawText(artist.c_str(), static_cast<UINT32>(artist.length()), m_playlistArtistTextFormat.Get(), &itemLayout.artistRect, m_playlistArtistBrush ? m_playlistArtistBrush.Get() : m_textBrush.Get());
+                if (!artist.empty()) {
+                    context->DrawText(artist.c_str(), static_cast<UINT32>(artist.length()), m_playlistArtistTextFormat.Get(), &itemLayout.artistRect, m_playlistArtistBrush ? m_playlistArtistBrush.Get() : m_textBrush.Get());
+                }
+
+                if (!timeStr.empty() && m_playlistTimeTextFormat) {
+                    D2D1_RECT_F timeRect = D2D1::RectF(itemLayout.timeOrigin.x, itemLayout.timeOrigin.y, itemLayout.timeOrigin.x + itemLayout.timeMaxWidth, itemLayout.timeOrigin.y + itemLayout.timeMaxHeight);
+                    context->DrawText(timeStr.c_str(), static_cast<UINT32>(timeStr.length()), m_playlistTimeTextFormat.Get(), &timeRect, m_playlistTimeBrush ? m_playlistTimeBrush.Get() : m_textBrush.Get());
+                }
             }
             currentY += layout.itemHeight;
         }

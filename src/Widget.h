@@ -7,6 +7,7 @@
 #include <wincodec.h>
 #include <string>
 #include <vector>
+#include "PlaylistManager.h"
 
 class ConfigManager;
 
@@ -27,7 +28,8 @@ struct WidgetContext {
     float volume;
     size_t currentTrackIndex;
     size_t totalTracks;
-    const std::vector<std::wstring>* shuffleList;
+    const std::vector<TrackMetadata>* shuffleMetadataList;
+
     float dpiScale;
 
     float controlAlpha;

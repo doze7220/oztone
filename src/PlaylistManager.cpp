@@ -282,3 +282,17 @@ std::vector<std::wstring> PlaylistManager::GetShuffleList() const {
     }
     return list;
 }
+
+std::vector<TrackMetadata> PlaylistManager::GetShuffleMetadataList() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    std::vector<TrackMetadata> list;
+    if (m_playlist.empty() || m_shuffleIndices.empty()) {
+        return list;
+    }
+    list.reserve(m_shuffleIndices.size());
+    for (size_t idx : m_shuffleIndices) {
+        list.push_back(m_playlist[idx]);
+    }
+    return list;
+}
+

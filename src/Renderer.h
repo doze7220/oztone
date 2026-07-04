@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include "PlaylistManager.h"
 #include "Visualizer.h"
 #include "Widgets.h"
 
@@ -44,7 +45,8 @@ public:
     /**
      * @brief 描画処理（毎フレーム呼ばれる）
      */
-    void Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList);
+    void Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList);
+
 
     /**
      * @brief 変動テキストレイアウトの更新

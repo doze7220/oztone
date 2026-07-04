@@ -59,7 +59,7 @@ struct TrackMetadata {
 *   **[x] Task 4: PrefetchNextTrackへの自己修復ロジック導入**
     *   `Application::PrefetchNextTrack` 内で取得したタグ情報と、プレイリスト側のキャッシュ情報を比較するロジックを追加する。
     *   差異があった場合にプレイリスト情報を更新し、`PlaylistManager::SaveToFile` を呼び出して自動保存する。
-*   **[ ] Task 5: 動作確認とUI連携の調整**
+*   **[x] Task 5: 動作確認とUI連携の調整**
     *   ビルドを行い、ドロップ時のバックグラウンド解析がUIをブロックしないか検証する。
     *   再起動時にキャッシュから情報が復元されること、およびタグ変更時に `PrefetchNextTrack` で自動修復されることを確認する。
 
@@ -89,3 +89,9 @@ struct TrackMetadata {
 * `Application::PrefetchNextTrack` メソッド内で、`TagManager` を用いて次曲のタグ情報を取得した直後に `PlaylistManager::GetTrackMetadata` で既存のキャッシュ情報を取得して比較する処理を追加。
 * 既存情報が未解析（`isLoaded == false`）であるか、あるいは取得した最新の `title` や `artist` と食い違いがある場合には、`PlaylistManager::UpdateMetadata` を呼び出して情報を上書き更新するロジックを導入。
 * 上書き更新が行われた場合は、直後に `PlaylistManager::SaveToFile` を呼び出してキャッシュファイル（`.lst`）を最新状態に自動修復するように実装。これにより、メインスレッドをブロックすることなくフェイルセーフなキャッシュ更新が可能となった。
+
+### Task 5: 動作確認とUI連携の調整
+* `PlaylistManager` に `GetShuffleMetadataList()` メソッドを追加し、内部で保持しているメタデータ情報をそのままリストとして取得できるように実装。
+* `Widget.h` の `WidgetContext` でプレイリスト情報を保持するポインタを `std::vector<TrackMetadata>` 型に変更。
+* `Renderer::Render` の引数を変更し、`Application::ForceRender` から取得したメタデータリストを直接渡せるように改修。
+* `Widgets.cpp` の `PlaylistWidget::Draw` を改修し、対象曲のメタデータが解析済み（`isLoaded == true`）の場合は取得した `title`、`artist`、`timeString` を使用してリッチに描画。未解析の場合は従来通りファイル名からのフォールバック描画を維持し、ブラシやフォントも適用。

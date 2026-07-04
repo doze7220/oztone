@@ -125,6 +125,13 @@ public:
     std::vector<std::wstring> GetShuffleList() const;
 
     /**
+     * @brief 現在のシャッフルリスト全体（次に再生される順番）のメタデータ一覧を取得する
+     * @return メタデータの配列
+     */
+    std::vector<TrackMetadata> GetShuffleMetadataList() const;
+
+
+    /**
      * @brief 現在および次周のシャッフルリストを初期化・生成する
      */
     void InitializeShuffle();

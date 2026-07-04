@@ -347,7 +347,7 @@ void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, s
     }
 }
 
-void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList) {
+void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList) {
     if (!m_d2dContext) return;
 
     m_d2dContext->BeginDraw();
@@ -367,7 +367,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHove
     ctx.volume = volume;
     ctx.currentTrackIndex = currentTrackIndex;
     ctx.totalTracks = totalTracks;
-    ctx.shuffleList = &shuffleList;
+    ctx.shuffleMetadataList = &shuffleMetadataList;
     ctx.dpiScale = m_dpiScale;
     ctx.controlAlpha = m_controlAlpha;
     ctx.timeString = m_lastTimeString;
