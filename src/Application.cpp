@@ -6,6 +6,12 @@
 Application::Application() {}
 
 Application::~Application() {
+    m_parseThreadRunning.store(false);
+    m_parseCV.notify_all();
+    if (m_parseThread.joinable()) {
+        m_parseThread.join();
+    }
+
     if (m_prefetchThread.joinable()) {
         m_prefetchThread.join();
     }
@@ -264,6 +270,20 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         }
     }
 
+    m_parseThreadRunning.store(true);
+    m_parseThread = std::thread(&Application::ParseThreadFunc, this);
+
+    auto unparsed = m_playlistManager.GetUnparsedTracks();
+    if (!unparsed.empty()) {
+        {
+            std::lock_guard<std::mutex> lock(m_parseMutex);
+            for (const auto& path : unparsed) {
+                m_parseQueue.push(path);
+            }
+        }
+        m_parseCV.notify_one();
+    }
+
     return true;
 }
 
@@ -365,6 +385,17 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
         }
         m_playlistManager.SaveToFile(defaultPath.wstring());
         m_playlistManager.ShuffleNextLoop();
+
+        auto unparsed = m_playlistManager.GetUnparsedTracks();
+        if (!unparsed.empty()) {
+            {
+                std::lock_guard<std::mutex> lock(m_parseMutex);
+                for (const auto& path : unparsed) {
+                    m_parseQueue.push(path);
+                }
+            }
+            m_parseCV.notify_one();
+        }
 
         if (wasEmpty && !m_audioPlayer.IsPlaying()) {
             size_t skipCount = 0;
@@ -559,6 +590,22 @@ void Application::PrefetchNextTrack() {
                 if (!artBytes.empty()) {
                     m_renderer.LoadBitmapFromMemory(artBytes, &m_prefetchedAlbumArt);
                 }
+
+                TrackMetadata currentMeta;
+                if (m_playlistManager.GetTrackMetadata(nextFile, currentMeta)) {
+                    bool needsUpdate = false;
+                    if (!currentMeta.isLoaded) {
+                        needsUpdate = true;
+                    } else if (currentMeta.title != m_prefetchedTitle || currentMeta.artist != m_prefetchedArtist) {
+                        needsUpdate = true;
+                    }
+                    
+                    if (needsUpdate) {
+                        m_playlistManager.UpdateMetadata(nextFile, m_prefetchedTitle, m_prefetchedArtist, m_tagManager.GetTimeString());
+                        std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
+                        m_playlistManager.SaveToFile(defaultPath);
+                    }
+                }
             } else {
                 try { m_prefetchedTitle = std::filesystem::path(nextFile).filename().wstring(); } catch(...) { m_prefetchedTitle = L"Unknown"; }
                 m_prefetchedArtist = L"---";
@@ -595,4 +642,48 @@ void Application::ClearPlaylist() {
     m_isPrefetchReady.store(false);
     m_renderer.SetTrackInfo(L"No Track", L"---");
     m_renderer.SetAlbumArt(nullptr);
+}
+
+void Application::ParseThreadFunc() {
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    TagManager localTagManager;
+
+    while (m_parseThreadRunning.load()) {
+        std::wstring targetPath;
+        {
+            std::unique_lock<std::mutex> lock(m_parseMutex);
+            m_parseCV.wait(lock, [this]() {
+                return !m_parseQueue.empty() || !m_parseThreadRunning.load();
+            });
+
+            if (!m_parseThreadRunning.load()) break;
+
+            targetPath = m_parseQueue.front();
+            m_parseQueue.pop();
+        }
+
+        if (m_playlistManager.IsTrackLoaded(targetPath)) {
+            continue;
+        }
+
+        if (localTagManager.Load(targetPath)) {
+            std::wstring title = localTagManager.GetTitle();
+            std::wstring artist = localTagManager.GetArtist();
+            std::wstring timeString = localTagManager.GetTimeString();
+            if (title.empty()) {
+                try { title = std::filesystem::path(targetPath).filename().wstring(); } catch(...) { title = L"Unknown"; }
+            }
+            if (artist.empty()) artist = L"---";
+            
+            m_playlistManager.UpdateMetadata(targetPath, title, artist, timeString);
+        } else {
+            std::wstring title;
+            try { title = std::filesystem::path(targetPath).filename().wstring(); } catch(...) { title = L"Unknown"; }
+            m_playlistManager.UpdateMetadata(targetPath, title, L"---", L"");
+        }
+    }
+
+    if (SUCCEEDED(hr)) {
+        CoUninitialize();
+    }
 }

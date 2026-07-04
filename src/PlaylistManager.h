@@ -67,6 +67,37 @@ public:
      */
     void LoadFromFile(const std::wstring& inPath);
 
+    /**
+     * @brief 特定のファイルパスのメタデータを更新し、解析済み(isLoaded = true)にする
+     * @param filepath 更新対象のファイルパス
+     * @param title タイトル
+     * @param artist アーティスト
+     * @param timeString 再生時間文字列
+     */
+    void UpdateMetadata(const std::wstring& filepath, const std::wstring& title, const std::wstring& artist, const std::wstring& timeString);
+
+    /**
+     * @brief 特定のファイルパスが解析済みかどうかを確認する
+     * @param filepath 確認対象のファイルパス
+     * @return 解析済みならtrue、未解析または存在しない場合はfalse
+     */
+    bool IsTrackLoaded(const std::wstring& filepath) const;
+
+    /**
+     * @brief 特定のファイルパスのメタデータを取得する
+     * @param filepath 取得対象のファイルパス
+     * @param outMeta 取得結果を格納する構造体
+     * @return 存在すればtrue、しなければfalse
+     */
+    bool GetTrackMetadata(const std::wstring& filepath, TrackMetadata& outMeta) const;
+
+
+    /**
+     * @brief 未解析(isLoaded == false)のファイルパス一覧を取得する
+     * @return ファイルパスの配列
+     */
+    std::vector<std::wstring> GetUnparsedTracks() const;
+
     bool IsEmpty() const;
 
     /**

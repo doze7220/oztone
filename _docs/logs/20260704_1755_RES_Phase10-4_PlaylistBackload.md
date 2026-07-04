@@ -53,10 +53,10 @@ struct TrackMetadata {
 *   **[x] Task 2: TSVキャッシュ機構の実装**
     *   `PlaylistManager::SaveToFile` を改修し、メタデータをタブ区切りで出力する。
     *   `PlaylistManager::LoadFromFile` を改修し、タブ区切りの行をパースして `TrackMetadata` を復元する処理を実装する。
-*   **[ ] Task 3: バックグラウンド解析スレッドの実装**
+*   **[x] Task 3: バックグラウンド解析スレッドの実装**
     *   `Application.h/cpp` にメタデータ解析専用のバックグラウンドスレッド (`m_parseThread`)、キュー (`m_parseQueue`)、起床用条件変数 (`std::condition_variable`) を追加する。
     *   キューに入った未解析の曲を順次 `TagManager` で読み込み、`PlaylistManager` を更新するスレッドループを実装する。
-*   **[ ] Task 4: PrefetchNextTrackへの自己修復ロジック導入**
+*   **[x] Task 4: PrefetchNextTrackへの自己修復ロジック導入**
     *   `Application::PrefetchNextTrack` 内で取得したタグ情報と、プレイリスト側のキャッシュ情報を比較するロジックを追加する。
     *   差異があった場合にプレイリスト情報を更新し、`PlaylistManager::SaveToFile` を呼び出して自動保存する。
 *   **[ ] Task 5: 動作確認とUI連携の調整**
@@ -77,3 +77,15 @@ struct TrackMetadata {
 * `PlaylistManager::SaveToFile` を改修し、`TrackMetadata` が解析済み(`isLoaded == true`)の場合は `filepath \t title \t artist \t timeString` の形式で出力し、未解析の場合は `filepath` のみを出力する処理を実装。
 * `PlaylistManager::LoadFromFile` を改修し、`std::wstringstream` と `std::getline(..., L'\t')` を用いて読み込んだ行をタブ区切りで堅牢にパースする処理を追加。
 * パース結果の要素数が4つ以上揃っている場合は、追加された曲の `TrackMetadata` をスレッドセーフに検索・更新（`title`, `artist`, `timeString` をセットして `isLoaded = true`）するフェイルセーフ機構を実装。古いフォーマット（要素数が足りない）場合は従来通りファイルパスのみを追加して未解析状態とするフォールバック処理も適用。
+
+### Task 3: バックグラウンド解析スレッドの実装
+* `PlaylistManager` に `UpdateMetadata`、`IsTrackLoaded`、`GetUnparsedTracks` の3つのメソッドを追加し、パス指定によるメタデータ更新や未解析トラックの取得をサポート。
+* `Application.h` にバックグラウンド解析スレッド関連のメンバ（`std::thread m_parseThread`, `std::mutex m_parseMutex`, `std::condition_variable m_parseCV`, `std::queue<std::wstring> m_parseQueue`, `std::atomic<bool> m_parseThreadRunning`）を追加。
+* `Application.cpp` に `ParseThreadFunc()` を実装。キューから取得したファイルパスに対し、スレッドローカルな `TagManager` を用いてタグ情報を読み込み、`PlaylistManager::UpdateMetadata` を呼び出して反映。すでに `isLoaded == true` の場合はスキップする処理を実装。
+* `Application::Initialize()` と `OnFilesDropped()` の末尾で `GetUnparsedTracks()` を呼び出し、未解析のトラックをキューに積んで `m_parseCV.notify_one()` でスレッドを起床させるロジックを実装。デストラクタでスレッドの終了と `join()` を適切に実行するよう追加。
+
+### Task 4: PrefetchNextTrackへの自己修復ロジック導入
+* `PlaylistManager.h/cpp` に `GetTrackMetadata` メソッドを追加し、特定のファイルパスに対するメタデータ情報をスレッドセーフに取得できるインターフェースを実装。
+* `Application::PrefetchNextTrack` メソッド内で、`TagManager` を用いて次曲のタグ情報を取得した直後に `PlaylistManager::GetTrackMetadata` で既存のキャッシュ情報を取得して比較する処理を追加。
+* 既存情報が未解析（`isLoaded == false`）であるか、あるいは取得した最新の `title` や `artist` と食い違いがある場合には、`PlaylistManager::UpdateMetadata` を呼び出して情報を上書き更新するロジックを導入。
+* 上書き更新が行われた場合は、直後に `PlaylistManager::SaveToFile` を呼び出してキャッシュファイル（`.lst`）を最新状態に自動修復するように実装。これにより、メインスレッドをブロックすることなくフェイルセーフなキャッシュ更新が可能となった。

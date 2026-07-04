@@ -2,6 +2,9 @@
 #include <windows.h>
 #include <atomic>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <queue>
 #include "Window.h"
 #include "ConfigManager.h"
 #include "Renderer.h"
@@ -59,6 +62,11 @@ private:
      */
     void OnFilesDropped(const std::vector<std::wstring>& paths);
 
+    /**
+     * @brief バックグラウンドでメタデータを解析するスレッドの関数
+     */
+    void ParseThreadFunc();
+
     ConfigManager m_config;
     Window m_window;
     Renderer m_renderer;
@@ -73,4 +81,11 @@ private:
     std::wstring m_prefetchedTitle;
     std::wstring m_prefetchedArtist;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_prefetchedAlbumArt;
+
+    // バックグラウンド解析データ
+    std::thread m_parseThread;
+    std::mutex m_parseMutex;
+    std::condition_variable m_parseCV;
+    std::queue<std::wstring> m_parseQueue;
+    std::atomic<bool> m_parseThreadRunning{false};
 };

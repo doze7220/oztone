@@ -209,6 +209,50 @@ bool PlaylistManager::IsEmpty() const {
     return m_playlist.empty();
 }
 
+void PlaylistManager::UpdateMetadata(const std::wstring& filepath, const std::wstring& title, const std::wstring& artist, const std::wstring& timeString) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    for (auto& item : m_playlist) {
+        if (item.filepath == filepath) {
+            item.title = title;
+            item.artist = artist;
+            item.timeString = timeString;
+            item.isLoaded = true;
+            break;
+        }
+    }
+}
+
+bool PlaylistManager::IsTrackLoaded(const std::wstring& filepath) const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    for (const auto& item : m_playlist) {
+        if (item.filepath == filepath) {
+            return item.isLoaded;
+        }
+    }
+    return false;
+}
+
+bool PlaylistManager::GetTrackMetadata(const std::wstring& filepath, TrackMetadata& outMeta) const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    for (const auto& item : m_playlist) {
+        if (item.filepath == filepath) {
+            outMeta = item;
+            return true;
+        }
+    }
+    return false;
+}
+
+std::vector<std::wstring> PlaylistManager::GetUnparsedTracks() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    std::vector<std::wstring> unparsed;
+    for (const auto& item : m_playlist) {
+        if (!item.isLoaded) {
+            unparsed.push_back(item.filepath);
+        }
+    }
+    return unparsed;
+}
 size_t PlaylistManager::GetCount() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_playlist.size();
