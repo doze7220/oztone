@@ -128,6 +128,7 @@ DefaultVolume=1.0
 VisualizerMode=2
 
 [Layout_Playlist]
+PlaylistPosition=1
 PlaylistHoverWidth=120
 PlaylistWidth=250
 PlaylistItemOffsetY=45
@@ -147,7 +148,6 @@ PlaylistTimeOffsetX=10
 PlaylistTimeOffsetY=25
 PlaylistTimeLetterSpacing=0.0
 PlaylistBgOpacity=0.8
-PlaylistPosition=1
 PlaylistGripOffset=5.0
 PlaylistGripLineWidth=1.0
 PlaylistGripLineColor=#AAAAAA
