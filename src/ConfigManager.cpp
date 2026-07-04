@@ -1070,6 +1070,13 @@ void ConfigManager::SetDefaultPlaylistPath(const std::wstring &path) {
                              m_iniFilePath.c_str());
 }
 
+void ConfigManager::SetPlaylistPosition(int position) {
+  m_playlistPosition = position;
+  WritePrivateProfileStringW(L"Layout_Playlist", L"PlaylistPosition",
+                             std::to_wstring(position).c_str(),
+                             m_iniFilePath.c_str());
+}
+
 std::vector<std::wstring> ConfigManager::GetAvailablePlaylists() const {
   std::vector<std::wstring> playlists;
   try {

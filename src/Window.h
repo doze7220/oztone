@@ -70,6 +70,7 @@ public:
     static constexpr UINT ID_LOGO_PIN_PLAYLIST = 3003;
     static constexpr UINT ID_LOGO_VISUALIZER = 3004;
     static constexpr UINT ID_LOGO_SHUFFLE = 3005;
+    static constexpr UINT ID_LOGO_PLAYLIST_POS = 3006;
 
     struct LogoMenuItem {
         int commandId;

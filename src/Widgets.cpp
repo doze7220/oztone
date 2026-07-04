@@ -353,6 +353,12 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
         textToDraw = L"VISUALIZER: HALO DUST";
       else
         textToDraw = L"VISUALIZER: OFF";
+    } else if (hoveredItem.commandId == Window::ID_LOGO_PLAYLIST_POS) {
+      if (config->GetPlaylistPosition() == 0) {
+        textToDraw = L"PLAYLIST POS: LEFT";
+      } else {
+        textToDraw = L"PLAYLIST POS: RIGHT";
+      }
     } else {
       textToDraw = hoveredItem.labelText;
     }

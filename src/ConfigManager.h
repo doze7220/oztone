@@ -212,6 +212,7 @@ public:
     float GetPlaylistBgOpacity() const { return m_playlistBgOpacity; }
 
     int GetPlaylistPosition() const { return m_playlistPosition; }
+    void SetPlaylistPosition(int position);
     float GetPlaylistGripOffset() const { return m_playlistGripOffset; }
     float GetPlaylistGripLineWidth() const { return m_playlistGripLineWidth; }
     std::wstring GetPlaylistGripLineColor() const { return m_playlistGripLineColor; }

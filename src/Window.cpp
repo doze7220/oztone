@@ -41,7 +41,8 @@ Window::Window()
        L"再生中の曲をプレイリストから削除する"},
       {ID_LOGO_PIN_PLAYLIST, L"📜", true, false, L"プレイリスト固定表示"},
       {ID_LOGO_VISUALIZER, L"🎆", true, false, L"ビジュアライザ表示切り替え"},
-      {ID_LOGO_SHUFFLE, L"🔀", true, false, L"シャッフル再生ON/OFF"}};
+      {ID_LOGO_SHUFFLE, L"🔀", true, false, L"シャッフル再生ON/OFF"},
+      {ID_LOGO_PLAYLIST_POS, L"↔️", false, false, L"プレイリストの配置場所切り替え"}};
 }
 
 Window::~Window() {
@@ -601,6 +602,11 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             }
           } else if (item.commandId == ID_LOGO_SHUFFLE) {
             // m_config->SetShuffleEnabled(item.toggleState);
+          } else if (item.commandId == ID_LOGO_PLAYLIST_POS) {
+            if (m_config) {
+              int newPos = m_config->GetPlaylistPosition() == 0 ? 1 : 0;
+              m_config->SetPlaylistPosition(newPos);
+            }
           }
           return 0;
         }
