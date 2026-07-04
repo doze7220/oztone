@@ -12,7 +12,7 @@
 #include <filesystem>
 
 
-Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_controlAlpha(0.0f), m_playlistSlideX(9999.0f) {}
+Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_controlAlpha(0.0f) {}
 
 Renderer::~Renderer() {}
 
@@ -144,8 +144,6 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_wicFactory));
     if (FAILED(hr)) return false;
 
-    if (!LoadBitmapResource(L"app_logo.png", IDI_APP_LOGO, &m_appLogoBitmap)) return false;
-    if (!LoadBitmapResource(L"app_logo_hover.png", IDI_APP_LOGO_HOVER, &m_appLogoHoverBitmap)) return false;
     if (!LoadBitmapResource(L"placeholder_art.png", IDI_PLACEHOLDER_ART, &m_placeholderArtBitmap)) return false;
 
     // 7. DirectWrite ファクトリの作成とテキストフォーマット・ブラシの初期化
@@ -156,308 +154,23 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     );
     if (FAILED(hr)) return false;
 
-    hr = m_dwriteFactory->CreateTextFormat(
-        m_config->GetTitleFontFamily().c_str(),
-        nullptr,
-        DWRITE_FONT_WEIGHT_BOLD,
-        DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL,
-        m_config->GetTitleFontSize(),
-        L"ja-jp",
-        &m_titleTextFormat
-    );
-    if (FAILED(hr)) return false;
-
-    hr = m_dwriteFactory->CreateTextFormat(
-        m_config->GetArtistFontFamily().c_str(),
-        nullptr,
-        DWRITE_FONT_WEIGHT_NORMAL,
-        DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL,
-        m_config->GetArtistFontSize(),
-        L"ja-jp",
-        &m_artistTextFormat
-    );
-    if (FAILED(hr)) return false;
-
-    hr = m_dwriteFactory->CreateTextFormat(
-        m_config->GetNextLabelFontFamily().c_str(),
-        nullptr,
-        DWRITE_FONT_WEIGHT_NORMAL,
-        DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL,
-        m_config->GetNextLabelFontSize(),
-        L"ja-jp",
-        &m_nextLabelTextFormat
-    );
-    if (FAILED(hr)) return false;
-
-    hr = m_dwriteFactory->CreateTextFormat(
-        m_config->GetNextTitleFontFamily().c_str(),
-        nullptr,
-        DWRITE_FONT_WEIGHT_BOLD,
-        DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL,
-        m_config->GetNextTitleFontSize(),
-        L"ja-jp",
-        &m_nextTitleTextFormat
-    );
-    if (FAILED(hr)) return false;
-
-    hr = m_dwriteFactory->CreateTextFormat(
-        m_config->GetNextArtistFontFamily().c_str(),
-        nullptr,
-        DWRITE_FONT_WEIGHT_NORMAL,
-        DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL,
-        m_config->GetNextArtistFontSize(),
-        L"ja-jp",
-        &m_nextArtistTextFormat
-    );
-    if (FAILED(hr)) return false;
-
-    hr = m_dwriteFactory->CreateTextFormat(
-        m_config->GetSeekBarTimeFontFamily().c_str(),
-        nullptr,
-        DWRITE_FONT_WEIGHT_NORMAL,
-        DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL,
-        m_config->GetSeekBarTimeFontSize(),
-        L"en-us",
-        &m_timeTextFormat
-    );
-    if (FAILED(hr)) return false;
-
-    hr = m_dwriteFactory->CreateTextFormat(
-        m_config->GetVolumeFontFamily().c_str(),
-        nullptr,
-        DWRITE_FONT_WEIGHT_NORMAL,
-        DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL,
-        m_config->GetVolumeFontSize(),
-        L"en-us",
-        &m_volumeTextFormat
-    );
-    if (FAILED(hr)) return false;
-
-    hr = m_dwriteFactory->CreateTextFormat(
-        m_config->GetTrackCountFontFamily().c_str(),
-        nullptr,
-        DWRITE_FONT_WEIGHT_NORMAL,
-        DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL,
-        m_config->GetTrackCountFontSize(),
-        L"en-us",
-        &m_trackCountTextFormat
-    );
-    if (FAILED(hr)) return false;
-
-    hr = m_dwriteFactory->CreateTextFormat(
-        m_config->GetPlaylistTitleFontFamily().c_str(),
-        nullptr,
-        DWRITE_FONT_WEIGHT_BOLD,
-        DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL,
-        m_config->GetPlaylistTitleFontSize(),
-        L"ja-jp",
-        &m_playlistTitleTextFormat
-    );
-    if (FAILED(hr)) return false;
-
-    hr = m_dwriteFactory->CreateTextFormat(
-        m_config->GetPlaylistArtistFontFamily().c_str(),
-        nullptr,
-        DWRITE_FONT_WEIGHT_NORMAL,
-        DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL,
-        m_config->GetPlaylistArtistFontSize(),
-        L"ja-jp",
-        &m_playlistArtistTextFormat
-    );
-    if (FAILED(hr)) return false;
-
-    hr = m_dwriteFactory->CreateTextFormat(
-        m_config->GetPlaylistTimeFontFamily().c_str(),
-        nullptr,
-        DWRITE_FONT_WEIGHT_NORMAL,
-        DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL,
-        m_config->GetPlaylistTimeFontSize(),
-        L"en-us",
-        &m_playlistTimeTextFormat
-    );
-    if (FAILED(hr)) return false;
-
-    // 7.5 テキストトリミングの設定
-    auto ApplyTrimming = [&](Microsoft::WRL::ComPtr<IDWriteTextFormat>& format) {
-        if (!format) return;
-        DWRITE_TRIMMING trimmingOptions = { DWRITE_TRIMMING_GRANULARITY_CHARACTER, 0, 0 };
-        Microsoft::WRL::ComPtr<IDWriteInlineObject> ellipsis;
-        HRESULT hrTrim = m_dwriteFactory->CreateEllipsisTrimmingSign(format.Get(), &ellipsis);
-        if (SUCCEEDED(hrTrim)) {
-            format->SetTrimming(&trimmingOptions, ellipsis.Get());
-            format->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
-        }
-    };
-    ApplyTrimming(m_titleTextFormat);
-    ApplyTrimming(m_artistTextFormat);
-    ApplyTrimming(m_timeTextFormat);
-    ApplyTrimming(m_nextLabelTextFormat);
-    ApplyTrimming(m_nextTitleTextFormat);
-    ApplyTrimming(m_nextArtistTextFormat);
-    ApplyTrimming(m_trackCountTextFormat);
-    ApplyTrimming(m_playlistTitleTextFormat);
-    ApplyTrimming(m_playlistArtistTextFormat);
-    ApplyTrimming(m_playlistTimeTextFormat);
-
-    hr = m_timeTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
-    if (FAILED(hr)) return false;
-    hr = m_timeTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-    if (FAILED(hr)) return false;
-
-    hr = m_trackCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
-    if (FAILED(hr)) return false;
-
-    hr = m_playlistTimeTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
-    if (FAILED(hr)) return false;
-
-    // HEXから D2D1_COLOR_F への変換ラムダ
-    auto ParseHexColor = [](const std::wstring& hexColor) -> D2D1_COLOR_F {
-        if (hexColor.empty() || hexColor[0] != L'#') return D2D1::ColorF(D2D1::ColorF::White);
-        try {
-            unsigned int hexValue = std::stoul(hexColor.substr(1), nullptr, 16);
-            if (hexColor.length() == 7) { // #RRGGBB
-                return D2D1::ColorF(
-                    ((hexValue >> 16) & 0xFF) / 255.0f,
-                    ((hexValue >> 8) & 0xFF) / 255.0f,
-                    (hexValue & 0xFF) / 255.0f
-                );
-            }
-        } catch (...) {}
-        return D2D1::ColorF(D2D1::ColorF::White);
-    };
-
-    hr = m_d2dContext->CreateSolidColorBrush(ParseHexColor(m_config->GetPlaylistArtistColor()), &m_playlistArtistBrush);
-    if (FAILED(hr)) return false;
-
-    hr = m_d2dContext->CreateSolidColorBrush(ParseHexColor(m_config->GetPlaylistTimeColor()), &m_playlistTimeBrush);
-    if (FAILED(hr)) return false;
-
-    hr = m_d2dContext->CreateSolidColorBrush(
-        D2D1::ColorF(D2D1::ColorF::White),
-        &m_textBrush
-    );
-    if (FAILED(hr)) return false;
-
-    hr = m_d2dContext->CreateSolidColorBrush(
-        D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f),
-        &m_shadowBrush
-    );
-    if (FAILED(hr)) return false;
-
-    hr = m_d2dContext->CreateEffect(CLSID_D2D1Shadow, &m_shadowEffect);
-    if (FAILED(hr)) return false;
-
-    D2D1_COLOR_F gripLineColor = ParseHexColor(m_config->GetPlaylistGripLineColor());
-    hr = m_d2dContext->CreateSolidColorBrush(gripLineColor, &m_playlistGripLineBrush);
-    if (FAILED(hr)) return false;
-
-    D2D1_COLOR_F gripArrowColor = ParseHexColor(m_config->GetPlaylistGripArrowColor());
-    hr = m_d2dContext->CreateSolidColorBrush(gripArrowColor, &m_playlistGripArrowBrush);
-    if (FAILED(hr)) return false;
-
-    hr = m_d2dFactory->CreatePathGeometry(&m_playlistGripArrowGeometry);
-    if (SUCCEEDED(hr)) {
-        Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
-        hr = m_playlistGripArrowGeometry->Open(&sink);
-        if (SUCCEEDED(hr)) {
-            float width = m_config->GetPlaylistGripArrowWidth();
-            float height = m_config->GetPlaylistGripArrowHeight();
-            
-            sink->BeginFigure(D2D1::Point2F(0.0f, -height / 2.0f), D2D1_FIGURE_BEGIN_FILLED);
-            sink->AddLine(D2D1::Point2F(-width, 0.0f));
-            sink->AddLine(D2D1::Point2F(0.0f, height / 2.0f));
-            sink->EndFigure(D2D1_FIGURE_END_CLOSED);
-            sink->Close();
-        }
-    }
-
-    // キャッシュブラシ群の初期化
     hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f), &m_bgDarkenBrush);
     if (FAILED(hr)) return false;
     hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f), &m_fallbackBlackBrush);
     if (FAILED(hr)) return false;
-    hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_seekBarBgBrush);
-    if (FAILED(hr)) return false;
-    hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_seekBarFgBrush);
-    if (FAILED(hr)) return false;
-    hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_controlBrush);
-    if (FAILED(hr)) return false;
-    hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f), &m_playlistBgBrush);
-    if (FAILED(hr)) return false;
-    hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_playlistHighlightBrush);
-    if (FAILED(hr)) return false;
-    hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_resizeGripBrush);
-    if (FAILED(hr)) return false;
-
-    // キャッシュジオメトリ群の初期化
-    hr = m_d2dFactory->CreatePathGeometry(&m_playIconGeometry);
-    if (SUCCEEDED(hr)) {
-        Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
-        m_playIconGeometry->Open(&sink);
-        sink->SetFillMode(D2D1_FILL_MODE_WINDING);
-        sink->BeginFigure(D2D1::Point2F(-0.5f, -0.5f), D2D1_FIGURE_BEGIN_FILLED);
-        sink->AddLine(D2D1::Point2F(0.5f, 0.0f));
-        sink->AddLine(D2D1::Point2F(-0.5f, 0.5f));
-        sink->EndFigure(D2D1_FIGURE_END_CLOSED);
-        sink->Close();
-    }
-
-    hr = m_d2dFactory->CreatePathGeometry(&m_prevIconGeometry);
-    if (SUCCEEDED(hr)) {
-        Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
-        m_prevIconGeometry->Open(&sink);
-        sink->SetFillMode(D2D1_FILL_MODE_WINDING);
-        sink->BeginFigure(D2D1::Point2F(0.5f, -0.5f), D2D1_FIGURE_BEGIN_FILLED);
-        sink->AddLine(D2D1::Point2F(-0.5f, 0.0f));
-        sink->AddLine(D2D1::Point2F(0.5f, 0.5f));
-        sink->EndFigure(D2D1_FIGURE_END_CLOSED);
-        sink->Close();
-    }
-
-    hr = m_d2dFactory->CreatePathGeometry(&m_speakerIconGeometry);
-    if (SUCCEEDED(hr)) {
-        Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
-        m_speakerIconGeometry->Open(&sink);
-        sink->SetFillMode(D2D1_FILL_MODE_WINDING);
-        // rect
-        sink->BeginFigure(D2D1::Point2F(0.0f, -0.2f), D2D1_FIGURE_BEGIN_FILLED);
-        sink->AddLine(D2D1::Point2F(0.4f, -0.2f));
-        sink->AddLine(D2D1::Point2F(0.4f, 0.2f));
-        sink->AddLine(D2D1::Point2F(0.0f, 0.2f));
-        sink->EndFigure(D2D1_FIGURE_END_CLOSED);
-        // cone
-        sink->BeginFigure(D2D1::Point2F(0.4f, -0.2f), D2D1_FIGURE_BEGIN_FILLED);
-        sink->AddLine(D2D1::Point2F(0.8f, -0.5f));
-        sink->AddLine(D2D1::Point2F(0.8f, 0.5f));
-        sink->AddLine(D2D1::Point2F(0.4f, 0.2f));
-        sink->EndFigure(D2D1_FIGURE_END_CLOSED);
-        sink->Close();
-    }
-
-    hr = m_d2dFactory->CreatePathGeometry(&m_resizeGripGeometry);
-    if (SUCCEEDED(hr)) {
-        Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
-        m_resizeGripGeometry->Open(&sink);
-        sink->SetFillMode(D2D1_FILL_MODE_WINDING);
-        sink->BeginFigure(D2D1::Point2F(0.0f, -15.0f), D2D1_FIGURE_BEGIN_FILLED);
-        sink->AddLine(D2D1::Point2F(0.0f, 0.0f));
-        sink->AddLine(D2D1::Point2F(-15.0f, 0.0f));
-        sink->EndFigure(D2D1_FIGURE_END_CLOSED);
-        sink->Close();
-    }
-
     m_visualizer.SetConfig(m_config);
+    m_widgets.clear();
+    m_widgets.push_back(std::make_unique<AppLogoWidget>());
+    m_widgets.push_back(std::make_unique<TrackInfoWidget>());
+    m_widgets.push_back(std::make_unique<NextTrackWidget>());
+    m_widgets.push_back(std::make_unique<SeekBarWidget>());
+    m_widgets.push_back(std::make_unique<PlaybackControlsWidget>());
+    m_widgets.push_back(std::make_unique<VolumeControlWidget>());
+    m_widgets.push_back(std::make_unique<PlaylistWidget>());
+    m_widgets.push_back(std::make_unique<ResizeGripWidget>());
+    for (auto& widget : m_widgets) {
+        widget->CreateResources(m_d2dContext.Get(), m_wicFactory.Get(), m_dwriteFactory.Get(), m_config);
+    }
 
     return true;
 
@@ -593,14 +306,6 @@ bool Renderer::LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitma
     return true;
 }
 
-void Renderer::AddPlaylistScroll(float delta) {
-    m_playlistManualScrollY += delta;
-}
-
-float Renderer::GetPlaylistManualScrollY() const {
-    return m_playlistManualScrollY;
-}
-
 void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPlaylistHovered, size_t currentTrackIndex, size_t totalTracks) {
     if (isControlHovered) {
         m_controlAlpha += 0.05f;
@@ -610,144 +315,32 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPl
         if (m_controlAlpha < 0.0f) m_controlAlpha = 0.0f;
     }
 
-    if (m_config) {
-        float configPlaylistWidth = static_cast<float>(m_config->GetPlaylistWidth());
-        if (m_playlistSlideX > configPlaylistWidth * 2.0f) m_playlistSlideX = configPlaylistWidth;
-
-        float targetSlideX = isPlaylistHovered ? 0.0f : configPlaylistWidth;
-        m_playlistSlideX += (targetSlideX - m_playlistSlideX) * 0.2f;
-
-        if (!isPlaylistHovered) {
-            m_playlistManualScrollY = 0.0f;
-        } else if (m_d2dContext) {
-            D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-            float logicWidth = renderTargetSize.width / m_dpiScale;
-            float logicHeight = renderTargetSize.height / m_dpiScale;
-            
-            PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
-                logicWidth, logicHeight, m_config, m_playlistSlideX, m_playlistManualScrollY, currentTrackIndex, totalTracks);
-            m_playlistManualScrollY = layout.newManualScrollY;
-        }
+    WidgetContext ctx = {};
+    ctx.deltaTime = deltaTime;
+    ctx.isControlHovered = isControlHovered;
+    ctx.isPlaylistHovered = isPlaylistHovered;
+    ctx.currentTrackIndex = currentTrackIndex;
+    ctx.totalTracks = totalTracks;
+    
+    for (auto& widget : m_widgets) {
+        widget->UpdateAnimation(ctx);
     }
 }
 
 void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, size_t currentTrackIndex, size_t totalTracks) {
-    if (!m_d2dContext || !m_dwriteFactory) return;
-
-    bool rebuildTime = m_forceTextLayoutUpdate || !m_timeTextLayout || (m_lastTimeString != timeString);
-    bool rebuildVolume = m_forceTextLayoutUpdate || !m_volTextLayout || (m_lastVolume != volume);
-    bool rebuildTrackCount = m_forceTextLayoutUpdate || !m_trackCountTextLayout || (m_lastCurrentTrackIndex != currentTrackIndex) || (m_lastTotalTracks != totalTracks);
-    bool rebuildPlaylistTime = m_forceTextLayoutUpdate || !m_playlistTimeTextLayout;
-
     m_lastTimeString = timeString;
     m_lastVolume = volume;
     m_lastCurrentTrackIndex = currentTrackIndex;
     m_lastTotalTracks = totalTracks;
-    m_forceTextLayoutUpdate = false;
-
-    D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
-    float logicWidth = rtSize.width / m_dpiScale;
-    float logicHeight = rtSize.height / m_dpiScale;
-
-    if (rebuildTime) {
-        SeekBarLayout layout = LayoutCalculator::CalculateSeekBarLayout(logicWidth, logicHeight, m_config, 0.0f);
-        m_timeTextLayout.Reset();
-        HRESULT hr = m_dwriteFactory->CreateTextLayout(
-            timeString.c_str(),
-            static_cast<UINT32>(timeString.length()),
-            m_timeTextFormat.Get(),
-            layout.textMaxWidth,
-            layout.textMaxHeight,
-            &m_timeTextLayout
-        );
-        if (SUCCEEDED(hr)) {
-            Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
-            if (SUCCEEDED(m_timeTextLayout.As(&textLayout1))) {
-                DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(timeString.length())};
-                textLayout1->SetCharacterSpacing(0.0f, m_config->GetSeekBarTimeLetterSpacing(), 0.0f, textRange);
-            }
-        }
-    }
-
-    if (rebuildVolume) {
-        VolumeControlLayout layout = LayoutCalculator::CalculateVolumeControlLayout(logicWidth, logicHeight, m_config);
-        int volPercent = static_cast<int>(volume * 100.0f + 0.5f);
-        wchar_t volBuf[16];
-        swprintf_s(volBuf, L"%d%%", volPercent);
-        
-        m_volTextLayout.Reset();
-        if (m_volumeTextFormat) {
-            float letterSpacing = m_config->GetVolumeTextLetterSpacing();
-            HRESULT hr = m_dwriteFactory->CreateTextLayout(
-                volBuf,
-                static_cast<UINT32>(wcslen(volBuf)),
-                m_volumeTextFormat.Get(),
-                layout.textMaxWidth,
-                layout.textMaxHeight,
-                &m_volTextLayout
-            );
-            if (SUCCEEDED(hr) && letterSpacing != 0.0f) {
-                Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
-                if (SUCCEEDED(m_volTextLayout.As(&textLayout1))) {
-                    DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(wcslen(volBuf))};
-                    textLayout1->SetCharacterSpacing(0.0f, letterSpacing, 0.0f, textRange);
-                }
-            }
-        }
-    }
-
-    if (rebuildTrackCount) {
-        PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
-            logicWidth, logicHeight, m_config, 0.0f, 0.0f, currentTrackIndex, totalTracks);
-            
-        wchar_t trackCountBuf[64];
-        if (totalTracks == 0) {
-            swprintf_s(trackCountBuf, L"TRACK ---/---");
-        } else {
-            swprintf_s(trackCountBuf, L"TRACK %zu/%zu", currentTrackIndex + 1, totalTracks);
-        }
-        std::wstring trackCountStr(trackCountBuf);
-        
-        m_trackCountTextLayout.Reset();
-        HRESULT hr = m_dwriteFactory->CreateTextLayout(
-            trackCountStr.c_str(),
-            static_cast<UINT32>(trackCountStr.length()),
-            m_trackCountTextFormat.Get(),
-            layout.trackCountMaxWidth,
-            layout.trackCountMaxHeight,
-            &m_trackCountTextLayout
-        );
-        if (SUCCEEDED(hr)) {
-            Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
-            if (SUCCEEDED(m_trackCountTextLayout.As(&textLayout1))) {
-                DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(trackCountStr.length())};
-                textLayout1->SetCharacterSpacing(0.0f, m_config->GetTrackCountLetterSpacing(), 0.0f, textRange);
-            }
-        }
-    }
-
-    if (rebuildPlaylistTime) {
-        PlaylistLayout listLayout = LayoutCalculator::CalculatePlaylistLayout(
-            logicWidth, logicHeight, m_config, 0.0f, 0.0f, currentTrackIndex, totalTracks);
-        PlaylistItemLayout itemLayout = LayoutCalculator::CalculatePlaylistItemLayout(listLayout, m_config, 0.0f);
-        std::wstring timeStr = L"00:00";
-        
-        m_playlistTimeTextLayout.Reset();
-        HRESULT hr = m_dwriteFactory->CreateTextLayout(
-            timeStr.c_str(),
-            static_cast<UINT32>(timeStr.length()),
-            m_playlistTimeTextFormat.Get(),
-            itemLayout.timeMaxWidth,
-            itemLayout.timeMaxHeight,
-            &m_playlistTimeTextLayout
-        );
-        if (SUCCEEDED(hr)) {
-            Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
-            if (SUCCEEDED(m_playlistTimeTextLayout.As(&textLayout1))) {
-                DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(timeStr.length())};
-                textLayout1->SetCharacterSpacing(0.0f, m_config->GetPlaylistTimeLetterSpacing(), 0.0f, textRange);
-            }
-        }
+    
+    WidgetContext ctx = {};
+    ctx.timeString = timeString;
+    ctx.volume = volume;
+    ctx.currentTrackIndex = currentTrackIndex;
+    ctx.totalTracks = totalTracks;
+    
+    for (auto& widget : m_widgets) {
+        widget->UpdateLayout(ctx, m_config);
     }
 }
 
@@ -755,48 +348,40 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHove
     if (!m_d2dContext) return;
 
     m_d2dContext->BeginDraw();
-    
-    // DPIスケールを適用（論理ピクセルから物理ピクセルへの変換）
     m_d2dContext->SetTransform(D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
-    
-    // 1. 画面全体を黒でクリア
     m_d2dContext->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
     
-    // 2. 背景アルバムアートの描画 (Cover)
     DrawBackground();
-
-    // 2.5 7色ネオン心電図ビジュアライザの描画
     DrawVisualizer(spectrum);
 
-    // 3. アイコンの描画
-    DrawAppLogo(isHovered);
+    WidgetContext ctx = {};
+    ctx.isHovered = isHovered;
+    ctx.isControlHovered = isControlHovered;
+    ctx.isPlaylistHovered = isPlaylistHovered;
+    ctx.isPlaying = isPlaying;
+    ctx.progress = progress;
+    ctx.spectrum = &spectrum;
+    ctx.volume = volume;
+    ctx.currentTrackIndex = currentTrackIndex;
+    ctx.totalTracks = totalTracks;
+    ctx.shuffleList = &shuffleList;
+    ctx.dpiScale = m_dpiScale;
+    ctx.controlAlpha = m_controlAlpha;
+    ctx.timeString = m_lastTimeString;
+    ctx.trackTitle = m_trackTitle;
+    ctx.trackArtist = m_trackArtist;
+    ctx.currentArtBitmap = m_currentArtBitmap.Get();
+    ctx.nextIsReady = m_nextIsReady;
+    ctx.nextTrackTitle = m_nextTrackTitle;
+    ctx.nextTrackArtist = m_nextTrackArtist;
+    ctx.nextArtBitmap = m_nextArtBitmap.Get();
 
-    // 4. 左下アルバムアートの描画
-    // 5. 曲情報テキストの描画
-    DrawTrackInfo();
-
-    // 6. シークバーと時間テキストの描画
-    D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
-    DrawSeekBar(progress, rtSize.width / m_dpiScale, rtSize.height / m_dpiScale);
-
-    // 7. 「次の曲」表示の描画
-    DrawNextTrack();
-
-    // 8. 再生コントロールの描画
-
-    DrawPlaybackControls(isPlaying);
-    DrawVolumeControl(volume);
-
-    // 9. プレイリスト TRACK XXX/XXX と スライドインUI
-    DrawPlaylist(isPlaylistHovered, currentTrackIndex, totalTracks, shuffleList);
-
-    // 10. ウィンドウリサイズ用のグリップ（右下）
-    DrawResizeGrip();
+    for (auto& widget : m_widgets) {
+        widget->Draw(m_d2dContext.Get(), ctx, m_config);
+    }
 
     HRESULT hr = m_d2dContext->EndDraw();
-
     if (SUCCEEDED(hr) || hr == D2DERR_RECREATE_TARGET) {
-        // VSync同期でPresent (1)
         m_swapChain->Present(1, 0);
     }
 }
@@ -873,483 +458,17 @@ void Renderer::DrawVisualizer(const std::vector<float>& spectrum) {
     }
 }
 
-void Renderer::DrawAppLogo(bool isHovered) {
 
-ID2D1Bitmap* bitmapToDraw = isHovered ? m_appLogoHoverBitmap.Get() : m_appLogoBitmap.Get();
-if (m_config && m_config->GetShowAppLogo() && bitmapToDraw) {
-    AppLogoLayout layout = LayoutCalculator::CalculateAppLogoLayout(m_config);
-    
-    if (m_shadowEffect && m_config->GetEnableShadow()) {
-        m_shadowEffect->SetInput(0, bitmapToDraw);
-        m_shadowEffect->SetValue(D2D1_SHADOW_PROP_COLOR, D2D1::Vector4F(0.0f, 0.0f, 0.0f, m_config->GetShadowOpacity()));
-        m_d2dContext->DrawImage(m_shadowEffect.Get(), &layout.shadowOffset, nullptr, D2D1_INTERPOLATION_MODE_LINEAR, D2D1_COMPOSITE_MODE_SOURCE_OVER);
-    }
-
-    m_d2dContext->DrawBitmap(bitmapToDraw, &layout.destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
-
-}
-
-
-}
-
-void Renderer::DrawTrackInfo() {
-// 4. 左下アルバムアートの描画
-if (m_config && m_config->GetShowNowPlaying()) {
-    D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
-    float logicWidth = rtSize.width / m_dpiScale;
-    float logicHeight = rtSize.height / m_dpiScale;
-    
-    D2D1_SIZE_F bitmapSize = m_currentArtBitmap ? m_currentArtBitmap->GetSize() : D2D1::SizeF(0.0f, 0.0f);
-    TrackInfoLayout layout = LayoutCalculator::CalculateTrackInfoLayout(logicWidth, logicHeight, m_config, bitmapSize);
-
-    if (m_currentArtBitmap) {
-        if (m_shadowBrush && m_config->GetEnableShadow()) {
-            m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-            m_d2dContext->FillRectangle(&layout.artShadowRect, m_shadowBrush.Get());
-        }
-
-        m_d2dContext->DrawBitmap(
-            m_currentArtBitmap.Get(),
-            &layout.artDestRect,
-            1.0f,
-            D2D1_BITMAP_INTERPOLATION_MODE_LINEAR
-        );
-    } else {
-        // 正規の画像がない場合は黒い板を描画
-        if (m_fallbackBlackBrush) {
-            m_fallbackBlackBrush->SetOpacity(m_config->GetFallbackArtOpacity());
-            m_d2dContext->FillRectangle(&layout.fallbackArtRect, m_fallbackBlackBrush.Get());
-        }
-    }
-
-// 5. 曲情報テキストの描画
-if (m_config && m_config->GetShowNowPlaying() && m_textBrush && m_titleTextFormat && m_artistTextFormat) {
-    // 曲名描画
-    if (m_shadowBrush && m_config->GetEnableShadow()) {
-        m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-        m_d2dContext->DrawText(
-            m_trackTitle.c_str(),
-            static_cast<UINT32>(m_trackTitle.length()),
-            m_titleTextFormat.Get(),
-            &layout.titleShadowRect,
-            m_shadowBrush.Get()
-        );
-    }
-
-    m_d2dContext->DrawText(
-        m_trackTitle.c_str(),
-        static_cast<UINT32>(m_trackTitle.length()),
-        m_titleTextFormat.Get(),
-        &layout.titleRect,
-        m_textBrush.Get()
-    );
-
-    // アーティスト名描画
-    if (m_shadowBrush && m_config->GetEnableShadow()) {
-        m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-        m_d2dContext->DrawText(
-            m_trackArtist.c_str(),
-            static_cast<UINT32>(m_trackArtist.length()),
-            m_artistTextFormat.Get(),
-            &layout.artistShadowRect,
-            m_shadowBrush.Get()
-        );
-    }
-
-    m_d2dContext->DrawText(
-        m_trackArtist.c_str(),
-        static_cast<UINT32>(m_trackArtist.length()),
-        m_artistTextFormat.Get(),
-        &layout.artistRect,
-        m_textBrush.Get()
-    );
-
-}
-
-}
-
-}
-
-void Renderer::DrawNextTrack() {
-if (m_config && m_config->GetShowNextTrack() && m_config->GetEnableNextTrack() && m_textBrush && m_nextTitleTextFormat && m_nextArtistTextFormat) {
-    D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-    float logicWidth = renderTargetSize.width / m_dpiScale;
-    float logicHeight = renderTargetSize.height / m_dpiScale;
-
-    D2D1_SIZE_F bitmapSize = m_nextArtBitmap ? m_nextArtBitmap->GetSize() : D2D1::SizeF(0.0f, 0.0f);
-    NextTrackLayout layout = LayoutCalculator::CalculateNextTrackLayout(logicWidth, logicHeight, m_config, bitmapSize);
-
-    if (m_nextLabelTextFormat) {
-        std::wstring labelText = L"Next Track";
-        if (m_shadowBrush && m_config->GetEnableShadow()) {
-            m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-            m_d2dContext->DrawText(
-                labelText.c_str(),
-                static_cast<UINT32>(labelText.length()),
-                m_nextLabelTextFormat.Get(),
-                &layout.labelShadowRect,
-                m_shadowBrush.Get()
-            );
-        }
-
-        m_d2dContext->DrawText(
-            labelText.c_str(),
-            static_cast<UINT32>(labelText.length()),
-            m_nextLabelTextFormat.Get(),
-            &layout.labelRect,
-            m_textBrush.Get()
-        );
-    }
-
-    if (!m_nextIsReady) {
-        // ロード中
-        if (m_fallbackBlackBrush) {
-            m_fallbackBlackBrush->SetOpacity(m_config->GetNextFallbackArtOpacity());
-            m_d2dContext->FillRectangle(&layout.fallbackArtRect, m_fallbackBlackBrush.Get());
-        }
-
-        std::wstring loadingText = L"Loading...";
-        if (m_shadowBrush && m_config->GetEnableShadow()) {
-            m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-            m_d2dContext->DrawText(
-                loadingText.c_str(),
-                static_cast<UINT32>(loadingText.length()),
-                m_nextTitleTextFormat.Get(),
-                &layout.titleShadowRect,
-                m_shadowBrush.Get()
-            );
-        }
-
-        m_d2dContext->DrawText(
-            loadingText.c_str(),
-            static_cast<UINT32>(loadingText.length()),
-            m_nextTitleTextFormat.Get(),
-            &layout.titleRect,
-            m_textBrush.Get()
-        );
-
-    } else {
-        // ロード完了
-        if (m_nextArtBitmap) {
-            if (m_shadowBrush && m_config->GetEnableShadow()) {
-                m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-                m_d2dContext->FillRectangle(&layout.artShadowRect, m_shadowBrush.Get());
-            }
-
-            m_d2dContext->DrawBitmap(
-                m_nextArtBitmap.Get(),
-                &layout.artDestRect,
-                1.0f,
-                D2D1_BITMAP_INTERPOLATION_MODE_LINEAR
-            );
-        } else {
-            if (m_fallbackBlackBrush) {
-                m_fallbackBlackBrush->SetOpacity(m_config->GetNextFallbackArtOpacity());
-                m_d2dContext->FillRectangle(&layout.fallbackArtRect, m_fallbackBlackBrush.Get());
-            }
-        }
-
-        // Next曲名テキスト描画
-        std::wstring nextText = m_nextTrackTitle;
-        if (m_shadowBrush && m_config->GetEnableShadow()) {
-            m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-            m_d2dContext->DrawText(
-                nextText.c_str(),
-                static_cast<UINT32>(nextText.length()),
-                m_nextTitleTextFormat.Get(),
-                &layout.titleShadowRect,
-                m_shadowBrush.Get()
-            );
-        }
-
-        m_d2dContext->DrawText(
-            nextText.c_str(),
-            static_cast<UINT32>(nextText.length()),
-            m_nextTitleTextFormat.Get(),
-            &layout.titleRect,
-            m_textBrush.Get()
-        );
-
-        // Nextアーティスト名テキスト描画
-        if (m_shadowBrush && m_config->GetEnableShadow()) {
-            m_shadowBrush->SetOpacity(m_config->GetShadowOpacity());
-            m_d2dContext->DrawText(
-                m_nextTrackArtist.c_str(),
-                static_cast<UINT32>(m_nextTrackArtist.length()),
-                m_nextArtistTextFormat.Get(),
-                &layout.artistShadowRect,
-                m_shadowBrush.Get()
-            );
-        }
-
-        m_d2dContext->DrawText(
-            m_nextTrackArtist.c_str(),
-            static_cast<UINT32>(m_nextTrackArtist.length()),
-            m_nextArtistTextFormat.Get(),
-            &layout.artistRect,
-            m_textBrush.Get()
-        );
+void Renderer::AddPlaylistScroll(float delta) {
+    for (auto& widget : m_widgets) {
+        widget->AddScroll(delta);
     }
 }
 
-}
-
-void Renderer::DrawSeekBar(float progress, float logicWidth, float logicHeight) {
-    if (m_config && m_config->GetShowSeekBar() && m_textBrush && m_timeTextFormat) {
-    SeekBarLayout layout = LayoutCalculator::CalculateSeekBarLayout(logicWidth, logicHeight, m_config, progress);
-
-    float dimFactor = 1.0f - (m_controlAlpha * 0.5f);
-
-    // シークバーの背景 (BgOpacity)
-    if (m_seekBarBgBrush) {
-        m_seekBarBgBrush->SetOpacity(m_config->GetSeekBarBgOpacity() * dimFactor);
-        m_d2dContext->FillRectangle(&layout.bgRect, m_seekBarBgBrush.Get());
+float Renderer::GetPlaylistManualScrollY() const {
+    float scrollY = 0.0f;
+    for (auto& widget : m_widgets) {
+        scrollY += widget->GetScrollY();
     }
-
-    // シークバーの現在位置および時間テキストのブラシ
-    if (m_seekBarFgBrush) {
-        m_seekBarFgBrush->SetOpacity(dimFactor);
-        m_d2dContext->FillRectangle(&layout.fgRect, m_seekBarFgBrush.Get());
-    }
-
-    // 時間テキストの描画
-    if (m_timeTextLayout) {
-        m_d2dContext->DrawTextLayout(
-            layout.textOrigin,
-            m_timeTextLayout.Get(),
-            m_seekBarFgBrush ? m_seekBarFgBrush.Get() : m_textBrush.Get(),
-            D2D1_DRAW_TEXT_OPTIONS_NONE
-        );
-    }
+    return scrollY;
 }
-
-}
-
-void Renderer::DrawPlaybackControls(bool isPlaying) {
-    if (m_controlAlpha <= 0.0f || !m_config || !m_config->GetShowPlaybackControls()) return;
-
-    D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-    float logicWidth = renderTargetSize.width / m_dpiScale;
-    float logicHeight = renderTargetSize.height / m_dpiScale;
-
-    PlaybackControlsLayout layout = LayoutCalculator::CalculatePlaybackControlsLayout(logicWidth, logicHeight, m_config);
-    
-    if (m_controlBrush) {
-        m_controlBrush->SetOpacity(m_controlAlpha);
-        auto DrawTriangle = [&](float cx, float cy, float w, float h, bool right) {
-            D2D1_MATRIX_3X2_F oldTransform;
-            m_d2dContext->GetTransform(&oldTransform);
-            m_d2dContext->SetTransform(D2D1::Matrix3x2F::Scale(w, h) * D2D1::Matrix3x2F::Translation(cx, cy) * oldTransform);
-            m_d2dContext->FillGeometry(right ? m_playIconGeometry.Get() : m_prevIconGeometry.Get(), m_controlBrush.Get());
-            m_d2dContext->SetTransform(oldTransform);
-        };
-
-        auto DrawRect = [&](float cx, float cy, float w, float h) {
-            D2D1_RECT_F rect = D2D1::RectF(cx - w/2, cy - h/2, cx + w/2, cy + h/2);
-            m_d2dContext->FillRectangle(rect, m_controlBrush.Get());
-        };
-
-        // Previous Button (⏮)
-        float prevX = layout.centerX - layout.spacing;
-        DrawRect(prevX - layout.half + layout.size*0.1f, layout.centerY, layout.size*0.2f, layout.size);
-        DrawTriangle(prevX - layout.size*0.1f, layout.centerY, layout.size*0.4f, layout.size, false);
-        DrawTriangle(prevX + layout.size*0.3f, layout.centerY, layout.size*0.4f, layout.size, false);
-
-        // Play/Pause Button
-        if (isPlaying) {
-            // Pause (⏸)
-            DrawRect(layout.centerX - layout.size*0.2f, layout.centerY, layout.size*0.3f, layout.size);
-            DrawRect(layout.centerX + layout.size*0.2f, layout.centerY, layout.size*0.3f, layout.size);
-        } else {
-            // Play (▶)
-            DrawTriangle(layout.centerX, layout.centerY, layout.size, layout.size, true);
-        }
-
-        // Next Button (⏭)
-        float nextX = layout.centerX + layout.spacing;
-        DrawTriangle(nextX - layout.size*0.3f, layout.centerY, layout.size*0.4f, layout.size, true);
-        DrawTriangle(nextX + layout.size*0.1f, layout.centerY, layout.size*0.4f, layout.size, true);
-        DrawRect(nextX + layout.half - layout.size*0.1f, layout.centerY, layout.size*0.2f, layout.size);
-    }
-}
-
-void Renderer::DrawVolumeControl(float volume) {
-    if (m_controlAlpha <= 0.0f || !m_config || !m_config->GetShowVolumeControl()) return;
-
-    D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-    float logicWidth = renderTargetSize.width / m_dpiScale;
-    float logicHeight = renderTargetSize.height / m_dpiScale;
-
-    VolumeControlLayout layout = LayoutCalculator::CalculateVolumeControlLayout(logicWidth, logicHeight, m_config);
-
-    if (m_controlBrush) {
-        m_controlBrush->SetOpacity(m_controlAlpha);
-        // m_volTextLayout は UpdateTextLayouts でキャッシュされている
-
-        D2D1::Matrix3x2F oldTransform;
-        m_d2dContext->GetTransform(&oldTransform);
-        D2D1_MATRIX_3X2_F spkTransform = D2D1::Matrix3x2F::Scale(layout.volSize, layout.volSize) * D2D1::Matrix3x2F::Translation(layout.volX, layout.volY);
-
-        if (m_shadowBrush && m_config->GetVolumeEnableShadow()) {
-            m_shadowBrush->SetOpacity(m_config->GetVolumeShadowOpacity() * m_controlAlpha);
-            
-            m_d2dContext->SetTransform(
-                spkTransform * oldTransform * D2D1::Matrix3x2F::Translation(layout.shadowX, layout.shadowY)
-            );
-            
-            m_d2dContext->FillGeometry(m_speakerIconGeometry.Get(), m_shadowBrush.Get());
-            
-            // restore to apply only translation for lines
-            m_d2dContext->SetTransform(
-                oldTransform * D2D1::Matrix3x2F::Translation(layout.shadowX, layout.shadowY)
-            );
-
-            if (volume > 0.0f) {
-                float arcX = layout.volX + layout.spkW + layout.spkConeW + 4.0f;
-                m_d2dContext->DrawLine(D2D1::Point2F(arcX, layout.volY - layout.volSize*0.2f), D2D1::Point2F(arcX, layout.volY + layout.volSize*0.2f), m_shadowBrush.Get(), 2.0f);
-            }
-            if (volume > 0.5f) {
-                float arcX = layout.volX + layout.spkW + layout.spkConeW + 8.0f;
-                m_d2dContext->DrawLine(D2D1::Point2F(arcX, layout.volY - layout.volSize*0.35f), D2D1::Point2F(arcX, layout.volY + layout.volSize*0.35f), m_shadowBrush.Get(), 2.0f);
-            }
-            
-            m_d2dContext->SetTransform(oldTransform);
-
-            if (m_volTextLayout) {
-                m_d2dContext->DrawTextLayout(
-                    D2D1::Point2F(layout.textX + layout.shadowX, layout.textY + layout.shadowY),
-                    m_volTextLayout.Get(),
-                    m_shadowBrush.Get()
-                );
-            }
-        }
-
-        m_d2dContext->SetTransform(spkTransform * oldTransform);
-        m_d2dContext->FillGeometry(m_speakerIconGeometry.Get(), m_controlBrush.Get());
-        m_d2dContext->SetTransform(oldTransform);
-        
-        if (volume > 0.0f) {
-            float arcX = layout.volX + layout.spkW + layout.spkConeW + 4.0f;
-            m_d2dContext->DrawLine(D2D1::Point2F(arcX, layout.volY - layout.volSize*0.2f), D2D1::Point2F(arcX, layout.volY + layout.volSize*0.2f), m_controlBrush.Get(), 2.0f);
-        }
-        if (volume > 0.5f) {
-            float arcX = layout.volX + layout.spkW + layout.spkConeW + 8.0f;
-            m_d2dContext->DrawLine(D2D1::Point2F(arcX, layout.volY - layout.volSize*0.35f), D2D1::Point2F(arcX, layout.volY + layout.volSize*0.35f), m_controlBrush.Get(), 2.0f);
-        }
-        
-        if (m_volTextLayout) {
-            m_d2dContext->DrawTextLayout(
-                D2D1::Point2F(layout.textX, layout.textY),
-                m_volTextLayout.Get(),
-                m_controlBrush.Get()
-            );
-        }
-    }
-}
-
-void Renderer::DrawPlaylist(bool isPlaylistHovered, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList) {
-if (m_config && m_trackCountTextFormat && m_textBrush) {
-    D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-    float logicWidth = renderTargetSize.width / m_dpiScale;
-    float logicHeight = renderTargetSize.height / m_dpiScale;
-
-    // スライドインアニメーション(計算は UpdateAnimation へ移動)
-    float configPlaylistWidth = static_cast<float>(m_config->GetPlaylistWidth());
-
-    PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
-        logicWidth, logicHeight, m_config, m_playlistSlideX, m_playlistManualScrollY, currentTrackIndex, totalTracks);
-
-    if (m_trackCountTextLayout) {
-        if (m_shadowBrush && m_config->GetTrackCountShadowOpacity() > 0.0f) {
-            m_shadowBrush->SetOpacity(m_config->GetTrackCountShadowOpacity());
-            m_d2dContext->DrawTextLayout(layout.trackCountShadowOrigin, m_trackCountTextLayout.Get(), m_shadowBrush.Get());
-        }
-        m_d2dContext->DrawTextLayout(layout.trackCountOrigin, m_trackCountTextLayout.Get(), m_textBrush.Get());
-    }
-
-    if (m_playlistGripLineBrush && m_playlistGripArrowBrush && m_playlistGripArrowGeometry) {
-        if (m_shadowBrush && m_config->GetPlaylistGripShadowOpacity() > 0.0f) {
-            m_shadowBrush->SetOpacity(m_config->GetPlaylistGripShadowOpacity());
-            
-            m_d2dContext->DrawLine(D2D1::Point2F(layout.gripShadowX, layout.playlistY), D2D1::Point2F(layout.gripShadowX, layout.playlistY + layout.playlistHeight), m_shadowBrush.Get(), layout.gripLineWidth);
-            
-            D2D1_MATRIX_3X2_F shadowTransform = D2D1::Matrix3x2F::Translation(layout.gripShadowX, layout.gripShadowY + layout.playlistHeight / 2.0f);
-            m_d2dContext->SetTransform(shadowTransform * D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
-            m_d2dContext->FillGeometry(m_playlistGripArrowGeometry.Get(), m_shadowBrush.Get());
-            m_d2dContext->SetTransform(D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
-        }
-
-        m_d2dContext->DrawLine(D2D1::Point2F(layout.gripX, layout.playlistY), D2D1::Point2F(layout.gripX, layout.playlistY + layout.playlistHeight), m_playlistGripLineBrush.Get(), layout.gripLineWidth);
-
-        D2D1_MATRIX_3X2_F arrowTransform = D2D1::Matrix3x2F::Translation(layout.gripX, layout.playlistY + layout.playlistHeight / 2.0f);
-        m_d2dContext->SetTransform(arrowTransform * D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
-        m_d2dContext->FillGeometry(m_playlistGripArrowGeometry.Get(), m_playlistGripArrowBrush.Get());
-        m_d2dContext->SetTransform(D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
-    }
-
-    if (m_playlistSlideX < layout.playlistWidth - 0.5f) {
-
-        if (m_playlistBgBrush) {
-            m_playlistBgBrush->SetOpacity(m_config->GetPlaylistBgOpacity());
-            m_d2dContext->FillRectangle(&layout.bgRect, m_playlistBgBrush.Get());
-        }
-
-        m_d2dContext->PushAxisAlignedClip(&layout.clipRect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-
-        float currentY = layout.startY;
-        
-        if (m_playlistHighlightBrush) {
-            m_playlistHighlightBrush->SetOpacity(0.2f);
-        }
-
-        for (size_t i = 0; i < totalTracks && i < shuffleList.size(); ++i) {
-            if (currentY + layout.itemHeight > 0 && currentY < layout.playlistHeight) {
-                PlaylistItemLayout itemLayout = LayoutCalculator::CalculatePlaylistItemLayout(layout, m_config, currentY);
-
-                if (i == currentTrackIndex && m_playlistHighlightBrush) {
-                    m_d2dContext->FillRectangle(&itemLayout.hlRect, m_playlistHighlightBrush.Get());
-                }
-
-                std::wstring path = shuffleList[i];
-                std::wstring title;
-                try { title = std::filesystem::path(path).filename().wstring(); } catch(...) { title = L"Unknown"; }
-                std::wstring artist = L"Unknown Artist";
-                std::wstring timeStr = L"00:00";
-
-                m_d2dContext->DrawText(title.c_str(), static_cast<UINT32>(title.length()), m_playlistTitleTextFormat.Get(), &itemLayout.titleRect, m_textBrush.Get());
-
-                m_d2dContext->DrawText(artist.c_str(), static_cast<UINT32>(artist.length()), m_playlistArtistTextFormat.Get(), &itemLayout.artistRect, m_playlistArtistBrush ? m_playlistArtistBrush.Get() : m_textBrush.Get());
-
-                if (m_playlistTimeTextLayout) {
-                    m_d2dContext->DrawTextLayout(itemLayout.timeOrigin, m_playlistTimeTextLayout.Get(), m_playlistTimeBrush ? m_playlistTimeBrush.Get() : m_textBrush.Get());
-                }
-            }
-            currentY += layout.itemHeight;
-        }
-
-        m_d2dContext->PopAxisAlignedClip();
-    }
-}
-
-}
-
-void Renderer::DrawResizeGrip() {
-if (m_config && m_config->GetEnableResize()) {
-    D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-    float logicWidth = renderTargetSize.width / m_dpiScale;
-    float logicHeight = renderTargetSize.height / m_dpiScale;
-    
-    ResizeGripLayout layout = LayoutCalculator::CalculateResizeGripLayout(logicWidth, logicHeight);
-
-    if (m_resizeGripBrush && m_resizeGripGeometry) {
-        m_resizeGripBrush->SetOpacity(0.5f);
-        D2D1_MATRIX_3X2_F oldTransform;
-        m_d2dContext->GetTransform(&oldTransform);
-        m_d2dContext->SetTransform(D2D1::Matrix3x2F::Translation(logicWidth, logicHeight) * oldTransform);
-        m_d2dContext->FillGeometry(m_resizeGripGeometry.Get(), m_resizeGripBrush.Get());
-        m_d2dContext->SetTransform(oldTransform);
-    }
-}
-
-}
-

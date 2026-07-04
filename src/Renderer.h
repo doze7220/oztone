@@ -8,10 +8,11 @@
 #include <wincodec.h>
 #include <wrl/client.h>
 #include <dwrite.h>
-#include <dwrite_1.h>
 #include <string>
 #include <vector>
+#include <memory>
 #include "Visualizer.h"
+#include "Widgets.h"
 
 class ConfigManager;
 
@@ -106,50 +107,13 @@ private:
     Microsoft::WRL::ComPtr<ID2D1Bitmap1> m_d2dTargetBitmap;
 
     Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_titleTextFormat;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_artistTextFormat;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_timeTextFormat;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_volumeTextFormat;
-    
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_trackCountTextFormat;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistTitleTextFormat;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistArtistTextFormat;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistTimeTextFormat;
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistArtistBrush;
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistTimeBrush;
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistGripLineBrush;
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistGripArrowBrush;
-    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_playlistGripArrowGeometry;
-    float m_playlistSlideX;
-    float m_playlistManualScrollY = 0.0f;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextLabelTextFormat;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextTitleTextFormat;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_nextArtistTextFormat;
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_textBrush;
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_shadowBrush;
-    Microsoft::WRL::ComPtr<ID2D1Effect> m_shadowEffect;
+
 
     // キャッシュ済みブラシ群
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_bgDarkenBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_fallbackBlackBrush;
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_seekBarBgBrush;
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_seekBarFgBrush;
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_controlBrush;
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistBgBrush;
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistHighlightBrush;
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_resizeGripBrush;
-
-    // キャッシュ済みジオメトリ群
-    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_playIconGeometry;
-    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_prevIconGeometry;
-    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_speakerIconGeometry;
-    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_resizeGripGeometry;
 
     // キャッシュ済みテキストレイアウト
-    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_timeTextLayout;
-    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_volTextLayout;
-    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_trackCountTextLayout;
-    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_playlistTimeTextLayout;
 
     std::wstring m_lastTimeString;
     float m_lastVolume = -1.0f;
@@ -160,8 +124,6 @@ private:
     // WIC および 画像リソース
 
     Microsoft::WRL::ComPtr<IWICImagingFactory> m_wicFactory;
-    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_appLogoBitmap;
-    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_appLogoHoverBitmap;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_placeholderArtBitmap;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_currentArtBitmap; // 現在再生中のアルバムアート
 
@@ -179,16 +141,10 @@ private:
     float m_controlAlpha = 0.0f;
     Visualizer m_visualizer;
 
+    std::vector<std::unique_ptr<IWidget>> m_widgets;
+
     void DrawBackground();
     void DrawVisualizer(const std::vector<float>& spectrum);
-    void DrawAppLogo(bool isHovered);
-    void DrawTrackInfo();
-    void DrawNextTrack();
-    void DrawSeekBar(float progress, float logicWidth, float logicHeight);
-    void DrawPlaybackControls(bool isPlaying);
-    void DrawVolumeControl(float volume);
-    void DrawPlaylist(bool isPlaylistHovered, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList);
-    void DrawResizeGrip();
 
     /**
      * @brief 画像をファイルまたはリソースからロードする
