@@ -141,6 +141,17 @@ private:
     float m_controlAlpha = 0.0f;
     Visualizer m_visualizer;
 
+    void DrawBackground();
+    void DrawVisualizer(const std::vector<float>& spectrum);
+    void DrawAppLogo(bool isHovered);
+    void DrawTrackInfo();
+    void DrawNextTrack();
+    void DrawSeekBar(float progress, const std::wstring& timeString);
+    void DrawPlaybackControls(bool isPlaying);
+    void DrawVolumeControl(float volume);
+    void DrawPlaylist(bool isPlaylistHovered, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList);
+    void DrawResizeGrip();
+
     /**
      * @brief 画像をファイルまたはリソースからロードする
      */
