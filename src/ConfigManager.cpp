@@ -55,6 +55,14 @@ ArtistOffsetX=130
 ArtistOffsetY=60
 ArtistFontSize=18.0
 ArtistFontFamily=Meiryo
+TrackCountOffsetX=-82
+TrackCountOffsetY=96
+TrackCountFontFamily="Impact"
+TrackCountFontSize=22.0
+TrackCountLetterSpacing=-1.0
+TrackCountShadowOffsetX=2.0
+TrackCountShadowOffsetY=2.0
+TrackCountShadowOpacity=0.7
 
 [Layout_SeekBar]
 SeekBarMargin=20.0
@@ -119,14 +127,6 @@ DefaultPlaylistPath=oztone_playlist.lst
 
 [Layout_Playlist]
 PlaylistHoverWidth=120
-TrackCountFontFamily="Courier New"
-TrackCountFontSize=22.0
-TrackCountRightOffset=20
-TrackCountBottomOffset=30
-TrackCountLetterSpacing=-3.0
-TrackCountShadowOffsetX=0.0
-TrackCountShadowOffsetY=0.0
-TrackCountShadowOpacity=0.0
 PlaylistWidth=250
 PlaylistItemOffsetY=45
 PlaylistTitleFontSize=16.0
@@ -206,8 +206,9 @@ ConfigManager::ConfigManager()
 
   m_trackCountFontFamily = L"Courier New";
   m_trackCountFontSize = 14.0f;
-  m_trackCountRightOffset = 30;
-  m_trackCountBottomOffset = 50;
+  m_trackCountOffsetX = 20;
+  m_trackCountOffsetY = 100;
+  m_trackCountTextAlignment = 1;
   m_trackCountLetterSpacing = -1.0f;
   m_trackCountShadowOffsetX = 2.0f;
   m_trackCountShadowOffsetY = 2.0f;
@@ -611,42 +612,45 @@ void ConfigManager::LoadSettings() {
   m_playbackButtonSize = GetPrivateProfileIntW(
       L"Layout_PlaybackControls", L"ButtonSize", 20, m_iniFilePath.c_str());
 
-  GetPrivateProfileStringW(L"Layout_Playlist", L"TrackCountFontFamily",
+  GetPrivateProfileStringW(L"Layout_NowPlaying", L"TrackCountFontFamily",
                            L"Courier New", buf, 32, m_iniFilePath.c_str());
   m_trackCountFontFamily = buf;
-  GetPrivateProfileStringW(L"Layout_Playlist", L"TrackCountFontSize", L"14.0",
+  GetPrivateProfileStringW(L"Layout_NowPlaying", L"TrackCountFontSize", L"14.0",
                            buf, 32, m_iniFilePath.c_str());
   try {
     m_trackCountFontSize = std::stof(buf);
   } catch (...) {
     m_trackCountFontSize = 14.0f;
   }
-  m_trackCountRightOffset = GetPrivateProfileIntW(
-      L"Layout_Playlist", L"TrackCountRightOffset", 30, m_iniFilePath.c_str());
-  m_trackCountBottomOffset = GetPrivateProfileIntW(
-      L"Layout_Playlist", L"TrackCountBottomOffset", 50, m_iniFilePath.c_str());
-  GetPrivateProfileStringW(L"Layout_Playlist", L"TrackCountLetterSpacing",
+  m_trackCountOffsetX = GetPrivateProfileIntW(
+      L"Layout_NowPlaying", L"TrackCountOffsetX", 20, m_iniFilePath.c_str());
+  m_trackCountOffsetY = GetPrivateProfileIntW(
+      L"Layout_NowPlaying", L"TrackCountOffsetY", 100, m_iniFilePath.c_str());
+  m_trackCountTextAlignment =
+      GetPrivateProfileIntW(L"Layout_NowPlaying", L"TrackCountTextAlignment", 1,
+                            m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_NowPlaying", L"TrackCountLetterSpacing",
                            L"-1.0", buf, 32, m_iniFilePath.c_str());
   try {
     m_trackCountLetterSpacing = std::stof(buf);
   } catch (...) {
     m_trackCountLetterSpacing = -1.0f;
   }
-  GetPrivateProfileStringW(L"Layout_Playlist", L"TrackCountShadowOffsetX",
+  GetPrivateProfileStringW(L"Layout_NowPlaying", L"TrackCountShadowOffsetX",
                            L"2.0", buf, 32, m_iniFilePath.c_str());
   try {
     m_trackCountShadowOffsetX = std::stof(buf);
   } catch (...) {
     m_trackCountShadowOffsetX = 2.0f;
   }
-  GetPrivateProfileStringW(L"Layout_Playlist", L"TrackCountShadowOffsetY",
+  GetPrivateProfileStringW(L"Layout_NowPlaying", L"TrackCountShadowOffsetY",
                            L"2.0", buf, 32, m_iniFilePath.c_str());
   try {
     m_trackCountShadowOffsetY = std::stof(buf);
   } catch (...) {
     m_trackCountShadowOffsetY = 2.0f;
   }
-  GetPrivateProfileStringW(L"Layout_Playlist", L"TrackCountShadowOpacity",
+  GetPrivateProfileStringW(L"Layout_NowPlaying", L"TrackCountShadowOpacity",
                            L"0.7", buf, 32, m_iniFilePath.c_str());
   try {
     m_trackCountShadowOpacity = std::stof(buf);

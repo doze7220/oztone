@@ -124,6 +124,19 @@ void TrackInfoWidget::CreateResources(ID2D1DeviceContext* context, IWICImagingFa
     ApplyTrimming(m_titleTextFormat);
     ApplyTrimming(m_artistTextFormat);
 
+    m_dwriteFactory = dwriteFactory;
+    dwriteFactory->CreateTextFormat(
+        config->GetTrackCountFontFamily().c_str(),
+        nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        config->GetTrackCountFontSize(),
+        L"en-us",
+        &m_trackCountTextFormat
+    );
+    ApplyTrimming(m_trackCountTextFormat);
+
     context->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f), &m_shadowBrush);
     context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &m_textBrush);
     context->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f), &m_fallbackBlackBrush);
@@ -135,10 +148,52 @@ void TrackInfoWidget::ReleaseResources() {
     m_shadowBrush.Reset();
     m_textBrush.Reset();
     m_fallbackBlackBrush.Reset();
+    m_trackCountTextFormat.Reset();
+    m_trackCountTextLayout.Reset();
+    m_dwriteFactory.Reset();
 }
 
 void TrackInfoWidget::UpdateAnimation(const WidgetContext& ctx) {}
-void TrackInfoWidget::UpdateLayout(const WidgetContext& ctx, const ConfigManager* config) {}
+void TrackInfoWidget::UpdateLayout(const WidgetContext& ctx, const ConfigManager* config) {
+    if (!config) return;
+    if (m_dwriteFactory && m_trackCountTextFormat && (m_lastTotalTracks != ctx.totalTracks || m_lastCurrentTrackIndex != ctx.currentTrackIndex)) {
+        m_lastTotalTracks = ctx.totalTracks;
+        m_lastCurrentTrackIndex = ctx.currentTrackIndex;
+        m_trackCountTextLayout.Reset();
+        
+        wchar_t trackCountBuf[64];
+        if (ctx.totalTracks == 0) {
+            swprintf_s(trackCountBuf, L"---/---");
+        } else {
+            swprintf_s(trackCountBuf, L"%zu/%zu", ctx.currentTrackIndex + 1, ctx.totalTracks);
+        }
+        std::wstring trackCountStr(trackCountBuf);
+        
+        if (m_trackCountTextFormat) {
+            int align = config->GetTrackCountTextAlignment();
+            if (align == 0) m_trackCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+            else if (align == 2) m_trackCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+            else m_trackCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
+        }
+        
+        m_dwriteFactory->CreateTextLayout(
+            trackCountStr.c_str(),
+            static_cast<UINT32>(trackCountStr.length()),
+            m_trackCountTextFormat.Get(),
+            200.0f,
+            50.0f,
+            &m_trackCountTextLayout
+        );
+
+        if (m_trackCountTextLayout) {
+            Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
+            if (SUCCEEDED(m_trackCountTextLayout.As(&textLayout1))) {
+                DWRITE_TEXT_RANGE textRange = { 0, static_cast<UINT32>(trackCountStr.length()) };
+                textLayout1->SetCharacterSpacing(0.0f, config->GetTrackCountLetterSpacing(), 0.0f, textRange);
+            }
+        }
+    }
+}
 
 void TrackInfoWidget::Draw(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config) {
     if (config && config->GetShowNowPlaying()) {
@@ -206,6 +261,14 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext* context, const WidgetContext& ctx
                 &layout.artistRect,
                 m_textBrush.Get()
             );
+        }
+
+        if (m_trackCountTextLayout && m_textBrush) {
+            if (m_shadowBrush && config->GetEnableShadow()) {
+                m_shadowBrush->SetOpacity(config->GetTrackCountShadowOpacity());
+                context->DrawTextLayout(layout.trackCountShadowOrigin, m_trackCountTextLayout.Get(), m_shadowBrush.Get());
+            }
+            context->DrawTextLayout(layout.trackCountOrigin, m_trackCountTextLayout.Get(), m_textBrush.Get());
         }
     }
 }
@@ -681,23 +744,11 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext* context, const WidgetContext&
 
 // ================= PlaylistWidget =================
 
-PlaylistWidget::PlaylistWidget() : m_playlistSlideX(9999.0f), m_playlistManualScrollY(0.0f), m_lastTotalTracks(0), m_lastCurrentTrackIndex(static_cast<size_t>(-1)) {}
+PlaylistWidget::PlaylistWidget() : m_playlistSlideX(9999.0f), m_playlistManualScrollY(0.0f) {}
 
 void PlaylistWidget::CreateResources(ID2D1DeviceContext* context, IWICImagingFactory* wicFactory, IDWriteFactory* dwriteFactory, const ConfigManager* config) {
     if (!config) return;
     m_dwriteFactory = dwriteFactory;
-
-    // 繝・く繧ｹ繝医ヵ繧ｩ繝ｼ繝槭ャ繝医・菴懈・
-    dwriteFactory->CreateTextFormat(
-        config->GetTrackCountFontFamily().c_str(),
-        nullptr,
-        DWRITE_FONT_WEIGHT_NORMAL,
-        DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL,
-        config->GetTrackCountFontSize(),
-        L"en-us",
-        &m_trackCountTextFormat
-    );
 
     dwriteFactory->CreateTextFormat(
         config->GetPlaylistTitleFontFamily().c_str(),
@@ -741,12 +792,10 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext* context, IWICImagingFac
             format->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
         }
     };
-    ApplyTrimming(m_trackCountTextFormat);
     ApplyTrimming(m_playlistTitleTextFormat);
     ApplyTrimming(m_playlistArtistTextFormat);
     ApplyTrimming(m_playlistTimeTextFormat);
 
-    if (m_trackCountTextFormat) m_trackCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
     if (m_playlistTimeTextFormat) m_playlistTimeTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
 
     auto ParseHexColor = [](const std::wstring& hexColor) -> D2D1_COLOR_F {
@@ -797,8 +846,6 @@ void PlaylistWidget::ReleaseResources() {
     m_playlistTitleTextFormat.Reset();
     m_playlistArtistTextFormat.Reset();
     m_playlistTimeTextFormat.Reset();
-    m_trackCountTextFormat.Reset();
-    m_trackCountTextLayout.Reset();
     m_playlistArtistBrush.Reset();
     m_playlistTimeBrush.Reset();
     m_playlistGripLineBrush.Reset();
@@ -837,38 +884,6 @@ void PlaylistWidget::UpdateAnimation(const WidgetContext& ctx) {
 }
 
 void PlaylistWidget::UpdateLayout(const WidgetContext& ctx, const ConfigManager* config) {
-    if (!config) return;
-
-    if (m_dwriteFactory && m_trackCountTextFormat && (m_lastTotalTracks != ctx.totalTracks || m_lastCurrentTrackIndex != ctx.currentTrackIndex)) {
-        m_lastTotalTracks = ctx.totalTracks;
-        m_lastCurrentTrackIndex = ctx.currentTrackIndex;
-        m_trackCountTextLayout.Reset();
-        
-        wchar_t trackCountBuf[64];
-        if (ctx.totalTracks == 0) {
-            swprintf_s(trackCountBuf, L"TRACK ---/---");
-        } else {
-            swprintf_s(trackCountBuf, L"TRACK %zu/%zu", ctx.currentTrackIndex + 1, ctx.totalTracks);
-        }
-        std::wstring trackCountStr(trackCountBuf);
-        
-        m_dwriteFactory->CreateTextLayout(
-            trackCountStr.c_str(),
-            static_cast<UINT32>(trackCountStr.length()),
-            m_trackCountTextFormat.Get(),
-            200.0f,
-            100.0f,
-            &m_trackCountTextLayout
-        );
-
-        if (m_trackCountTextLayout) {
-            Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
-            if (SUCCEEDED(m_trackCountTextLayout.As(&textLayout1))) {
-                DWRITE_TEXT_RANGE textRange = { 0, static_cast<UINT32>(trackCountStr.length()) };
-                textLayout1->SetCharacterSpacing(0.0f, config->GetTrackCountLetterSpacing(), 0.0f, textRange);
-            }
-        }
-    }
 }
 
 void PlaylistWidget::AddScroll(float delta) {
@@ -880,7 +895,7 @@ float PlaylistWidget::GetScrollY() const {
 }
 
 void PlaylistWidget::Draw(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config) {
-    if (!config || !m_trackCountTextFormat || !m_textBrush) return;
+    if (!config || !m_textBrush) return;
 
     D2D1_SIZE_F renderTargetSize = context->GetSize();
     float logicWidth = renderTargetSize.width / ctx.dpiScale;
@@ -888,14 +903,6 @@ void PlaylistWidget::Draw(ID2D1DeviceContext* context, const WidgetContext& ctx,
 
     PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
         logicWidth, logicHeight, config, m_playlistSlideX, m_playlistManualScrollY, ctx.currentTrackIndex, ctx.totalTracks);
-
-    if (m_trackCountTextLayout) {
-        if (m_shadowBrush && config->GetTrackCountShadowOpacity() > 0.0f) {
-            m_shadowBrush->SetOpacity(config->GetTrackCountShadowOpacity());
-            context->DrawTextLayout(layout.trackCountShadowOrigin, m_trackCountTextLayout.Get(), m_shadowBrush.Get());
-        }
-        context->DrawTextLayout(layout.trackCountOrigin, m_trackCountTextLayout.Get(), m_textBrush.Get());
-    }
 
     if (m_playlistGripLineBrush && m_playlistGripArrowBrush && m_playlistGripArrowGeometry) {
         if (m_shadowBrush && config->GetPlaylistGripShadowOpacity() > 0.0f) {

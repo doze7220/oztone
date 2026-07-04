@@ -112,6 +112,14 @@ TrackInfoLayout LayoutCalculator::CalculateTrackInfoLayout(float logicalWidth, f
         artistY + config->GetShadowOffsetY() + 50.0f
     );
 
+    // TrackCount
+    float trackCountX = baseX + static_cast<float>(config->GetTrackCountOffsetX());
+    float trackCountY = baseY + static_cast<float>(config->GetTrackCountOffsetY());
+    layout.trackCountOrigin = D2D1::Point2F(trackCountX, trackCountY);
+    layout.trackCountShadowOrigin = D2D1::Point2F(trackCountX + config->GetTrackCountShadowOffsetX(), trackCountY + config->GetTrackCountShadowOffsetY());
+    layout.trackCountMaxWidth = 200.0f;
+    layout.trackCountMaxHeight = 50.0f;
+
     return layout;
 }
 
@@ -188,8 +196,6 @@ NextTrackLayout LayoutCalculator::CalculateNextTrackLayout(float logicalWidth, f
     return layout;
 }
 
-
-
 SeekBarLayout LayoutCalculator::CalculateSeekBarLayout(float logicalWidth, float logicalHeight, const ConfigManager* config, float progress) {
     SeekBarLayout layout = {};
     if (!config) return layout;
@@ -248,25 +254,9 @@ VolumeControlLayout LayoutCalculator::CalculateVolumeControlLayout(float logical
     return layout;
 }
 
-
-
-#include <algorithm>
-
 PlaylistLayout LayoutCalculator::CalculatePlaylistLayout(float logicalWidth, float logicalHeight, const ConfigManager* config, float slideX, float manualScrollY, size_t currentTrackIndex, size_t totalTracks) {
     PlaylistLayout layout = {};
     if (!config) return layout;
-
-    // TrackCount
-    float trackCountRightOffset = static_cast<float>(config->GetTrackCountRightOffset());
-    float trackCountBottomOffset = static_cast<float>(config->GetTrackCountBottomOffset());
-    
-    float trackCountX = logicalWidth - trackCountRightOffset - 200.0f;
-    float trackCountY = logicalHeight - trackCountBottomOffset - 30.0f;
-    
-    layout.trackCountOrigin = D2D1::Point2F(trackCountX, trackCountY);
-    layout.trackCountShadowOrigin = D2D1::Point2F(trackCountX + config->GetTrackCountShadowOffsetX(), trackCountY + config->GetTrackCountShadowOffsetY());
-    layout.trackCountMaxWidth = 200.0f;
-    layout.trackCountMaxHeight = 30.0f;
 
     // Playlist Area
     layout.playlistWidth = static_cast<float>(config->GetPlaylistWidth());
@@ -332,4 +322,3 @@ ResizeGripLayout LayoutCalculator::CalculateResizeGripLayout(float logicalWidth,
     layout.pt3 = D2D1::Point2F(logicalWidth, logicalHeight - size);
     return layout;
 }
-

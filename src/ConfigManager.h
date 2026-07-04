@@ -154,8 +154,9 @@ public:
 
     std::wstring GetTrackCountFontFamily() const { return m_trackCountFontFamily; }
     float GetTrackCountFontSize() const { return m_trackCountFontSize; }
-    int GetTrackCountRightOffset() const { return m_trackCountRightOffset; }
-    int GetTrackCountBottomOffset() const { return m_trackCountBottomOffset; }
+    int GetTrackCountOffsetX() const { return m_trackCountOffsetX; }
+    int GetTrackCountOffsetY() const { return m_trackCountOffsetY; }
+    int GetTrackCountTextAlignment() const { return m_trackCountTextAlignment; }
     float GetTrackCountLetterSpacing() const { return m_trackCountLetterSpacing; }
     float GetTrackCountShadowOffsetX() const { return m_trackCountShadowOffsetX; }
     float GetTrackCountShadowOffsetY() const { return m_trackCountShadowOffsetY; }
@@ -317,8 +318,9 @@ private:
 
     std::wstring m_trackCountFontFamily;
     float m_trackCountFontSize;
-    int m_trackCountRightOffset;
-    int m_trackCountBottomOffset;
+    int m_trackCountOffsetX;
+    int m_trackCountOffsetY;
+    int m_trackCountTextAlignment;
     float m_trackCountLetterSpacing;
     float m_trackCountShadowOffsetX;
     float m_trackCountShadowOffsetY;

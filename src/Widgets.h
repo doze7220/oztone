@@ -37,6 +37,12 @@ private:
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_shadowBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_textBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_fallbackBlackBrush;
+
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_trackCountTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_trackCountTextLayout;
+    Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
+    size_t m_lastTotalTracks = static_cast<size_t>(-1);
+    size_t m_lastCurrentTrackIndex = static_cast<size_t>(-1);
 };
 
 class NextTrackWidget : public IWidget {
@@ -137,9 +143,6 @@ private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistTitleTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistArtistTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistTimeTextFormat;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_trackCountTextFormat;
-
-    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_trackCountTextLayout;
 
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistArtistBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistTimeBrush;
@@ -155,9 +158,6 @@ private:
 
     float m_playlistSlideX;
     float m_playlistManualScrollY;
-
-    size_t m_lastTotalTracks;
-    size_t m_lastCurrentTrackIndex;
 };
 
 class ResizeGripWidget : public IWidget {
