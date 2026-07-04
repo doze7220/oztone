@@ -123,6 +123,7 @@ public:
     PlaylistWidget();
     ~PlaylistWidget() override = default;
 
+
     void CreateResources(ID2D1DeviceContext* context, IWICImagingFactory* wicFactory, IDWriteFactory* dwriteFactory, const ConfigManager* config) override;
     void ReleaseResources() override;
     void UpdateAnimation(const WidgetContext& ctx) override;
@@ -156,6 +157,7 @@ private:
     float m_playlistManualScrollY;
 
     size_t m_lastTotalTracks;
+    size_t m_lastCurrentTrackIndex;
 };
 
 class ResizeGripWidget : public IWidget {

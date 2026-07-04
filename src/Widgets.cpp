@@ -390,7 +390,7 @@ void SeekBarWidget::CreateResources(ID2D1DeviceContext* context, IWICImagingFact
             &m_timeTextFormat
         );
         if (m_timeTextFormat) {
-            m_timeTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+            m_timeTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
             m_timeTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
         }
     }
@@ -559,8 +559,7 @@ void VolumeControlWidget::CreateResources(ID2D1DeviceContext* context, IWICImagi
             &m_volumeTextFormat
         );
         if (m_volumeTextFormat) {
-            m_volumeTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-            m_volumeTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+            // Text alignment setup removed to fix text positioning issue
         }
     }
 
@@ -682,7 +681,7 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext* context, const WidgetContext&
 
 // ================= PlaylistWidget =================
 
-PlaylistWidget::PlaylistWidget() : m_playlistSlideX(9999.0f), m_playlistManualScrollY(0.0f), m_lastTotalTracks(0) {}
+PlaylistWidget::PlaylistWidget() : m_playlistSlideX(9999.0f), m_playlistManualScrollY(0.0f), m_lastTotalTracks(0), m_lastCurrentTrackIndex(static_cast<size_t>(-1)) {}
 
 void PlaylistWidget::CreateResources(ID2D1DeviceContext* context, IWICImagingFactory* wicFactory, IDWriteFactory* dwriteFactory, const ConfigManager* config) {
     if (!config) return;
@@ -812,12 +811,10 @@ void PlaylistWidget::ReleaseResources() {
     m_dwriteFactory.Reset();
 }
 
-void PlaylistWidget::UpdateAnimation(const WidgetContext& ctx) {}
+void PlaylistWidget::UpdateAnimation(const WidgetContext& ctx) {
+    if (!ctx.config) return;
 
-void PlaylistWidget::UpdateLayout(const WidgetContext& ctx, const ConfigManager* config) {
-    if (!config) return;
-
-    float configPlaylistWidth = static_cast<float>(config->GetPlaylistWidth());
+    float configPlaylistWidth = static_cast<float>(ctx.config->GetPlaylistWidth());
     if (m_playlistSlideX > configPlaylistWidth * 2.0f) m_playlistSlideX = configPlaylistWidth;
 
     float targetSlideX = ctx.isPlaylistHovered ? 0.0f : configPlaylistWidth;
@@ -827,19 +824,24 @@ void PlaylistWidget::UpdateLayout(const WidgetContext& ctx, const ConfigManager*
         m_playlistManualScrollY = 0.0f;
     } else {
         D2D1_SIZE_F renderTargetSize = D2D1::SizeF(
-            config->GetWindowWidth() * ctx.dpiScale, 
-            config->GetWindowHeight() * ctx.dpiScale
+            ctx.config->GetWindowWidth() * ctx.dpiScale, 
+            ctx.config->GetWindowHeight() * ctx.dpiScale
         );
         float logicWidth = renderTargetSize.width / ctx.dpiScale;
         float logicHeight = renderTargetSize.height / ctx.dpiScale;
         
         PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
-            logicWidth, logicHeight, config, m_playlistSlideX, m_playlistManualScrollY, ctx.currentTrackIndex, ctx.totalTracks);
+            logicWidth, logicHeight, ctx.config, m_playlistSlideX, m_playlistManualScrollY, ctx.currentTrackIndex, ctx.totalTracks);
         m_playlistManualScrollY = layout.newManualScrollY;
     }
+}
 
-    if (m_dwriteFactory && m_trackCountTextFormat && m_lastTotalTracks != ctx.totalTracks) {
+void PlaylistWidget::UpdateLayout(const WidgetContext& ctx, const ConfigManager* config) {
+    if (!config) return;
+
+    if (m_dwriteFactory && m_trackCountTextFormat && (m_lastTotalTracks != ctx.totalTracks || m_lastCurrentTrackIndex != ctx.currentTrackIndex)) {
         m_lastTotalTracks = ctx.totalTracks;
+        m_lastCurrentTrackIndex = ctx.currentTrackIndex;
         m_trackCountTextLayout.Reset();
         
         wchar_t trackCountBuf[64];
@@ -854,10 +856,18 @@ void PlaylistWidget::UpdateLayout(const WidgetContext& ctx, const ConfigManager*
             trackCountStr.c_str(),
             static_cast<UINT32>(trackCountStr.length()),
             m_trackCountTextFormat.Get(),
-            1000.0f,
+            200.0f,
             100.0f,
             &m_trackCountTextLayout
         );
+
+        if (m_trackCountTextLayout) {
+            Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
+            if (SUCCEEDED(m_trackCountTextLayout.As(&textLayout1))) {
+                DWRITE_TEXT_RANGE textRange = { 0, static_cast<UINT32>(trackCountStr.length()) };
+                textLayout1->SetCharacterSpacing(0.0f, config->GetTrackCountLetterSpacing(), 0.0f, textRange);
+            }
+        }
     }
 }
 

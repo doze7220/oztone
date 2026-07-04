@@ -321,6 +321,8 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPl
     ctx.isPlaylistHovered = isPlaylistHovered;
     ctx.currentTrackIndex = currentTrackIndex;
     ctx.totalTracks = totalTracks;
+    ctx.config = m_config;
+    ctx.dpiScale = m_dpiScale;
     
     for (auto& widget : m_widgets) {
         widget->UpdateAnimation(ctx);
@@ -338,6 +340,7 @@ void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, s
     ctx.volume = volume;
     ctx.currentTrackIndex = currentTrackIndex;
     ctx.totalTracks = totalTracks;
+    ctx.dpiScale = m_dpiScale;
     
     for (auto& widget : m_widgets) {
         widget->UpdateLayout(ctx, m_config);
@@ -375,6 +378,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHove
     ctx.nextTrackTitle = m_nextTrackTitle;
     ctx.nextTrackArtist = m_nextTrackArtist;
     ctx.nextArtBitmap = m_nextArtBitmap.Get();
+    ctx.config = m_config;
 
     for (auto& widget : m_widgets) {
         widget->Draw(m_d2dContext.Get(), ctx, m_config);

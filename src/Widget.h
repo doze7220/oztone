@@ -31,7 +31,7 @@ struct WidgetContext {
     float dpiScale;
 
     float controlAlpha;
-
+    const ConfigManager* config;
 
     std::wstring timeString;
 
