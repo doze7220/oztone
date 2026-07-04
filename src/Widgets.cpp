@@ -102,6 +102,168 @@ void AppLogoWidget::Draw(ID2D1DeviceContext* context, const WidgetContext& ctx, 
     }
 }
 
+// ==========================================
+// LogoMenuWidget
+// ==========================================
+float CubicEaseOut(float t) {
+    float f = (t - 1.0f);
+    return f * f * f + 1.0f;
+}
+
+void LogoMenuWidget::CreateResources(ID2D1DeviceContext* context, IWICImagingFactory* wicFactory, IDWriteFactory* dwriteFactory, const ConfigManager* config) {
+    m_dwriteFactory = dwriteFactory;
+
+    if (config) {
+        dwriteFactory->CreateTextFormat(
+            config->GetLogoMenuFontFamily().c_str(),
+            nullptr,
+            DWRITE_FONT_WEIGHT_NORMAL,
+            DWRITE_FONT_STYLE_NORMAL,
+            DWRITE_FONT_STRETCH_NORMAL,
+            config->GetLogoMenuIconSize(),
+            L"ja-jp",
+            &m_iconTextFormat
+        );
+        if (m_iconTextFormat) {
+            m_iconTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+            m_iconTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+        }
+
+        dwriteFactory->CreateTextFormat(
+            config->GetLogoMenuTypingFontFamily().c_str(),
+            nullptr,
+            DWRITE_FONT_WEIGHT_NORMAL,
+            DWRITE_FONT_STYLE_NORMAL,
+            DWRITE_FONT_STRETCH_NORMAL,
+            config->GetLogoMenuTypingFontSize(),
+            L"en-us",
+            &m_typingTextFormat
+        );
+        if (m_typingTextFormat) {
+            m_typingTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+            m_typingTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+        }
+
+        context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &m_iconBrush);
+        context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White, 0.4f), &m_inactiveIconBrush);
+        context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Red), &m_lineBrush);
+        context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &m_typingTextBrush);
+    }
+}
+
+void LogoMenuWidget::ReleaseResources() {
+    m_iconTextFormat.Reset();
+    m_typingTextFormat.Reset();
+    m_iconBrush.Reset();
+    m_inactiveIconBrush.Reset();
+    m_lineBrush.Reset();
+    m_typingTextBrush.Reset();
+    m_dwriteFactory.Reset();
+}
+
+void LogoMenuWidget::UpdateAnimation(const WidgetContext& ctx) {
+    float duration = ctx.config ? ctx.config->GetLogoMenuScrollDuration() : 0.5f;
+    float speed = (duration > 0.0f) ? (1.0f / duration) : 2.0f;
+    if (ctx.isLogoMenuHovered || ctx.isHovered) {
+        m_menuProgress += ctx.deltaTime * speed;
+        if (m_menuProgress > 1.0f) m_menuProgress = 1.0f;
+    } else {
+        m_menuProgress -= ctx.deltaTime * speed;
+        if (m_menuProgress < 0.0f) m_menuProgress = 0.0f;
+    }
+}
+
+void LogoMenuWidget::UpdateLayout(const WidgetContext& ctx, const ConfigManager* config) {}
+
+void LogoMenuWidget::Draw(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config) {
+    if (!config || m_menuProgress <= 0.0f || !ctx.logoMenuItems) return;
+    
+    float easedProgress = CubicEaseOut(m_menuProgress);
+    
+    LogoMenuLayout layout = LayoutCalculator::CalculateLogoMenuLayout(config, easedProgress, ctx.logoMenuItems->size());
+    
+    D2D1_DRAW_TEXT_OPTIONS options = D2D1_DRAW_TEXT_OPTIONS_NONE;
+
+    for (size_t i = 0; i < layout.items.size(); ++i) {
+        const auto& item = (*ctx.logoMenuItems)[i];
+        const auto& itemLayout = layout.items[i];
+        
+        bool active = true;
+        if (item.isToggle && !item.toggleState) active = false;
+        
+        ID2D1SolidColorBrush* brush = active ? m_iconBrush.Get() : m_inactiveIconBrush.Get();
+        
+        context->DrawText(
+            item.iconText.c_str(),
+            static_cast<UINT32>(item.iconText.length()),
+            m_iconTextFormat.Get(),
+            itemLayout.hitRect,
+            brush,
+            options
+        );
+        
+        if (!active) {
+            float cx = itemLayout.position.x;
+            float cy = itemLayout.position.y;
+            float strikeLength = config->GetLogoMenuStrikeLength();
+            float strikeThickness = config->GetLogoMenuStrikeThickness();
+            float dx = strikeLength * 0.70710678f / 2.0f;
+            float dy = strikeLength * 0.70710678f / 2.0f;
+            
+            context->DrawLine(
+                D2D1::Point2F(cx - dx, cy + dy),
+                D2D1::Point2F(cx + dx, cy - dy),
+                m_lineBrush.Get(),
+                strikeThickness
+            );
+        }
+    }
+    
+    size_t totalChars = m_fullText.length();
+    size_t charsToShow = static_cast<size_t>(easedProgress * totalChars);
+    
+    if (charsToShow > 0 && charsToShow <= totalChars) {
+        std::wstring textToDraw = m_fullText.substr(0, charsToShow);
+        
+        float letterSpacing = config->GetLogoMenuTypingLetterSpacing();
+        if (letterSpacing != 0.0f && m_dwriteFactory) {
+            Microsoft::WRL::ComPtr<IDWriteTextLayout> textLayout;
+            HRESULT hr = m_dwriteFactory->CreateTextLayout(
+                textToDraw.c_str(),
+                static_cast<UINT32>(textToDraw.length()),
+                m_typingTextFormat.Get(),
+                layout.typingTextRect.right - layout.typingTextRect.left,
+                layout.typingTextRect.bottom - layout.typingTextRect.top,
+                &textLayout
+            );
+            
+            if (SUCCEEDED(hr)) {
+                Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
+                if (SUCCEEDED(textLayout.As(&textLayout1))) {
+                    DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(textToDraw.length())};
+                    textLayout1->SetCharacterSpacing(0.0f, letterSpacing, 0.0f, textRange);
+                }
+                
+                context->DrawTextLayout(
+                    D2D1::Point2F(layout.typingTextRect.left, layout.typingTextRect.top),
+                    textLayout.Get(),
+                    m_typingTextBrush.Get(),
+                    D2D1_DRAW_TEXT_OPTIONS_NONE
+                );
+            }
+        } else {
+            context->DrawText(
+                textToDraw.c_str(),
+                static_cast<UINT32>(textToDraw.length()),
+                m_typingTextFormat.Get(),
+                layout.typingTextRect,
+                m_typingTextBrush.Get(),
+                D2D1_DRAW_TEXT_OPTIONS_NONE
+            );
+        }
+    }
+}
+
 
 // ==========================================
 // TrackInfoWidget

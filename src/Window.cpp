@@ -35,7 +35,15 @@ Window::Window()
     : m_hwnd(nullptr), m_hInstance(nullptr), m_config(nullptr),
       m_isHovered(false), m_isControlHovered(false), m_isPlaylistHovered(false),
       m_isTrackingMouse(false), m_pDropTarget(nullptr),
-      m_keyboardHook(nullptr) {}
+      m_keyboardHook(nullptr), m_isLogoMenuHovered(false) {
+    m_logoMenuItems = {
+        {ID_LOGO_EXIT, L"❌", false, false},
+        {ID_LOGO_CLEAR, L"🗑️", false, false},
+        {ID_LOGO_PIN_PLAYLIST, L"📜", true, false},
+        {ID_LOGO_VISUALIZER, L"📽️", true, false},
+        {ID_LOGO_SHUFFLE, L"🔀", true, false}
+    };
+}
 
 Window::~Window() {
   if (m_keyboardHook) {
@@ -299,6 +307,23 @@ bool Window::IsInLogoRegion(int x, int y) const {
           logicalY <= m_config->GetLogoY() + m_config->GetLogoHeight());
 }
 
+#include "LayoutCalculator.h"
+
+bool Window::IsInLogoMenuRegion(int x, int y, float progress) const {
+  if (!m_config || !m_hwnd) return false;
+
+  UINT dpi = GetDpiForWindow(m_hwnd);
+  int logicalX = MulDiv(x, 96, dpi);
+  int logicalY = MulDiv(y, 96, dpi);
+
+  LogoMenuLayout layout = LayoutCalculator::CalculateLogoMenuLayout(m_config, progress, m_logoMenuItems.size());
+
+  return (logicalX >= layout.fullRegionRect.left &&
+          logicalX <= layout.fullRegionRect.right &&
+          logicalY >= layout.fullRegionRect.top &&
+          logicalY <= layout.fullRegionRect.bottom);
+}
+
 bool Window::IsInPlaybackControlRegion(int x, int y) const {
   if (!m_config || !m_hwnd)
     return false;
@@ -466,9 +491,16 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
       if (m_isPlaylistHovered) {
         m_isHovered = false;
         m_isControlHovered = false;
+        m_isLogoMenuHovered = false;
       } else {
         m_isHovered = IsInLogoRegion(xPos, yPos);
         m_isControlHovered = IsInPlaybackControlRegion(xPos, yPos);
+
+        if (m_isHovered || (m_isLogoMenuHovered && IsInLogoMenuRegion(xPos, yPos, 1.0f))) {
+            m_isLogoMenuHovered = true;
+        } else {
+            m_isLogoMenuHovered = false;
+        }
       }
 
       if (!m_isTrackingMouse) {
@@ -486,6 +518,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     m_isHovered = false;
     m_isControlHovered = false;
     m_isPlaylistHovered = false;
+    m_isLogoMenuHovered = false;
     m_isTrackingMouse = false;
     return 0;
   }
@@ -498,6 +531,36 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         m_onPlaylistClick(xPos, yPos);
       }
       return 0;
+    }
+
+    if (m_isLogoMenuHovered) {
+      UINT dpi = GetDpiForWindow(hwnd);
+      int logicalX = MulDiv(xPos, 96, dpi);
+      int logicalY = MulDiv(yPos, 96, dpi);
+
+      LogoMenuLayout layout = LayoutCalculator::CalculateLogoMenuLayout(m_config, 1.0f, m_logoMenuItems.size());
+      for (size_t i = 0; i < m_logoMenuItems.size(); ++i) {
+          if (logicalX >= layout.items[i].hitRect.left && logicalX <= layout.items[i].hitRect.right &&
+              logicalY >= layout.items[i].hitRect.top && logicalY <= layout.items[i].hitRect.bottom) {
+              
+              auto& item = m_logoMenuItems[i];
+              if (item.isToggle) {
+                  item.toggleState = !item.toggleState;
+              }
+              if (item.commandId == ID_LOGO_EXIT) {
+                  PostQuitMessage(0);
+              } else if (item.commandId == ID_LOGO_CLEAR) {
+                  if (m_onClearPlaylistCommand) m_onClearPlaylistCommand();
+              } else if (item.commandId == ID_LOGO_PIN_PLAYLIST) {
+                  // m_config->SetPinPlaylist(item.toggleState);
+              } else if (item.commandId == ID_LOGO_VISUALIZER) {
+                  if (m_config) m_config->SetVisualizerMode(item.toggleState ? 1 : 0);
+              } else if (item.commandId == ID_LOGO_SHUFFLE) {
+                  // m_config->SetShuffleEnabled(item.toggleState);
+              }
+              return 0;
+          }
+      }
     }
 
     int btnId = GetPlaybackButtonAt(xPos, yPos);

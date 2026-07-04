@@ -65,6 +65,19 @@ public:
     static constexpr UINT ID_TRAY_PLAYLIST_MENU = 1025;
     static constexpr UINT ID_TRAY_EXIT = 1001;
 
+    static constexpr UINT ID_LOGO_EXIT = 3001;
+    static constexpr UINT ID_LOGO_CLEAR = 3002;
+    static constexpr UINT ID_LOGO_PIN_PLAYLIST = 3003;
+    static constexpr UINT ID_LOGO_VISUALIZER = 3004;
+    static constexpr UINT ID_LOGO_SHUFFLE = 3005;
+
+    struct LogoMenuItem {
+        UINT commandId;
+        std::wstring iconText;
+        bool isToggle;
+        bool toggleState;
+    };
+
     static constexpr UINT ID_TRAY_PLAYLIST_START = 2000;
 
     /**
@@ -199,6 +212,13 @@ public:
         m_onResize = cb;
     }
 
+    const std::vector<LogoMenuItem>& GetLogoMenuItems() const { return m_logoMenuItems; }
+    std::vector<LogoMenuItem>& GetLogoMenuItemsMutable() { return m_logoMenuItems; }
+
+    bool IsLogoMenuHovered() const { return m_isLogoMenuHovered; }
+    void SetLogoMenuHovered(bool hovered) { m_isLogoMenuHovered = hovered; }
+    bool IsInLogoMenuRegion(int x, int y, float progress) const;
+
 private:
     static LRESULT CALLBACK WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -233,4 +253,7 @@ private:
     HHOOK m_keyboardHook;
     static HWND s_hwnd;
     static LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam);
+
+    std::vector<LogoMenuItem> m_logoMenuItems;
+    bool m_isLogoMenuHovered;
 };

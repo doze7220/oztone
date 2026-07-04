@@ -20,6 +20,30 @@ private:
     Microsoft::WRL::ComPtr<ID2D1Effect> m_shadowEffect;
 };
 
+class LogoMenuWidget : public IWidget {
+public:
+    LogoMenuWidget() = default;
+    ~LogoMenuWidget() override = default;
+
+    void CreateResources(ID2D1DeviceContext* context, IWICImagingFactory* wicFactory, IDWriteFactory* dwriteFactory, const ConfigManager* config) override;
+    void ReleaseResources() override;
+    void UpdateAnimation(const WidgetContext& ctx) override;
+    void UpdateLayout(const WidgetContext& ctx, const ConfigManager* config) override;
+    void Draw(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config) override;
+
+private:
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_iconTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_typingTextFormat;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_iconBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_inactiveIconBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_lineBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_typingTextBrush;
+    Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
+    
+    float m_menuProgress = 0.0f;
+    std::wstring m_fullText = L"Beyond the r'ai'nbow awaits the game you envisioned in your lullaby days.";
+};
+
 class TrackInfoWidget : public IWidget {
 public:
     TrackInfoWidget() = default;

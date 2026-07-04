@@ -161,6 +161,7 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     m_visualizer.SetConfig(m_config);
     m_widgets.clear();
     m_widgets.push_back(std::make_unique<AppLogoWidget>());
+    m_widgets.push_back(std::make_unique<LogoMenuWidget>());
     m_widgets.push_back(std::make_unique<TrackInfoWidget>());
     m_widgets.push_back(std::make_unique<NextTrackWidget>());
     m_widgets.push_back(std::make_unique<SeekBarWidget>());
@@ -306,7 +307,7 @@ bool Renderer::LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitma
     return true;
 }
 
-void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPlaylistHovered, size_t currentTrackIndex, size_t totalTracks) {
+void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, size_t currentTrackIndex, size_t totalTracks) {
     if (isControlHovered) {
         m_controlAlpha += 0.05f;
         if (m_controlAlpha > 1.0f) m_controlAlpha = 1.0f;
@@ -319,6 +320,7 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPl
     ctx.deltaTime = deltaTime;
     ctx.isControlHovered = isControlHovered;
     ctx.isPlaylistHovered = isPlaylistHovered;
+    ctx.isLogoMenuHovered = isLogoMenuHovered;
     ctx.currentTrackIndex = currentTrackIndex;
     ctx.totalTracks = totalTracks;
     ctx.config = m_config;
@@ -347,7 +349,7 @@ void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, s
     }
 }
 
-void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList) {
+void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList) {
     if (!m_d2dContext) return;
 
     m_d2dContext->BeginDraw();
@@ -361,6 +363,8 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHove
     ctx.isHovered = isHovered;
     ctx.isControlHovered = isControlHovered;
     ctx.isPlaylistHovered = isPlaylistHovered;
+    ctx.isLogoMenuHovered = isLogoMenuHovered;
+    ctx.logoMenuItems = logoMenuItems;
     ctx.isPlaying = isPlaying;
     ctx.progress = progress;
     ctx.spectrum = &spectrum;

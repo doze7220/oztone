@@ -14,6 +14,7 @@
 #include "PlaylistManager.h"
 #include "Visualizer.h"
 #include "Widgets.h"
+#include "Window.h"
 
 class ConfigManager;
 
@@ -40,12 +41,12 @@ public:
     /**
      * @brief アニメーション状態の更新を行う（UIフェードやスライド等の変数を更新する）
      */
-    void UpdateAnimation(float deltaTime, bool isControlHovered, bool isPlaylistHovered, size_t currentTrackIndex, size_t totalTracks);
+    void UpdateAnimation(float deltaTime, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, size_t currentTrackIndex, size_t totalTracks);
 
     /**
      * @brief 描画処理（毎フレーム呼ばれる）
      */
-    void Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList);
+    void Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList);
 
 
     /**

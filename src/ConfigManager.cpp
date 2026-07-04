@@ -45,6 +45,22 @@ Y=16
 Width=64
 Height=64
 
+[Layout_LogoMenu]
+MenuIconSize=48.0
+MenuIconSpacing=50
+MenuIconOffsetX=0
+MenuIconOffsetY=0
+MenuScrollDuration=0.5
+MenuFontFamily="Segoe UI Emoji"
+MenuTextColor=#FFFFFF
+MenuTypingFontFamily="Consolas"
+MenuTypingFontSize=14.0
+MenuTextOffsetX=0
+MenuTextOffsetY=60
+MenuTypingLetterSpacing=0.0
+MenuStrikeLength=20.0
+MenuStrikeThickness=2.0
+
 [Layout_NowPlaying]
 BaseX=20
 BaseBottomOffset=162
@@ -170,8 +186,15 @@ ConfigManager::ConfigManager()
       m_windowHeight(512), m_enableShadow(true), m_shadowOffsetX(2.0f),
       m_shadowOffsetY(2.0f), m_shadowOpacity(0.7f), m_bgDarkenOpacity(0.3f),
       m_bgOpacity(0.8f), m_backgroundArtMode(0), m_visualizerMode(0),
-      m_logoX(16), m_logoY(16), m_logoWidth(64), m_logoHeight(64), m_baseX(30),
-      m_baseBottomOffset(162), m_artOffsetX(0), m_artOffsetY(0), m_artSize(120),
+      m_logoX(16), m_logoY(16), m_logoWidth(64), m_logoHeight(64),
+      m_logoMenuIconSize(24.0f), m_logoMenuIconSpacing(40),
+      m_logoMenuIconOffsetX(0), m_logoMenuIconOffsetY(0),
+      m_logoMenuScrollDuration(0.5f), m_logoMenuFontFamily(L"Segoe UI Emoji"),
+      m_logoMenuTextColor(L"#FFFFFF"), m_logoMenuTypingFontFamily(L"Consolas"),
+      m_logoMenuTypingFontSize(14.0f), m_logoMenuTextOffsetX(0), m_logoMenuTextOffsetY(60),
+      m_logoMenuTypingLetterSpacing(0.0f), m_logoMenuStrikeLength(20.0f), m_logoMenuStrikeThickness(2.0f),
+      m_baseX(30), m_baseBottomOffset(162),
+      m_artOffsetX(0), m_artOffsetY(0), m_artSize(120),
       m_fallbackArtOpacity(0.5f),
 
       m_titleOffsetX(140), m_titleOffsetY(10), m_titleFontSize(32.0f),
@@ -435,6 +458,84 @@ void ConfigManager::LoadSettings() {
                                       m_iniFilePath.c_str());
   m_logoHeight = GetPrivateProfileIntW(L"Layout_AppLogo", L"Height", 64,
                                        m_iniFilePath.c_str());
+
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuIconSize", L"24.0", buf,
+                           32, m_iniFilePath.c_str());
+  try {
+    m_logoMenuIconSize = std::stof(buf);
+  } catch (...) {
+    m_logoMenuIconSize = 24.0f;
+  }
+
+  m_logoMenuIconSpacing = GetPrivateProfileIntW(
+      L"Layout_LogoMenu", L"MenuIconSpacing", 40, m_iniFilePath.c_str());
+
+  m_logoMenuIconOffsetX = GetPrivateProfileIntW(
+      L"Layout_LogoMenu", L"MenuIconOffsetX", 0, m_iniFilePath.c_str());
+
+  m_logoMenuIconOffsetY = GetPrivateProfileIntW(
+      L"Layout_LogoMenu", L"MenuIconOffsetY", 0, m_iniFilePath.c_str());
+
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuScrollDuration", L"0.5",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_logoMenuScrollDuration = std::stof(buf);
+  } catch (...) {
+    m_logoMenuScrollDuration = 0.5f;
+  }
+
+  wchar_t logoFontBuf[256];
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuFontFamily",
+                           L"Segoe UI Emoji", logoFontBuf, 256,
+                           m_iniFilePath.c_str());
+  m_logoMenuFontFamily = logoFontBuf;
+
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuTextColor", L"#FFFFFF",
+                           logoFontBuf, 256, m_iniFilePath.c_str());
+  m_logoMenuTextColor = logoFontBuf;
+
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuTypingFontFamily",
+                           L"Consolas", logoFontBuf, 256,
+                           m_iniFilePath.c_str());
+  m_logoMenuTypingFontFamily = logoFontBuf;
+
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuTypingFontSize", L"14.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_logoMenuTypingFontSize = std::stof(buf);
+  } catch (...) {
+    m_logoMenuTypingFontSize = 14.0f;
+  }
+
+  m_logoMenuTextOffsetX = GetPrivateProfileIntW(
+      L"Layout_LogoMenu", L"MenuTextOffsetX", 0, m_iniFilePath.c_str());
+
+  m_logoMenuTextOffsetY = GetPrivateProfileIntW(
+      L"Layout_LogoMenu", L"MenuTextOffsetY", 60, m_iniFilePath.c_str());
+
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuTypingLetterSpacing", L"0.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_logoMenuTypingLetterSpacing = std::stof(buf);
+  } catch (...) {
+    m_logoMenuTypingLetterSpacing = 0.0f;
+  }
+
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuStrikeLength", L"20.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_logoMenuStrikeLength = std::stof(buf);
+  } catch (...) {
+    m_logoMenuStrikeLength = 20.0f;
+  }
+
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuStrikeThickness", L"2.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_logoMenuStrikeThickness = std::stof(buf);
+  } catch (...) {
+    m_logoMenuStrikeThickness = 2.0f;
+  }
 
   m_baseX = GetPrivateProfileIntW(L"Layout_NowPlaying", L"BaseX", 30,
                                   m_iniFilePath.c_str());

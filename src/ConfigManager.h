@@ -66,6 +66,21 @@ public:
     int GetLogoWidth() const { return m_logoWidth; }
     int GetLogoHeight() const { return m_logoHeight; }
 
+    float GetLogoMenuIconSize() const { return m_logoMenuIconSize; }
+    int GetLogoMenuIconSpacing() const { return m_logoMenuIconSpacing; }
+    int GetLogoMenuIconOffsetX() const { return m_logoMenuIconOffsetX; }
+    int GetLogoMenuIconOffsetY() const { return m_logoMenuIconOffsetY; }
+    float GetLogoMenuScrollDuration() const { return m_logoMenuScrollDuration; }
+    std::wstring GetLogoMenuFontFamily() const { return m_logoMenuFontFamily; }
+    std::wstring GetLogoMenuTextColor() const { return m_logoMenuTextColor; }
+    std::wstring GetLogoMenuTypingFontFamily() const { return m_logoMenuTypingFontFamily; }
+    float GetLogoMenuTypingFontSize() const { return m_logoMenuTypingFontSize; }
+    int GetLogoMenuTextOffsetX() const { return m_logoMenuTextOffsetX; }
+    int GetLogoMenuTextOffsetY() const { return m_logoMenuTextOffsetY; }
+    float GetLogoMenuTypingLetterSpacing() const { return m_logoMenuTypingLetterSpacing; }
+    float GetLogoMenuStrikeLength() const { return m_logoMenuStrikeLength; }
+    float GetLogoMenuStrikeThickness() const { return m_logoMenuStrikeThickness; }
+
     /**
      * @brief デフォルト設定で上書き保存する
      */
@@ -240,7 +255,20 @@ private:
     int m_logoWidth;
     int m_logoHeight;
 
-
+    float m_logoMenuIconSize;
+    int m_logoMenuIconSpacing;
+    int m_logoMenuIconOffsetX;
+    int m_logoMenuIconOffsetY;
+    float m_logoMenuScrollDuration;
+    std::wstring m_logoMenuFontFamily;
+    std::wstring m_logoMenuTextColor;
+    std::wstring m_logoMenuTypingFontFamily;
+    float m_logoMenuTypingFontSize;
+    int m_logoMenuTextOffsetX;
+    int m_logoMenuTextOffsetY;
+    float m_logoMenuTypingLetterSpacing;
+    float m_logoMenuStrikeLength;
+    float m_logoMenuStrikeThickness;
 
     int m_baseX;
     int m_baseBottomOffset;

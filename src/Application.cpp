@@ -555,9 +555,9 @@ void Application::ForceRender() {
     std::vector<float> spectrum;
     m_audioPlayer.GetSpectrumData(spectrum);
 
-    m_renderer.UpdateAnimation(0.016f, m_window.IsControlHovered(), m_window.IsPlaylistHovered(), m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount());
+    m_renderer.UpdateAnimation(0.016f, m_window.IsControlHovered(), m_window.IsPlaylistHovered(), m_window.IsLogoMenuHovered(), m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount());
     m_renderer.UpdateTextLayouts(timeString, m_audioPlayer.GetVolume(), m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount());
-    m_renderer.Render(m_window.IsHovered(), m_window.IsControlHovered(), m_window.IsPlaylistHovered(), m_audioPlayer.IsPlaying(), progress, spectrum, m_audioPlayer.GetVolume(), m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount(), m_playlistManager.GetShuffleMetadataList());
+    m_renderer.Render(m_window.IsHovered(), m_window.IsControlHovered(), m_window.IsPlaylistHovered(), m_window.IsLogoMenuHovered(), &m_window.GetLogoMenuItems(), m_audioPlayer.IsPlaying(), progress, spectrum, m_audioPlayer.GetVolume(), m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount(), m_playlistManager.GetShuffleMetadataList());
 }
 
 

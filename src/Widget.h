@@ -9,6 +9,8 @@
 #include <vector>
 #include "PlaylistManager.h"
 
+#include "Window.h"
+
 class ConfigManager;
 
 /**
@@ -20,6 +22,8 @@ class ConfigManager;
 struct WidgetContext {
     float deltaTime;
     bool isHovered;
+    bool isLogoMenuHovered;
+    const std::vector<Window::LogoMenuItem>* logoMenuItems;
     bool isControlHovered;
     bool isPlaylistHovered;
     bool isPlaying;

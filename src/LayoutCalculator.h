@@ -129,12 +129,24 @@ struct ResizeGripLayout {
     D2D1_POINT_2F pt3;
 };
 
+struct LogoMenuItemLayout {
+    D2D1_POINT_2F position;
+    D2D1_RECT_F hitRect;
+};
+
+struct LogoMenuLayout {
+    std::vector<LogoMenuItemLayout> items;
+    D2D1_RECT_F typingTextRect;
+    D2D1_RECT_F fullRegionRect;
+};
+
 class LayoutCalculator {
 public:
     static BackgroundLayout CalculateBackgroundLayout(float logicalWidth, float logicalHeight, D2D1_SIZE_F bitmapSize);
     static VisualizerLayout CalculateVisualizerLayout(float logicalWidth, float logicalHeight);
     
     static AppLogoLayout CalculateAppLogoLayout(const ConfigManager* config);
+    static LogoMenuLayout CalculateLogoMenuLayout(const ConfigManager* config, float progress, size_t itemCount);
     static TrackInfoLayout CalculateTrackInfoLayout(float logicalWidth, float logicalHeight, const ConfigManager* config, D2D1_SIZE_F bitmapSize);
     static NextTrackLayout CalculateNextTrackLayout(float logicalWidth, float logicalHeight, const ConfigManager* config, D2D1_SIZE_F bitmapSize);
 

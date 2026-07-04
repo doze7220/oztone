@@ -48,6 +48,51 @@ AppLogoLayout LayoutCalculator::CalculateAppLogoLayout(const ConfigManager* conf
     return layout;
 }
 
+LogoMenuLayout LayoutCalculator::CalculateLogoMenuLayout(const ConfigManager* config, float progress, size_t itemCount) {
+    LogoMenuLayout layout;
+    if (!config || itemCount == 0) return layout;
+
+    float logoX = static_cast<float>(config->GetLogoX());
+    float logoY = static_cast<float>(config->GetLogoY());
+    float logoW = static_cast<float>(config->GetLogoWidth());
+    float logoH = static_cast<float>(config->GetLogoHeight());
+    
+    // ロゴアイコン右上 (Top-Right)
+    float topRightX = logoX + logoW;
+    float topRightY = logoY;
+
+    float iconOffsetY = static_cast<float>(config->GetLogoMenuIconOffsetY());
+    float centerY = topRightY + iconOffsetY;
+    
+    float iconOffsetX = static_cast<float>(config->GetLogoMenuIconOffsetX());
+    float startX = topRightX + iconOffsetX;
+    float iconSpacing = static_cast<float>(config->GetLogoMenuIconSpacing());
+    float iconSize = config->GetLogoMenuIconSize();
+
+    layout.fullRegionRect = D2D1::RectF(logoX, logoY, logoX + logoW, logoY + logoH);
+    
+    for (size_t i = 0; i < itemCount; ++i) {
+        float targetX = startX + iconSpacing * (i + 1);
+        float currentX = startX + (targetX - startX) * progress;
+        
+        LogoMenuItemLayout itemLayout;
+        itemLayout.position = D2D1::Point2F(currentX, centerY);
+        float hitMargin = iconSpacing / 2.0f;
+        itemLayout.hitRect = D2D1::RectF(currentX - hitMargin, centerY - logoH/2.0f, currentX + hitMargin, centerY + logoH/2.0f);
+        
+        layout.items.push_back(itemLayout);
+        
+        layout.fullRegionRect.right = (std::max)(layout.fullRegionRect.right, currentX + iconSpacing);
+    }
+    
+    float textStartX = topRightX + static_cast<float>(config->GetLogoMenuTextOffsetX());
+    float textStartY = topRightY + static_cast<float>(config->GetLogoMenuTextOffsetY());
+    layout.typingTextRect = D2D1::RectF(textStartX, textStartY, textStartX + 800.0f, textStartY + 50.0f);
+    layout.fullRegionRect.bottom = (std::max)(layout.fullRegionRect.bottom, textStartY + 50.0f);
+    
+    return layout;
+}
+
 TrackInfoLayout LayoutCalculator::CalculateTrackInfoLayout(float logicalWidth, float logicalHeight, const ConfigManager* config, D2D1_SIZE_F bitmapSize) {
     TrackInfoLayout layout = {};
     if (!config) return layout;
