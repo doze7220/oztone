@@ -80,6 +80,13 @@ public:
     float GetLogoMenuTypingLetterSpacing() const { return m_logoMenuTypingLetterSpacing; }
     float GetLogoMenuStrikeLength() const { return m_logoMenuStrikeLength; }
     float GetLogoMenuStrikeThickness() const { return m_logoMenuStrikeThickness; }
+    float GetLogoMenuIconHoverBgAlpha() const { return m_logoMenuIconHoverBgAlpha; }
+    float GetLogoMenuVisualizerFontSize() const { return m_logoMenuVisualizerFontSize; }
+    int GetLogoMenuVisualizerIconOffsetX() const { return m_logoMenuVisualizerIconOffsetX; }
+    int GetLogoMenuVisualizerIconOffsetY() const { return m_logoMenuVisualizerIconOffsetY; }
+    float GetLogoMenuDescShadowOffsetX() const { return m_logoMenuDescShadowOffsetX; }
+    float GetLogoMenuDescShadowOffsetY() const { return m_logoMenuDescShadowOffsetY; }
+    float GetLogoMenuDescShadowOpacity() const { return m_logoMenuDescShadowOpacity; }
 
     /**
      * @brief デフォルト設定で上書き保存する
@@ -269,6 +276,13 @@ private:
     float m_logoMenuTypingLetterSpacing;
     float m_logoMenuStrikeLength;
     float m_logoMenuStrikeThickness;
+    float m_logoMenuIconHoverBgAlpha;
+    float m_logoMenuVisualizerFontSize;
+    int m_logoMenuVisualizerIconOffsetX;
+    int m_logoMenuVisualizerIconOffsetY;
+    float m_logoMenuDescShadowOffsetX;
+    float m_logoMenuDescShadowOffsetY;
+    float m_logoMenuDescShadowOpacity;
 
     int m_baseX;
     int m_baseBottomOffset;

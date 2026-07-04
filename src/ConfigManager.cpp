@@ -60,6 +60,13 @@ MenuTextOffsetY=60
 MenuTypingLetterSpacing=0.0
 MenuStrikeLength=20.0
 MenuStrikeThickness=2.0
+IconHoverBgAlpha=0.6
+VisualizerIconFontSize=12.0
+VisualizerIconOffsetX=12
+VisualizerIconOffsetY=7
+DescShadowOffsetX=2.0
+DescShadowOffsetY=2.0
+DescShadowOpacity=0.7
 
 [Layout_NowPlaying]
 BaseX=20
@@ -535,6 +542,52 @@ void ConfigManager::LoadSettings() {
     m_logoMenuStrikeThickness = std::stof(buf);
   } catch (...) {
     m_logoMenuStrikeThickness = 2.0f;
+  }
+
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"IconHoverBgAlpha", L"0.6",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_logoMenuIconHoverBgAlpha = std::stof(buf);
+  } catch (...) {
+    m_logoMenuIconHoverBgAlpha = 0.6f;
+  }
+
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"VisualizerIconFontSize", L"12.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_logoMenuVisualizerFontSize = std::stof(buf);
+  } catch (...) {
+    m_logoMenuVisualizerFontSize = 12.0f;
+  }
+
+  m_logoMenuVisualizerIconOffsetX = GetPrivateProfileIntW(
+      L"Layout_LogoMenu", L"VisualizerIconOffsetX", 12, m_iniFilePath.c_str());
+
+  m_logoMenuVisualizerIconOffsetY = GetPrivateProfileIntW(
+      L"Layout_LogoMenu", L"VisualizerIconOffsetY", 7, m_iniFilePath.c_str());
+
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"DescShadowOffsetX", L"2.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_logoMenuDescShadowOffsetX = std::stof(buf);
+  } catch (...) {
+    m_logoMenuDescShadowOffsetX = 2.0f;
+  }
+
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"DescShadowOffsetY", L"2.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_logoMenuDescShadowOffsetY = std::stof(buf);
+  } catch (...) {
+    m_logoMenuDescShadowOffsetY = 2.0f;
+  }
+
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"DescShadowOpacity", L"0.7",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_logoMenuDescShadowOpacity = std::stof(buf);
+  } catch (...) {
+    m_logoMenuDescShadowOpacity = 0.7f;
   }
 
   m_baseX = GetPrivateProfileIntW(L"Layout_NowPlaying", L"BaseX", 30,

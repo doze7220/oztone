@@ -85,3 +85,15 @@
    - `LogoMenuWidget::Draw` の説明テキスト部分をタイピングから英語大文字 (`labelText`) の表示に切り替え。
    - ビジュアライザアイコンの右下に、現在のモードに応じて『1』または『2』を描画するロジックを追加。
    - `AppLogoWidget::Draw` にて、`ctx.isLogoMenuHovered` が true のときもロゴを `app_logo_hover.png` に維持するように変更。
+
+## 5. Hotfix: ロゴ拡張メニューのデザイン・レイアウトパラメータの外部化
+
+ハードコードされていた以下の表示パラメータをINI設定 (`[Layout_LogoMenu]` セクション) に移行し、外部からの柔軟な調整を可能とした。
+
+1. **ホバー背景と説明テキストの設定**:
+   - `IconHoverBgAlpha`: アイコンホバー時の背景画像の不透明度 (デフォルト 0.6)
+   - `DescShadowOffsetX`, `DescShadowOffsetY`, `DescShadowOpacity`: 説明テキスト専用のドロップシャドウ設定。
+   - これに伴い `LogoMenuWidget` の描画処理において、シャドウ用の黒ブラシを新設しテキスト描画時に影を適用するよう修正。
+2. **ビジュアライザインジケーターの設定**:
+   - `VisualizerIconFontSize`: アイコン右下の状態インジケーター（1, 2）のフォントサイズ (デフォルト 12.0)
+   - `VisualizerIconOffsetX`, `VisualizerIconOffsetY`: 自身のアイコン座標からの表示位置オフセット。従来はアイコンサイズベースの割合計算であったものを、直接的なオフセット加算方式に変更し位置調整を容易にした。

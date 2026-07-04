@@ -167,7 +167,7 @@ void LogoMenuWidget::CreateResources(ID2D1DeviceContext *context,
     dwriteFactory->CreateTextFormat(
         config->GetLogoMenuTypingFontFamily().c_str(), nullptr,
         DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL, config->GetLogoMenuIconSize() * 0.25f,
+        DWRITE_FONT_STRETCH_NORMAL, config->GetLogoMenuVisualizerFontSize(),
         L"ja-jp", &m_indicatorTextFormat);
     if (m_indicatorTextFormat) {
       m_indicatorTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
@@ -183,6 +183,8 @@ void LogoMenuWidget::CreateResources(ID2D1DeviceContext *context,
                                    &m_lineBrush);
     context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White),
                                    &m_typingTextBrush);
+    context->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f),
+                                   &m_shadowBrush);
   }
   LoadBitmapResourceHelper(wicFactory, context, L"app_logo_back.png",
                            IDI_APP_LOGO_BACK, &m_appLogoBackBitmap);
@@ -265,7 +267,7 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
                            D2D1_INTERPOLATION_MODE_LINEAR,
                            D2D1_COMPOSITE_MODE_SOURCE_OVER);
       }
-      context->DrawBitmap(m_appLogoBackBitmap.Get(), &bgRect, 0.6f,
+      context->DrawBitmap(m_appLogoBackBitmap.Get(), &bgRect, config->GetLogoMenuIconHoverBgAlpha(),
                           D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
     }
 
@@ -295,9 +297,9 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
         std::wstring modeStr = mode == 1 ? L"1" : L"2";
         D2D1_RECT_F indRect = itemLayout.hitRect;
         indRect.left =
-            itemLayout.position.x + config->GetLogoMenuIconSize() * 0.25f;
+            itemLayout.position.x + config->GetLogoMenuVisualizerIconOffsetX();
         indRect.top =
-            itemLayout.position.y + config->GetLogoMenuIconSize() * 0.15f;
+            itemLayout.position.y + config->GetLogoMenuVisualizerIconOffsetY();
 
         // Create a temporary layout for shadow/outline effect
         if (m_dwriteFactory && m_indicatorTextFormat) {
@@ -373,12 +375,32 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
         textLayout1->SetCharacterSpacing(0.0f, letterSpacing, 0.0f, textRange);
       }
 
+      if (m_shadowBrush) {
+        m_shadowBrush->SetOpacity(config->GetLogoMenuDescShadowOpacity());
+        context->DrawTextLayout(
+            D2D1::Point2F(layout.typingTextRect.left + config->GetLogoMenuDescShadowOffsetX(),
+                          layout.typingTextRect.top + config->GetLogoMenuDescShadowOffsetY()),
+            textLayout.Get(), m_shadowBrush.Get(),
+            D2D1_DRAW_TEXT_OPTIONS_NONE);
+      }
       context->DrawTextLayout(
           D2D1::Point2F(layout.typingTextRect.left, layout.typingTextRect.top),
           textLayout.Get(), m_typingTextBrush.Get(),
           D2D1_DRAW_TEXT_OPTIONS_NONE);
     }
   } else {
+    if (m_shadowBrush) {
+      m_shadowBrush->SetOpacity(config->GetLogoMenuDescShadowOpacity());
+      D2D1_RECT_F shadowRect = layout.typingTextRect;
+      shadowRect.left += config->GetLogoMenuDescShadowOffsetX();
+      shadowRect.right += config->GetLogoMenuDescShadowOffsetX();
+      shadowRect.top += config->GetLogoMenuDescShadowOffsetY();
+      shadowRect.bottom += config->GetLogoMenuDescShadowOffsetY();
+      context->DrawText(textToDraw.c_str(),
+                        static_cast<UINT32>(textToDraw.length()),
+                        m_typingTextFormat.Get(), shadowRect,
+                        m_shadowBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE);
+    }
     context->DrawText(textToDraw.c_str(),
                       static_cast<UINT32>(textToDraw.length()),
                       m_typingTextFormat.Get(), layout.typingTextRect,

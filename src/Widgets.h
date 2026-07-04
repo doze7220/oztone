@@ -39,6 +39,7 @@ private:
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_inactiveIconBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_lineBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_typingTextBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_shadowBrush;
     Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
     
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_appLogoBackBitmap;
