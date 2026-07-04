@@ -146,6 +146,7 @@ ShadowOpacity=0.7
 
 [Audio]
 DefaultVolume=1.0
+ShuffleMode=1
 
 [Visualizer]
 VisualizerMode=2
@@ -193,7 +194,7 @@ ConfigManager::ConfigManager()
       m_showAppLogo(true), m_showNowPlaying(true), m_showNextTrack(true),
       m_enableNextTrack(false), m_showSeekBar(true),
       m_showPlaybackControls(true), m_showVolumeControl(true), m_zOrder(0),
-      m_savePositionOnExit(true), m_enableResize(false),
+      m_savePositionOnExit(true), m_enableResize(false), m_shuffleMode(true),
       m_windowX(CW_USEDEFAULT), m_windowY(CW_USEDEFAULT), m_windowWidth(1024),
       m_windowHeight(512), m_enableShadow(true), m_shadowOffsetX(2.0f),
       m_shadowOffsetY(2.0f), m_shadowOpacity(0.7f), m_bgDarkenOpacity(0.3f),
@@ -411,6 +412,8 @@ void ConfigManager::LoadSettings() {
   } catch (...) {
     m_defaultVolume = 1.0f;
   }
+
+  m_shuffleMode = GetPrivateProfileIntW(L"Audio", L"ShuffleMode", 1, m_iniFilePath.c_str()) != 0;
 
   m_volBaseLeftOffset = GetPrivateProfileIntW(
       L"Layout_VolumeControl", L"BaseLeftOffset", 30, m_iniFilePath.c_str());
@@ -1104,6 +1107,11 @@ void ConfigManager::SetDefaultVolume(float volume) {
   WritePrivateProfileStringW(L"Audio", L"DefaultVolume",
                              std::to_wstring(volume).c_str(),
                              m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetShuffleMode(bool mode) {
+  m_shuffleMode = mode;
+  WritePrivateProfileStringW(L"Audio", L"ShuffleMode", mode ? L"1" : L"0", m_iniFilePath.c_str());
 }
 
 void ConfigManager::SetDefaultPlaylistPath(const std::wstring &path) {

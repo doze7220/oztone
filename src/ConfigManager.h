@@ -56,6 +56,9 @@ public:
     bool GetEnableResize() const { return m_enableResize; }
     void SetEnableResize(bool enable);
 
+    bool GetShuffleMode() const { return m_shuffleMode; }
+    void SetShuffleMode(bool mode);
+
 
     /**
      * @brief 更新がないか確認する
@@ -256,6 +259,7 @@ private:
     int m_zOrder;
     bool m_savePositionOnExit;
     bool m_enableResize;
+    bool m_shuffleMode;
 
 
     int m_windowX;

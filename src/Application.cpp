@@ -52,6 +52,28 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         this->SwitchPlaylist(filepath);
     });
 
+    for (auto& item : m_window.GetLogoMenuItemsMutable()) {
+        if (item.commandId == Window::ID_LOGO_SHUFFLE) {
+            item.toggleState = m_config.GetShuffleMode();
+        }
+    }
+
+    m_window.SetShuffleCallback([this]() {
+        bool newMode = !m_config.GetShuffleMode();
+        m_config.SetShuffleMode(newMode);
+        
+        std::wstring currentTrack;
+        if (!m_playlistManager.IsEmpty()) {
+            currentTrack = m_playlistManager.GetCurrentTrack();
+        }
+        
+        m_playlistManager.RebuildQueue(newMode);
+        
+        if (!currentTrack.empty()) {
+            m_playlistManager.WarpToTrack(currentTrack);
+        }
+    });
+
     m_window.SetMediaCommandCallback([this](int cmd) {
         if (cmd == APPCOMMAND_MEDIA_PLAY_PAUSE) {
             m_audioPlayer.TogglePlayPause();
@@ -433,8 +455,6 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
         std::wstring ext = p.extension().wstring();
         std::transform(ext.begin(), ext.end(), ext.begin(), ::towlower);
 
-        // [EXPERIMENTAL] MP4/M4A Support
-        // 動画コンテナ構造は検証が複雑なためマジックナンバー検証をスキップ
         if (ext == L".mp4" || ext == L".m4a") {
             return true;
         }
@@ -447,23 +467,20 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
         std::streamsize bytesRead = file.gcount();
 
         if (bytesRead >= 4) {
-            // FLAC: "fLaC"
             if (header[0] == 'f' && header[1] == 'L' && header[2] == 'a' && header[3] == 'C') return true;
-            // OGG: "OggS"
             if (header[0] == 'O' && header[1] == 'g' && header[2] == 'g' && header[3] == 'S') return true;
-            // WAV: "RIFF"
             if (header[0] == 'R' && header[1] == 'I' && header[2] == 'F' && header[3] == 'F') return true;
         }
         
         if (bytesRead >= 2) {
-            // ID3v2: "ID3"
             if (header[0] == 'I' && header[1] == 'D' && header[2] == '3') return true;
-            // MP3 Sync word: 0xFF 0xFB, 0xFF 0xFA, 0xFF 0xF3, etc...
             if (header[0] == 0xFF && (header[1] & 0xE0) == 0xE0) return true;
         }
         
         return false;
     };
+
+    std::wstring firstAddedTrack;
 
     for (const auto& pathWStr : paths) {
         try {
@@ -473,13 +490,11 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
                     if (it->is_regular_file()) {
                         bool isSupported = IsSupportedAudioFile(it->path());
                         bool isValid = IsValidAudioFile(it->path());
-                        char dbg[1024];
-                        sprintf_s(dbg, "File: %ls, IsSupported: %d, IsValid: %d\n", it->path().wstring().c_str(), isSupported, isValid);
-                        OutputDebugStringA(dbg);
                         
                         if (isSupported && isValid) {
                             if (m_playlistManager.Add(it->path().wstring())) {
                                 addedAny = true;
+                                if (firstAddedTrack.empty()) firstAddedTrack = it->path().wstring();
                             }
                         }
                     }
@@ -487,13 +502,11 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
             } else if (std::filesystem::is_regular_file(p)) {
                 bool isSupported = IsSupportedAudioFile(p);
                 bool isValid = IsValidAudioFile(p);
-                char dbg[1024];
-                sprintf_s(dbg, "File: %ls, IsSupported: %d, IsValid: %d\n", p.wstring().c_str(), isSupported, isValid);
-                OutputDebugStringA(dbg);
                 
                 if (isSupported && isValid) {
                     if (m_playlistManager.Add(p.wstring())) {
                         addedAny = true;
+                        if (firstAddedTrack.empty()) firstAddedTrack = p.wstring();
                     }
                 }
             }
@@ -509,7 +522,16 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
             std::filesystem::create_directories(playlistDir);
         }
         m_playlistManager.SaveToFile(defaultPath.wstring());
-        m_playlistManager.ShuffleNextLoop();
+
+        bool isShiftPressed = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
+        if (!isShiftPressed) {
+            m_playlistManager.RebuildQueue(m_config.GetShuffleMode());
+            if (!firstAddedTrack.empty()) {
+                m_playlistManager.WarpToTrack(firstAddedTrack);
+            }
+        } else {
+            m_playlistManager.ShuffleNextLoop();
+        }
 
         auto unparsed = m_playlistManager.GetUnparsedTracks();
         if (!unparsed.empty()) {
@@ -522,7 +544,9 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
             m_parseCV.notify_one();
         }
 
-        if (wasEmpty && !m_audioPlayer.IsPlaying()) {
+        if (!isShiftPressed || (wasEmpty && !m_audioPlayer.IsPlaying())) {
+            m_audioPlayer.Stop();
+            
             size_t skipCount = 0;
             bool played = false;
             size_t totalCount = m_playlistManager.GetCount();

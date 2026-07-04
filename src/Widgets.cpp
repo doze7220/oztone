@@ -349,11 +349,11 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
     if (hoveredItem.commandId == Window::ID_LOGO_VISUALIZER) {
       int mode = config->GetVisualizerMode();
       if (mode == 1)
-        textToDraw = L"VISUALIZER: PRISM BEAT";
+        textToDraw = L"ビジュアライザ: PRISM BEAT";
       else if (mode == 2)
-        textToDraw = L"VISUALIZER: HALO DUST";
+        textToDraw = L"ビジュアライザ: HALO DUST";
       else
-        textToDraw = L"VISUALIZER: OFF";
+        textToDraw = L"ビジュアライザ: OFF";
     } else if (hoveredItem.commandId == Window::ID_LOGO_PLAYLIST_POS) {
       if (config->GetPlaylistPosition() == 0) {
         textToDraw = L"プレイリスト配置: 画面左";
@@ -483,26 +483,28 @@ void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
     return;
 
   if (m_dwriteFactory) {
-    if (m_titleTextFormat && (!m_titleTextLayout || m_lastTitle != ctx.trackTitle)) {
+    if (m_titleTextFormat &&
+        (!m_titleTextLayout || m_lastTitle != ctx.trackTitle)) {
       m_lastTitle = ctx.trackTitle;
       m_titleTextLayout.Reset();
       m_dwriteFactory->CreateTextLayout(
           ctx.trackTitle.c_str(), static_cast<UINT32>(ctx.trackTitle.length()),
           m_titleTextFormat.Get(), 4000.0f, 1000.0f, &m_titleTextLayout);
     }
-    
-    if (m_artistTextFormat && (!m_artistTextLayout || m_lastArtist != ctx.trackArtist)) {
+
+    if (m_artistTextFormat &&
+        (!m_artistTextLayout || m_lastArtist != ctx.trackArtist)) {
       m_lastArtist = ctx.trackArtist;
       m_artistTextLayout.Reset();
       m_dwriteFactory->CreateTextLayout(
-          ctx.trackArtist.c_str(), static_cast<UINT32>(ctx.trackArtist.length()),
+          ctx.trackArtist.c_str(),
+          static_cast<UINT32>(ctx.trackArtist.length()),
           m_artistTextFormat.Get(), 4000.0f, 1000.0f, &m_artistTextLayout);
     }
   }
 
   if (m_dwriteFactory && m_trackCountTextFormat &&
-      (!m_trackCountTextLayout ||
-       m_lastTotalTracks != ctx.totalTracks ||
+      (!m_trackCountTextLayout || m_lastTotalTracks != ctx.totalTracks ||
        m_lastCurrentTrackIndex != ctx.currentTrackIndex)) {
     m_lastTotalTracks = ctx.totalTracks;
     m_lastCurrentTrackIndex = ctx.currentTrackIndex;
@@ -575,16 +577,20 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
     }
 
     if (m_textBrush && m_titleTextLayout && m_artistTextLayout) {
-      m_titleTextLayout->SetMaxWidth(layout.titleRect.right - layout.titleRect.left);
-      m_titleTextLayout->SetMaxHeight(layout.titleRect.bottom - layout.titleRect.top);
-      m_artistTextLayout->SetMaxWidth(layout.artistRect.right - layout.artistRect.left);
-      m_artistTextLayout->SetMaxHeight(layout.artistRect.bottom - layout.artistRect.top);
+      m_titleTextLayout->SetMaxWidth(layout.titleRect.right -
+                                     layout.titleRect.left);
+      m_titleTextLayout->SetMaxHeight(layout.titleRect.bottom -
+                                      layout.titleRect.top);
+      m_artistTextLayout->SetMaxWidth(layout.artistRect.right -
+                                      layout.artistRect.left);
+      m_artistTextLayout->SetMaxHeight(layout.artistRect.bottom -
+                                       layout.artistRect.top);
 
       if (m_shadowBrush && config->GetEnableShadow()) {
         m_shadowBrush->SetOpacity(config->GetShadowOpacity());
-        context->DrawTextLayout(
-            D2D1::Point2F(layout.titleShadowRect.left, layout.titleShadowRect.top),
-            m_titleTextLayout.Get(), m_shadowBrush.Get());
+        context->DrawTextLayout(D2D1::Point2F(layout.titleShadowRect.left,
+                                              layout.titleShadowRect.top),
+                                m_titleTextLayout.Get(), m_shadowBrush.Get());
       }
 
       context->DrawTextLayout(
@@ -593,9 +599,9 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
 
       if (m_shadowBrush && config->GetEnableShadow()) {
         m_shadowBrush->SetOpacity(config->GetShadowOpacity());
-        context->DrawTextLayout(
-            D2D1::Point2F(layout.artistShadowRect.left, layout.artistShadowRect.top),
-            m_artistTextLayout.Get(), m_shadowBrush.Get());
+        context->DrawTextLayout(D2D1::Point2F(layout.artistShadowRect.left,
+                                              layout.artistShadowRect.top),
+                                m_artistTextLayout.Get(), m_shadowBrush.Get());
       }
 
       context->DrawTextLayout(
@@ -1190,21 +1196,22 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
   dwriteFactory->CreateTextFormat(
       config->GetPlaylistTitleFontFamily().c_str(), nullptr,
       DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
-      DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistToolbarTextFontSize(), L"ja-jp",
-      &m_toolbarTextFormat);
+      DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistToolbarTextFontSize(),
+      L"ja-jp", &m_toolbarTextFormat);
   if (m_toolbarTextFormat) {
-      m_toolbarTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-      m_toolbarTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+    m_toolbarTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+    m_toolbarTextFormat->SetParagraphAlignment(
+        DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
   }
 
   dwriteFactory->CreateTextFormat(
-      L"Segoe UI Emoji", nullptr,
-      DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
-      DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistToolbarIconSize(), L"ja-jp",
-      &m_toolbarIconFormat);
+      L"Segoe UI Emoji", nullptr, DWRITE_FONT_WEIGHT_NORMAL,
+      DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL,
+      config->GetPlaylistToolbarIconSize(), L"ja-jp", &m_toolbarIconFormat);
   if (m_toolbarIconFormat) {
-      m_toolbarIconFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-      m_toolbarIconFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+    m_toolbarIconFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+    m_toolbarIconFormat->SetParagraphAlignment(
+        DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
   }
 
   auto ParseHexColor = [](const std::wstring &hexColor) -> D2D1_COLOR_F {
@@ -1321,16 +1328,16 @@ void PlaylistWidget::UpdateAnimation(const WidgetContext &ctx) {
     size_t activeTotal = ctx.totalTracks;
 
     if (ctx.isPlaylistListViewMode && ctx.config) {
-        std::vector<std::wstring> playlists = ctx.config->GetAvailablePlaylists();
-        activeTotal = playlists.size();
-        std::wstring currentPlaylist = ctx.config->GetDefaultPlaylistPath();
-        activeIndex = 0;
-        for (size_t i = 0; i < playlists.size(); ++i) {
-            if (playlists[i] == currentPlaylist) {
-                activeIndex = i;
-                break;
-            }
+      std::vector<std::wstring> playlists = ctx.config->GetAvailablePlaylists();
+      activeTotal = playlists.size();
+      std::wstring currentPlaylist = ctx.config->GetDefaultPlaylistPath();
+      activeIndex = 0;
+      for (size_t i = 0; i < playlists.size(); ++i) {
+        if (playlists[i] == currentPlaylist) {
+          activeIndex = i;
+          break;
         }
+      }
     }
 
     PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
@@ -1362,16 +1369,16 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
   size_t activeTotal = ctx.totalTracks;
 
   if (ctx.isPlaylistListViewMode && config) {
-      std::vector<std::wstring> playlists = config->GetAvailablePlaylists();
-      activeTotal = playlists.size();
-      std::wstring currentPlaylist = config->GetDefaultPlaylistPath();
-      activeIndex = 0;
-      for (size_t i = 0; i < playlists.size(); ++i) {
-          if (playlists[i] == currentPlaylist) {
-              activeIndex = i;
-              break;
-          }
+    std::vector<std::wstring> playlists = config->GetAvailablePlaylists();
+    activeTotal = playlists.size();
+    std::wstring currentPlaylist = config->GetDefaultPlaylistPath();
+    activeIndex = 0;
+    for (size_t i = 0; i < playlists.size(); ++i) {
+      if (playlists[i] == currentPlaylist) {
+        activeIndex = i;
+        break;
       }
+    }
   }
 
   PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
@@ -1424,49 +1431,69 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
     std::wstring hoverText = L"";
     std::wstring icons[3];
     if (ctx.isPlaylistListViewMode) {
-        icons[0] = L""; // (非表示)
-        icons[1] = L"➕"; 
-        icons[2] = L"🗑️"; 
+      icons[0] = L""; // (非表示)
+      icons[1] = L"➕";
+      icons[2] = L"🗑️";
     } else {
-        icons[0] = L"📁"; 
-        icons[1] = L"➖"; 
-        icons[2] = L"🗑️"; 
+      icons[0] = L"📁";
+      icons[1] = L"➖";
+      icons[2] = L"🗑️";
     }
 
-    if (ctx.playlistToolbarHoveredIndex >= 0 && ctx.playlistToolbarHoveredIndex <= 2) {
-        int idx = ctx.playlistToolbarHoveredIndex;
-        if (ctx.isPlaylistListViewMode) {
-            if (idx == 0) hoverText = L""; // (非表示)
-            if (idx == 1) hoverText = L"プレイリストを新規作成する";
-            if (idx == 2) hoverText = L"プレイリストを削除する";
-        } else {
-            if (idx == 0) hoverText = L"プレイリスト一覧を開く";
-            if (idx == 1) hoverText = L"再生中の曲をプレイリストから削除する";
-            if (idx == 2) hoverText = L"プレイリストの全曲を削除する";
-        }
+    if (ctx.playlistToolbarHoveredIndex >= 0 &&
+        ctx.playlistToolbarHoveredIndex <= 2) {
+      int idx = ctx.playlistToolbarHoveredIndex;
+      if (ctx.isPlaylistListViewMode) {
+        if (idx == 0)
+          hoverText = L""; // (非表示)
+        if (idx == 1)
+          hoverText = L"プレイリストを新規作成する";
+        if (idx == 2)
+          hoverText = L"プレイリストを削除する";
+      } else {
+        if (idx == 0)
+          hoverText = L"プレイリスト一覧を開く";
+        if (idx == 1)
+          hoverText = L"再生中の曲をプレイリストから削除する";
+        if (idx == 2)
+          hoverText = L"プレイリストの全曲を削除する";
+      }
     }
 
     if (!hoverText.empty() && m_toolbarTextFormat && m_textBrush) {
-        if (m_shadowBrush && config->GetEnableShadow()) {
-            m_shadowBrush->SetOpacity(config->GetShadowOpacity());
-            D2D1_RECT_F sRect = layout.toolbarLayout.textRect;
-            sRect.left += 1.0f; sRect.top += 1.0f; sRect.right += 1.0f; sRect.bottom += 1.0f;
-            context->DrawText(hoverText.c_str(), static_cast<UINT32>(hoverText.length()), m_toolbarTextFormat.Get(), &sRect, m_shadowBrush.Get());
-        }
-        context->DrawText(hoverText.c_str(), static_cast<UINT32>(hoverText.length()), m_toolbarTextFormat.Get(), &layout.toolbarLayout.textRect, m_textBrush.Get());
+      if (m_shadowBrush && config->GetEnableShadow()) {
+        m_shadowBrush->SetOpacity(config->GetShadowOpacity());
+        D2D1_RECT_F sRect = layout.toolbarLayout.textRect;
+        sRect.left += 1.0f;
+        sRect.top += 1.0f;
+        sRect.right += 1.0f;
+        sRect.bottom += 1.0f;
+        context->DrawText(
+            hoverText.c_str(), static_cast<UINT32>(hoverText.length()),
+            m_toolbarTextFormat.Get(), &sRect, m_shadowBrush.Get());
+      }
+      context->DrawText(hoverText.c_str(),
+                        static_cast<UINT32>(hoverText.length()),
+                        m_toolbarTextFormat.Get(),
+                        &layout.toolbarLayout.textRect, m_textBrush.Get());
     }
 
     for (int i = 0; i < 3; ++i) {
-        if (ctx.isPlaylistListViewMode && i == 0) continue; // (非表示)
+      if (ctx.isPlaylistListViewMode && i == 0)
+        continue; // (非表示)
 
-        if (ctx.playlistToolbarHoveredIndex == i && m_playlistHighlightBrush) {
-            m_playlistHighlightBrush->SetOpacity(0.2f);
-            context->FillRectangle(&layout.toolbarLayout.buttonHitRects[i], m_playlistHighlightBrush.Get());
-        }
+      if (ctx.playlistToolbarHoveredIndex == i && m_playlistHighlightBrush) {
+        m_playlistHighlightBrush->SetOpacity(0.2f);
+        context->FillRectangle(&layout.toolbarLayout.buttonHitRects[i],
+                               m_playlistHighlightBrush.Get());
+      }
 
-        if (m_toolbarIconFormat && !icons[i].empty()) {
-            context->DrawText(icons[i].c_str(), static_cast<UINT32>(icons[i].length()), m_toolbarIconFormat.Get(), &layout.toolbarLayout.buttonHitRects[i], m_textBrush.Get());
-        }
+      if (m_toolbarIconFormat && !icons[i].empty()) {
+        context->DrawText(
+            icons[i].c_str(), static_cast<UINT32>(icons[i].length()),
+            m_toolbarIconFormat.Get(), &layout.toolbarLayout.buttonHitRects[i],
+            m_textBrush.Get());
+      }
     }
 
     context->PushAxisAlignedClip(&layout.clipRect,
@@ -1479,80 +1506,95 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
     }
 
     if (ctx.isPlaylistListViewMode) {
-        std::vector<std::wstring> playlists = config->GetAvailablePlaylists();
-        std::wstring currentPlaylist = config->GetDefaultPlaylistPath();
+      std::vector<std::wstring> playlists = config->GetAvailablePlaylists();
+      std::wstring currentPlaylist = config->GetDefaultPlaylistPath();
 
-        for (size_t i = 0; i < playlists.size(); ++i) {
-            if (currentY + layout.itemHeight > 0 && currentY < layout.playlistHeight) {
-                PlaylistItemLayout itemLayout = LayoutCalculator::CalculatePlaylistItemLayout(layout, config, currentY);
+      for (size_t i = 0; i < playlists.size(); ++i) {
+        if (currentY + layout.itemHeight > 0 &&
+            currentY < layout.playlistHeight) {
+          PlaylistItemLayout itemLayout =
+              LayoutCalculator::CalculatePlaylistItemLayout(layout, config,
+                                                            currentY);
 
-                if (playlists[i] == currentPlaylist && m_playlistHighlightBrush) {
-                    m_playlistHighlightBrush->SetOpacity(0.2f);
-                    context->FillRectangle(&itemLayout.hlRect, m_playlistHighlightBrush.Get());
-                }
+          if (playlists[i] == currentPlaylist && m_playlistHighlightBrush) {
+            m_playlistHighlightBrush->SetOpacity(0.2f);
+            context->FillRectangle(&itemLayout.hlRect,
+                                   m_playlistHighlightBrush.Get());
+          }
 
-                std::wstring title;
-                try {
-                    title = std::filesystem::path(playlists[i]).filename().wstring();
-                } catch (...) {
-                    title = L"Unknown";
-                }
+          std::wstring title;
+          try {
+            title = std::filesystem::path(playlists[i]).filename().wstring();
+          } catch (...) {
+            title = L"Unknown";
+          }
 
-                context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
-                                  m_playlistTitleTextFormat.Get(),
-                                  &itemLayout.titleRect, m_textBrush.Get());
-            }
-            currentY += layout.itemHeight;
+          context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
+                            m_playlistTitleTextFormat.Get(),
+                            &itemLayout.titleRect, m_textBrush.Get());
         }
+        currentY += layout.itemHeight;
+      }
     } else {
-        for (size_t i = 0; i < ctx.totalTracks && ctx.shuffleMetadataList && i < ctx.shuffleMetadataList->size(); ++i) {
-            if (currentY + layout.itemHeight > 0 && currentY < layout.playlistHeight) {
-                PlaylistItemLayout itemLayout = LayoutCalculator::CalculatePlaylistItemLayout(layout, config, currentY);
+      for (size_t i = 0; i < ctx.totalTracks && ctx.shuffleMetadataList &&
+                         i < ctx.shuffleMetadataList->size();
+           ++i) {
+        if (currentY + layout.itemHeight > 0 &&
+            currentY < layout.playlistHeight) {
+          PlaylistItemLayout itemLayout =
+              LayoutCalculator::CalculatePlaylistItemLayout(layout, config,
+                                                            currentY);
 
-                if (i == ctx.currentTrackIndex && m_playlistHighlightBrush) {
-                    m_playlistHighlightBrush->SetOpacity(0.2f);
-                    context->FillRectangle(&itemLayout.hlRect, m_playlistHighlightBrush.Get());
-                }
+          if (i == ctx.currentTrackIndex && m_playlistHighlightBrush) {
+            m_playlistHighlightBrush->SetOpacity(0.2f);
+            context->FillRectangle(&itemLayout.hlRect,
+                                   m_playlistHighlightBrush.Get());
+          }
 
-                const TrackMetadata &meta = (*ctx.shuffleMetadataList)[i];
-                std::wstring title;
-                std::wstring artist;
-                std::wstring timeStr;
+          const TrackMetadata &meta = (*ctx.shuffleMetadataList)[i];
+          std::wstring title;
+          std::wstring artist;
+          std::wstring timeStr;
 
-                if (meta.isLoaded) {
-                    title = meta.title;
-                    artist = meta.artist;
-                    timeStr = meta.timeString;
-                } else {
-                    try {
-                        title = std::filesystem::path(meta.filepath).filename().wstring();
-                    } catch (...) {
-                        title = L"Unknown";
-                    }
-                    artist = L"Unknown Artist";
-                }
-
-                context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
-                                  m_playlistTitleTextFormat.Get(),
-                                  &itemLayout.titleRect, m_textBrush.Get());
-
-                if (!artist.empty()) {
-                    context->DrawText(artist.c_str(), static_cast<UINT32>(artist.length()),
-                                      m_playlistArtistTextFormat.Get(), &itemLayout.artistRect,
-                                      m_playlistArtistBrush ? m_playlistArtistBrush.Get() : m_textBrush.Get());
-                }
-
-                if (!timeStr.empty() && m_playlistTimeTextFormat) {
-                    D2D1_RECT_F timeRect = D2D1::RectF(itemLayout.timeOrigin.x, itemLayout.timeOrigin.y,
-                                                       itemLayout.timeOrigin.x + itemLayout.timeMaxWidth,
-                                                       itemLayout.timeOrigin.y + itemLayout.timeMaxHeight);
-                    context->DrawText(timeStr.c_str(), static_cast<UINT32>(timeStr.length()),
-                                      m_playlistTimeTextFormat.Get(), &timeRect,
-                                      m_playlistTimeBrush ? m_playlistTimeBrush.Get() : m_textBrush.Get());
-                }
+          if (meta.isLoaded) {
+            title = meta.title;
+            artist = meta.artist;
+            timeStr = meta.timeString;
+          } else {
+            try {
+              title = std::filesystem::path(meta.filepath).filename().wstring();
+            } catch (...) {
+              title = L"Unknown";
             }
-            currentY += layout.itemHeight;
+            artist = L"Unknown Artist";
+          }
+
+          context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
+                            m_playlistTitleTextFormat.Get(),
+                            &itemLayout.titleRect, m_textBrush.Get());
+
+          if (!artist.empty()) {
+            context->DrawText(
+                artist.c_str(), static_cast<UINT32>(artist.length()),
+                m_playlistArtistTextFormat.Get(), &itemLayout.artistRect,
+                m_playlistArtistBrush ? m_playlistArtistBrush.Get()
+                                      : m_textBrush.Get());
+          }
+
+          if (!timeStr.empty() && m_playlistTimeTextFormat) {
+            D2D1_RECT_F timeRect =
+                D2D1::RectF(itemLayout.timeOrigin.x, itemLayout.timeOrigin.y,
+                            itemLayout.timeOrigin.x + itemLayout.timeMaxWidth,
+                            itemLayout.timeOrigin.y + itemLayout.timeMaxHeight);
+            context->DrawText(timeStr.c_str(),
+                              static_cast<UINT32>(timeStr.length()),
+                              m_playlistTimeTextFormat.Get(), &timeRect,
+                              m_playlistTimeBrush ? m_playlistTimeBrush.Get()
+                                                  : m_textBrush.Get());
+          }
         }
+        currentY += layout.itemHeight;
+      }
     }
 
     context->PopAxisAlignedClip();

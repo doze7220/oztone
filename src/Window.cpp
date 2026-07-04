@@ -173,7 +173,7 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow,
     dwStyle = WS_POPUP | WS_THICKFRAME;
   } else {
     dwStyle = WS_POPUP; // 完全枠なし
-    dwExStyle |= WS_EX_LAYERED;
+    dwExStyle |= WS_EX_LAYERED | WS_EX_NOREDIRECTIONBITMAP;
   }
 
   if (!config.GetShowTaskbar()) {
@@ -634,7 +634,9 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
               m_config->SetVisualizerMode(mode);
             }
           } else if (item.commandId == ID_LOGO_SHUFFLE) {
-            // m_config->SetShuffleEnabled(item.toggleState);
+            if (m_onShuffleCommand) {
+              m_onShuffleCommand();
+            }
           } else if (item.commandId == ID_LOGO_PLAYLIST_POS) {
             if (m_config) {
               int newPos = m_config->GetPlaylistPosition() == 0 ? 1 : 0;

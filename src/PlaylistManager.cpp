@@ -30,6 +30,35 @@ void PlaylistManager::GenerateShuffleList(std::vector<size_t>& targetList) {
     std::shuffle(targetList.begin(), targetList.end(), m_mt);
 }
 
+void PlaylistManager::RebuildQueue(bool isShuffle) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_shuffleIndices.clear();
+    m_nextShuffleIndices.clear();
+    if (m_playlist.empty()) return;
+
+    m_shuffleIndices.resize(m_playlist.size());
+    std::iota(m_shuffleIndices.begin(), m_shuffleIndices.end(), 0);
+    m_nextShuffleIndices = m_shuffleIndices;
+
+    if (isShuffle) {
+        std::shuffle(m_shuffleIndices.begin(), m_shuffleIndices.end(), m_mt);
+        std::shuffle(m_nextShuffleIndices.begin(), m_nextShuffleIndices.end(), m_mt);
+    }
+    m_shuffleIndex = 0;
+}
+
+void PlaylistManager::WarpToTrack(const std::wstring& filepath) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (m_playlist.empty() || m_shuffleIndices.empty()) return;
+
+    for (size_t i = 0; i < m_shuffleIndices.size(); ++i) {
+        if (m_playlist[m_shuffleIndices[i]].filepath == filepath) {
+            m_shuffleIndex = i;
+            return;
+        }
+    }
+}
+
 void PlaylistManager::InitializeShuffle() {
     std::lock_guard<std::mutex> lock(m_mutex);
     GenerateShuffleList(m_shuffleIndices);

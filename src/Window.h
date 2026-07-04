@@ -196,6 +196,13 @@ public:
     }
 
     /**
+     * @brief シャッフル切り替えコマンドが入力された時のコールバックを設定する
+     */
+    void SetShuffleCallback(std::function<void()> cb) {
+        m_onShuffleCommand = cb;
+    }
+
+    /**
      * @brief プレイリスト上でマウスホイールが回転されたときのコールバックを設定する
      */
     void SetPlaylistScrollCallback(std::function<void(int)> cb) {
@@ -248,6 +255,7 @@ private:
     std::function<void()> m_onClearPlaylistCommand;
     std::function<void()> m_onNewPlaylistCommand;
     std::function<void(const std::wstring&)> m_onPlaylistSwitchCommand;
+    std::function<void()> m_onShuffleCommand;
     std::function<void(int)> m_onVolumeScroll;
     std::function<void(int)> m_onPlaylistScroll;
     std::function<void(int, int)> m_onPlaylistClick;

@@ -27,6 +27,18 @@ public:
     void Clear();
 
     /**
+     * @brief 現在のプレイリスト構成に基づいてシャッフル（または連番）のキューを再構築する
+     * @param isShuffle trueならシャッフル、falseなら連番で再構築する
+     */
+    void RebuildQueue(bool isShuffle);
+
+    /**
+     * @brief 指定されたファイルパスの曲が次に再生されるようインデックスを移動（ワープ）させる
+     * @param filepath ワープ先の曲のファイルパス
+     */
+    void WarpToTrack(const std::wstring& filepath);
+
+    /**
      * @brief プレイリストに曲のファイルパスを追加する
      * @param filepath 曲のファイルパス（絶対パス推奨）
      * @return 追加に成功した（重複しなかった）場合はtrue、既に存在した場合はfalse

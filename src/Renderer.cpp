@@ -369,7 +369,12 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHove
 
     m_d2dContext->BeginDraw();
     m_d2dContext->SetTransform(D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
-    m_d2dContext->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
+    
+    if (m_config && m_config->GetEnableResize()) {
+        m_d2dContext->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f));
+    } else {
+        m_d2dContext->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
+    }
     
     DrawBackground();
     DrawVisualizer(spectrum);
