@@ -50,7 +50,7 @@ struct TrackMetadata {
     *   `PlaylistManager.h/cpp` に `TrackMetadata` 構造体を定義し、内部リスト `m_playlist` を `std::wstring` から構造体へ置き換える。
     *   `std::mutex` を導入し、プレイリストへのアクセスをスレッドセーフ化する。
     *   `TagManager.h/cpp` を拡張し、`TagLib` から曲の長さ（秒数）を取得・文字列化する処理を追加する。
-*   **[ ] Task 2: TSVキャッシュ機構の実装**
+*   **[x] Task 2: TSVキャッシュ機構の実装**
     *   `PlaylistManager::SaveToFile` を改修し、メタデータをタブ区切りで出力する。
     *   `PlaylistManager::LoadFromFile` を改修し、タブ区切りの行をパースして `TrackMetadata` を復元する処理を実装する。
 *   **[ ] Task 3: バックグラウンド解析スレッドの実装**
@@ -72,3 +72,8 @@ struct TrackMetadata {
 * `PlaylistManager.cpp` の全てのパブリックメソッドに `std::lock_guard<std::mutex> lock(m_mutex);` を適用。既存の内部ロジックや `std::wstring` を返すインターフェース（`GetCurrentTrack`, `GetNextTrack`, `GetShuffleList`等）は、構造体の `filepath` プロパティを参照することで後方互換性を維持。
 * ファイルへの保存 (`SaveToFile`) 実行時は、ロックの期間を最小化するためにローカルコピー (`std::vector<TrackMetadata> playlistCopy;`) を作成してからファイルI/O処理を行うように調整。
 * ファイルからの読み込み (`LoadFromFile`) やシャッフル初期化時も安全にロックが行われるよう、ロック順序およびデッドロックの回避に配慮して実装。
+
+### Task 2: TSVキャッシュ機構の実装
+* `PlaylistManager::SaveToFile` を改修し、`TrackMetadata` が解析済み(`isLoaded == true`)の場合は `filepath \t title \t artist \t timeString` の形式で出力し、未解析の場合は `filepath` のみを出力する処理を実装。
+* `PlaylistManager::LoadFromFile` を改修し、`std::wstringstream` と `std::getline(..., L'\t')` を用いて読み込んだ行をタブ区切りで堅牢にパースする処理を追加。
+* パース結果の要素数が4つ以上揃っている場合は、追加された曲の `TrackMetadata` をスレッドセーフに検索・更新（`title`, `artist`, `timeString` をセットして `isLoaded = true`）するフェイルセーフ機構を実装。古いフォーマット（要素数が足りない）場合は従来通りファイルパスのみを追加して未解析状態とするフォールバック処理も適用。

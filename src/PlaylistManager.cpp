@@ -4,6 +4,7 @@
 #include <numeric>
 #include <algorithm>
 #include <windows.h>
+#include <sstream>
 
 PlaylistManager::PlaylistManager() : m_shuffleIndex(0) {
     std::random_device rd;
@@ -129,10 +130,18 @@ void PlaylistManager::SaveToFile(const std::wstring& outPath) const {
     if (!ofs) return;
     for (const auto& item : playlistCopy) {
         if (item.filepath.empty()) continue;
-        int size_needed = WideCharToMultiByte(CP_UTF8, 0, item.filepath.c_str(), (int)item.filepath.length(), NULL, 0, NULL, NULL);
+
+        std::wstring wline;
+        if (item.isLoaded) {
+            wline = item.filepath + L"\t" + item.title + L"\t" + item.artist + L"\t" + item.timeString;
+        } else {
+            wline = item.filepath;
+        }
+
+        int size_needed = WideCharToMultiByte(CP_UTF8, 0, wline.c_str(), (int)wline.length(), NULL, 0, NULL, NULL);
         if (size_needed > 0) {
             std::string utf8Str(size_needed, 0);
-            WideCharToMultiByte(CP_UTF8, 0, item.filepath.c_str(), (int)item.filepath.length(), &utf8Str[0], size_needed, NULL, NULL);
+            WideCharToMultiByte(CP_UTF8, 0, wline.c_str(), (int)wline.length(), &utf8Str[0], size_needed, NULL, NULL);
             ofs << utf8Str << "\n";
         }
     }
@@ -153,9 +162,31 @@ void PlaylistManager::LoadFromFile(const std::wstring& inPath) {
             MultiByteToWideChar(CP_UTF8, 0, line.c_str(), (int)line.length(), &wline[0], size_needed);
 
             try {
-                std::filesystem::path p(wline);
-                if (std::filesystem::exists(p) && std::filesystem::is_regular_file(p)) {
-                    Add(wline);
+                std::wstringstream wss(wline);
+                std::wstring token;
+                std::vector<std::wstring> tokens;
+                while (std::getline(wss, token, L'\t')) {
+                    tokens.push_back(token);
+                }
+
+                if (!tokens.empty()) {
+                    std::wstring filepath = tokens[0];
+                    std::filesystem::path p(filepath);
+                    if (std::filesystem::exists(p) && std::filesystem::is_regular_file(p)) {
+                        bool added = Add(filepath);
+                        if (added && tokens.size() >= 4) {
+                            std::lock_guard<std::mutex> lock(m_mutex);
+                            for (auto it = m_playlist.rbegin(); it != m_playlist.rend(); ++it) {
+                                if (it->filepath == filepath) {
+                                    it->title = tokens[1];
+                                    it->artist = tokens[2];
+                                    it->timeString = tokens[3];
+                                    it->isLoaded = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
             } catch (...) {
                 // パスが無効な場合は無視
