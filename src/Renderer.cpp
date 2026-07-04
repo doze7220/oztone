@@ -526,6 +526,36 @@ float Renderer::GetPlaylistManualScrollY() const {
     return m_playlistManualScrollY;
 }
 
+void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPlaylistHovered, size_t currentTrackIndex, size_t totalTracks) {
+    if (isControlHovered) {
+        m_controlAlpha += 0.05f;
+        if (m_controlAlpha > 1.0f) m_controlAlpha = 1.0f;
+    } else {
+        m_controlAlpha -= 0.05f;
+        if (m_controlAlpha < 0.0f) m_controlAlpha = 0.0f;
+    }
+
+    if (m_config) {
+        float configPlaylistWidth = static_cast<float>(m_config->GetPlaylistWidth());
+        if (m_playlistSlideX > configPlaylistWidth * 2.0f) m_playlistSlideX = configPlaylistWidth;
+
+        float targetSlideX = isPlaylistHovered ? 0.0f : configPlaylistWidth;
+        m_playlistSlideX += (targetSlideX - m_playlistSlideX) * 0.2f;
+
+        if (!isPlaylistHovered) {
+            m_playlistManualScrollY = 0.0f;
+        } else if (m_d2dContext) {
+            D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
+            float logicWidth = renderTargetSize.width / m_dpiScale;
+            float logicHeight = renderTargetSize.height / m_dpiScale;
+            
+            PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
+                logicWidth, logicHeight, m_config, m_playlistSlideX, m_playlistManualScrollY, currentTrackIndex, totalTracks);
+            m_playlistManualScrollY = layout.newManualScrollY;
+        }
+    }
+}
+
 void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList) {
     if (!m_d2dContext) return;
 
@@ -557,13 +587,6 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHove
     DrawNextTrack();
 
     // 8. 再生コントロールの描画
-    if (isControlHovered) {
-        m_controlAlpha += 0.05f;
-        if (m_controlAlpha > 1.0f) m_controlAlpha = 1.0f;
-    } else {
-        m_controlAlpha -= 0.05f;
-        if (m_controlAlpha < 0.0f) m_controlAlpha = 0.0f;
-    }
 
     DrawPlaybackControls(isPlaying);
     DrawVolumeControl(volume);
@@ -1126,21 +1149,11 @@ if (m_config && m_trackCountTextFormat && m_textBrush) {
     float logicWidth = renderTargetSize.width / m_dpiScale;
     float logicHeight = renderTargetSize.height / m_dpiScale;
 
-    // スライドインアニメーション
+    // スライドインアニメーション(計算は UpdateAnimation へ移動)
     float configPlaylistWidth = static_cast<float>(m_config->GetPlaylistWidth());
-    if (m_playlistSlideX > configPlaylistWidth * 2.0f) m_playlistSlideX = configPlaylistWidth;
-
-    float targetSlideX = isPlaylistHovered ? 0.0f : configPlaylistWidth;
-    m_playlistSlideX += (targetSlideX - m_playlistSlideX) * 0.2f;
-
-    if (!isPlaylistHovered) {
-        m_playlistManualScrollY = 0.0f;
-    }
 
     PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
         logicWidth, logicHeight, m_config, m_playlistSlideX, m_playlistManualScrollY, currentTrackIndex, totalTracks);
-    
-    m_playlistManualScrollY = layout.newManualScrollY;
 
     wchar_t trackCountBuf[64];
     if (totalTracks == 0) {

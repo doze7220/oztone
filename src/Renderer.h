@@ -36,6 +36,11 @@ public:
     bool Initialize(HWND hwnd, const ConfigManager& config);
 
     /**
+     * @brief アニメーション状態の更新を行う（UIフェードやスライド等の変数を更新する）
+     */
+    void UpdateAnimation(float deltaTime, bool isControlHovered, bool isPlaylistHovered, size_t currentTrackIndex, size_t totalTracks);
+
+    /**
      * @brief D2DレンダーターゲットにUIを描画する
      */
     void Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList);
