@@ -267,7 +267,8 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
                            D2D1_INTERPOLATION_MODE_LINEAR,
                            D2D1_COMPOSITE_MODE_SOURCE_OVER);
       }
-      context->DrawBitmap(m_appLogoBackBitmap.Get(), &bgRect, config->GetLogoMenuIconHoverBgAlpha(),
+      context->DrawBitmap(m_appLogoBackBitmap.Get(), &bgRect,
+                          config->GetLogoMenuIconHoverBgAlpha(),
                           D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
     }
 
@@ -355,9 +356,9 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
         textToDraw = L"VISUALIZER: OFF";
     } else if (hoveredItem.commandId == Window::ID_LOGO_PLAYLIST_POS) {
       if (config->GetPlaylistPosition() == 0) {
-        textToDraw = L"PLAYLIST POS: LEFT";
+        textToDraw = L"プレイリスト配置: 画面左";
       } else {
-        textToDraw = L"PLAYLIST POS: RIGHT";
+        textToDraw = L"プレイリスト配置: 画面右";
       }
     } else {
       textToDraw = hoveredItem.labelText;
@@ -384,10 +385,11 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
       if (m_shadowBrush) {
         m_shadowBrush->SetOpacity(config->GetLogoMenuDescShadowOpacity());
         context->DrawTextLayout(
-            D2D1::Point2F(layout.typingTextRect.left + config->GetLogoMenuDescShadowOffsetX(),
-                          layout.typingTextRect.top + config->GetLogoMenuDescShadowOffsetY()),
-            textLayout.Get(), m_shadowBrush.Get(),
-            D2D1_DRAW_TEXT_OPTIONS_NONE);
+            D2D1::Point2F(layout.typingTextRect.left +
+                              config->GetLogoMenuDescShadowOffsetX(),
+                          layout.typingTextRect.top +
+                              config->GetLogoMenuDescShadowOffsetY()),
+            textLayout.Get(), m_shadowBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE);
       }
       context->DrawTextLayout(
           D2D1::Point2F(layout.typingTextRect.left, layout.typingTextRect.top),

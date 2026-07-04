@@ -46,27 +46,27 @@ Width=64
 Height=64
 
 [Layout_LogoMenu]
-MenuIconSize=48.0
-MenuIconSpacing=50
-MenuIconOffsetX=0
-MenuIconOffsetY=0
+MenuIconSize=44.0
+MenuIconSpacing=54
+MenuIconOffsetX=-24
+MenuIconOffsetY=38
 MenuScrollDuration=0.5
 MenuFontFamily="Segoe UI Emoji"
 MenuTextColor=#FFFFFF
-MenuTypingFontFamily="Consolas"
+MenuTypingFontFamily=Meiryo
 MenuTypingFontSize=14.0
-MenuTextOffsetX=0
-MenuTextOffsetY=60
-MenuTypingLetterSpacing=0.0
-MenuStrikeLength=20.0
-MenuStrikeThickness=2.0
-IconHoverBgAlpha=0.6
-VisualizerIconFontSize=12.0
-VisualizerIconOffsetX=12
-VisualizerIconOffsetY=7
-DescShadowOffsetX=2.0
-DescShadowOffsetY=2.0
-DescShadowOpacity=0.7
+MenuTextOffsetX=8
+MenuTextOffsetY=-18
+MenuTypingLetterSpacing=-1.0
+MenuStrikeLength=48.0
+MenuStrikeThickness=4.0
+IconHoverBgAlpha=0.4
+VisualizerIconFontSize=24.0
+VisualizerIconOffsetX=6
+VisualizerIconOffsetY=0
+DescShadowOffsetX=1.0
+DescShadowOffsetY=1.0
+DescShadowOpacity=0.8
 
 [Layout_NowPlaying]
 BaseX=20
@@ -198,11 +198,11 @@ ConfigManager::ConfigManager()
       m_logoMenuIconOffsetX(0), m_logoMenuIconOffsetY(0),
       m_logoMenuScrollDuration(0.5f), m_logoMenuFontFamily(L"Segoe UI Emoji"),
       m_logoMenuTextColor(L"#FFFFFF"), m_logoMenuTypingFontFamily(L"Consolas"),
-      m_logoMenuTypingFontSize(14.0f), m_logoMenuTextOffsetX(0), m_logoMenuTextOffsetY(60),
-      m_logoMenuTypingLetterSpacing(0.0f), m_logoMenuStrikeLength(20.0f), m_logoMenuStrikeThickness(2.0f),
-      m_baseX(30), m_baseBottomOffset(162),
-      m_artOffsetX(0), m_artOffsetY(0), m_artSize(120),
-      m_fallbackArtOpacity(0.5f),
+      m_logoMenuTypingFontSize(14.0f), m_logoMenuTextOffsetX(0),
+      m_logoMenuTextOffsetY(60), m_logoMenuTypingLetterSpacing(0.0f),
+      m_logoMenuStrikeLength(20.0f), m_logoMenuStrikeThickness(2.0f),
+      m_baseX(30), m_baseBottomOffset(162), m_artOffsetX(0), m_artOffsetY(0),
+      m_artSize(120), m_fallbackArtOpacity(0.5f),
 
       m_titleOffsetX(140), m_titleOffsetY(10), m_titleFontSize(32.0f),
       m_titleFontFamily(L"Meiryo"), m_artistOffsetX(140), m_artistOffsetY(55),
@@ -520,8 +520,8 @@ void ConfigManager::LoadSettings() {
   m_logoMenuTextOffsetY = GetPrivateProfileIntW(
       L"Layout_LogoMenu", L"MenuTextOffsetY", 60, m_iniFilePath.c_str());
 
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuTypingLetterSpacing", L"0.0",
-                           buf, 32, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuTypingLetterSpacing",
+                           L"0.0", buf, 32, m_iniFilePath.c_str());
   try {
     m_logoMenuTypingLetterSpacing = std::stof(buf);
   } catch (...) {
@@ -544,16 +544,16 @@ void ConfigManager::LoadSettings() {
     m_logoMenuStrikeThickness = 2.0f;
   }
 
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"IconHoverBgAlpha", L"0.6",
-                           buf, 32, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"IconHoverBgAlpha", L"0.6", buf,
+                           32, m_iniFilePath.c_str());
   try {
     m_logoMenuIconHoverBgAlpha = std::stof(buf);
   } catch (...) {
     m_logoMenuIconHoverBgAlpha = 0.6f;
   }
 
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"VisualizerIconFontSize", L"12.0",
-                           buf, 32, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"VisualizerIconFontSize",
+                           L"12.0", buf, 32, m_iniFilePath.c_str());
   try {
     m_logoMenuVisualizerFontSize = std::stof(buf);
   } catch (...) {

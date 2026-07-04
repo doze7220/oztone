@@ -385,7 +385,7 @@ bool Window::IsInVolumeControlRegion(int x, int y) const {
 }
 
 bool Window::IsInPlaylistRegion(int x, int y) const {
-  if (IsInLogoRegion(x, y))
+  if (!m_isPlaylistHovered && IsInLogoRegion(x, y))
     return false;
 
   if (!m_config || !m_hwnd)
@@ -399,7 +399,7 @@ bool Window::IsInPlaylistRegion(int x, int y) const {
   int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
 
   // ロゴ拡張メニュー等との干渉排除
-  if (logicalY <= m_config->GetLogoY() + m_config->GetLogoHeight() + 10.0f) {
+  if (!m_isPlaylistHovered && logicalY <= m_config->GetLogoY() + m_config->GetLogoHeight() + 10.0f) {
     return false;
   }
 
