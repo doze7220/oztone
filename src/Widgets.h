@@ -34,14 +34,17 @@ public:
 private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_iconTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_typingTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_indicatorTextFormat;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_iconBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_inactiveIconBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_lineBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_typingTextBrush;
     Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
     
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_appLogoBackBitmap;
+    Microsoft::WRL::ComPtr<ID2D1Effect> m_shadowEffect;
+
     float m_menuProgress = 0.0f;
-    std::wstring m_fullText = L"Beyond the r'ai'nbow awaits the game you envisioned in your lullaby days.";
 };
 
 class TrackInfoWidget : public IWidget {

@@ -23,6 +23,7 @@ struct WidgetContext {
     float deltaTime;
     bool isHovered;
     bool isLogoMenuHovered;
+    int logoMenuHoveredIndex;
     const std::vector<Window::LogoMenuItem>* logoMenuItems;
     bool isControlHovered;
     bool isPlaylistHovered;

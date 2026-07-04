@@ -72,10 +72,11 @@ public:
     static constexpr UINT ID_LOGO_SHUFFLE = 3005;
 
     struct LogoMenuItem {
-        UINT commandId;
+        int commandId;
         std::wstring iconText;
         bool isToggle;
         bool toggleState;
+        std::wstring labelText;
     };
 
     static constexpr UINT ID_TRAY_PLAYLIST_START = 2000;
@@ -218,6 +219,8 @@ public:
     bool IsLogoMenuHovered() const { return m_isLogoMenuHovered; }
     void SetLogoMenuHovered(bool hovered) { m_isLogoMenuHovered = hovered; }
     bool IsInLogoMenuRegion(int x, int y, float progress) const;
+    int GetLogoMenuButtonAt(int x, int y, float progress) const;
+    int GetLogoMenuHoveredIndex() const { return m_logoMenuHoveredIndex; }
 
 private:
     static LRESULT CALLBACK WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -256,4 +259,5 @@ private:
 
     std::vector<LogoMenuItem> m_logoMenuItems;
     bool m_isLogoMenuHovered;
+    int m_logoMenuHoveredIndex = -1;
 };

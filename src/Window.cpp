@@ -37,11 +37,11 @@ Window::Window()
       m_isTrackingMouse(false), m_pDropTarget(nullptr),
       m_keyboardHook(nullptr), m_isLogoMenuHovered(false) {
     m_logoMenuItems = {
-        {ID_LOGO_EXIT, L"❌", false, false},
-        {ID_LOGO_CLEAR, L"🗑️", false, false},
-        {ID_LOGO_PIN_PLAYLIST, L"📜", true, false},
-        {ID_LOGO_VISUALIZER, L"📽️", true, false},
-        {ID_LOGO_SHUFFLE, L"🔀", true, false}
+        {ID_LOGO_EXIT, L"❌", false, false, L"OZtoneの終了"},
+        {ID_LOGO_CLEAR, L"🗑️", false, false, L"再生中の曲をプレイリストから削除する"},
+        {ID_LOGO_PIN_PLAYLIST, L"📜", true, false, L"プレイリスト固定表示"},
+        {ID_LOGO_VISUALIZER, L"📽️", true, false, L"ビジュアライザ表示切り替え"},
+        {ID_LOGO_SHUFFLE, L"🔀", true, false, L"シャッフル再生ON/OFF"}
     };
 }
 
@@ -324,6 +324,23 @@ bool Window::IsInLogoMenuRegion(int x, int y, float progress) const {
           logicalY <= layout.fullRegionRect.bottom);
 }
 
+int Window::GetLogoMenuButtonAt(int x, int y, float progress) const {
+  if (!m_config || !m_hwnd) return -1;
+
+  UINT dpi = GetDpiForWindow(m_hwnd);
+  int logicalX = MulDiv(x, 96, dpi);
+  int logicalY = MulDiv(y, 96, dpi);
+
+  LogoMenuLayout layout = LayoutCalculator::CalculateLogoMenuLayout(m_config, progress, m_logoMenuItems.size());
+  for (size_t i = 0; i < layout.items.size(); ++i) {
+      if (logicalX >= layout.items[i].hitRect.left && logicalX <= layout.items[i].hitRect.right &&
+          logicalY >= layout.items[i].hitRect.top && logicalY <= layout.items[i].hitRect.bottom) {
+          return static_cast<int>(i);
+      }
+  }
+  return -1;
+}
+
 bool Window::IsInPlaybackControlRegion(int x, int y) const {
   if (!m_config || !m_hwnd)
     return false;
@@ -374,6 +391,13 @@ bool Window::IsInPlaylistRegion(int x, int y) const {
   GetClientRect(m_hwnd, &rect);
   int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
   int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
+
+  // ロゴ拡張メニュー等との干渉排除
+  if (logicalY <= m_config->GetLogoY() + m_config->GetLogoHeight() + 10.0f) {
+      return false;
+  }
+
+
 
   float hoverWidth =
       m_isPlaylistHovered
@@ -498,8 +522,10 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
         if (m_isHovered || (m_isLogoMenuHovered && IsInLogoMenuRegion(xPos, yPos, 1.0f))) {
             m_isLogoMenuHovered = true;
+            m_logoMenuHoveredIndex = GetLogoMenuButtonAt(xPos, yPos, 1.0f);
         } else {
             m_isLogoMenuHovered = false;
+            m_logoMenuHoveredIndex = -1;
         }
       }
 
@@ -519,6 +545,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     m_isControlHovered = false;
     m_isPlaylistHovered = false;
     m_isLogoMenuHovered = false;
+    m_logoMenuHoveredIndex = -1;
     m_isTrackingMouse = false;
     return 0;
   }
@@ -554,7 +581,13 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
               } else if (item.commandId == ID_LOGO_PIN_PLAYLIST) {
                   // m_config->SetPinPlaylist(item.toggleState);
               } else if (item.commandId == ID_LOGO_VISUALIZER) {
-                  if (m_config) m_config->SetVisualizerMode(item.toggleState ? 1 : 0);
+                  if (m_config) {
+                      int mode = m_config->GetVisualizerMode();
+                      if (mode == 1) mode = 2;
+                      else if (mode == 2) mode = 0;
+                      else mode = 1;
+                      m_config->SetVisualizerMode(mode);
+                  }
               } else if (item.commandId == ID_LOGO_SHUFFLE) {
                   // m_config->SetShuffleEnabled(item.toggleState);
               }
