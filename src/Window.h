@@ -61,6 +61,7 @@ public:
     static constexpr UINT ID_TRAY_VIS_PRISM = 1021;
     static constexpr UINT ID_TRAY_VIS_CIRCLE = 1022;
     static constexpr UINT ID_TRAY_ENABLE_RESIZE = 1023;
+    static constexpr UINT ID_TRAY_NEW_PLAYLIST = 1024;
     static constexpr UINT ID_TRAY_EXIT = 1001;
 
     /**
@@ -154,6 +155,13 @@ public:
     }
 
     /**
+     * @brief 新規プレイリスト作成コマンドが入力された時のコールバックを設定する
+     */
+    void SetNewPlaylistCallback(std::function<void()> cb) {
+        m_onNewPlaylistCommand = cb;
+    }
+
+    /**
      * @brief 音量コントロール上でマウスホイールが回転されたときのコールバックを設定する
      */
     void SetVolumeScrollCallback(std::function<void(int)> cb) {
@@ -198,6 +206,7 @@ private:
     std::function<void(int)> m_onMediaCommand;
     std::function<void(const std::wstring&)> m_onCopyDataCallback;
     std::function<void()> m_onClearPlaylistCommand;
+    std::function<void()> m_onNewPlaylistCommand;
     std::function<void(int)> m_onVolumeScroll;
     std::function<void(int)> m_onPlaylistScroll;
     std::function<void(int, int)> m_onPlaylistClick;

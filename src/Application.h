@@ -50,6 +50,11 @@ public:
      */
     void ClearPlaylist();
 
+    /**
+     * @brief 新規プレイリストを作成する
+     */
+    void CreateNewPlaylist();
+
 private:
     /**
      * @brief 特定のファイルパスに対するメタデータの比較・更新・保存処理を行う

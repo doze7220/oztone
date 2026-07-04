@@ -2,6 +2,9 @@
 #include <filesystem>
 #include <fstream>
 #include <algorithm>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 
 Application::Application() {}
 
@@ -45,6 +48,10 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     
     m_window.SetClearPlaylistCallback([this]() {
         this->ClearPlaylist();
+    });
+
+    m_window.SetNewPlaylistCallback([this]() {
+        this->CreateNewPlaylist();
     });
     
     m_window.SetMediaCommandCallback([this](int cmd) {
@@ -664,6 +671,43 @@ void Application::ClearPlaylist() {
     m_isPrefetchReady.store(false);
     m_renderer.SetTrackInfo(L"No Track", L"---");
     m_renderer.SetAlbumArt(nullptr);
+}
+
+void Application::CreateNewPlaylist() {
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+    std::tm bt {};
+    localtime_s(&bt, &in_time_t);
+
+    std::wstringstream ss;
+    ss << L"playlist_" << std::put_time<wchar_t>(&bt, L"%Y%m%d_%H%M");
+    std::wstring baseName = ss.str();
+
+    std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
+    std::filesystem::path currentPath(defaultPath);
+    std::filesystem::path dir = currentPath.parent_path();
+    
+    std::filesystem::path newPath;
+    if (dir.empty()) {
+        newPath = baseName + L".ozl";
+    } else {
+        newPath = dir / (baseName + L".ozl");
+    }
+    
+    int sequence = 1;
+    while (std::filesystem::exists(newPath)) {
+        std::wstringstream seq_ss;
+        seq_ss << baseName << L"_" << sequence << L".ozl";
+        if (dir.empty()) {
+            newPath = seq_ss.str();
+        } else {
+            newPath = dir / seq_ss.str();
+        }
+        sequence++;
+    }
+
+    m_config.SetDefaultPlaylistPath(newPath.wstring());
+    ClearPlaylist();
 }
 
 void Application::ParseThreadFunc() {

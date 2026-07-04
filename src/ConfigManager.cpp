@@ -907,3 +907,9 @@ void ConfigManager::SetDefaultVolume(float volume) {
                              std::to_wstring(volume).c_str(),
                              m_iniFilePath.c_str());
 }
+
+void ConfigManager::SetDefaultPlaylistPath(const std::wstring& path) {
+  m_defaultPlaylistPath = path;
+  WritePrivateProfileStringW(L"Playlist", L"DefaultPlaylistPath",
+                             path.c_str(), m_iniFilePath.c_str());
+}

@@ -127,6 +127,7 @@ public:
     float GetNextArtistFontSize() const { return m_nextArtistFontSize; }
     std::wstring GetNextArtistFontFamily() const { return m_nextArtistFontFamily; }
     std::wstring GetDefaultPlaylistPath() const { return m_defaultPlaylistPath; }
+    void SetDefaultPlaylistPath(const std::wstring& path);
 
     int GetPlaybackBaseBottomOffset() const { return m_playbackBaseBottomOffset; }
     int GetPlaybackCenterOffsetX() const { return m_playbackCenterOffsetX; }
