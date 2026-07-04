@@ -52,6 +52,12 @@ public:
 
 private:
     /**
+     * @brief 特定のファイルパスに対するメタデータの比較・更新・保存処理を行う
+     * @param filepath 対象ファイルのパス
+     */
+    void UpdateTrackMetadataIfNeeded(const std::wstring& filepath);
+
+    /**
      * @brief 次の曲のタグ情報と画像を先読みする
      */
     void PrefetchNextTrack();

@@ -95,3 +95,8 @@ struct TrackMetadata {
 * `Widget.h` の `WidgetContext` でプレイリスト情報を保持するポインタを `std::vector<TrackMetadata>` 型に変更。
 * `Renderer::Render` の引数を変更し、`Application::ForceRender` から取得したメタデータリストを直接渡せるように改修。
 * `Widgets.cpp` の `PlaylistWidget::Draw` を改修し、対象曲のメタデータが解析済み（`isLoaded == true`）の場合は取得した `title`、`artist`、`timeString` を使用してリッチに描画。未解析の場合は従来通りファイル名からのフォールバック描画を維持し、ブラシやフォントも適用。
+
+### Hotfix: メタデータ自己修復ロジックの共通化と呼び出し箇所の追加
+* `Application.h` / `Application.cpp` に特定のファイルに対するメタデータの比較・更新・保存処理を行う専用メソッド `UpdateTrackMetadataIfNeeded(const std::wstring& filepath)` を抽出し、新設。
+* `Application::PrefetchNextTrack` 内に記述されていた自己修復ロジック（`TagManager` で最新情報を取得し、キャッシュと比較して齟齬があれば更新してファイル保存する処理）を上記メソッドに統合し、呼び出しへ置き換え。
+* プレイリストへのD&D（`OnFilesDropped`）による1曲目の自動再生時、プレイリストクリックによるジャンプ再生時、および `Run` ループ内での再生移行時など、`m_audioPlayer.Play()` を呼び出して現在の曲の再生を開始するタイミングに対して、この自己修復メソッド `UpdateTrackMetadataIfNeeded` を呼び出す処理を追加。これにより、先読み曲だけでなく「現在の曲」に対しても確実にメタデータ修復が適用されるようになった。

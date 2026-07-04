@@ -35,6 +35,16 @@ OK、次はタスク1だけを実行。
 最後に実装レポートを元に、アーキテクチャ資料を更新すること。
 
 
+このプロジェクトのルールと、開発資料を熟読してほしい。
+D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+
+D:\ozlab\oztone\_docs\logs\20260704_1755_RES_Phase10-4_PlaylistBackload.md
+こちらの作業が完了した。
+作業内容とアーキテクチャ資料を照らし合わせ、更新を行って欲しい。
+もし差異がある場合はただ作業内容を転機するのではなく、コードを確認すること。
+
+
 まず計画書を作成し、私のレビュー後に実装へ進むこと。
 現在の指示書以外の指示書は参照しないこと。
 PROJECT_ARCHITECTURE.md に「必要時のみ参照」と定義された資料のみ例外とする。

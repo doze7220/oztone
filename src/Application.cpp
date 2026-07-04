@@ -99,6 +99,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
                 }
 
                 if (m_audioPlayer.Play(track)) {
+                    UpdateTrackMetadataIfNeeded(track);
                     PrefetchNextTrack();
                     played = true;
                     break;
@@ -187,6 +188,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
                 }
 
                 if (m_audioPlayer.Play(track)) {
+                    UpdateTrackMetadataIfNeeded(track);
                     PrefetchNextTrack();
                 } else {
                     m_renderer.SetTrackInfo(L"No Track", L"---");
@@ -249,6 +251,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
                 }
 
                 if (m_audioPlayer.Play(currentTrack)) {
+                    UpdateTrackMetadataIfNeeded(currentTrack);
                     PrefetchNextTrack();
                     played = true;
                     break;
@@ -430,6 +433,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
                 }
 
                 if (m_audioPlayer.Play(currentTrack)) {
+                    UpdateTrackMetadataIfNeeded(currentTrack);
                     PrefetchNextTrack();
                     played = true;
                     break;
@@ -494,6 +498,7 @@ void Application::Run() {
                     }
 
                     if (m_audioPlayer.Play(track)) {
+                        UpdateTrackMetadataIfNeeded(track);
                         PrefetchNextTrack();
                         played = true;
                         break;
@@ -592,21 +597,7 @@ void Application::PrefetchNextTrack() {
                     m_renderer.LoadBitmapFromMemory(artBytes, &m_prefetchedAlbumArt);
                 }
 
-                TrackMetadata currentMeta;
-                if (m_playlistManager.GetTrackMetadata(nextFile, currentMeta)) {
-                    bool needsUpdate = false;
-                    if (!currentMeta.isLoaded) {
-                        needsUpdate = true;
-                    } else if (currentMeta.title != m_prefetchedTitle || currentMeta.artist != m_prefetchedArtist) {
-                        needsUpdate = true;
-                    }
-                    
-                    if (needsUpdate) {
-                        m_playlistManager.UpdateMetadata(nextFile, m_prefetchedTitle, m_prefetchedArtist, m_tagManager.GetTimeString());
-                        std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
-                        m_playlistManager.SaveToFile(defaultPath);
-                    }
-                }
+                UpdateTrackMetadataIfNeeded(nextFile);
             } else {
                 try { m_prefetchedTitle = std::filesystem::path(nextFile).filename().wstring(); } catch(...) { m_prefetchedTitle = L"Unknown"; }
                 m_prefetchedArtist = L"---";
@@ -619,6 +610,36 @@ void Application::PrefetchNextTrack() {
             CoUninitialize();
         }
     });
+}
+
+void Application::UpdateTrackMetadataIfNeeded(const std::wstring& filepath) {
+    TagManager localTagManager;
+    if (localTagManager.Load(filepath)) {
+        std::wstring title = localTagManager.GetTitle();
+        std::wstring artist = localTagManager.GetArtist();
+        if (title.empty()) {
+            try { title = std::filesystem::path(filepath).filename().wstring(); } catch(...) { title = L"Unknown"; }
+        }
+        if (artist.empty()) {
+            artist = L"---";
+        }
+
+        TrackMetadata currentMeta;
+        if (m_playlistManager.GetTrackMetadata(filepath, currentMeta)) {
+            bool needsUpdate = false;
+            if (!currentMeta.isLoaded) {
+                needsUpdate = true;
+            } else if (currentMeta.title != title || currentMeta.artist != artist) {
+                needsUpdate = true;
+            }
+            
+            if (needsUpdate) {
+                m_playlistManager.UpdateMetadata(filepath, title, artist, localTagManager.GetTimeString());
+                std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
+                m_playlistManager.SaveToFile(defaultPath);
+            }
+        }
+    }
 }
 
 void Application::ProcessCommandLineArgs(int argc, LPWSTR* argv) {
