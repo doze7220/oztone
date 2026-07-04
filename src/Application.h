@@ -51,6 +51,12 @@ public:
     void ClearPlaylist();
 
     /**
+     * @brief プレイリストを切り替える
+     * @param filepath 新しいプレイリストのパス
+     */
+    void SwitchPlaylist(const std::wstring& filepath);
+
+    /**
      * @brief 新規プレイリストを作成する
      */
     void CreateNewPlaylist();

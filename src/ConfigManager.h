@@ -1,6 +1,7 @@
 #pragma once
 #include <windows.h>
 #include <string>
+#include <vector>
 
 /**
  * @brief アプリケーションの設定（iniファイル）を管理するクラス
@@ -128,6 +129,7 @@ public:
     std::wstring GetNextArtistFontFamily() const { return m_nextArtistFontFamily; }
     std::wstring GetDefaultPlaylistPath() const { return m_defaultPlaylistPath; }
     void SetDefaultPlaylistPath(const std::wstring& path);
+    std::vector<std::wstring> GetAvailablePlaylists() const;
 
     int GetPlaybackBaseBottomOffset() const { return m_playbackBaseBottomOffset; }
     int GetPlaybackCenterOffsetX() const { return m_playbackCenterOffsetX; }

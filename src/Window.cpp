@@ -3,6 +3,7 @@
 #include "resource.h"
 #include <windowsx.h>
 #include <shellapi.h>
+#include <filesystem>
 
 constexpr UINT TRAY_MENU_ORDER[] = {
     Window::ID_TRAY_ZORDER_NORMAL,
@@ -17,6 +18,7 @@ constexpr UINT TRAY_MENU_ORDER[] = {
     Window::ID_TRAY_SAVE_POS,
     Window::ID_TRAY_RESET_POS,
     Window::ID_TRAY_RESET_ALL,
+    Window::ID_TRAY_PLAYLIST_MENU,
     Window::ID_TRAY_NEW_PLAYLIST,
     Window::ID_TRAY_CLEAR_PLAYLIST,
     0, // separator
@@ -518,6 +520,30 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                 for (UINT id : TRAY_MENU_ORDER) {
                     if (id == 0) {
                         AppendMenuW(hMenu, MF_SEPARATOR, 0, nullptr);
+                    } else if (id == Window::ID_TRAY_PLAYLIST_MENU) {
+                        HMENU hPlaylistMenu = CreatePopupMenu();
+                        m_dynamicPlaylistPaths.clear();
+                        if (m_config) {
+                            m_dynamicPlaylistPaths = m_config->GetAvailablePlaylists();
+                            std::wstring defaultPath = m_config->GetDefaultPlaylistPath();
+                            std::filesystem::path defP(defaultPath);
+                            
+                            UINT index = 0;
+                            for (const auto& path : m_dynamicPlaylistPaths) {
+                                std::wstring displayName = std::filesystem::path(path).stem().wstring();
+                                UINT flags = MF_STRING;
+                                try {
+                                    if (std::filesystem::equivalent(std::filesystem::path(path), defP)) {
+                                        flags |= MF_CHECKED;
+                                    }
+                                } catch (...) {
+                                    if (path == defaultPath) flags |= MF_CHECKED;
+                                }
+                                AppendMenuW(hPlaylistMenu, flags, Window::ID_TRAY_PLAYLIST_START + index, displayName.c_str());
+                                index++;
+                            }
+                        }
+                        AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hPlaylistMenu, L"プレイリスト (Playlists)");
                     } else {
                         std::wstring text;
                         switch (id) {
@@ -568,6 +594,12 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         }
         case WM_COMMAND: {
             int wmId = LOWORD(wParam);
+            if (wmId >= ID_TRAY_PLAYLIST_START && wmId < ID_TRAY_PLAYLIST_START + m_dynamicPlaylistPaths.size()) {
+                if (m_onPlaylistSwitchCommand) {
+                    m_onPlaylistSwitchCommand(m_dynamicPlaylistPaths[wmId - ID_TRAY_PLAYLIST_START]);
+                }
+                return 0;
+            }
             switch (wmId) {
                 case ID_TRAY_EXIT:
                     PostMessage(hwnd, WM_CLOSE, 0, 0);

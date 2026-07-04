@@ -46,14 +46,12 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         this->OnFilesDropped(files);
     });
     
-    m_window.SetClearPlaylistCallback([this]() {
-        this->ClearPlaylist();
+    m_window.SetClearPlaylistCallback([this]() { this->ClearPlaylist(); });
+    m_window.SetNewPlaylistCallback([this]() { this->CreateNewPlaylist(); });
+    m_window.SetPlaylistSwitchCallback([this](const std::wstring& filepath) {
+        this->SwitchPlaylist(filepath);
     });
 
-    m_window.SetNewPlaylistCallback([this]() {
-        this->CreateNewPlaylist();
-    });
-    
     m_window.SetMediaCommandCallback([this](int cmd) {
         if (cmd == APPCOMMAND_MEDIA_PLAY_PAUSE) {
             m_audioPlayer.TogglePlayPause();
@@ -662,15 +660,87 @@ void Application::ProcessCommandLineArgs(int argc, LPWSTR* argv) {
 
 void Application::ClearPlaylist() {
     m_playlistManager.Clear();
-    
+
+    {
+        std::lock_guard<std::mutex> lock(m_parseMutex);
+        std::queue<std::wstring> empty;
+        std::swap(m_parseQueue, empty);
+    }
+
     std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
     m_playlistManager.SaveToFile(defaultPath);
-    
+
     m_audioPlayer.Stop();
-    
+
     m_isPrefetchReady.store(false);
     m_renderer.SetTrackInfo(L"No Track", L"---");
     m_renderer.SetAlbumArt(nullptr);
+}
+
+void Application::SwitchPlaylist(const std::wstring& filepath) {
+    m_config.SetDefaultPlaylistPath(filepath);
+    
+    // 既存の再生やキューをクリアする（ClearPlaylist() はファイルを空にしてしまうので呼ばない）
+    m_audioPlayer.Stop();
+    {
+        std::lock_guard<std::mutex> lock(m_parseMutex);
+        std::queue<std::wstring> empty;
+        std::swap(m_parseQueue, empty);
+    }
+    m_isPrefetchReady.store(false);
+    m_renderer.SetTrackInfo(L"No Track", L"---");
+    m_renderer.SetAlbumArt(nullptr);
+    
+    m_playlistManager.Clear();
+    m_playlistManager.LoadFromFile(filepath);
+    if (!m_playlistManager.IsEmpty()) {
+        size_t skipCount = 0;
+        bool played = false;
+        size_t totalCount = m_playlistManager.GetCount();
+
+        while (skipCount < totalCount) {
+            std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
+            if (m_tagManager.Load(currentTrack)) {
+                std::wstring title = m_tagManager.GetTitle();
+                std::wstring artist = m_tagManager.GetArtist();
+                if (title.empty()) title = std::filesystem::path(currentTrack).filename().wstring();
+                if (artist.empty()) artist = L"---";
+                m_renderer.SetTrackInfo(title, artist);
+
+                const auto& artBytes = m_tagManager.GetAlbumArtBytes();
+                if (!artBytes.empty()) {
+                    Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+                    if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
+                        m_renderer.SetAlbumArt(artBitmap.Get());
+                    } else {
+                        m_renderer.SetAlbumArt(nullptr);
+                    }
+                } else {
+                    m_renderer.SetAlbumArt(nullptr);
+                }
+            } else {
+                std::wstring title;
+                try { title = std::filesystem::path(currentTrack).filename().wstring(); } catch(...) { title = L"Unknown"; }
+                m_renderer.SetTrackInfo(title, L"---");
+                m_renderer.SetAlbumArt(nullptr);
+            }
+
+            if (m_audioPlayer.Play(currentTrack)) {
+                UpdateTrackMetadataIfNeeded(currentTrack);
+                PrefetchNextTrack();
+                played = true;
+                break;
+            }
+
+            m_playlistManager.Advance();
+            skipCount++;
+        }
+
+        if (!played) {
+            m_renderer.SetTrackInfo(L"No Track", L"---");
+            m_renderer.SetAlbumArt(nullptr);
+        }
+    }
 }
 
 void Application::CreateNewPlaylist() {

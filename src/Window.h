@@ -62,7 +62,10 @@ public:
     static constexpr UINT ID_TRAY_VIS_CIRCLE = 1022;
     static constexpr UINT ID_TRAY_ENABLE_RESIZE = 1023;
     static constexpr UINT ID_TRAY_NEW_PLAYLIST = 1024;
+    static constexpr UINT ID_TRAY_PLAYLIST_MENU = 1025;
     static constexpr UINT ID_TRAY_EXIT = 1001;
+
+    static constexpr UINT ID_TRAY_PLAYLIST_START = 2000;
 
     /**
      * @brief ウィンドウのメッセージ処理を行う（1フレーム分）
@@ -162,6 +165,13 @@ public:
     }
 
     /**
+     * @brief プレイリスト切り替えコマンドが入力された時のコールバックを設定する
+     */
+    void SetPlaylistSwitchCallback(std::function<void(const std::wstring&)> cb) {
+        m_onPlaylistSwitchCommand = cb;
+    }
+
+    /**
      * @brief 音量コントロール上でマウスホイールが回転されたときのコールバックを設定する
      */
     void SetVolumeScrollCallback(std::function<void(int)> cb) {
@@ -207,6 +217,7 @@ private:
     std::function<void(const std::wstring&)> m_onCopyDataCallback;
     std::function<void()> m_onClearPlaylistCommand;
     std::function<void()> m_onNewPlaylistCommand;
+    std::function<void(const std::wstring&)> m_onPlaylistSwitchCommand;
     std::function<void(int)> m_onVolumeScroll;
     std::function<void(int)> m_onPlaylistScroll;
     std::function<void(int, int)> m_onPlaylistClick;
@@ -216,6 +227,8 @@ private:
     static constexpr UINT WM_TRAYICON = WM_APP + 1;
     static constexpr UINT WM_APP_MEDIAKEY = WM_APP + 2;
     NOTIFYICONDATAW m_nid;
+
+    std::vector<std::wstring> m_dynamicPlaylistPaths;
 
     HHOOK m_keyboardHook;
     static HWND s_hwnd;
