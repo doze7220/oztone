@@ -6,6 +6,7 @@
 ## 変更ファイル
 * `src/Widgets.h`
 * `src/Widgets.cpp`
+* `src/Renderer.cpp`
 * `PROJECT_ARCHITECTURE.md`
 
 ## 詳細作業内容
@@ -13,6 +14,7 @@
 * **UpdateLayout でのキャッシュ生成:** `TrackInfoWidget::UpdateLayout` 内に、曲名・アーティスト名が変化した場合、またはキャッシュが `null` の場合に `CreateTextLayout` を実行するロジックを追加。生成時の最大幅・高さは大きめに確保（4000x1000）し、描画時に実際のサイズでクリップさせる方式を採用。
 * **Draw での描画処理の変更:** `TrackInfoWidget::Draw` 内の `DrawText` を完全に削除し、`DrawTextLayout` に変更。直前に `SetMaxWidth` と `SetMaxHeight` を設定してトリミングを有効化。
 * **ReleaseResources:** メモリリークを防ぐため、`m_titleTextLayout` と `m_artistTextLayout` を適切に解放（`Reset()`）する処理を追加。
+* **追加作業 (バグ修正):** `Renderer::UpdateTextLayouts` 呼び出し時に `WidgetContext` へ `trackTitle` や `trackArtist` が渡されておらず、空文字でキャッシュ生成が行われ表示が消えるバグが発生したため、`src/Renderer.cpp` にて該当プロパティをセットするよう修正。
 * **ドキュメントの更新:** `PROJECT_ARCHITECTURE.md` に `TrackInfoWidget` のキャッシュ化に関する仕様を追記。
 
 ## 懸念点
