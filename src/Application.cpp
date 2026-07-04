@@ -575,6 +575,15 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
 
 void Application::Run() {
     while (m_window.ProcessMessages()) {
+        ULONGLONG currentTime = GetTickCount64();
+        if (currentTime - m_lastConfigCheckTime >= 1000) {
+            m_lastConfigCheckTime = currentTime;
+            if (m_config.CheckForUpdates()) {
+                m_config.LoadSettings();
+                m_renderer.ReloadResources();
+            }
+        }
+
         if (m_audioPlayer.IsAtEnd()) {
             // ロードが完了するまで待機（このフレームはスキップして待つ）
             if (m_isPrefetchReady.load()) {

@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 /**
  * @brief アプリケーションの設定（iniファイル）を管理するクラス
@@ -55,6 +56,11 @@ public:
     bool GetEnableResize() const { return m_enableResize; }
     void SetEnableResize(bool enable);
 
+
+    /**
+     * @brief 更新がないか確認する
+     */
+    bool CheckForUpdates();
 
     /**
      * @brief ウィンドウの表示位置とサイズを保存する
@@ -229,8 +235,11 @@ public:
     float GetPlaylistGripShadowOffsetY() const { return m_playlistGripShadowOffsetY; }
     float GetPlaylistGripShadowOpacity() const { return m_playlistGripShadowOpacity; }
 
+    void LoadSettings();
+
 private:
     std::wstring m_iniFilePath;
+    std::filesystem::file_time_type m_lastIniWriteTime;
 
     bool m_showTitleBar;
     bool m_showWindowFrame;
@@ -420,6 +429,4 @@ private:
     float m_playlistGripShadowOffsetX;
     float m_playlistGripShadowOffsetY;
     float m_playlistGripShadowOpacity;
-
-    void LoadSettings();
 };

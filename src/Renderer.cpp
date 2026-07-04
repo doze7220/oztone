@@ -334,6 +334,14 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPl
 }
 
 void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, size_t currentTrackIndex, size_t totalTracks) {
+    if (m_forceTextLayoutUpdate) {
+        m_lastTimeString = L"";
+        m_lastVolume = -2.0f;
+        m_lastCurrentTrackIndex = static_cast<size_t>(-2);
+        m_lastTotalTracks = static_cast<size_t>(-2);
+        m_forceTextLayoutUpdate = false;
+    }
+
     m_lastTimeString = timeString;
     m_lastVolume = volume;
     m_lastCurrentTrackIndex = currentTrackIndex;
@@ -484,4 +492,24 @@ float Renderer::GetPlaylistManualScrollY() const {
         scrollY += widget->GetScrollY();
     }
     return scrollY;
+}
+
+void Renderer::ReloadResources() {
+    m_forceTextLayoutUpdate = true;
+
+    if (m_d2dContext) {
+        m_bgDarkenBrush.Reset();
+        m_fallbackBlackBrush.Reset();
+        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f), &m_bgDarkenBrush);
+        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f), &m_fallbackBlackBrush);
+    }
+
+    if (m_config) {
+        m_visualizer.SetConfig(m_config);
+    }
+
+    for (auto& widget : m_widgets) {
+        widget->ReleaseResources();
+        widget->CreateResources(m_d2dContext.Get(), m_wicFactory.Get(), m_dwriteFactory.Get(), m_config);
+    }
 }

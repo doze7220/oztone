@@ -107,4 +107,5 @@ private:
     std::atomic<bool> m_parseThreadRunning{false};
 
     bool m_isPlaylistListViewMode = false;
+    ULONGLONG m_lastConfigCheckTime = 0;
 };

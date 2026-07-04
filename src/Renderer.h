@@ -62,6 +62,11 @@ public:
     void Resize(UINT width, UINT height);
 
     /**
+     * @brief 設定ファイルが更新された際に各種リソースを再構築する
+     */
+    void ReloadResources();
+
+    /**
      * @brief 再生中の曲情報を設定する
      */
     void SetTrackInfo(const std::wstring& title, const std::wstring& artist);

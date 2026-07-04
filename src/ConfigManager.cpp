@@ -302,7 +302,23 @@ bool ConfigManager::Initialize() {
   // 設定を読み込む
   LoadSettings();
 
+  std::error_code ec;
+  m_lastIniWriteTime = std::filesystem::last_write_time(m_iniFilePath, ec);
+
   return true;
+}
+
+bool ConfigManager::CheckForUpdates() {
+  if (m_iniFilePath.empty()) return false;
+  std::error_code ec;
+  auto currentWriteTime = std::filesystem::last_write_time(m_iniFilePath, ec);
+  if (!ec) {
+    if (currentWriteTime != m_lastIniWriteTime) {
+      m_lastIniWriteTime = currentWriteTime;
+      return true;
+    }
+  }
+  return false;
 }
 
 std::wstring ConfigManager::GetExecutablePath() const {
