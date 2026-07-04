@@ -353,6 +353,11 @@ void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, s
     ctx.currentTrackIndex = currentTrackIndex;
     ctx.totalTracks = totalTracks;
     ctx.dpiScale = m_dpiScale;
+    ctx.trackTitle = m_trackTitle;
+    ctx.trackArtist = m_trackArtist;
+    ctx.nextIsReady = m_nextIsReady;
+    ctx.nextTrackTitle = m_nextTrackTitle;
+    ctx.nextTrackArtist = m_nextTrackArtist;
     
     for (auto& widget : m_widgets) {
         widget->UpdateLayout(ctx, m_config);

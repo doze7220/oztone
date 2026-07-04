@@ -466,6 +466,8 @@ void TrackInfoWidget::CreateResources(ID2D1DeviceContext *context,
 void TrackInfoWidget::ReleaseResources() {
   m_titleTextFormat.Reset();
   m_artistTextFormat.Reset();
+  m_titleTextLayout.Reset();
+  m_artistTextLayout.Reset();
   m_shadowBrush.Reset();
   m_textBrush.Reset();
   m_fallbackBlackBrush.Reset();
@@ -479,8 +481,28 @@ void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
                                    const ConfigManager *config) {
   if (!config)
     return;
+
+  if (m_dwriteFactory) {
+    if (m_titleTextFormat && (!m_titleTextLayout || m_lastTitle != ctx.trackTitle)) {
+      m_lastTitle = ctx.trackTitle;
+      m_titleTextLayout.Reset();
+      m_dwriteFactory->CreateTextLayout(
+          ctx.trackTitle.c_str(), static_cast<UINT32>(ctx.trackTitle.length()),
+          m_titleTextFormat.Get(), 4000.0f, 1000.0f, &m_titleTextLayout);
+    }
+    
+    if (m_artistTextFormat && (!m_artistTextLayout || m_lastArtist != ctx.trackArtist)) {
+      m_lastArtist = ctx.trackArtist;
+      m_artistTextLayout.Reset();
+      m_dwriteFactory->CreateTextLayout(
+          ctx.trackArtist.c_str(), static_cast<UINT32>(ctx.trackArtist.length()),
+          m_artistTextFormat.Get(), 4000.0f, 1000.0f, &m_artistTextLayout);
+    }
+  }
+
   if (m_dwriteFactory && m_trackCountTextFormat &&
-      (m_lastTotalTracks != ctx.totalTracks ||
+      (!m_trackCountTextLayout ||
+       m_lastTotalTracks != ctx.totalTracks ||
        m_lastCurrentTrackIndex != ctx.currentTrackIndex)) {
     m_lastTotalTracks = ctx.totalTracks;
     m_lastCurrentTrackIndex = ctx.currentTrackIndex;
@@ -552,31 +574,33 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       }
     }
 
-    if (m_textBrush && m_titleTextFormat && m_artistTextFormat) {
-      if (m_shadowBrush && config->GetEnableShadow()) {
-        m_shadowBrush->SetOpacity(config->GetShadowOpacity());
-        context->DrawText(ctx.trackTitle.c_str(),
-                          static_cast<UINT32>(ctx.trackTitle.length()),
-                          m_titleTextFormat.Get(), &layout.titleShadowRect,
-                          m_shadowBrush.Get());
-      }
-
-      context->DrawText(
-          ctx.trackTitle.c_str(), static_cast<UINT32>(ctx.trackTitle.length()),
-          m_titleTextFormat.Get(), &layout.titleRect, m_textBrush.Get());
+    if (m_textBrush && m_titleTextLayout && m_artistTextLayout) {
+      m_titleTextLayout->SetMaxWidth(layout.titleRect.right - layout.titleRect.left);
+      m_titleTextLayout->SetMaxHeight(layout.titleRect.bottom - layout.titleRect.top);
+      m_artistTextLayout->SetMaxWidth(layout.artistRect.right - layout.artistRect.left);
+      m_artistTextLayout->SetMaxHeight(layout.artistRect.bottom - layout.artistRect.top);
 
       if (m_shadowBrush && config->GetEnableShadow()) {
         m_shadowBrush->SetOpacity(config->GetShadowOpacity());
-        context->DrawText(ctx.trackArtist.c_str(),
-                          static_cast<UINT32>(ctx.trackArtist.length()),
-                          m_artistTextFormat.Get(), &layout.artistShadowRect,
-                          m_shadowBrush.Get());
+        context->DrawTextLayout(
+            D2D1::Point2F(layout.titleShadowRect.left, layout.titleShadowRect.top),
+            m_titleTextLayout.Get(), m_shadowBrush.Get());
       }
 
-      context->DrawText(ctx.trackArtist.c_str(),
-                        static_cast<UINT32>(ctx.trackArtist.length()),
-                        m_artistTextFormat.Get(), &layout.artistRect,
-                        m_textBrush.Get());
+      context->DrawTextLayout(
+          D2D1::Point2F(layout.titleRect.left, layout.titleRect.top),
+          m_titleTextLayout.Get(), m_textBrush.Get());
+
+      if (m_shadowBrush && config->GetEnableShadow()) {
+        m_shadowBrush->SetOpacity(config->GetShadowOpacity());
+        context->DrawTextLayout(
+            D2D1::Point2F(layout.artistShadowRect.left, layout.artistShadowRect.top),
+            m_artistTextLayout.Get(), m_shadowBrush.Get());
+      }
+
+      context->DrawTextLayout(
+          D2D1::Point2F(layout.artistRect.left, layout.artistRect.top),
+          m_artistTextLayout.Get(), m_textBrush.Get());
     }
 
     if (m_trackCountTextLayout && m_textBrush) {

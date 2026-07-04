@@ -62,6 +62,10 @@ public:
 private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_titleTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_artistTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_titleTextLayout;
+    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_artistTextLayout;
+    std::wstring m_lastTitle;
+    std::wstring m_lastArtist;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_shadowBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_textBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_fallbackBlackBrush;
