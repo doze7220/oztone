@@ -382,6 +382,81 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
         }
     }
 
+    // キャッシュブラシ群の初期化
+    hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f), &m_bgDarkenBrush);
+    if (FAILED(hr)) return false;
+    hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f), &m_fallbackBlackBrush);
+    if (FAILED(hr)) return false;
+    hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_seekBarBgBrush);
+    if (FAILED(hr)) return false;
+    hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_seekBarFgBrush);
+    if (FAILED(hr)) return false;
+    hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_controlBrush);
+    if (FAILED(hr)) return false;
+    hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f), &m_playlistBgBrush);
+    if (FAILED(hr)) return false;
+    hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_playlistHighlightBrush);
+    if (FAILED(hr)) return false;
+    hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_resizeGripBrush);
+    if (FAILED(hr)) return false;
+
+    // キャッシュジオメトリ群の初期化
+    hr = m_d2dFactory->CreatePathGeometry(&m_playIconGeometry);
+    if (SUCCEEDED(hr)) {
+        Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+        m_playIconGeometry->Open(&sink);
+        sink->SetFillMode(D2D1_FILL_MODE_WINDING);
+        sink->BeginFigure(D2D1::Point2F(-0.5f, -0.5f), D2D1_FIGURE_BEGIN_FILLED);
+        sink->AddLine(D2D1::Point2F(0.5f, 0.0f));
+        sink->AddLine(D2D1::Point2F(-0.5f, 0.5f));
+        sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+        sink->Close();
+    }
+
+    hr = m_d2dFactory->CreatePathGeometry(&m_prevIconGeometry);
+    if (SUCCEEDED(hr)) {
+        Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+        m_prevIconGeometry->Open(&sink);
+        sink->SetFillMode(D2D1_FILL_MODE_WINDING);
+        sink->BeginFigure(D2D1::Point2F(0.5f, -0.5f), D2D1_FIGURE_BEGIN_FILLED);
+        sink->AddLine(D2D1::Point2F(-0.5f, 0.0f));
+        sink->AddLine(D2D1::Point2F(0.5f, 0.5f));
+        sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+        sink->Close();
+    }
+
+    hr = m_d2dFactory->CreatePathGeometry(&m_speakerIconGeometry);
+    if (SUCCEEDED(hr)) {
+        Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+        m_speakerIconGeometry->Open(&sink);
+        sink->SetFillMode(D2D1_FILL_MODE_WINDING);
+        // rect
+        sink->BeginFigure(D2D1::Point2F(0.0f, -0.2f), D2D1_FIGURE_BEGIN_FILLED);
+        sink->AddLine(D2D1::Point2F(0.4f, -0.2f));
+        sink->AddLine(D2D1::Point2F(0.4f, 0.2f));
+        sink->AddLine(D2D1::Point2F(0.0f, 0.2f));
+        sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+        // cone
+        sink->BeginFigure(D2D1::Point2F(0.4f, -0.2f), D2D1_FIGURE_BEGIN_FILLED);
+        sink->AddLine(D2D1::Point2F(0.8f, -0.5f));
+        sink->AddLine(D2D1::Point2F(0.8f, 0.5f));
+        sink->AddLine(D2D1::Point2F(0.4f, 0.2f));
+        sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+        sink->Close();
+    }
+
+    hr = m_d2dFactory->CreatePathGeometry(&m_resizeGripGeometry);
+    if (SUCCEEDED(hr)) {
+        Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+        m_resizeGripGeometry->Open(&sink);
+        sink->SetFillMode(D2D1_FILL_MODE_WINDING);
+        sink->BeginFigure(D2D1::Point2F(0.0f, -15.0f), D2D1_FIGURE_BEGIN_FILLED);
+        sink->AddLine(D2D1::Point2F(0.0f, 0.0f));
+        sink->AddLine(D2D1::Point2F(-15.0f, 0.0f));
+        sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+        sink->Close();
+    }
+
     m_visualizer.SetConfig(m_config);
 
     return true;
@@ -556,7 +631,127 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPl
     }
 }
 
-void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList) {
+void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, size_t currentTrackIndex, size_t totalTracks) {
+    if (!m_d2dContext || !m_dwriteFactory) return;
+
+    bool rebuildTime = m_forceTextLayoutUpdate || !m_timeTextLayout || (m_lastTimeString != timeString);
+    bool rebuildVolume = m_forceTextLayoutUpdate || !m_volTextLayout || (m_lastVolume != volume);
+    bool rebuildTrackCount = m_forceTextLayoutUpdate || !m_trackCountTextLayout || (m_lastCurrentTrackIndex != currentTrackIndex) || (m_lastTotalTracks != totalTracks);
+    bool rebuildPlaylistTime = m_forceTextLayoutUpdate || !m_playlistTimeTextLayout;
+
+    m_lastTimeString = timeString;
+    m_lastVolume = volume;
+    m_lastCurrentTrackIndex = currentTrackIndex;
+    m_lastTotalTracks = totalTracks;
+    m_forceTextLayoutUpdate = false;
+
+    D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
+    float logicWidth = rtSize.width / m_dpiScale;
+    float logicHeight = rtSize.height / m_dpiScale;
+
+    if (rebuildTime) {
+        SeekBarLayout layout = LayoutCalculator::CalculateSeekBarLayout(logicWidth, logicHeight, m_config, 0.0f);
+        m_timeTextLayout.Reset();
+        HRESULT hr = m_dwriteFactory->CreateTextLayout(
+            timeString.c_str(),
+            static_cast<UINT32>(timeString.length()),
+            m_timeTextFormat.Get(),
+            layout.textMaxWidth,
+            layout.textMaxHeight,
+            &m_timeTextLayout
+        );
+        if (SUCCEEDED(hr)) {
+            Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
+            if (SUCCEEDED(m_timeTextLayout.As(&textLayout1))) {
+                DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(timeString.length())};
+                textLayout1->SetCharacterSpacing(0.0f, m_config->GetSeekBarTimeLetterSpacing(), 0.0f, textRange);
+            }
+        }
+    }
+
+    if (rebuildVolume) {
+        VolumeControlLayout layout = LayoutCalculator::CalculateVolumeControlLayout(logicWidth, logicHeight, m_config);
+        int volPercent = static_cast<int>(volume * 100.0f + 0.5f);
+        wchar_t volBuf[16];
+        swprintf_s(volBuf, L"%d%%", volPercent);
+        
+        m_volTextLayout.Reset();
+        if (m_volumeTextFormat) {
+            float letterSpacing = m_config->GetVolumeTextLetterSpacing();
+            HRESULT hr = m_dwriteFactory->CreateTextLayout(
+                volBuf,
+                static_cast<UINT32>(wcslen(volBuf)),
+                m_volumeTextFormat.Get(),
+                layout.textMaxWidth,
+                layout.textMaxHeight,
+                &m_volTextLayout
+            );
+            if (SUCCEEDED(hr) && letterSpacing != 0.0f) {
+                Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
+                if (SUCCEEDED(m_volTextLayout.As(&textLayout1))) {
+                    DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(wcslen(volBuf))};
+                    textLayout1->SetCharacterSpacing(0.0f, letterSpacing, 0.0f, textRange);
+                }
+            }
+        }
+    }
+
+    if (rebuildTrackCount) {
+        PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
+            logicWidth, logicHeight, m_config, 0.0f, 0.0f, currentTrackIndex, totalTracks);
+            
+        wchar_t trackCountBuf[64];
+        if (totalTracks == 0) {
+            swprintf_s(trackCountBuf, L"TRACK ---/---");
+        } else {
+            swprintf_s(trackCountBuf, L"TRACK %zu/%zu", currentTrackIndex + 1, totalTracks);
+        }
+        std::wstring trackCountStr(trackCountBuf);
+        
+        m_trackCountTextLayout.Reset();
+        HRESULT hr = m_dwriteFactory->CreateTextLayout(
+            trackCountStr.c_str(),
+            static_cast<UINT32>(trackCountStr.length()),
+            m_trackCountTextFormat.Get(),
+            layout.trackCountMaxWidth,
+            layout.trackCountMaxHeight,
+            &m_trackCountTextLayout
+        );
+        if (SUCCEEDED(hr)) {
+            Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
+            if (SUCCEEDED(m_trackCountTextLayout.As(&textLayout1))) {
+                DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(trackCountStr.length())};
+                textLayout1->SetCharacterSpacing(0.0f, m_config->GetTrackCountLetterSpacing(), 0.0f, textRange);
+            }
+        }
+    }
+
+    if (rebuildPlaylistTime) {
+        PlaylistLayout listLayout = LayoutCalculator::CalculatePlaylistLayout(
+            logicWidth, logicHeight, m_config, 0.0f, 0.0f, currentTrackIndex, totalTracks);
+        PlaylistItemLayout itemLayout = LayoutCalculator::CalculatePlaylistItemLayout(listLayout, m_config, 0.0f);
+        std::wstring timeStr = L"00:00";
+        
+        m_playlistTimeTextLayout.Reset();
+        HRESULT hr = m_dwriteFactory->CreateTextLayout(
+            timeStr.c_str(),
+            static_cast<UINT32>(timeStr.length()),
+            m_playlistTimeTextFormat.Get(),
+            itemLayout.timeMaxWidth,
+            itemLayout.timeMaxHeight,
+            &m_playlistTimeTextLayout
+        );
+        if (SUCCEEDED(hr)) {
+            Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
+            if (SUCCEEDED(m_playlistTimeTextLayout.As(&textLayout1))) {
+                DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(timeStr.length())};
+                textLayout1->SetCharacterSpacing(0.0f, m_config->GetPlaylistTimeLetterSpacing(), 0.0f, textRange);
+            }
+        }
+    }
+}
+
+void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList) {
     if (!m_d2dContext) return;
 
     m_d2dContext->BeginDraw();
@@ -581,7 +776,8 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHove
     DrawTrackInfo();
 
     // 6. シークバーと時間テキストの描画
-    DrawSeekBar(progress, timeString);
+    D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
+    DrawSeekBar(progress, rtSize.width / m_dpiScale, rtSize.height / m_dpiScale);
 
     // 7. 「次の曲」表示の描画
     DrawNextTrack();
@@ -655,20 +851,14 @@ void Renderer::DrawBackground() {
         );
     }
 
-    if (m_config && m_config->GetBgDarkenOpacity() > 0.0f) {
-        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> darkenBrush;
-        m_d2dContext->CreateSolidColorBrush(
-            D2D1::ColorF(0.0f, 0.0f, 0.0f, m_config->GetBgDarkenOpacity()),
-            &darkenBrush
-        );
-        if (darkenBrush) {
-            D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
-            float logicWidth = rtSize.width / m_dpiScale;
-            float logicHeight = rtSize.height / m_dpiScale;
-            
-            BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, D2D1::SizeF(0.0f, 0.0f));
-            m_d2dContext->FillRectangle(&layout.overlayRect, darkenBrush.Get());
-        }
+    if (m_config && m_config->GetBgDarkenOpacity() > 0.0f && m_bgDarkenBrush) {
+        m_bgDarkenBrush->SetOpacity(m_config->GetBgDarkenOpacity());
+        D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
+        float logicWidth = rtSize.width / m_dpiScale;
+        float logicHeight = rtSize.height / m_dpiScale;
+        
+        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, D2D1::SizeF(0.0f, 0.0f));
+        m_d2dContext->FillRectangle(&layout.overlayRect, m_bgDarkenBrush.Get());
     }
 }
 
@@ -726,13 +916,9 @@ if (m_config && m_config->GetShowNowPlaying()) {
         );
     } else {
         // 正規の画像がない場合は黒い板を描画
-        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> blackBrush;
-        m_d2dContext->CreateSolidColorBrush(
-            D2D1::ColorF(0.0f, 0.0f, 0.0f, m_config->GetFallbackArtOpacity()),
-            &blackBrush
-        );
-        if (blackBrush) {
-            m_d2dContext->FillRectangle(&layout.fallbackArtRect, blackBrush.Get());
+        if (m_fallbackBlackBrush) {
+            m_fallbackBlackBrush->SetOpacity(m_config->GetFallbackArtOpacity());
+            m_d2dContext->FillRectangle(&layout.fallbackArtRect, m_fallbackBlackBrush.Get());
         }
     }
 
@@ -817,13 +1003,9 @@ if (m_config && m_config->GetShowNextTrack() && m_config->GetEnableNextTrack() &
 
     if (!m_nextIsReady) {
         // ロード中
-        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> blackBrush;
-        m_d2dContext->CreateSolidColorBrush(
-            D2D1::ColorF(0.0f, 0.0f, 0.0f, m_config->GetNextFallbackArtOpacity()),
-            &blackBrush
-        );
-        if (blackBrush) {
-            m_d2dContext->FillRectangle(&layout.fallbackArtRect, blackBrush.Get());
+        if (m_fallbackBlackBrush) {
+            m_fallbackBlackBrush->SetOpacity(m_config->GetNextFallbackArtOpacity());
+            m_d2dContext->FillRectangle(&layout.fallbackArtRect, m_fallbackBlackBrush.Get());
         }
 
         std::wstring loadingText = L"Loading...";
@@ -861,13 +1043,9 @@ if (m_config && m_config->GetShowNextTrack() && m_config->GetEnableNextTrack() &
                 D2D1_BITMAP_INTERPOLATION_MODE_LINEAR
             );
         } else {
-            Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> blackBrush;
-            m_d2dContext->CreateSolidColorBrush(
-                D2D1::ColorF(0.0f, 0.0f, 0.0f, m_config->GetNextFallbackArtOpacity()),
-                &blackBrush
-            );
-            if (blackBrush) {
-                m_d2dContext->FillRectangle(&layout.fallbackArtRect, blackBrush.Get());
+            if (m_fallbackBlackBrush) {
+                m_fallbackBlackBrush->SetOpacity(m_config->GetNextFallbackArtOpacity());
+                m_d2dContext->FillRectangle(&layout.fallbackArtRect, m_fallbackBlackBrush.Get());
             }
         }
 
@@ -916,53 +1094,30 @@ if (m_config && m_config->GetShowNextTrack() && m_config->GetEnableNextTrack() &
 
 }
 
-void Renderer::DrawSeekBar(float progress, const std::wstring& timeString) {
-if (m_config && m_config->GetShowSeekBar() && m_textBrush && m_timeTextFormat) {
-    D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-    float logicWidth = renderTargetSize.width / m_dpiScale;
-    float logicHeight = renderTargetSize.height / m_dpiScale;
-
+void Renderer::DrawSeekBar(float progress, float logicWidth, float logicHeight) {
+    if (m_config && m_config->GetShowSeekBar() && m_textBrush && m_timeTextFormat) {
     SeekBarLayout layout = LayoutCalculator::CalculateSeekBarLayout(logicWidth, logicHeight, m_config, progress);
 
     float dimFactor = 1.0f - (m_controlAlpha * 0.5f);
 
     // シークバーの背景 (BgOpacity)
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> bgBrush;
-    m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, m_config->GetSeekBarBgOpacity() * dimFactor), &bgBrush);
-    if (bgBrush) {
-        m_d2dContext->FillRectangle(&layout.bgRect, bgBrush.Get());
+    if (m_seekBarBgBrush) {
+        m_seekBarBgBrush->SetOpacity(m_config->GetSeekBarBgOpacity() * dimFactor);
+        m_d2dContext->FillRectangle(&layout.bgRect, m_seekBarBgBrush.Get());
     }
 
     // シークバーの現在位置および時間テキストのブラシ
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> fgBrush;
-    m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, dimFactor), &fgBrush);
-
-    if (fgBrush) {
-        m_d2dContext->FillRectangle(&layout.fgRect, fgBrush.Get());
+    if (m_seekBarFgBrush) {
+        m_seekBarFgBrush->SetOpacity(dimFactor);
+        m_d2dContext->FillRectangle(&layout.fgRect, m_seekBarFgBrush.Get());
     }
 
     // 時間テキストの描画
-    Microsoft::WRL::ComPtr<IDWriteTextLayout> textLayout;
-    HRESULT hrLayout = m_dwriteFactory->CreateTextLayout(
-        timeString.c_str(),
-        static_cast<UINT32>(timeString.length()),
-        m_timeTextFormat.Get(),
-        layout.textMaxWidth,
-        layout.textMaxHeight,
-        &textLayout
-    );
-
-    if (SUCCEEDED(hrLayout)) {
-        Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
-        if (SUCCEEDED(textLayout.As(&textLayout1))) {
-            DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(timeString.length())};
-            textLayout1->SetCharacterSpacing(0.0f, m_config->GetSeekBarTimeLetterSpacing(), 0.0f, textRange);
-        }
-
+    if (m_timeTextLayout) {
         m_d2dContext->DrawTextLayout(
             layout.textOrigin,
-            textLayout.Get(),
-            fgBrush ? fgBrush.Get() : m_textBrush.Get(),
+            m_timeTextLayout.Get(),
+            m_seekBarFgBrush ? m_seekBarFgBrush.Get() : m_textBrush.Get(),
             D2D1_DRAW_TEXT_OPTIONS_NONE
         );
     }
@@ -979,33 +1134,19 @@ void Renderer::DrawPlaybackControls(bool isPlaying) {
 
     PlaybackControlsLayout layout = LayoutCalculator::CalculatePlaybackControlsLayout(logicWidth, logicHeight, m_config);
     
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> controlBrush;
-    m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, m_controlAlpha), &controlBrush);
-    
-    if (controlBrush) {
+    if (m_controlBrush) {
+        m_controlBrush->SetOpacity(m_controlAlpha);
         auto DrawTriangle = [&](float cx, float cy, float w, float h, bool right) {
-            Microsoft::WRL::ComPtr<ID2D1PathGeometry> path;
-            m_d2dFactory->CreatePathGeometry(&path);
-            Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
-            path->Open(&sink);
-            sink->SetFillMode(D2D1_FILL_MODE_WINDING);
-            if (right) {
-                sink->BeginFigure(D2D1::Point2F(cx - w/2, cy - h/2), D2D1_FIGURE_BEGIN_FILLED);
-                sink->AddLine(D2D1::Point2F(cx + w/2, cy));
-                sink->AddLine(D2D1::Point2F(cx - w/2, cy + h/2));
-            } else {
-                sink->BeginFigure(D2D1::Point2F(cx + w/2, cy - h/2), D2D1_FIGURE_BEGIN_FILLED);
-                sink->AddLine(D2D1::Point2F(cx - w/2, cy));
-                sink->AddLine(D2D1::Point2F(cx + w/2, cy + h/2));
-            }
-            sink->EndFigure(D2D1_FIGURE_END_CLOSED);
-            sink->Close();
-            m_d2dContext->FillGeometry(path.Get(), controlBrush.Get());
+            D2D1_MATRIX_3X2_F oldTransform;
+            m_d2dContext->GetTransform(&oldTransform);
+            m_d2dContext->SetTransform(D2D1::Matrix3x2F::Scale(w, h) * D2D1::Matrix3x2F::Translation(cx, cy) * oldTransform);
+            m_d2dContext->FillGeometry(right ? m_playIconGeometry.Get() : m_prevIconGeometry.Get(), m_controlBrush.Get());
+            m_d2dContext->SetTransform(oldTransform);
         };
 
         auto DrawRect = [&](float cx, float cy, float w, float h) {
             D2D1_RECT_F rect = D2D1::RectF(cx - w/2, cy - h/2, cx + w/2, cy + h/2);
-            m_d2dContext->FillRectangle(rect, controlBrush.Get());
+            m_d2dContext->FillRectangle(rect, m_controlBrush.Get());
         };
 
         // Previous Button (⏮)
@@ -1041,67 +1182,28 @@ void Renderer::DrawVolumeControl(float volume) {
 
     VolumeControlLayout layout = LayoutCalculator::CalculateVolumeControlLayout(logicWidth, logicHeight, m_config);
 
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> controlBrush;
-    m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, m_controlAlpha), &controlBrush);
+    if (m_controlBrush) {
+        m_controlBrush->SetOpacity(m_controlAlpha);
+        // m_volTextLayout は UpdateTextLayouts でキャッシュされている
 
-    if (controlBrush) {
-        Microsoft::WRL::ComPtr<ID2D1PathGeometry> spkPath;
-        m_d2dFactory->CreatePathGeometry(&spkPath);
-        Microsoft::WRL::ComPtr<ID2D1GeometrySink> spkSink;
-        spkPath->Open(&spkSink);
-        spkSink->SetFillMode(D2D1_FILL_MODE_WINDING);
-        
-        // rect
-        spkSink->BeginFigure(D2D1::Point2F(layout.volX, layout.volY - layout.spkH/2), D2D1_FIGURE_BEGIN_FILLED);
-        spkSink->AddLine(D2D1::Point2F(layout.volX + layout.spkW, layout.volY - layout.spkH/2));
-        spkSink->AddLine(D2D1::Point2F(layout.volX + layout.spkW, layout.volY + layout.spkH/2));
-        spkSink->AddLine(D2D1::Point2F(layout.volX, layout.volY + layout.spkH/2));
-        spkSink->EndFigure(D2D1_FIGURE_END_CLOSED);
-        
-        // cone
-        spkSink->BeginFigure(D2D1::Point2F(layout.volX + layout.spkW, layout.volY - layout.spkH/2), D2D1_FIGURE_BEGIN_FILLED);
-        spkSink->AddLine(D2D1::Point2F(layout.volX + layout.spkW + layout.spkConeW, layout.volY - layout.spkConeH/2));
-        spkSink->AddLine(D2D1::Point2F(layout.volX + layout.spkW + layout.spkConeW, layout.volY + layout.spkConeH/2));
-        spkSink->AddLine(D2D1::Point2F(layout.volX + layout.spkW, layout.volY + layout.spkH/2));
-        spkSink->EndFigure(D2D1_FIGURE_END_CLOSED);
-        
-        spkSink->Close();
-
-        int volPercent = static_cast<int>(volume * 100.0f + 0.5f);
-        wchar_t volBuf[16];
-        swprintf_s(volBuf, L"%d%%", volPercent);
-        
-        Microsoft::WRL::ComPtr<IDWriteTextLayout> volTextLayout;
-        if (m_volumeTextFormat) {
-            float letterSpacing = m_config->GetVolumeTextLetterSpacing();
-            HRESULT hr = m_dwriteFactory->CreateTextLayout(
-                volBuf,
-                static_cast<UINT32>(wcslen(volBuf)),
-                m_volumeTextFormat.Get(),
-                layout.textMaxWidth,
-                layout.textMaxHeight,
-                &volTextLayout
-            );
-            if (SUCCEEDED(hr) && letterSpacing != 0.0f) {
-                Microsoft::WRL::ComPtr<IDWriteTextLayout1> volTextLayout1;
-                if (SUCCEEDED(volTextLayout.As(&volTextLayout1))) {
-                    DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(wcslen(volBuf))};
-                    volTextLayout1->SetCharacterSpacing(0.0f, letterSpacing, 0.0f, textRange);
-                }
-            }
-        }
+        D2D1::Matrix3x2F oldTransform;
+        m_d2dContext->GetTransform(&oldTransform);
+        D2D1_MATRIX_3X2_F spkTransform = D2D1::Matrix3x2F::Scale(layout.volSize, layout.volSize) * D2D1::Matrix3x2F::Translation(layout.volX, layout.volY);
 
         if (m_shadowBrush && m_config->GetVolumeEnableShadow()) {
             m_shadowBrush->SetOpacity(m_config->GetVolumeShadowOpacity() * m_controlAlpha);
             
-            D2D1::Matrix3x2F oldTransform;
-            m_d2dContext->GetTransform(&oldTransform);
+            m_d2dContext->SetTransform(
+                spkTransform * oldTransform * D2D1::Matrix3x2F::Translation(layout.shadowX, layout.shadowY)
+            );
+            
+            m_d2dContext->FillGeometry(m_speakerIconGeometry.Get(), m_shadowBrush.Get());
+            
+            // restore to apply only translation for lines
             m_d2dContext->SetTransform(
                 oldTransform * D2D1::Matrix3x2F::Translation(layout.shadowX, layout.shadowY)
             );
-            
-            m_d2dContext->FillGeometry(spkPath.Get(), m_shadowBrush.Get());
-            
+
             if (volume > 0.0f) {
                 float arcX = layout.volX + layout.spkW + layout.spkConeW + 4.0f;
                 m_d2dContext->DrawLine(D2D1::Point2F(arcX, layout.volY - layout.volSize*0.2f), D2D1::Point2F(arcX, layout.volY + layout.volSize*0.2f), m_shadowBrush.Get(), 2.0f);
@@ -1113,31 +1215,33 @@ void Renderer::DrawVolumeControl(float volume) {
             
             m_d2dContext->SetTransform(oldTransform);
 
-            if (volTextLayout) {
+            if (m_volTextLayout) {
                 m_d2dContext->DrawTextLayout(
                     D2D1::Point2F(layout.textX + layout.shadowX, layout.textY + layout.shadowY),
-                    volTextLayout.Get(),
+                    m_volTextLayout.Get(),
                     m_shadowBrush.Get()
                 );
             }
         }
 
-        m_d2dContext->FillGeometry(spkPath.Get(), controlBrush.Get());
+        m_d2dContext->SetTransform(spkTransform * oldTransform);
+        m_d2dContext->FillGeometry(m_speakerIconGeometry.Get(), m_controlBrush.Get());
+        m_d2dContext->SetTransform(oldTransform);
         
         if (volume > 0.0f) {
             float arcX = layout.volX + layout.spkW + layout.spkConeW + 4.0f;
-            m_d2dContext->DrawLine(D2D1::Point2F(arcX, layout.volY - layout.volSize*0.2f), D2D1::Point2F(arcX, layout.volY + layout.volSize*0.2f), controlBrush.Get(), 2.0f);
+            m_d2dContext->DrawLine(D2D1::Point2F(arcX, layout.volY - layout.volSize*0.2f), D2D1::Point2F(arcX, layout.volY + layout.volSize*0.2f), m_controlBrush.Get(), 2.0f);
         }
         if (volume > 0.5f) {
             float arcX = layout.volX + layout.spkW + layout.spkConeW + 8.0f;
-            m_d2dContext->DrawLine(D2D1::Point2F(arcX, layout.volY - layout.volSize*0.35f), D2D1::Point2F(arcX, layout.volY + layout.volSize*0.35f), controlBrush.Get(), 2.0f);
+            m_d2dContext->DrawLine(D2D1::Point2F(arcX, layout.volY - layout.volSize*0.35f), D2D1::Point2F(arcX, layout.volY + layout.volSize*0.35f), m_controlBrush.Get(), 2.0f);
         }
         
-        if (volTextLayout) {
+        if (m_volTextLayout) {
             m_d2dContext->DrawTextLayout(
                 D2D1::Point2F(layout.textX, layout.textY),
-                volTextLayout.Get(),
-                controlBrush.Get()
+                m_volTextLayout.Get(),
+                m_controlBrush.Get()
             );
         }
     }
@@ -1155,35 +1259,12 @@ if (m_config && m_trackCountTextFormat && m_textBrush) {
     PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
         logicWidth, logicHeight, m_config, m_playlistSlideX, m_playlistManualScrollY, currentTrackIndex, totalTracks);
 
-    wchar_t trackCountBuf[64];
-    if (totalTracks == 0) {
-        swprintf_s(trackCountBuf, L"TRACK ---/---");
-    } else {
-        swprintf_s(trackCountBuf, L"TRACK %zu/%zu", currentTrackIndex + 1, totalTracks);
-    }
-    std::wstring trackCountStr(trackCountBuf);
-    
-    Microsoft::WRL::ComPtr<IDWriteTextLayout> trackCountLayout;
-    HRESULT hrLayout = m_dwriteFactory->CreateTextLayout(
-        trackCountStr.c_str(),
-        static_cast<UINT32>(trackCountStr.length()),
-        m_trackCountTextFormat.Get(),
-        layout.trackCountMaxWidth,
-        layout.trackCountMaxHeight,
-        &trackCountLayout
-    );
-    if (SUCCEEDED(hrLayout)) {
-        Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
-        if (SUCCEEDED(trackCountLayout.As(&textLayout1))) {
-            DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(trackCountStr.length())};
-            textLayout1->SetCharacterSpacing(0.0f, m_config->GetTrackCountLetterSpacing(), 0.0f, textRange);
-        }
-        
+    if (m_trackCountTextLayout) {
         if (m_shadowBrush && m_config->GetTrackCountShadowOpacity() > 0.0f) {
             m_shadowBrush->SetOpacity(m_config->GetTrackCountShadowOpacity());
-            m_d2dContext->DrawTextLayout(layout.trackCountShadowOrigin, trackCountLayout.Get(), m_shadowBrush.Get());
+            m_d2dContext->DrawTextLayout(layout.trackCountShadowOrigin, m_trackCountTextLayout.Get(), m_shadowBrush.Get());
         }
-        m_d2dContext->DrawTextLayout(layout.trackCountOrigin, trackCountLayout.Get(), m_textBrush.Get());
+        m_d2dContext->DrawTextLayout(layout.trackCountOrigin, m_trackCountTextLayout.Get(), m_textBrush.Get());
     }
 
     if (m_playlistGripLineBrush && m_playlistGripArrowBrush && m_playlistGripArrowGeometry) {
@@ -1208,25 +1289,25 @@ if (m_config && m_trackCountTextFormat && m_textBrush) {
 
     if (m_playlistSlideX < layout.playlistWidth - 0.5f) {
 
-        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> bgBrush;
-        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, m_config->GetPlaylistBgOpacity()), &bgBrush);
-        if (bgBrush) {
-            m_d2dContext->FillRectangle(&layout.bgRect, bgBrush.Get());
+        if (m_playlistBgBrush) {
+            m_playlistBgBrush->SetOpacity(m_config->GetPlaylistBgOpacity());
+            m_d2dContext->FillRectangle(&layout.bgRect, m_playlistBgBrush.Get());
         }
 
         m_d2dContext->PushAxisAlignedClip(&layout.clipRect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 
         float currentY = layout.startY;
         
-        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> highlightBrush;
-        m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.2f), &highlightBrush);
+        if (m_playlistHighlightBrush) {
+            m_playlistHighlightBrush->SetOpacity(0.2f);
+        }
 
         for (size_t i = 0; i < totalTracks && i < shuffleList.size(); ++i) {
             if (currentY + layout.itemHeight > 0 && currentY < layout.playlistHeight) {
                 PlaylistItemLayout itemLayout = LayoutCalculator::CalculatePlaylistItemLayout(layout, m_config, currentY);
 
-                if (i == currentTrackIndex && highlightBrush) {
-                    m_d2dContext->FillRectangle(&itemLayout.hlRect, highlightBrush.Get());
+                if (i == currentTrackIndex && m_playlistHighlightBrush) {
+                    m_d2dContext->FillRectangle(&itemLayout.hlRect, m_playlistHighlightBrush.Get());
                 }
 
                 std::wstring path = shuffleList[i];
@@ -1239,22 +1320,8 @@ if (m_config && m_trackCountTextFormat && m_textBrush) {
 
                 m_d2dContext->DrawText(artist.c_str(), static_cast<UINT32>(artist.length()), m_playlistArtistTextFormat.Get(), &itemLayout.artistRect, m_playlistArtistBrush ? m_playlistArtistBrush.Get() : m_textBrush.Get());
 
-                Microsoft::WRL::ComPtr<IDWriteTextLayout> timeLayout;
-                HRESULT hrTime = m_dwriteFactory->CreateTextLayout(
-                    timeStr.c_str(),
-                    static_cast<UINT32>(timeStr.length()),
-                    m_playlistTimeTextFormat.Get(),
-                    itemLayout.timeMaxWidth,
-                    itemLayout.timeMaxHeight,
-                    &timeLayout
-                );
-                if (SUCCEEDED(hrTime)) {
-                    Microsoft::WRL::ComPtr<IDWriteTextLayout1> timeLayout1;
-                    if (SUCCEEDED(timeLayout.As(&timeLayout1))) {
-                        DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(timeStr.length())};
-                        timeLayout1->SetCharacterSpacing(0.0f, m_config->GetPlaylistTimeLetterSpacing(), 0.0f, textRange);
-                    }
-                    m_d2dContext->DrawTextLayout(itemLayout.timeOrigin, timeLayout.Get(), m_playlistTimeBrush ? m_playlistTimeBrush.Get() : m_textBrush.Get());
+                if (m_playlistTimeTextLayout) {
+                    m_d2dContext->DrawTextLayout(itemLayout.timeOrigin, m_playlistTimeTextLayout.Get(), m_playlistTimeBrush ? m_playlistTimeBrush.Get() : m_textBrush.Get());
                 }
             }
             currentY += layout.itemHeight;
@@ -1274,20 +1341,13 @@ if (m_config && m_config->GetEnableResize()) {
     
     ResizeGripLayout layout = LayoutCalculator::CalculateResizeGripLayout(logicWidth, logicHeight);
 
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> gripBrush;
-    m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.5f), &gripBrush);
-    if (gripBrush) {
-        Microsoft::WRL::ComPtr<ID2D1PathGeometry> gripPath;
-        m_d2dFactory->CreatePathGeometry(&gripPath);
-        Microsoft::WRL::ComPtr<ID2D1GeometrySink> gripSink;
-        gripPath->Open(&gripSink);
-        gripSink->SetFillMode(D2D1_FILL_MODE_WINDING);
-        gripSink->BeginFigure(layout.pt1, D2D1_FIGURE_BEGIN_FILLED);
-        gripSink->AddLine(layout.pt2);
-        gripSink->AddLine(layout.pt3);
-        gripSink->EndFigure(D2D1_FIGURE_END_CLOSED);
-        gripSink->Close();
-        m_d2dContext->FillGeometry(gripPath.Get(), gripBrush.Get());
+    if (m_resizeGripBrush && m_resizeGripGeometry) {
+        m_resizeGripBrush->SetOpacity(0.5f);
+        D2D1_MATRIX_3X2_F oldTransform;
+        m_d2dContext->GetTransform(&oldTransform);
+        m_d2dContext->SetTransform(D2D1::Matrix3x2F::Translation(logicWidth, logicHeight) * oldTransform);
+        m_d2dContext->FillGeometry(m_resizeGripGeometry.Get(), m_resizeGripBrush.Get());
+        m_d2dContext->SetTransform(oldTransform);
     }
 }
 

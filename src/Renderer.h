@@ -41,9 +41,14 @@ public:
     void UpdateAnimation(float deltaTime, bool isControlHovered, bool isPlaylistHovered, size_t currentTrackIndex, size_t totalTracks);
 
     /**
-     * @brief D2DレンダーターゲットにUIを描画する
+     * @brief 描画処理（毎フレーム呼ばれる）
      */
-    void Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isPlaying, float progress, const std::wstring& timeString, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList);
+    void Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList);
+
+    /**
+     * @brief 変動テキストレイアウトの更新
+     */
+    void UpdateTextLayouts(const std::wstring& timeString, float volume, size_t currentTrackIndex, size_t totalTracks);
 
     /**
      * @brief ウィンドウサイズ変更時にスワップチェインとバッファをリサイズする
@@ -124,6 +129,34 @@ private:
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_shadowBrush;
     Microsoft::WRL::ComPtr<ID2D1Effect> m_shadowEffect;
 
+    // キャッシュ済みブラシ群
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_bgDarkenBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_fallbackBlackBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_seekBarBgBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_seekBarFgBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_controlBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistBgBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistHighlightBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_resizeGripBrush;
+
+    // キャッシュ済みジオメトリ群
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_playIconGeometry;
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_prevIconGeometry;
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_speakerIconGeometry;
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_resizeGripGeometry;
+
+    // キャッシュ済みテキストレイアウト
+    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_timeTextLayout;
+    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_volTextLayout;
+    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_trackCountTextLayout;
+    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_playlistTimeTextLayout;
+
+    std::wstring m_lastTimeString;
+    float m_lastVolume = -1.0f;
+    size_t m_lastCurrentTrackIndex = static_cast<size_t>(-1);
+    size_t m_lastTotalTracks = static_cast<size_t>(-1);
+    bool m_forceTextLayoutUpdate = false;
+
     // WIC および 画像リソース
 
     Microsoft::WRL::ComPtr<IWICImagingFactory> m_wicFactory;
@@ -151,7 +184,7 @@ private:
     void DrawAppLogo(bool isHovered);
     void DrawTrackInfo();
     void DrawNextTrack();
-    void DrawSeekBar(float progress, const std::wstring& timeString);
+    void DrawSeekBar(float progress, float logicWidth, float logicHeight);
     void DrawPlaybackControls(bool isPlaying);
     void DrawVolumeControl(float volume);
     void DrawPlaylist(bool isPlaylistHovered, size_t currentTrackIndex, size_t totalTracks, const std::vector<std::wstring>& shuffleList);
