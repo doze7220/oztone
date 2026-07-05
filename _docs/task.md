@@ -118,3 +118,19 @@
 ### 【不具合】
 [x] 背景透明化失敗: 「リサイズモードを有効化」ON時のみ、背景透過を止める。OFF時は背景透明化。
 [x] プレイリスト最後の曲再生時に曲を追加すると先読みを行わない＆次曲に移っても背景＆アート情報が更新されない
+
+
+## グローバルホットキー
+WIN+CTRL+→　：次の曲
+WIN+CTRL+←　：前の曲
+WIN+CTRL+↑　：再生/一時停止
+WIN+CTRL+↓　：停止
+WIN+CTRL+SHIFT+→　：ボリュームアップ5%ごと
+WIN+CTRL+SHIFT+←　：ボリュームダウン5%ごと
+WIN+CTRL+SHIFT+↑　：ボリュームアップ25%ごと
+WIN+CTRL+SHIFT+↓　：ボリュームダウン25%ごと
+WIN+CTRL+PAGEUP　：前のプレイリスト
+WIN+CTRL+PAGEDOWN　：次のプレイリスト
+WIN+CTRL+HOME　：ウィンドウアクティブ（最前面固定＋アクティブ）
+WIN+CTRL+END　：ウィンドウアクティブ（最背面固定＋アクティブ）
+WIN+CTRL+DELETE　：終了

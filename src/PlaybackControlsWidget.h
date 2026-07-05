@@ -18,4 +18,7 @@ private:
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_controlBrush;
     Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_playIconGeometry;
     Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_prevIconGeometry;
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_chevronLeftGeometry;
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_chevronRightGeometry;
+    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_indicatorTextLayout;
 };

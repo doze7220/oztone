@@ -149,6 +149,11 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
             }
         }
     });
+    
+    m_window.SetSkipCommandCallback([this](float offset) {
+        float pos = m_audioPlayer.GetPositionSeconds();
+        m_audioPlayer.Seek(pos + offset);
+    });
 
     m_window.SetPlaylistScrollCallback([this](int delta) {
         float itemHeight = static_cast<float>(m_config.GetPlaylistItemOffsetY());

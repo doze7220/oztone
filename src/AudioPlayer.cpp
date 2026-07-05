@@ -112,6 +112,19 @@ void AudioPlayer::Stop() {
     ma_sound_seek_to_pcm_frame(&m_sound, 0);
 }
 
+void AudioPlayer::Seek(float targetSeconds) {
+    if (!m_isSoundLoaded) return;
+    if (targetSeconds < 0.0f) targetSeconds = 0.0f;
+    if (targetSeconds > m_cachedLengthSeconds) targetSeconds = m_cachedLengthSeconds;
+    
+    ma_uint32 sampleRate = 0;
+    ma_sound_get_data_format(&m_sound, nullptr, nullptr, &sampleRate, nullptr, 0);
+    if (sampleRate == 0) sampleRate = 44100;
+    
+    ma_uint64 targetFrame = static_cast<ma_uint64>(targetSeconds * sampleRate);
+    ma_sound_seek_to_pcm_frame(&m_sound, targetFrame);
+}
+
 bool AudioPlayer::Play(const std::wstring& filepath) {
     if (!m_initialized || !m_engine) {
         return false;

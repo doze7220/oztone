@@ -65,6 +65,17 @@ public:
     bool GetShuffleMode() const { return m_shuffleMode; }
     void SetShuffleMode(bool mode);
 
+    float GetSkipSeconds() const { return m_skipSeconds; }
+    void SetSkipSeconds(float seconds);
+
+    std::wstring GetSkipIconPoints() const { return m_skipIconPoints; }
+    float GetSkipTextFontSize() const { return m_skipTextFontSize; }
+    float GetSkipTextOffsetX() const { return m_skipTextOffsetX; }
+    float GetSkipTextOffsetY() const { return m_skipTextOffsetY; }
+    std::wstring GetSkipTextShadowColor() const { return m_skipTextShadowColor; }
+    float GetSkipTextShadowOpacity() const { return m_skipTextShadowOpacity; }
+    float GetSkipTextShadowShift() const { return m_skipTextShadowShift; }
+
 
     /**
      * @brief 更新がないか確認する
@@ -273,7 +284,7 @@ private:
     bool m_lockWindowPosition;
     bool m_shuffleMode;
     bool m_isPlaylistPinned;
-
+    float m_skipSeconds;
 
     int m_windowX;
     int m_windowY;
@@ -378,6 +389,15 @@ private:
     int m_playbackCenterOffsetX;
     int m_playbackButtonSpacing;
     int m_playbackButtonSize;
+
+    std::wstring m_skipIconPoints;
+    float m_skipTextFontSize;
+    float m_skipTextOffsetX;
+    float m_skipTextOffsetY;
+    std::wstring m_skipTextShadowColor;
+    float m_skipTextShadowOpacity;
+    float m_skipTextShadowShift;
+
     std::wstring GetExecutablePath() const;
 
     float m_defaultVolume;

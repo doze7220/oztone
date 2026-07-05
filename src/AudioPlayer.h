@@ -34,6 +34,11 @@ public:
     void Stop();
 
     /**
+     * @brief 指定秒数へシークする
+     */
+    void Seek(float targetSeconds);
+
+    /**
      * @brief 指定されたMP3ファイルの再生
      * @param filepath 再生するファイルのパス
      * @return 成功ならtrue

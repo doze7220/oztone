@@ -258,6 +258,7 @@ ConfigManager::ConfigManager()
   m_volShadowOffsetX = 2.0f;
   m_volShadowOffsetY = 2.0f;
   m_volShadowOpacity = 0.7f;
+  m_skipSeconds = 10.0f;
 
   m_trackCountFontFamily = L"Courier New";
   m_trackCountFontSize = 14.0f;
@@ -442,6 +443,14 @@ void ConfigManager::LoadSettings() {
 
   m_shuffleMode = GetPrivateProfileIntW(L"Audio", L"ShuffleMode", 1,
                                         m_iniFilePath.c_str()) != 0;
+
+  GetPrivateProfileStringW(L"Audio", L"SkipSeconds", L"10.0", buf, 32,
+                           m_iniFilePath.c_str());
+  try {
+    m_skipSeconds = std::stof(buf);
+  } catch (...) {
+    m_skipSeconds = 10.0f;
+  }
 
   m_volBaseLeftOffset = GetPrivateProfileIntW(
       L"Layout_VolumeControl", L"BaseLeftOffset", 30, m_iniFilePath.c_str());
@@ -824,7 +833,32 @@ void ConfigManager::LoadSettings() {
   m_playbackButtonSpacing = GetPrivateProfileIntW(
       L"Layout_PlaybackControls", L"ButtonSpacing", 40, m_iniFilePath.c_str());
   m_playbackButtonSize = GetPrivateProfileIntW(
-      L"Layout_PlaybackControls", L"ButtonSize", 20, m_iniFilePath.c_str());
+      L"Layout_PlaybackControls", L"ButtonSize", 16, m_iniFilePath.c_str());
+
+  wchar_t iconBuf[256];
+  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipIconPoints", L"0.25,-0.5,0.5,-0.5,0.0,0.0,0.5,0.5,0.25,0.5,-0.25,0.0", iconBuf, 256, m_iniFilePath.c_str());
+  m_skipIconPoints = iconBuf;
+  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextFontSize", L"10.0", buf, 32, m_iniFilePath.c_str());
+  try { m_skipTextFontSize = std::stof(buf); } catch (...) { m_skipTextFontSize = 10.0f; }
+  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetX", L"0.2", buf, 32, m_iniFilePath.c_str());
+  try { m_skipTextOffsetX = std::stof(buf); } catch (...) { m_skipTextOffsetX = 0.2f; }
+  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetY", L"0.1", buf, 32, m_iniFilePath.c_str());
+  try { m_skipTextOffsetY = std::stof(buf); } catch (...) { m_skipTextOffsetY = 0.1f; }
+  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowColor", L"#000000", buf, 32, m_iniFilePath.c_str());
+  m_skipTextShadowColor = buf;
+  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowOpacity", L"0.8", buf, 32, m_iniFilePath.c_str());
+  try { m_skipTextShadowOpacity = std::stof(buf); } catch (...) { m_skipTextShadowOpacity = 0.8f; }
+  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowShift", L"1.0", buf, 32, m_iniFilePath.c_str());
+  try { m_skipTextShadowShift = std::stof(buf); } catch (...) { m_skipTextShadowShift = 1.0f; }
+
+  // Hotfix: Force output to INI file so user can edit them
+  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipIconPoints", m_skipIconPoints.c_str(), m_iniFilePath.c_str());
+  swprintf_s(buf, L"%.1f", m_skipTextFontSize); WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextFontSize", buf, m_iniFilePath.c_str());
+  swprintf_s(buf, L"%.2f", m_skipTextOffsetX); WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetX", buf, m_iniFilePath.c_str());
+  swprintf_s(buf, L"%.2f", m_skipTextOffsetY); WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetY", buf, m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowColor", m_skipTextShadowColor.c_str(), m_iniFilePath.c_str());
+  swprintf_s(buf, L"%.2f", m_skipTextShadowOpacity); WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowOpacity", buf, m_iniFilePath.c_str());
+  swprintf_s(buf, L"%.2f", m_skipTextShadowShift); WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowShift", buf, m_iniFilePath.c_str());
 
   GetPrivateProfileStringW(L"Layout_NowPlaying", L"TrackCountFontFamily",
                            L"Courier New", buf, 32, m_iniFilePath.c_str());
@@ -1249,4 +1283,11 @@ std::vector<std::wstring> ConfigManager::GetAvailablePlaylists() const {
 
   std::sort(playlists.begin(), playlists.end());
   return playlists;
+}
+
+void ConfigManager::SetSkipSeconds(float seconds) {
+    m_skipSeconds = seconds;
+    wchar_t buf[32];
+    swprintf_s(buf, L"%.1f", seconds);
+    WritePrivateProfileStringW(L"Audio", L"SkipSeconds", buf, m_iniFilePath.c_str());
 }

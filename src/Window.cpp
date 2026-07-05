@@ -492,14 +492,18 @@ int Window::GetPlaybackButtonAt(int x, int y) const {
   float halfSize = size / 2.0f;
 
   if (logicalY >= centerY - halfSize && logicalY <= centerY + halfSize) {
-    if (logicalX >= centerX - spacing - halfSize &&
-        logicalX <= centerX - spacing + halfSize)
-      return 1; // Previous
-    if (logicalX >= centerX - halfSize && logicalX <= centerX + halfSize)
-      return 2; // Play/Pause
-    if (logicalX >= centerX + spacing - halfSize &&
-        logicalX <= centerX + spacing + halfSize)
-      return 3; // Next
+    float positions[5] = {
+        centerX - spacing * 2.0f,
+        centerX - spacing,
+        centerX,
+        centerX + spacing,
+        centerX + spacing * 2.0f
+    };
+    for (int i = 0; i < 5; ++i) {
+        if (logicalX >= positions[i] - halfSize && logicalX <= positions[i] + halfSize) {
+            return i + 1; // 1 to 5
+        }
+    }
   }
   return 0;
 }
@@ -711,13 +715,20 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
     int btnId = GetPlaybackButtonAt(xPos, yPos);
     if (btnId > 0) {
-      if (m_onMediaCommand) {
-        if (btnId == 1)
-          m_onMediaCommand(APPCOMMAND_MEDIA_PREVIOUSTRACK);
-        else if (btnId == 2)
-          m_onMediaCommand(APPCOMMAND_MEDIA_PLAY_PAUSE);
-        else if (btnId == 3)
-          m_onMediaCommand(APPCOMMAND_MEDIA_NEXTTRACK);
+      if (btnId == 2 || btnId == 4) {
+          if (m_onSkipCommand) {
+              float delta = (btnId == 2) ? -m_config->GetSkipSeconds() : m_config->GetSkipSeconds();
+              m_onSkipCommand(delta);
+          }
+      } else {
+          if (m_onMediaCommand) {
+            if (btnId == 1)
+              m_onMediaCommand(APPCOMMAND_MEDIA_PREVIOUSTRACK);
+            else if (btnId == 3)
+              m_onMediaCommand(APPCOMMAND_MEDIA_PLAY_PAUSE);
+            else if (btnId == 5)
+              m_onMediaCommand(APPCOMMAND_MEDIA_NEXTTRACK);
+          }
       }
       return 0;
     }

@@ -1,6 +1,7 @@
 #include "PlaybackControlsWidget.h"
 #include "ConfigManager.h"
 #include "LayoutCalculator.h"
+#include <sstream>
 
 void PlaybackControlsWidget::CreateResources(ID2D1DeviceContext *context,
                                              IWICImagingFactory *wicFactory,
@@ -36,6 +37,51 @@ void PlaybackControlsWidget::CreateResources(ID2D1DeviceContext *context,
       sink->EndFigure(D2D1_FIGURE_END_CLOSED);
       sink->Close();
     }
+
+    std::vector<float> pts;
+    std::wstringstream ss(config->GetSkipIconPoints());
+    std::wstring item;
+    while (std::getline(ss, item, L',')) {
+        try { pts.push_back(std::stof(item)); } catch(...) {}
+    }
+    if (pts.size() < 6) pts = {0.25f, -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 0.5f, 0.5f, 0.25f, 0.5f, -0.25f, 0.0f};
+
+    d2dFactory->CreatePathGeometry(&m_chevronLeftGeometry);
+    if (m_chevronLeftGeometry && pts.size() >= 6) {
+      Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+      m_chevronLeftGeometry->Open(&sink);
+      sink->SetFillMode(D2D1_FILL_MODE_WINDING);
+      sink->BeginFigure(D2D1::Point2F(pts[0], pts[1]), D2D1_FIGURE_BEGIN_FILLED);
+      for (size_t i = 2; i < pts.size() - 1; i += 2) {
+          sink->AddLine(D2D1::Point2F(pts[i], pts[i+1]));
+      }
+      sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+      sink->Close();
+    }
+
+    d2dFactory->CreatePathGeometry(&m_chevronRightGeometry);
+    if (m_chevronRightGeometry && pts.size() >= 6) {
+      Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+      m_chevronRightGeometry->Open(&sink);
+      sink->SetFillMode(D2D1_FILL_MODE_WINDING);
+      sink->BeginFigure(D2D1::Point2F(-pts[0], pts[1]), D2D1_FIGURE_BEGIN_FILLED);
+      for (size_t i = 2; i < pts.size() - 1; i += 2) {
+          sink->AddLine(D2D1::Point2F(-pts[i], pts[i+1]));
+      }
+      sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+      sink->Close();
+    }
+  }
+
+  if (dwriteFactory) {
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> textFormat;
+    dwriteFactory->CreateTextFormat(
+        L"Meiryo", nullptr, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL, config->GetSkipTextFontSize(), L"en-us", &textFormat);
+    if (textFormat) {
+      dwriteFactory->CreateTextLayout(L"10", 2, textFormat.Get(), 50.0f, 20.0f,
+                                      &m_indicatorTextLayout);
+    }
   }
 }
 
@@ -43,6 +89,9 @@ void PlaybackControlsWidget::ReleaseResources() {
   m_controlBrush.Reset();
   m_playIconGeometry.Reset();
   m_prevIconGeometry.Reset();
+  m_chevronLeftGeometry.Reset();
+  m_chevronRightGeometry.Reset();
+  m_indicatorTextLayout.Reset();
 }
 
 void PlaybackControlsWidget::UpdateAnimation(const WidgetContext &ctx) {}
@@ -83,7 +132,35 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
       context->FillRectangle(rect, m_controlBrush.Get());
     };
 
-    float prevX = layout.centerX - layout.spacing;
+    auto DrawChevron = [&](float cx, float cy, float w, float h, bool right) {
+      D2D1_MATRIX_3X2_F oldTransform;
+      context->GetTransform(&oldTransform);
+      context->SetTransform(D2D1::Matrix3x2F::Scale(w, h) *
+                            D2D1::Matrix3x2F::Translation(cx, cy) *
+                            oldTransform);
+      context->FillGeometry(right ? m_chevronRightGeometry.Get()
+                                  : m_chevronLeftGeometry.Get(),
+                            m_controlBrush.Get());
+      context->SetTransform(oldTransform);
+    };
+
+    auto HexToColorF = [](const std::wstring& hex) {
+        if (hex.length() == 7 && hex[0] == L'#') {
+            int r, g, b;
+            if (swscanf_s(hex.c_str(), L"#%02x%02x%02x", &r, &g, &b) == 3) {
+                return D2D1::ColorF(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
+            }
+        }
+        return D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f);
+    };
+
+    float positions[5] = {layout.centerX - layout.spacing * 2.0f,
+                          layout.centerX - layout.spacing, layout.centerX,
+                          layout.centerX + layout.spacing,
+                          layout.centerX + layout.spacing * 2.0f};
+
+    // 1. Prev
+    float prevX = positions[0];
     DrawRect(prevX - layout.half + layout.size * 0.1f, layout.centerY,
              layout.size * 0.2f, layout.size);
     DrawTriangle(prevX - layout.size * 0.1f, layout.centerY, layout.size * 0.4f,
@@ -91,6 +168,35 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
     DrawTriangle(prevX + layout.size * 0.3f, layout.centerY, layout.size * 0.4f,
                  layout.size, false);
 
+    // 2. Skip Back
+    float skipBackX = positions[1];
+    DrawChevron(skipBackX - layout.size * 0.15f, layout.centerY,
+                layout.size * 0.5f, layout.size, false);
+    DrawChevron(skipBackX + layout.size * 0.15f, layout.centerY,
+                layout.size * 0.5f, layout.size, false);
+    if (m_indicatorTextLayout) {
+      float textX = skipBackX + layout.size * config->GetSkipTextOffsetX();
+      float textY = layout.centerY + layout.size * config->GetSkipTextOffsetY();
+      float shift = config->GetSkipTextShadowShift();
+      Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> shadowBrush;
+      context->CreateSolidColorBrush(HexToColorF(config->GetSkipTextShadowColor()),
+                                     &shadowBrush);
+      if (shadowBrush) {
+          shadowBrush->SetOpacity(config->GetSkipTextShadowOpacity() * ctx.controlAlpha);
+          context->DrawTextLayout(D2D1::Point2F(textX + shift, textY + shift),
+                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
+          context->DrawTextLayout(D2D1::Point2F(textX - shift, textY - shift),
+                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
+          context->DrawTextLayout(D2D1::Point2F(textX + shift, textY - shift),
+                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
+          context->DrawTextLayout(D2D1::Point2F(textX - shift, textY + shift),
+                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
+      }
+      context->DrawTextLayout(D2D1::Point2F(textX, textY),
+                              m_indicatorTextLayout.Get(), m_controlBrush.Get());
+    }
+
+    // 3. Play/Pause
     if (ctx.isPlaying) {
       DrawRect(layout.centerX - layout.size * 0.2f, layout.centerY,
                layout.size * 0.3f, layout.size);
@@ -101,7 +207,37 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
                    true);
     }
 
-    float nextX = layout.centerX + layout.spacing;
+    // 4. Skip Forward
+    float skipFwdX = positions[3];
+    DrawChevron(skipFwdX - layout.size * 0.15f, layout.centerY,
+                layout.size * 0.5f, layout.size, true);
+    DrawChevron(skipFwdX + layout.size * 0.15f, layout.centerY,
+                layout.size * 0.5f, layout.size, true);
+    if (m_indicatorTextLayout) {
+      float textX = skipFwdX + layout.size * config->GetSkipTextOffsetX();
+      float textY = layout.centerY + layout.size * config->GetSkipTextOffsetY();
+      float shift = config->GetSkipTextShadowShift();
+      Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> shadowBrush;
+      context->CreateSolidColorBrush(HexToColorF(config->GetSkipTextShadowColor()),
+                                     &shadowBrush);
+      if (shadowBrush) {
+          shadowBrush->SetOpacity(config->GetSkipTextShadowOpacity() * ctx.controlAlpha);
+          context->DrawTextLayout(D2D1::Point2F(textX + shift, textY + shift),
+                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
+          context->DrawTextLayout(D2D1::Point2F(textX - shift, textY - shift),
+                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
+          context->DrawTextLayout(D2D1::Point2F(textX + shift, textY - shift),
+                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
+          context->DrawTextLayout(D2D1::Point2F(textX - shift, textY + shift),
+                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
+      }
+      context->DrawTextLayout(D2D1::Point2F(textX, textY),
+                              m_indicatorTextLayout.Get(), m_controlBrush.Get());
+    }
+
+    // 5. Next
+
+    float nextX = positions[4];
     DrawTriangle(nextX - layout.size * 0.3f, layout.centerY, layout.size * 0.4f,
                  layout.size, true);
     DrawTriangle(nextX + layout.size * 0.1f, layout.centerY, layout.size * 0.4f,

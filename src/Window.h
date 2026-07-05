@@ -164,6 +164,13 @@ public:
     }
 
     /**
+     * @brief シークコマンドが入力された時のコールバックを設定する
+     */
+    void SetSkipCommandCallback(std::function<void(float)> cb) {
+        m_onSkipCommand = cb;
+    }
+
+    /**
      * @brief 外部プロセスからファイルパス文字列（WM_COPYDATA）を受信した際のコールバックを設定する
      */
     void SetCopyDataCallback(std::function<void(const std::wstring&)> cb) {
@@ -255,6 +262,7 @@ private:
     bool m_isTrackingMouse;
     std::function<void(const std::vector<std::wstring>&)> m_onFilesDropped;
     std::function<void(int)> m_onMediaCommand;
+    std::function<void(float)> m_onSkipCommand;
     std::function<void(const std::wstring&)> m_onCopyDataCallback;
     std::function<void(float)> m_onVolumeSetCommand;
     std::function<void(const std::wstring&)> m_onPlaylistSwitchCommand;
