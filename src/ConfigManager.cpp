@@ -3,6 +3,9 @@
 #include <filesystem>
 #include <fstream>
 #include <vector>
+#include <ctime>
+#include <sstream>
+#include <iomanip>
 
 constexpr const char *DEFAULT_INI_CONTENT = R"(; OZtone Default Configuration
 
@@ -1093,6 +1096,16 @@ void ConfigManager::LoadSettings() {
 }
 
 void ConfigManager::SaveDefaultSettings() {
+  if (std::filesystem::exists(m_iniFilePath)) {
+    auto t = std::time(nullptr);
+    std::tm tm{};
+    localtime_s(&tm, &t);
+    std::wostringstream wss;
+    wss << m_iniFilePath << L"." << std::put_time(&tm, L"%Y%m%d_%H%M%S") << L".bak";
+    std::error_code ec;
+    std::filesystem::copy_file(m_iniFilePath, wss.str(), std::filesystem::copy_options::overwrite_existing, ec);
+  }
+
   std::ofstream ofs(m_iniFilePath);
   if (ofs) {
     ofs << DEFAULT_INI_CONTENT;

@@ -53,18 +53,18 @@ public:
     static constexpr UINT ID_TRAY_SAVE_POS = 1013;
     static constexpr UINT ID_TRAY_RESET_POS = 1014;
     static constexpr UINT ID_TRAY_RESET_ALL = 1015;
-    static constexpr UINT ID_TRAY_CLEAR_PLAYLIST = 1016;
-    static constexpr UINT ID_TRAY_BG_NOWPLAYING = 1017;
-    static constexpr UINT ID_TRAY_BG_HIDDEN = 1018;
-    static constexpr UINT ID_TRAY_BG_DEFAULT = 1019;
-    static constexpr UINT ID_TRAY_VIS_NONE = 1020;
-    static constexpr UINT ID_TRAY_VIS_PRISM = 1021;
-    static constexpr UINT ID_TRAY_VIS_CIRCLE = 1022;
-    static constexpr UINT ID_TRAY_ENABLE_RESIZE = 1023;
-    static constexpr UINT ID_TRAY_NEW_PLAYLIST = 1024;
     static constexpr UINT ID_TRAY_PLAYLIST_MENU = 1025;
-    static constexpr UINT ID_TRAY_LOCK_WINDOW_POS = 1026;
     static constexpr UINT ID_TRAY_EXIT = 1001;
+
+    static constexpr UINT ID_TRAY_PLAY_PAUSE = 1050;
+    static constexpr UINT ID_TRAY_PREV_TRACK = 1051;
+    static constexpr UINT ID_TRAY_NEXT_TRACK = 1052;
+    static constexpr UINT ID_TRAY_VOL_100 = 1060;
+    static constexpr UINT ID_TRAY_VOL_75 = 1061;
+    static constexpr UINT ID_TRAY_VOL_50 = 1062;
+    static constexpr UINT ID_TRAY_VOL_25 = 1063;
+    static constexpr UINT ID_TRAY_VOL_MENU = 1064;
+    static constexpr UINT ID_TRAY_ADVANCED_MENU = 1070;
 
     static constexpr UINT ID_LOGO_EXIT = 3001;
     static constexpr UINT ID_LOGO_BG_MODE = 3002;
@@ -171,17 +171,10 @@ public:
     }
 
     /**
-     * @brief プレイリスト初期化コマンドが入力された時のコールバックを設定する
+     * @brief 音量設定コマンドが入力された時のコールバックを設定する
      */
-    void SetClearPlaylistCallback(std::function<void()> cb) {
-        m_onClearPlaylistCommand = cb;
-    }
-
-    /**
-     * @brief 新規プレイリスト作成コマンドが入力された時のコールバックを設定する
-     */
-    void SetNewPlaylistCallback(std::function<void()> cb) {
-        m_onNewPlaylistCommand = cb;
+    void SetVolumeSetCallback(std::function<void(float)> cb) {
+        m_onVolumeSetCommand = cb;
     }
 
     /**
@@ -263,8 +256,7 @@ private:
     std::function<void(const std::vector<std::wstring>&)> m_onFilesDropped;
     std::function<void(int)> m_onMediaCommand;
     std::function<void(const std::wstring&)> m_onCopyDataCallback;
-    std::function<void()> m_onClearPlaylistCommand;
-    std::function<void()> m_onNewPlaylistCommand;
+    std::function<void(float)> m_onVolumeSetCommand;
     std::function<void(const std::wstring&)> m_onPlaylistSwitchCommand;
     std::function<void()> m_onShuffleCommand;
     std::function<void(int)> m_onVolumeScroll;

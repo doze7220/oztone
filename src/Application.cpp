@@ -47,8 +47,10 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         this->OnFilesDropped(files);
     });
     
-    m_window.SetClearPlaylistCallback([this]() { this->ClearPlaylist(); });
-    m_window.SetNewPlaylistCallback([this]() { this->CreateNewPlaylist(); });
+    m_window.SetVolumeSetCallback([this](float vol) {
+        m_audioPlayer.SetVolume(vol);
+        m_config.SetDefaultVolume(vol);
+    });
     m_window.SetPlaylistSwitchCallback([this](const std::wstring& filepath) {
         this->SwitchPlaylist(filepath);
     });

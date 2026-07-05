@@ -5,27 +5,15 @@
 #include <shellapi.h>
 #include <windowsx.h>
 
-constexpr UINT TRAY_MENU_ORDER[] = {Window::ID_TRAY_ZORDER_NORMAL,
-                                    Window::ID_TRAY_ZORDER_TOPMOST,
-                                    Window::ID_TRAY_ZORDER_BOTTOM,
+constexpr UINT TRAY_MENU_ORDER[] = {Window::ID_TRAY_PLAY_PAUSE,
+                                    Window::ID_TRAY_PREV_TRACK,
+                                    Window::ID_TRAY_NEXT_TRACK,
                                     0, // separator
-                                    Window::ID_TRAY_BG_NOWPLAYING,
-                                    Window::ID_TRAY_BG_HIDDEN,
-                                    Window::ID_TRAY_BG_DEFAULT,
-                                    0, // separator
-                                    Window::ID_TRAY_VIS_NONE,
-                                    Window::ID_TRAY_VIS_PRISM,
-                                    Window::ID_TRAY_VIS_CIRCLE,
+                                    Window::ID_TRAY_VOL_MENU,
                                     0, // separator
                                     Window::ID_TRAY_PLAYLIST_MENU,
-                                    Window::ID_TRAY_NEW_PLAYLIST,
-                                    Window::ID_TRAY_CLEAR_PLAYLIST,
                                     0, // separator
-                                    Window::ID_TRAY_ENABLE_RESIZE,
-                                    Window::ID_TRAY_LOCK_WINDOW_POS,
-                                    Window::ID_TRAY_SAVE_POS,
-                                    Window::ID_TRAY_RESET_POS,
-                                    Window::ID_TRAY_RESET_ALL,
+                                    Window::ID_TRAY_ADVANCED_MENU,
                                     0, // separator
                                     Window::ID_TRAY_EXIT};
 
@@ -41,10 +29,10 @@ Window::Window()
       {ID_LOGO_VISUALIZER, L"📽️", false, false, L"ビジュアライザ表示切り替え"},
       {ID_LOGO_BG_MODE, L"🖼️", false, false, L"背景表示切り替え"},
       {ID_LOGO_SHUFFLE, L"🔀", false, false, L"シャッフル再生ON/OFF"},
-      {ID_LOGO_PLAYLIST_POS, L"↔️", false, false, L"プレイリストの配置場所切り替え"},
+      {ID_LOGO_PLAYLIST_POS, L"↔️", false, false,
+       L"プレイリストの配置場所切り替え"},
       {ID_LOGO_RESIZE_MODE, L"◢", false, false, L"リサイズモード"},
-      {ID_LOGO_LOCK_POS, L"⚓", false, false, L"画面位置の固定"}
-  };
+      {ID_LOGO_LOCK_POS, L"⚓", false, false, L"画面位置の固定"}};
 }
 
 Window::~Window() {
@@ -322,7 +310,8 @@ bool Window::IsInLogoMenuRegion(int x, int y, float progress) const {
   int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
 
   LogoMenuLayout layout = LayoutCalculator::CalculateLogoMenuLayout(
-      static_cast<float>(logicalWidth), m_config, progress, m_logoMenuItems.size());
+      static_cast<float>(logicalWidth), m_config, progress,
+      m_logoMenuItems.size());
 
   return (logicalX >= layout.fullRegionRect.left &&
           logicalX <= layout.fullRegionRect.right &&
@@ -343,7 +332,8 @@ int Window::GetLogoMenuButtonAt(int x, int y, float progress) const {
   int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
 
   LogoMenuLayout layout = LayoutCalculator::CalculateLogoMenuLayout(
-      static_cast<float>(logicalWidth), m_config, progress, m_logoMenuItems.size());
+      static_cast<float>(logicalWidth), m_config, progress,
+      m_logoMenuItems.size());
   for (size_t i = 0; i < layout.items.size(); ++i) {
     if (logicalX >= layout.items[i].hitRect.left &&
         logicalX <= layout.items[i].hitRect.right &&
@@ -446,7 +436,8 @@ int Window::GetPlaylistToolbarButtonAt(int x, int y) const {
   int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
 
   PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
-      static_cast<float>(logicalWidth), static_cast<float>(logicalHeight), m_config, 0.0f, 0.0f, 0, 0);
+      static_cast<float>(logicalWidth), static_cast<float>(logicalHeight),
+      m_config, 0.0f, 0.0f, 0, 0);
   for (int i = 0; i < 3; ++i) {
     if (logicalX >= layout.toolbarLayout.buttonHitRects[i].left &&
         logicalX <= layout.toolbarLayout.buttonHitRects[i].right &&
@@ -471,7 +462,8 @@ bool Window::IsPlaylistPinnedButtonAt(int x, int y) const {
   int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
 
   PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
-      static_cast<float>(logicalWidth), static_cast<float>(logicalHeight), m_config, 0.0f, 0.0f, 0, 0);
+      static_cast<float>(logicalWidth), static_cast<float>(logicalHeight),
+      m_config, 0.0f, 0.0f, 0, 0);
 
   return (logicalX >= layout.toolbarLayout.pinButtonHitRect.left &&
           logicalX <= layout.toolbarLayout.pinButtonHitRect.right &&
@@ -657,7 +649,8 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
       int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
 
       LogoMenuLayout layout = LayoutCalculator::CalculateLogoMenuLayout(
-          static_cast<float>(logicalWidth), m_config, 1.0f, m_logoMenuItems.size());
+          static_cast<float>(logicalWidth), m_config, 1.0f,
+          m_logoMenuItems.size());
       for (size_t i = 0; i < m_logoMenuItems.size(); ++i) {
         if (logicalX >= layout.items[i].hitRect.left &&
             logicalX <= layout.items[i].hitRect.right &&
@@ -673,9 +666,12 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
           } else if (item.commandId == ID_LOGO_BG_MODE) {
             if (m_config) {
               int mode = m_config->GetBackgroundArtMode();
-              if (mode == 0) mode = 1;
-              else if (mode == 1) mode = 2;
-              else mode = 0;
+              if (mode == 0)
+                mode = 1;
+              else if (mode == 1)
+                mode = 2;
+              else
+                mode = 0;
               m_config->SetBackgroundArtMode(mode);
             }
           } else if (item.commandId == ID_LOGO_RESIZE_MODE) {
@@ -684,7 +680,8 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             }
           } else if (item.commandId == ID_LOGO_LOCK_POS) {
             if (m_config) {
-              m_config->SetLockWindowPosition(!m_config->GetLockWindowPosition());
+              m_config->SetLockWindowPosition(
+                  !m_config->GetLockWindowPosition());
             }
           } else if (item.commandId == ID_LOGO_VISUALIZER) {
             if (m_config) {
@@ -806,86 +803,59 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             }
           }
           AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hPlaylistMenu,
-                      L"プレイリスト (Playlists)");
+                      L"プレイリスト");
+        } else if (id == Window::ID_TRAY_ADVANCED_MENU) {
+          HMENU hAdvMenu = CreatePopupMenu();
+          AppendMenuW(hAdvMenu, MF_STRING, Window::ID_TRAY_ZORDER_NORMAL,
+                      L"ウィンドウ順序: 通常");
+          AppendMenuW(hAdvMenu, MF_STRING, Window::ID_TRAY_ZORDER_TOPMOST,
+                      L"ウィンドウ順序: 最前面");
+          AppendMenuW(hAdvMenu, MF_STRING, Window::ID_TRAY_ZORDER_BOTTOM,
+                      L"ウィンドウ順序: 最背面");
+          AppendMenuW(hAdvMenu, MF_SEPARATOR, 0, nullptr);
+          AppendMenuW(hAdvMenu, MF_STRING, Window::ID_TRAY_SAVE_POS,
+                      L"終了時に位置とサイズを記憶");
+          AppendMenuW(hAdvMenu, MF_STRING, Window::ID_TRAY_RESET_POS,
+                      L"位置とサイズをリセット");
+          AppendMenuW(hAdvMenu, MF_STRING, Window::ID_TRAY_RESET_ALL,
+                      L"設定を初期化");
+
+          if (m_config) {
+            int zOrder = m_config->GetZOrder();
+            CheckMenuRadioItem(hAdvMenu, ID_TRAY_ZORDER_NORMAL,
+                               ID_TRAY_ZORDER_BOTTOM,
+                               ID_TRAY_ZORDER_NORMAL + zOrder, MF_BYCOMMAND);
+            if (m_config->GetSavePositionOnExit()) {
+              CheckMenuItem(hAdvMenu, ID_TRAY_SAVE_POS,
+                            MF_BYCOMMAND | MF_CHECKED);
+            }
+          }
+          AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hAdvMenu, L"詳細設定");
+        } else if (id == Window::ID_TRAY_VOL_MENU) {
+          HMENU hVolMenu = CreatePopupMenu();
+          AppendMenuW(hVolMenu, MF_STRING, Window::ID_TRAY_VOL_100,
+                      L"音量 100%");
+          AppendMenuW(hVolMenu, MF_STRING, Window::ID_TRAY_VOL_75, L"音量 75%");
+          AppendMenuW(hVolMenu, MF_STRING, Window::ID_TRAY_VOL_50, L"音量 50%");
+          AppendMenuW(hVolMenu, MF_STRING, Window::ID_TRAY_VOL_25, L"音量 25%");
+          AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hVolMenu, L"音量");
         } else {
           std::wstring text;
           switch (id) {
-          case ID_TRAY_ZORDER_NORMAL:
-            text = L"ウィンドウ順序: 通常";
+          case ID_TRAY_PLAY_PAUSE:
+            text = L"再生 / 一時停止";
             break;
-          case ID_TRAY_ZORDER_TOPMOST:
-            text = L"ウィンドウ順序: 最前面";
+          case ID_TRAY_PREV_TRACK:
+            text = L"前の曲へ";
             break;
-          case ID_TRAY_ZORDER_BOTTOM:
-            text = L"ウィンドウ順序: 最背面";
-            break;
-          case ID_TRAY_ENABLE_RESIZE:
-            text = L"リサイズモード";
-            break;
-          case ID_TRAY_LOCK_WINDOW_POS:
-            text = L"画面位置を固定";
-            break;
-          case ID_TRAY_SAVE_POS:
-            text = L"終了時に位置とサイズを記憶";
-            break;
-          case ID_TRAY_RESET_POS:
-            text = L"位置とサイズをリセット";
-            break;
-          case ID_TRAY_RESET_ALL:
-            text = L"設定を初期化";
-            break;
-          case ID_TRAY_NEW_PLAYLIST:
-            text = L"新規プレイリスト作成";
-            break;
-          case ID_TRAY_CLEAR_PLAYLIST:
-            text = L"プレイリストをクリア";
-            break;
-          case ID_TRAY_BG_NOWPLAYING:
-            text = L"背景: アルバムアート";
-            break;
-          case ID_TRAY_BG_HIDDEN:
-            text = L"背景: 非表示";
-            break;
-          case ID_TRAY_BG_DEFAULT:
-            text = L"背景: デフォルト背景";
-            break;
-          case ID_TRAY_VIS_NONE:
-            text = L"ビジュアライザ: 非表示";
-            break;
-          case ID_TRAY_VIS_PRISM:
-            text = L"ビジュアライザ: プリズム・ビート";
-            break;
-          case ID_TRAY_VIS_CIRCLE:
-            text = L"ビジュアライザ: ヘイロー・ダスト";
+          case ID_TRAY_NEXT_TRACK:
+            text = L"次の曲へ";
             break;
           case ID_TRAY_EXIT:
             text = L"終了";
             break;
           }
           AppendMenuW(hMenu, MF_STRING, id, text.c_str());
-        }
-      }
-
-      if (m_config) {
-        int zOrder = m_config->GetZOrder();
-        CheckMenuRadioItem(hMenu, ID_TRAY_ZORDER_NORMAL, ID_TRAY_ZORDER_BOTTOM,
-                           ID_TRAY_ZORDER_NORMAL + zOrder, MF_BYCOMMAND);
-        int bgMode = m_config->GetBackgroundArtMode();
-        CheckMenuRadioItem(hMenu, ID_TRAY_BG_NOWPLAYING, ID_TRAY_BG_DEFAULT,
-                           ID_TRAY_BG_NOWPLAYING + bgMode, MF_BYCOMMAND);
-        int visMode = m_config->GetVisualizerMode();
-        CheckMenuRadioItem(hMenu, ID_TRAY_VIS_NONE, ID_TRAY_VIS_CIRCLE,
-                           ID_TRAY_VIS_NONE + visMode, MF_BYCOMMAND);
-        if (m_config->GetSavePositionOnExit()) {
-          CheckMenuItem(hMenu, ID_TRAY_SAVE_POS, MF_BYCOMMAND | MF_CHECKED);
-        }
-        if (m_config->GetEnableResize()) {
-          CheckMenuItem(hMenu, ID_TRAY_ENABLE_RESIZE,
-                        MF_BYCOMMAND | MF_CHECKED);
-        }
-        if (m_config->GetLockWindowPosition()) {
-          CheckMenuItem(hMenu, ID_TRAY_LOCK_WINDOW_POS,
-                        MF_BYCOMMAND | MF_CHECKED);
         }
       }
 
@@ -925,76 +895,34 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                    SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
       break;
     }
-    case ID_TRAY_BG_NOWPLAYING:
-    case ID_TRAY_BG_HIDDEN:
-    case ID_TRAY_BG_DEFAULT: {
-      if (m_config) {
-        m_config->SetBackgroundArtMode(wmId - ID_TRAY_BG_NOWPLAYING);
-      }
+    case ID_TRAY_PLAY_PAUSE:
+      if (m_onMediaCommand)
+        m_onMediaCommand(APPCOMMAND_MEDIA_PLAY_PAUSE);
       break;
-    }
-    case ID_TRAY_VIS_NONE:
-    case ID_TRAY_VIS_PRISM:
-    case ID_TRAY_VIS_CIRCLE: {
-      if (m_config) {
-        m_config->SetVisualizerMode(wmId - ID_TRAY_VIS_NONE);
-      }
+    case ID_TRAY_PREV_TRACK:
+      if (m_onMediaCommand)
+        m_onMediaCommand(APPCOMMAND_MEDIA_PREVIOUSTRACK);
       break;
-    }
-    case ID_TRAY_ENABLE_RESIZE: {
-      if (m_config) {
-        bool current = m_config->GetEnableResize();
-        m_config->SetEnableResize(!current);
-      }
+    case ID_TRAY_NEXT_TRACK:
+      if (m_onMediaCommand)
+        m_onMediaCommand(APPCOMMAND_MEDIA_NEXTTRACK);
       break;
-    }
-    case ID_TRAY_LOCK_WINDOW_POS: {
-      if (m_config) {
-        bool current = m_config->GetLockWindowPosition();
-        m_config->SetLockWindowPosition(!current);
-      }
+    case ID_TRAY_VOL_100:
+      if (m_onVolumeSetCommand)
+        m_onVolumeSetCommand(1.0f);
       break;
-    }
-    case ID_TRAY_SAVE_POS: {
-      if (m_config) {
-        bool current = m_config->GetSavePositionOnExit();
-        m_config->SetSavePositionOnExit(!current);
-      }
+    case ID_TRAY_VOL_75:
+      if (m_onVolumeSetCommand)
+        m_onVolumeSetCommand(0.75f);
       break;
-    }
-    case ID_TRAY_RESET_POS: {
-      UINT dpi = GetDpiForSystem();
-      int width = MulDiv(1024, dpi, 96);
-      int height = MulDiv(512, dpi, 96);
-      int screenW = GetSystemMetrics(SM_CXSCREEN);
-      int screenH = GetSystemMetrics(SM_CYSCREEN);
-      int x = (screenW - width) / 2;
-      int y = (screenH - height) / 2;
-      SetWindowPos(hwnd, nullptr, x, y, width, height,
-                   SWP_NOZORDER | SWP_NOACTIVATE);
+    case ID_TRAY_VOL_50:
+      if (m_onVolumeSetCommand)
+        m_onVolumeSetCommand(0.50f);
       break;
-    }
-    case ID_TRAY_RESET_ALL: {
-      if (m_config) {
-        m_config->SaveDefaultSettings();
-      }
-      MessageBoxW(hwnd, L"設定を初期化しました。アプリを再起動します。",
-                  L"通知", MB_OK | MB_ICONINFORMATION);
-      PostMessage(hwnd, WM_CLOSE, 0, 0);
+    case ID_TRAY_VOL_25:
+      if (m_onVolumeSetCommand)
+        m_onVolumeSetCommand(0.25f);
       break;
-    }
-    case ID_TRAY_NEW_PLAYLIST: {
-      if (m_onNewPlaylistCommand) {
-        m_onNewPlaylistCommand();
-      }
-      break;
-    }
-    case ID_TRAY_CLEAR_PLAYLIST: {
-      if (m_onClearPlaylistCommand) {
-        m_onClearPlaylistCommand();
-      }
-      break;
-    }
     }
     return 0;
   }
