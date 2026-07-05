@@ -943,6 +943,17 @@ void Application::SwitchPlaylist(const std::wstring& filepath) {
             m_renderer.SetAlbumArt(nullptr);
         }
     }
+
+    auto unparsed = m_playlistManager.GetUnparsedTracks();
+    if (!unparsed.empty()) {
+        {
+            std::lock_guard<std::mutex> lock(m_parseMutex);
+            for (const auto& path : unparsed) {
+                m_parseQueue.push(path);
+            }
+        }
+        m_parseCV.notify_one();
+    }
 }
 
 void Application::CreateNewPlaylist() {
