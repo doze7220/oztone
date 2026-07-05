@@ -38,11 +38,13 @@ Window::Window()
       m_isLogoMenuHovered(false) {
   m_logoMenuItems = {
       {ID_LOGO_EXIT, L"❌", false, false, L"OZtoneの終了"},
-      {ID_LOGO_PIN_PLAYLIST, L"📜", true, false, L"プレイリスト固定表示"},
-      {ID_LOGO_VISUALIZER, L"🎆", true, false, L"ビジュアライザ表示切り替え"},
+      {ID_LOGO_VISUALIZER, L"📽️", false, false, L"ビジュアライザ表示切り替え"},
+      {ID_LOGO_BG_MODE, L"🖼️", false, false, L"背景表示切り替え"},
       {ID_LOGO_SHUFFLE, L"🔀", false, false, L"シャッフル再生ON/OFF"},
-      {ID_LOGO_PLAYLIST_POS, L"↔️", false, false,
-       L"プレイリストの配置場所切り替え"}};
+      {ID_LOGO_PLAYLIST_POS, L"↔️", false, false, L"プレイリストの配置場所切り替え"},
+      {ID_LOGO_RESIZE_MODE, L"◢", false, false, L"リサイズモード"},
+      {ID_LOGO_LOCK_POS, L"⚓", false, false, L"画面位置の固定"}
+  };
 }
 
 Window::~Window() {
@@ -668,8 +670,22 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
           }
           if (item.commandId == ID_LOGO_EXIT) {
             PostQuitMessage(0);
-          } else if (item.commandId == ID_LOGO_PIN_PLAYLIST) {
-            // m_config->SetPinPlaylist(item.toggleState);
+          } else if (item.commandId == ID_LOGO_BG_MODE) {
+            if (m_config) {
+              int mode = m_config->GetBackgroundArtMode();
+              if (mode == 0) mode = 1;
+              else if (mode == 1) mode = 2;
+              else mode = 0;
+              m_config->SetBackgroundArtMode(mode);
+            }
+          } else if (item.commandId == ID_LOGO_RESIZE_MODE) {
+            if (m_config) {
+              m_config->SetEnableResize(!m_config->GetEnableResize());
+            }
+          } else if (item.commandId == ID_LOGO_LOCK_POS) {
+            if (m_config) {
+              m_config->SetLockWindowPosition(!m_config->GetLockWindowPosition());
+            }
           } else if (item.commandId == ID_LOGO_VISUALIZER) {
             if (m_config) {
               int mode = m_config->GetVisualizerMode();

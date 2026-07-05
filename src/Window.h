@@ -67,10 +67,12 @@ public:
     static constexpr UINT ID_TRAY_EXIT = 1001;
 
     static constexpr UINT ID_LOGO_EXIT = 3001;
-    static constexpr UINT ID_LOGO_PIN_PLAYLIST = 3003;
+    static constexpr UINT ID_LOGO_BG_MODE = 3002;
+    static constexpr UINT ID_LOGO_RESIZE_MODE = 3003;
     static constexpr UINT ID_LOGO_VISUALIZER = 3004;
     static constexpr UINT ID_LOGO_SHUFFLE = 3005;
     static constexpr UINT ID_LOGO_PLAYLIST_POS = 3006;
+    static constexpr UINT ID_LOGO_LOCK_POS = 3007;
 
     struct LogoMenuItem {
         int commandId;

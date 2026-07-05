@@ -93,12 +93,13 @@ public:
     int GetLogoMenuTextOffsetX() const { return m_logoMenuTextOffsetX; }
     int GetLogoMenuTextOffsetY() const { return m_logoMenuTextOffsetY; }
     float GetLogoMenuTypingLetterSpacing() const { return m_logoMenuTypingLetterSpacing; }
-    float GetLogoMenuStrikeLength() const { return m_logoMenuStrikeLength; }
-    float GetLogoMenuStrikeThickness() const { return m_logoMenuStrikeThickness; }
     float GetLogoMenuIconHoverBgAlpha() const { return m_logoMenuIconHoverBgAlpha; }
     float GetLogoMenuVisualizerFontSize() const { return m_logoMenuVisualizerFontSize; }
     int GetLogoMenuVisualizerIconOffsetX() const { return m_logoMenuVisualizerIconOffsetX; }
     int GetLogoMenuVisualizerIconOffsetY() const { return m_logoMenuVisualizerIconOffsetY; }
+    float GetLogoMenuLockIconFontSize() const { return m_logoMenuLockIconFontSize; }
+    int GetLogoMenuLockIconOffsetX() const { return m_logoMenuLockIconOffsetX; }
+    int GetLogoMenuLockIconOffsetY() const { return m_logoMenuLockIconOffsetY; }
     float GetLogoMenuDescShadowOffsetX() const { return m_logoMenuDescShadowOffsetX; }
     float GetLogoMenuDescShadowOffsetY() const { return m_logoMenuDescShadowOffsetY; }
     float GetLogoMenuDescShadowOpacity() const { return m_logoMenuDescShadowOpacity; }
@@ -306,12 +307,13 @@ private:
     int m_logoMenuTextOffsetX;
     int m_logoMenuTextOffsetY;
     float m_logoMenuTypingLetterSpacing;
-    float m_logoMenuStrikeLength;
-    float m_logoMenuStrikeThickness;
     float m_logoMenuIconHoverBgAlpha;
     float m_logoMenuVisualizerFontSize;
     int m_logoMenuVisualizerIconOffsetX;
     int m_logoMenuVisualizerIconOffsetY;
+    float m_logoMenuLockIconFontSize;
+    int m_logoMenuLockIconOffsetX;
+    int m_logoMenuLockIconOffsetY;
     float m_logoMenuDescShadowOffsetX;
     float m_logoMenuDescShadowOffsetY;
     float m_logoMenuDescShadowOpacity;

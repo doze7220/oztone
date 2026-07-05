@@ -147,7 +147,7 @@ void Visualizer::DrawPrismBeat(ID2D1DeviceContext* context, const std::vector<fl
         
         float floatIndex = freq / hzResolution;
         if (floatIndex < 0.0f) floatIndex = 0.0f;
-        if (floatIndex > spectrumSize - 1) floatIndex = spectrumSize - 1;
+        if (floatIndex > static_cast<float>(spectrumSize - 1)) floatIndex = static_cast<float>(spectrumSize - 1);
         
         size_t idx1 = static_cast<size_t>(floatIndex);
         size_t idx2 = idx1 + 1;

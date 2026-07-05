@@ -18,9 +18,9 @@ private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_iconTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_typingTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_indicatorTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_lockIconTextFormat;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_iconBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_inactiveIconBrush;
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_lineBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_typingTextBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_shadowBrush;
     Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
