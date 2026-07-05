@@ -224,39 +224,39 @@ ShowHotkeys=0
 ; （論理和で組み合わせ可能。例: CTRL(2) + SHIFT(4) = 6, CTRL(2) + SHIFT(4) + ALT(1) = 7）
 ; VK: 仮想キーコード (33=PgUp, 34=PgDn, 35=End, 36=Home, 37=Left, 38=Up, 39=Right, 40=Down, 46=Del)
 ; =========================================================
-; --- 再生コントロール (CTRL + WIN + 矢印) ---
+; --- 再生コントロール (CTRL + ALT + WIN + 矢印) ---
 ;プレイコントロール：次の曲
-Modifier_NextTrack=10
+Modifier_NextTrack=11
 VK_NextTrack=39
 
 ;プレイコントロール：前の曲
-Modifier_PrevTrack=10
+Modifier_PrevTrack=11
 VK_PrevTrack=37
 
 ;プレイコントロール：再生/一時停止
-Modifier_PlayPause=10
+Modifier_PlayPause=11
 VK_PlayPause=38
 
 ;プレイコントロール：停止
-Modifier_Stop=10
+Modifier_Stop=11
 VK_Stop=40
 
-; --- 音量コントロール (CTRL + SHIFT + WIN + 矢印) ---
+; --- 音量コントロール (CTRL + ALT + WIN + Home/End,PageUP/PageDown) ---
 ;音量操作：5%アップ
-Modifier_VolUp5=13
-VK_VolUp5=39
+Modifier_VolUp5=11
+VK_VolUp5=36
 
 ;音量操作：5%ダウン
-Modifier_VolDown5=13
-VK_VolDown5=37
+Modifier_VolDown5=11
+VK_VolDown5=35
 
 ;音量操作：25%アップ
-Modifier_VolUp25=13
-VK_VolUp25=38
+Modifier_VolUp25=11
+VK_VolUp25=33
 
 ;音量操作：25%ダウン
-Modifier_VolDown25=13
-VK_VolDown25=40
+Modifier_VolDown25=11
+VK_VolDown25=34
 
 ; --- プレイリスト切替 (CTRL + WIN + PageUp/PageDown) ---
 ;前のプレイリスト（最初のプレイリストの場合は最後のプレイリストへ）
