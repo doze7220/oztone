@@ -21,10 +21,10 @@
   * `src/Widgets.cpp` の `LogoMenuWidget::Draw` を修正する。
   * アイコンを描画するループ内において、対象アイテムの `commandId` がシャッフルボタンである場合、`config->GetShuffleMode()` を評価する。
   * `true` の場合はアイコンを `L"🔀"`、`false` の場合は `L"➡️"` に上書きして描画する。
-  * アイコンホバー時の説明テキスト（上部に表示されるラベル）についても同様に分岐させ、`true` の場合は `L"SHUFFLE: ON"`、`false` の場合は `L"SHUFFLE: OFF"`（または `L"STRAIGHT"` 等、デザインに合う文字）へ動的に切り替える処理を追加する。
+  * アイコンホバー時の説明テキスト（上部に表示されるラベル）についても同様に分岐させ、`true` の場合は `L"再生モード：シャッフル"`、`false` の場合は `L"再生モード：プレイリスト登録順"`へ動的に切り替える処理を追加する。
 
 #### 【作業終了後】
-1. 以下の【実装要件】を満たす実装計画書を作業レポート（`D:\ozlab\oztone\_docs\logs\YYYYMMDD_HHMM__Phase15_ShuffleButtonTogle.md`）として新規作成する。
+1. 以下の【実装要件】を満たす実装計画書を作業レポート（`D:\ozlab\oztone\_docs\logs\YYYYMMDD_HHMM_Phase15_ShuffleButtonTogle.md`）として新規作成する。
 2. 原因と、詳細作業内容を記載する。
 3. D:\ozlab\oztone\PROJECT_ARCHITECTURE.md を確認し、作業内容が記載に影響のある場合は修正を行う。
 

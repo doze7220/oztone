@@ -275,8 +275,17 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
     ID2D1SolidColorBrush *brush =
         active ? m_iconBrush.Get() : m_inactiveIconBrush.Get();
 
+    std::wstring iconText = item.iconText;
+    if (item.commandId == Window::ID_LOGO_SHUFFLE) {
+      if (config->GetShuffleMode()) {
+        iconText = L"🔀";
+      } else {
+        iconText = L"➡️";
+      }
+    }
+
     context->DrawText(
-        item.iconText.c_str(), static_cast<UINT32>(item.iconText.length()),
+        iconText.c_str(), static_cast<UINT32>(iconText.length()),
         m_iconTextFormat.Get(), itemLayout.hitRect, brush, options);
 
     if (!active) {
@@ -359,6 +368,12 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
         textToDraw = L"プレイリスト配置: 画面左";
       } else {
         textToDraw = L"プレイリスト配置: 画面右";
+      }
+    } else if (hoveredItem.commandId == Window::ID_LOGO_SHUFFLE) {
+      if (config->GetShuffleMode()) {
+        textToDraw = L"再生モード：シャッフル";
+      } else {
+        textToDraw = L"再生モード：プレイリスト登録順";
       }
     } else {
       textToDraw = hoveredItem.labelText;

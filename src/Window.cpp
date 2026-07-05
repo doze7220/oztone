@@ -39,7 +39,7 @@ Window::Window()
       {ID_LOGO_EXIT, L"❌", false, false, L"OZtoneの終了"},
       {ID_LOGO_PIN_PLAYLIST, L"📜", true, false, L"プレイリスト固定表示"},
       {ID_LOGO_VISUALIZER, L"🎆", true, false, L"ビジュアライザ表示切り替え"},
-      {ID_LOGO_SHUFFLE, L"🔀", true, false, L"シャッフル再生ON/OFF"},
+      {ID_LOGO_SHUFFLE, L"🔀", false, false, L"シャッフル再生ON/OFF"},
       {ID_LOGO_PLAYLIST_POS, L"↔️", false, false, L"プレイリストの配置場所切り替え"}};
 }
 
