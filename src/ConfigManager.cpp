@@ -16,6 +16,7 @@ ShowTaskbar=0
 ZOrder=0
 SavePositionOnExit=1
 EnableResize=0
+LockWindowPosition=0
 WindowX=-2147483648
 WindowY=-2147483648
 WindowWidth=1024
@@ -194,7 +195,7 @@ ConfigManager::ConfigManager()
       m_showAppLogo(true), m_showNowPlaying(true), m_showNextTrack(true),
       m_enableNextTrack(false), m_showSeekBar(true),
       m_showPlaybackControls(true), m_showVolumeControl(true), m_zOrder(0),
-      m_savePositionOnExit(true), m_enableResize(false), m_shuffleMode(true),
+      m_savePositionOnExit(true), m_enableResize(false), m_lockWindowPosition(false), m_shuffleMode(true),
       m_windowX(CW_USEDEFAULT), m_windowY(CW_USEDEFAULT), m_windowWidth(1024),
       m_windowHeight(512), m_enableShadow(true), m_shadowOffsetX(2.0f),
       m_shadowOffsetY(2.0f), m_shadowOpacity(0.7f), m_bgDarkenOpacity(0.3f),
@@ -346,6 +347,8 @@ void ConfigManager::LoadSettings() {
                                                1, m_iniFilePath.c_str()) != 0;
   m_enableResize = GetPrivateProfileIntW(L"Window", L"EnableResize", 0,
                                          m_iniFilePath.c_str()) != 0;
+  m_lockWindowPosition = GetPrivateProfileIntW(L"Window", L"LockWindowPosition", 0,
+                                               m_iniFilePath.c_str()) != 0;
 
   m_windowX = GetPrivateProfileIntW(L"Window", L"WindowX", CW_USEDEFAULT,
                                     m_iniFilePath.c_str());
@@ -1085,6 +1088,12 @@ void ConfigManager::SetSavePositionOnExit(bool save) {
 void ConfigManager::SetEnableResize(bool enable) {
   m_enableResize = enable;
   WritePrivateProfileStringW(L"Window", L"EnableResize", enable ? L"1" : L"0",
+                             m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetLockWindowPosition(bool lock) {
+  m_lockWindowPosition = lock;
+  WritePrivateProfileStringW(L"Window", L"LockWindowPosition", lock ? L"1" : L"0",
                              m_iniFilePath.c_str());
 }
 

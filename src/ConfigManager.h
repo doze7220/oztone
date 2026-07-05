@@ -56,6 +56,9 @@ public:
     bool GetEnableResize() const { return m_enableResize; }
     void SetEnableResize(bool enable);
 
+    bool GetLockWindowPosition() const { return m_lockWindowPosition; }
+    void SetLockWindowPosition(bool lock);
+
     bool GetShuffleMode() const { return m_shuffleMode; }
     void SetShuffleMode(bool mode);
 
@@ -259,6 +262,7 @@ private:
     int m_zOrder;
     bool m_savePositionOnExit;
     bool m_enableResize;
+    bool m_lockWindowPosition;
     bool m_shuffleMode;
 
 

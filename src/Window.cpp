@@ -22,6 +22,7 @@ constexpr UINT TRAY_MENU_ORDER[] = {Window::ID_TRAY_ZORDER_NORMAL,
                                     Window::ID_TRAY_CLEAR_PLAYLIST,
                                     0, // separator
                                     Window::ID_TRAY_ENABLE_RESIZE,
+                                    Window::ID_TRAY_LOCK_WINDOW_POS,
                                     Window::ID_TRAY_SAVE_POS,
                                     Window::ID_TRAY_RESET_POS,
                                     Window::ID_TRAY_RESET_ALL,
@@ -40,7 +41,8 @@ Window::Window()
       {ID_LOGO_PIN_PLAYLIST, L"📜", true, false, L"プレイリスト固定表示"},
       {ID_LOGO_VISUALIZER, L"🎆", true, false, L"ビジュアライザ表示切り替え"},
       {ID_LOGO_SHUFFLE, L"🔀", false, false, L"シャッフル再生ON/OFF"},
-      {ID_LOGO_PLAYLIST_POS, L"↔️", false, false, L"プレイリストの配置場所切り替え"}};
+      {ID_LOGO_PLAYLIST_POS, L"↔️", false, false,
+       L"プレイリストの配置場所切り替え"}};
 }
 
 Window::~Window() {
@@ -397,7 +399,8 @@ bool Window::IsInPlaylistRegion(int x, int y) const {
   int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
 
   // ロゴ拡張メニュー等との干渉排除
-  if (!m_isPlaylistHovered && logicalY <= m_config->GetLogoY() + m_config->GetLogoHeight() + 10.0f) {
+  if (!m_isPlaylistHovered &&
+      logicalY <= m_config->GetLogoY() + m_config->GetLogoHeight() + 10.0f) {
     return false;
   }
 
@@ -423,24 +426,26 @@ bool Window::IsInPlaylistRegion(int x, int y) const {
 }
 
 int Window::GetPlaylistToolbarButtonAt(int x, int y) const {
-  if (!m_config || !m_hwnd || !m_isPlaylistHovered) return -1;
+  if (!m_config || !m_hwnd || !m_isPlaylistHovered)
+    return -1;
   UINT dpi = GetDpiForWindow(m_hwnd);
   int logicalX = MulDiv(x, 96, dpi);
   int logicalY = MulDiv(y, 96, dpi);
-  
+
   RECT rect;
   GetClientRect(m_hwnd, &rect);
   int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
   int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
-  
-  PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(logicalWidth, logicalHeight, m_config, 0.0f, 0.0f, 0, 0);
+
+  PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
+      logicalWidth, logicalHeight, m_config, 0.0f, 0.0f, 0, 0);
   for (int i = 0; i < 3; ++i) {
-      if (logicalX >= layout.toolbarLayout.buttonHitRects[i].left &&
-          logicalX <= layout.toolbarLayout.buttonHitRects[i].right &&
-          logicalY >= layout.toolbarLayout.buttonHitRects[i].top &&
-          logicalY <= layout.toolbarLayout.buttonHitRects[i].bottom) {
-          return i;
-      }
+    if (logicalX >= layout.toolbarLayout.buttonHitRects[i].left &&
+        logicalX <= layout.toolbarLayout.buttonHitRects[i].right &&
+        logicalY >= layout.toolbarLayout.buttonHitRects[i].top &&
+        logicalY <= layout.toolbarLayout.buttonHitRects[i].bottom) {
+      return i;
+    }
   }
   return -1;
 }
@@ -656,7 +661,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
       return 0;
     }
 
-    if (IsInLogoRegion(xPos, yPos)) {
+    if (!m_config || !m_config->GetLockWindowPosition()) {
       ReleaseCapture();
       SendMessage(hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
     }
@@ -737,7 +742,10 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             text = L"ウィンドウ順序: 最背面";
             break;
           case ID_TRAY_ENABLE_RESIZE:
-            text = L"リサイズモードを有効化";
+            text = L"リサイズモード";
+            break;
+          case ID_TRAY_LOCK_WINDOW_POS:
+            text = L"画面位置を固定";
             break;
           case ID_TRAY_SAVE_POS:
             text = L"終了時に位置とサイズを記憶";
@@ -795,6 +803,10 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         }
         if (m_config->GetEnableResize()) {
           CheckMenuItem(hMenu, ID_TRAY_ENABLE_RESIZE,
+                        MF_BYCOMMAND | MF_CHECKED);
+        }
+        if (m_config->GetLockWindowPosition()) {
+          CheckMenuItem(hMenu, ID_TRAY_LOCK_WINDOW_POS,
                         MF_BYCOMMAND | MF_CHECKED);
         }
       }
@@ -855,6 +867,13 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
       if (m_config) {
         bool current = m_config->GetEnableResize();
         m_config->SetEnableResize(!current);
+      }
+      break;
+    }
+    case ID_TRAY_LOCK_WINDOW_POS: {
+      if (m_config) {
+        bool current = m_config->GetLockWindowPosition();
+        m_config->SetLockWindowPosition(!current);
       }
       break;
     }

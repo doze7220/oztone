@@ -63,6 +63,7 @@ public:
     static constexpr UINT ID_TRAY_ENABLE_RESIZE = 1023;
     static constexpr UINT ID_TRAY_NEW_PLAYLIST = 1024;
     static constexpr UINT ID_TRAY_PLAYLIST_MENU = 1025;
+    static constexpr UINT ID_TRAY_LOCK_WINDOW_POS = 1026;
     static constexpr UINT ID_TRAY_EXIT = 1001;
 
     static constexpr UINT ID_LOGO_EXIT = 3001;
