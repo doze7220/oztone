@@ -13,6 +13,7 @@
 #include "PlaylistWidget.h"
 #include "PlaybackControlsWidget.h"
 #include "VolumeControlWidget.h"
+#include "LogoMenuWidget.h"
 
 Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_controlAlpha(0.0f) {}
 

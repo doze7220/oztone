@@ -99,3 +99,13 @@
 [ ] MP4除外: 正式対応するまでコメントアウトする
 [ ] ビジュアライザと音量ボリュームが連動している。元の曲データの音量でいけないか。
 [ ] ヘイローダストのレーザー演出が画面サイズに連動していない。
+
+## 現在の仮実装項目（要リファクタリング・置換対象）
+後続のステップで本格的な機能に置き換えられた際に、以下の項目は削除または大幅にリファクタリングされる想定です。作業前にここをチェックしてください。
+
+*   **TODO (将来): `LayoutCalculator` の `ConfigManager` 依存の段階的除去**:
+    現在、`LayoutCalculator` の各計算メソッドは引数で `const ConfigManager* config` を受け取っている。将来的にこの依存関係を除去し、`Renderer` 側で必要な設定値のみを `LayoutInput` 等の専用構造体へ詰め替え、`LayoutCalculator` が `ConfigManager` を一切知らない完全に独立した形へと移行する。
+
+*    **TODO (将来): Renderer更新メソッドの統合 (Renderer::Update の導入)**:
+    現在 Application から個別に呼び出している UpdateAnimation や UpdateTextLayouts などの更新処理を、単一の Renderer::Update(float deltaTime, ...) メソッドへ統合・隠蔽する。これにより Application は Renderer 内部のリソース更新手順を知る必要がなくなり、依存関係をさらにクリーンにする。
+
