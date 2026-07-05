@@ -43,6 +43,7 @@ set(HEADERS
     src/Renderer.h
     src/LayoutCalculator.h
     src/Visualizer.h
+    src/WidgetContext.h
     src/Widget.h
     src/Widgets.h
     src/PlaylistWidget.h
