@@ -88,21 +88,15 @@ ULONG STDMETHODCALLTYPE DropTarget::Release() {
 HRESULT STDMETHODCALLTYPE DropTarget::DragEnter(IDataObject *pDataObj,
                                                 DWORD grfKeyState, POINTL pt,
                                                 DWORD *pdwEffect) {
-  POINT clientPt = {pt.x, pt.y};
-  ScreenToClient(m_pWindow->GetHandle(), &clientPt);
-  bool hovered = m_pWindow->IsInLogoRegion(clientPt.x, clientPt.y);
-  m_pWindow->SetHovered(hovered);
-  *pdwEffect = hovered ? DROPEFFECT_COPY : DROPEFFECT_NONE;
+  m_pWindow->SetHovered(true);
+  *pdwEffect = DROPEFFECT_COPY;
   return S_OK;
 }
 
 HRESULT STDMETHODCALLTYPE DropTarget::DragOver(DWORD grfKeyState, POINTL pt,
                                                DWORD *pdwEffect) {
-  POINT clientPt = {pt.x, pt.y};
-  ScreenToClient(m_pWindow->GetHandle(), &clientPt);
-  bool hovered = m_pWindow->IsInLogoRegion(clientPt.x, clientPt.y);
-  m_pWindow->SetHovered(hovered);
-  *pdwEffect = hovered ? DROPEFFECT_COPY : DROPEFFECT_NONE;
+  m_pWindow->SetHovered(true);
+  *pdwEffect = DROPEFFECT_COPY;
   return S_OK;
 }
 
@@ -115,29 +109,23 @@ HRESULT STDMETHODCALLTYPE DropTarget::Drop(IDataObject *pDataObj,
                                            DWORD grfKeyState, POINTL pt,
                                            DWORD *pdwEffect) {
   m_pWindow->SetHovered(false);
-  POINT clientPt = {pt.x, pt.y};
-  ScreenToClient(m_pWindow->GetHandle(), &clientPt);
 
-  if (m_pWindow->IsInLogoRegion(clientPt.x, clientPt.y)) {
-    FORMATETC fmt = {CF_HDROP, nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL};
-    STGMEDIUM stg = {0};
-    if (SUCCEEDED(pDataObj->GetData(&fmt, &stg))) {
-      HDROP hDrop = (HDROP)stg.hGlobal;
-      UINT count = DragQueryFileW(hDrop, 0xFFFFFFFF, nullptr, 0);
-      std::vector<std::wstring> files;
-      for (UINT i = 0; i < count; ++i) {
-        UINT length = DragQueryFileW(hDrop, i, nullptr, 0);
-        std::wstring path(length, L'\0');
-        DragQueryFileW(hDrop, i, &path[0], length + 1);
-        files.push_back(path);
-      }
-      m_pWindow->NotifyFilesDropped(files);
-      ReleaseStgMedium(&stg);
+  FORMATETC fmt = {CF_HDROP, nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL};
+  STGMEDIUM stg = {0};
+  if (SUCCEEDED(pDataObj->GetData(&fmt, &stg))) {
+    HDROP hDrop = (HDROP)stg.hGlobal;
+    UINT count = DragQueryFileW(hDrop, 0xFFFFFFFF, nullptr, 0);
+    std::vector<std::wstring> files;
+    for (UINT i = 0; i < count; ++i) {
+      UINT length = DragQueryFileW(hDrop, i, nullptr, 0);
+      std::wstring path(length, L'\0');
+      DragQueryFileW(hDrop, i, &path[0], length + 1);
+      files.push_back(path);
     }
-    *pdwEffect = DROPEFFECT_COPY;
-  } else {
-    *pdwEffect = DROPEFFECT_NONE;
+    m_pWindow->NotifyFilesDropped(files);
+    ReleaseStgMedium(&stg);
   }
+  *pdwEffect = DROPEFFECT_COPY;
   return S_OK;
 }
 
