@@ -37,8 +37,6 @@ Window::Window()
       m_isLogoMenuHovered(false) {
   m_logoMenuItems = {
       {ID_LOGO_EXIT, L"❌", false, false, L"OZtoneの終了"},
-      {ID_LOGO_CLEAR, L"🗑️", false, false,
-       L"再生中の曲をプレイリストから削除する"},
       {ID_LOGO_PIN_PLAYLIST, L"📜", true, false, L"プレイリスト固定表示"},
       {ID_LOGO_VISUALIZER, L"🎆", true, false, L"ビジュアライザ表示切り替え"},
       {ID_LOGO_SHUFFLE, L"🔀", true, false, L"シャッフル再生ON/OFF"},
@@ -617,9 +615,6 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
           }
           if (item.commandId == ID_LOGO_EXIT) {
             PostQuitMessage(0);
-          } else if (item.commandId == ID_LOGO_CLEAR) {
-            if (m_onClearPlaylistCommand)
-              m_onClearPlaylistCommand();
           } else if (item.commandId == ID_LOGO_PIN_PLAYLIST) {
             // m_config->SetPinPlaylist(item.toggleState);
           } else if (item.commandId == ID_LOGO_VISUALIZER) {

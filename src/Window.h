@@ -66,7 +66,6 @@ public:
     static constexpr UINT ID_TRAY_EXIT = 1001;
 
     static constexpr UINT ID_LOGO_EXIT = 3001;
-    static constexpr UINT ID_LOGO_CLEAR = 3002;
     static constexpr UINT ID_LOGO_PIN_PLAYLIST = 3003;
     static constexpr UINT ID_LOGO_VISUALIZER = 3004;
     static constexpr UINT ID_LOGO_SHUFFLE = 3005;

@@ -30,10 +30,11 @@ OK、次はタスク1だけを実行。
 
 ありがとう。
 最後に、実装レポートとアーキテクチャ資料を照らし合わせ、作業内容の反映に漏れがないか確認すること。
+D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
 
 作業ありがとう。
 最後に実装レポートを元に、アーキテクチャ資料を更新すること。
-
+D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
 
 このプロジェクトのルールと、開発資料を熟読してほしい。
 D:\ozlab\oztone\PROJECT_CONSTITUTION.md
