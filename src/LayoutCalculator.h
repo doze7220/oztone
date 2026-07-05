@@ -89,6 +89,11 @@ struct NextTrackLayout {
     D2D1_RECT_F artistShadowRect;
 };
 
+struct GlobalHotkeysLayout {
+    D2D1_RECT_F drawRect;
+};
+
+
 /**
  * @brief 各UI要素のレイアウト（座標やサイズなど）を計算するためのクラス
  * 
@@ -162,6 +167,7 @@ public:
     static SeekBarLayout CalculateSeekBarLayout(float logicalWidth, float logicalHeight, const ConfigManager* config, float progress);
     static PlaybackControlsLayout CalculatePlaybackControlsLayout(float logicalWidth, float logicalHeight, const ConfigManager* config);
     static VolumeControlLayout CalculateVolumeControlLayout(float logicalWidth, float logicalHeight, const ConfigManager* config);
+    static GlobalHotkeysLayout CalculateGlobalHotkeysLayout(float logicalWidth, const ConfigManager* config);
 
     static PlaylistLayout CalculatePlaylistLayout(float logicalWidth, float logicalHeight, const ConfigManager* config, float slideX, float manualScrollY, size_t currentTrackIndex, size_t totalTracks);
     static int GetPlaylistItemIndexAt(float logicalY, const PlaylistLayout& layout, size_t totalItems);

@@ -65,6 +65,7 @@ public:
     static constexpr UINT ID_TRAY_VOL_25 = 1063;
     static constexpr UINT ID_TRAY_VOL_MENU = 1064;
     static constexpr UINT ID_TRAY_ADVANCED_MENU = 1070;
+    static constexpr UINT ID_TRAY_SHOW_HOTKEYS = 1071;
 
     static constexpr UINT ID_LOGO_EXIT = 3001;
     static constexpr UINT ID_LOGO_BG_MODE = 3002;
@@ -231,6 +232,29 @@ public:
         m_onPlaylistToolbarClick = cb;
     }
 
+    enum HotkeyID {
+        HK_NEXT_TRACK = 100,
+        HK_PREV_TRACK,
+        HK_PLAY_PAUSE,
+        HK_STOP,
+        HK_VOL_UP_5,
+        HK_VOL_DOWN_5,
+        HK_VOL_UP_25,
+        HK_VOL_DOWN_25,
+        HK_PREV_PLAYLIST,
+        HK_NEXT_PLAYLIST,
+        HK_ACTIVE_TOPMOST,
+        HK_ACTIVE_BOTTOM,
+        HK_EXIT_APP
+    };
+
+    void RegisterHotkeys();
+    void UnregisterHotkeys();
+
+    void SetHotkeyCallback(std::function<void(int)> cb) {
+        m_onHotkey = cb;
+    }
+
     /**
      * @brief ウィンドウサイズが変更された時のコールバックを設定する
      */
@@ -272,6 +296,7 @@ private:
     std::function<void(int, int)> m_onPlaylistClick;
     std::function<void(int, int)> m_onPlaylistDoubleClick;
     std::function<void(int)> m_onPlaylistToolbarClick;
+    std::function<void(int)> m_onHotkey;
     std::function<void(int, int)> m_onResize;
     DropTarget* m_pDropTarget;
 

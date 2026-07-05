@@ -40,6 +40,7 @@ Window::~Window() {
     UnhookWindowsHookEx(m_keyboardHook);
     m_keyboardHook = nullptr;
   }
+  UnregisterHotkeys();
   if (m_pDropTarget) {
     RevokeDragDrop(m_hwnd);
     m_pDropTarget->Release();
@@ -208,6 +209,8 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow,
   SetWindowPos(m_hwnd, hWndInsertAfter, 0, 0, 0, 0,
                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
+  RegisterHotkeys();
+
   // OLE Drag and Drop を有効化
   m_pDropTarget = new DropTarget(this);
   RegisterDragDrop(m_hwnd, m_pDropTarget);
@@ -236,6 +239,39 @@ bool Window::ProcessMessages() {
   }
   return true;
 }
+
+void Window::RegisterHotkeys() {
+    UnregisterHotkeys();
+
+    if (!m_config) return;
+
+    auto reg = [&](int id, int mod, int vk) {
+        if (vk != 0) {
+            RegisterHotKey(m_hwnd, id, mod | MOD_NOREPEAT, vk);
+        }
+    };
+
+    reg(HK_NEXT_TRACK, m_config->GetModifierNextTrack(), m_config->GetVKNextTrack());
+    reg(HK_PREV_TRACK, m_config->GetModifierPrevTrack(), m_config->GetVKPrevTrack());
+    reg(HK_PLAY_PAUSE, m_config->GetModifierPlayPause(), m_config->GetVKPlayPause());
+    reg(HK_STOP, m_config->GetModifierStop(), m_config->GetVKStop());
+    reg(HK_VOL_UP_5, m_config->GetModifierVolUp5(), m_config->GetVKVolUp5());
+    reg(HK_VOL_DOWN_5, m_config->GetModifierVolDown5(), m_config->GetVKVolDown5());
+    reg(HK_VOL_UP_25, m_config->GetModifierVolUp25(), m_config->GetVKVolUp25());
+    reg(HK_VOL_DOWN_25, m_config->GetModifierVolDown25(), m_config->GetVKVolDown25());
+    reg(HK_PREV_PLAYLIST, m_config->GetModifierPrevPlaylist(), m_config->GetVKPrevPlaylist());
+    reg(HK_NEXT_PLAYLIST, m_config->GetModifierNextPlaylist(), m_config->GetVKNextPlaylist());
+    reg(HK_ACTIVE_TOPMOST, m_config->GetModifierActiveTopMost(), m_config->GetVKActiveTopMost());
+    reg(HK_ACTIVE_BOTTOM, m_config->GetModifierActiveBottom(), m_config->GetVKActiveBottom());
+    reg(HK_EXIT_APP, m_config->GetModifierExitApp(), m_config->GetVKExitApp());
+}
+
+void Window::UnregisterHotkeys() {
+    for (int i = HK_NEXT_TRACK; i <= HK_EXIT_APP; ++i) {
+        UnregisterHotKey(m_hwnd, i);
+    }
+}
+
 
 LRESULT CALLBACK Window::WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam,
                                           LPARAM lParam) {
@@ -510,6 +546,12 @@ int Window::GetPlaybackButtonAt(int x, int y) const {
 
 LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   switch (uMsg) {
+  case WM_HOTKEY: {
+      if (m_onHotkey) {
+          m_onHotkey(static_cast<int>(wParam));
+      }
+      return 0;
+  }
   case WM_GETMINMAXINFO: {
     MINMAXINFO *pMinMaxInfo = reinterpret_cast<MINMAXINFO *>(lParam);
     UINT dpi = GetDpiForWindow(hwnd);
@@ -830,6 +872,9 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                       L"位置とサイズをリセット");
           AppendMenuW(hAdvMenu, MF_STRING, Window::ID_TRAY_RESET_ALL,
                       L"設定を初期化");
+          AppendMenuW(hAdvMenu, MF_SEPARATOR, 0, nullptr);
+          AppendMenuW(hAdvMenu, MF_STRING, Window::ID_TRAY_SHOW_HOTKEYS,
+                      L"ホットキー表示");
 
           if (m_config) {
             int zOrder = m_config->GetZOrder();
@@ -838,6 +883,10 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                                ID_TRAY_ZORDER_NORMAL + zOrder, MF_BYCOMMAND);
             if (m_config->GetSavePositionOnExit()) {
               CheckMenuItem(hAdvMenu, ID_TRAY_SAVE_POS,
+                            MF_BYCOMMAND | MF_CHECKED);
+            }
+            if (m_config->GetShowHotkeys()) {
+              CheckMenuItem(hAdvMenu, ID_TRAY_SHOW_HOTKEYS,
                             MF_BYCOMMAND | MF_CHECKED);
             }
           }
@@ -906,6 +955,11 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                    SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
       break;
     }
+    case ID_TRAY_SHOW_HOTKEYS:
+      if (m_config) {
+        m_config->SetShowHotkeys(!m_config->GetShowHotkeys());
+      }
+      break;
     case ID_TRAY_PLAY_PAUSE:
       if (m_onMediaCommand)
         m_onMediaCommand(APPCOMMAND_MEDIA_PLAY_PAUSE);

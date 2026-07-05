@@ -76,6 +76,69 @@ public:
     float GetSkipTextShadowOpacity() const { return m_skipTextShadowOpacity; }
     float GetSkipTextShadowShift() const { return m_skipTextShadowShift; }
 
+    // --- Layout_GlobalHotkeys ---
+    std::wstring GetGlobalHotkeysFontFamily() const { return m_ghFontFamily; }
+    float GetGlobalHotkeysFontSize() const { return m_ghFontSize; }
+    float GetGlobalHotkeysLineSpacing() const { return m_ghLineSpacing; }
+    std::wstring GetGlobalHotkeysCoreColor() const { return m_ghCoreColor; }
+    std::wstring GetGlobalHotkeysGlowColor() const { return m_ghGlowColor; }
+    std::wstring GetGlobalHotkeysShadowColor() const { return m_ghShadowColor; }
+    float GetGlobalHotkeysShadowOpacity() const { return m_ghShadowOpacity; }
+
+    bool GetShowHotkeys() const { return m_showHotkeys; }
+    void SetShowHotkeys(bool show);
+
+    int GetModifierNextTrack() const { return m_modNextTrack; }
+    int GetVKNextTrack() const { return m_vkNextTrack; }
+    void SetNextTrackHotkey(int mod, int vk);
+
+    int GetModifierPrevTrack() const { return m_modPrevTrack; }
+    int GetVKPrevTrack() const { return m_vkPrevTrack; }
+    void SetPrevTrackHotkey(int mod, int vk);
+
+    int GetModifierPlayPause() const { return m_modPlayPause; }
+    int GetVKPlayPause() const { return m_vkPlayPause; }
+    void SetPlayPauseHotkey(int mod, int vk);
+
+    int GetModifierStop() const { return m_modStop; }
+    int GetVKStop() const { return m_vkStop; }
+    void SetStopHotkey(int mod, int vk);
+
+    int GetModifierVolUp5() const { return m_modVolUp5; }
+    int GetVKVolUp5() const { return m_vkVolUp5; }
+    void SetVolUp5Hotkey(int mod, int vk);
+
+    int GetModifierVolDown5() const { return m_modVolDown5; }
+    int GetVKVolDown5() const { return m_vkVolDown5; }
+    void SetVolDown5Hotkey(int mod, int vk);
+
+    int GetModifierVolUp25() const { return m_modVolUp25; }
+    int GetVKVolUp25() const { return m_vkVolUp25; }
+    void SetVolUp25Hotkey(int mod, int vk);
+
+    int GetModifierVolDown25() const { return m_modVolDown25; }
+    int GetVKVolDown25() const { return m_vkVolDown25; }
+    void SetVolDown25Hotkey(int mod, int vk);
+
+    int GetModifierPrevPlaylist() const { return m_modPrevPlaylist; }
+    int GetVKPrevPlaylist() const { return m_vkPrevPlaylist; }
+    void SetPrevPlaylistHotkey(int mod, int vk);
+
+    int GetModifierNextPlaylist() const { return m_modNextPlaylist; }
+    int GetVKNextPlaylist() const { return m_vkNextPlaylist; }
+    void SetNextPlaylistHotkey(int mod, int vk);
+
+    int GetModifierActiveTopMost() const { return m_modActiveTopMost; }
+    int GetVKActiveTopMost() const { return m_vkActiveTopMost; }
+    void SetActiveTopMostHotkey(int mod, int vk);
+
+    int GetModifierActiveBottom() const { return m_modActiveBottom; }
+    int GetVKActiveBottom() const { return m_vkActiveBottom; }
+    void SetActiveBottomHotkey(int mod, int vk);
+
+    int GetModifierExitApp() const { return m_modExitApp; }
+    int GetVKExitApp() const { return m_vkExitApp; }
+    void SetExitAppHotkey(int mod, int vk);
 
     /**
      * @brief 更新がないか確認する
@@ -398,6 +461,15 @@ private:
     float m_skipTextShadowOpacity;
     float m_skipTextShadowShift;
 
+    // --- Layout_GlobalHotkeys ---
+    std::wstring m_ghFontFamily;
+    float m_ghFontSize;
+    float m_ghLineSpacing;
+    std::wstring m_ghCoreColor;
+    std::wstring m_ghGlowColor;
+    std::wstring m_ghShadowColor;
+    float m_ghShadowOpacity;
+
     std::wstring GetExecutablePath() const;
 
     float m_defaultVolume;
@@ -471,4 +543,32 @@ private:
     float m_playlistGripShadowOffsetX;
     float m_playlistGripShadowOffsetY;
     float m_playlistGripShadowOpacity;
+
+    bool m_showHotkeys;
+    int m_modNextTrack;
+    int m_vkNextTrack;
+    int m_modPrevTrack;
+    int m_vkPrevTrack;
+    int m_modPlayPause;
+    int m_vkPlayPause;
+    int m_modStop;
+    int m_vkStop;
+    int m_modVolUp5;
+    int m_vkVolUp5;
+    int m_modVolDown5;
+    int m_vkVolDown5;
+    int m_modVolUp25;
+    int m_vkVolUp25;
+    int m_modVolDown25;
+    int m_vkVolDown25;
+    int m_modPrevPlaylist;
+    int m_vkPrevPlaylist;
+    int m_modNextPlaylist;
+    int m_vkNextPlaylist;
+    int m_modActiveTopMost;
+    int m_vkActiveTopMost;
+    int m_modActiveBottom;
+    int m_vkActiveBottom;
+    int m_modExitApp;
+    int m_vkExitApp;
 };

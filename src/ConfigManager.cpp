@@ -1,11 +1,11 @@
 #include "ConfigManager.h"
 #include <algorithm>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
-#include <vector>
-#include <ctime>
-#include <sstream>
 #include <iomanip>
+#include <sstream>
+#include <vector>
 
 constexpr const char *DEFAULT_INI_CONTENT = R"(; OZtone Default Configuration
 
@@ -135,6 +135,13 @@ BaseBottomOffset=22
 CenterOffsetX=0
 ButtonSpacing=55
 ButtonSize=30
+SkipIconPoints=0.1,-0.5,0.65,-0.5,-0.15,0.0,0.65,0.5,0.1,0.5,-0.65,0.0
+SkipTextFontSize=15.0
+SkipTextOffsetX=0.04
+SkipTextOffsetY=-0.05
+SkipTextShadowColor=#444444
+SkipTextShadowOpacity=0.40
+SkipTextShadowShift=1.00
 
 [Layout_VolumeControl]
 BaseLeftOffset=30
@@ -196,6 +203,78 @@ ToolbarTextFontSize=12.0
 PinSubIconOffsetX=6
 PinSubIconOffsetY=6
 PinSubIconFontSize=10.0
+
+[Layout_GlobalHotkeys]
+FontFamily=Meiryo
+FontSize=14.0
+LineSpacing=20.0
+CoreColor=#FFFFFF
+GlowColor=#00FFFF
+ShadowColor=#000000
+ShadowOpacity=0.2
+
+[GlobalHotkeys]4444
+
+; =========================================================
+; Modifiers (修飾キー): 1=ALT, 2=CTRL, 4=SHIFT, 8=WIN 
+; （論理和で組み合わせ可能。例: CTRL(2) + SHIFT(4) = 6, CTRL(2) + SHIFT(4) + ALT(1) = 7）
+; VK: 仮想キーコード (33=PgUp, 34=PgDn, 35=End, 36=Home, 37=Left, 38=Up, 39=Right, 40=Down, 46=Del)
+; =========================================================
+; --- 再生コントロール (CTRL + WIN + 矢印) ---
+;プレイコントロール：次の曲
+Modifier_NextTrack=10
+VK_NextTrack=39
+
+;プレイコントロール：前の曲
+Modifier_PrevTrack=10
+VK_PrevTrack=37
+
+;プレイコントロール：再生/一時停止
+Modifier_PlayPause=10
+VK_PlayPause=38
+
+;プレイコントロール：停止
+Modifier_Stop=10
+VK_Stop=40
+
+; --- 音量コントロール (CTRL + SHIFT + WIN + 矢印) ---
+;音量操作：5%アップ
+Modifier_VolUp5=13
+VK_VolUp5=39
+
+;音量操作：5%ダウン
+Modifier_VolDown5=13
+VK_VolDown5=37
+
+;音量操作：25%アップ
+Modifier_VolUp25=13
+VK_VolUp25=38
+
+;音量操作：25%ダウン
+Modifier_VolDown25=13
+VK_VolDown25=40
+
+; --- プレイリスト切替 (CTRL + WIN + PageUp/PageDown) ---
+;前のプレイリスト（最初のプレイリストの場合は最後のプレイリストへ）
+Modifier_PrevPlaylist=10
+VK_PrevPlaylist=33
+
+;次のプレイリスト（最後のプレイリストの場合は先頭のプレイリストへ）
+Modifier_NextPlaylist=10
+VK_NextPlaylist=34
+
+; --- ウィンドウアクティブ＆Z-Order制御 (CTRL + WIN + Home/End) ---
+;ウィンドウ最前面固定化＆アクティブ化
+Modifier_ActiveTopMost=10
+VK_ActiveTopMost=36
+
+;ウィンドウ最背面固定化＆アクティブ化
+Modifier_ActiveBottom=10
+VK_ActiveBottom=35
+
+; --- アプリ終了 (CTRL + WIN + Delete) ---
+Modifier_ExitApp=10
+VK_ExitApp=46
 
 )";
 
@@ -296,6 +375,41 @@ ConfigManager::ConfigManager()
   m_playlistGripShadowOffsetX = 2.0f;
   m_playlistGripShadowOffsetY = 2.0f;
   m_playlistGripShadowOpacity = 0.7f;
+  m_showHotkeys = false;
+  m_modNextTrack = 10;
+  m_vkNextTrack = 39;
+  m_modPrevTrack = 10;
+  m_vkPrevTrack = 37;
+  m_modPlayPause = 10;
+  m_vkPlayPause = 38;
+  m_modStop = 10;
+  m_vkStop = 40;
+  m_modVolUp5 = 13;
+  m_vkVolUp5 = 39;
+  m_modVolDown5 = 13;
+  m_vkVolDown5 = 37;
+  m_modVolUp25 = 13;
+  m_vkVolUp25 = 38;
+  m_modVolDown25 = 13;
+  m_vkVolDown25 = 40;
+  m_modPrevPlaylist = 10;
+  m_vkPrevPlaylist = 33;
+  m_modNextPlaylist = 10;
+  m_vkNextPlaylist = 34;
+  m_modActiveTopMost = 10;
+  m_vkActiveTopMost = 36;
+  m_modActiveBottom = 10;
+  m_vkActiveBottom = 35;
+  m_modExitApp = 10;
+  m_vkExitApp = 46;
+
+  m_ghFontFamily = L"Meiryo";
+  m_ghFontSize = 14.0f;
+  m_ghLineSpacing = 20.0f;
+  m_ghCoreColor = L"#FFFFFF";
+  m_ghGlowColor = L"#00FFFF";
+  m_ghShadowColor = L"#000000";
+  m_ghShadowOpacity = 0.8f;
 }
 
 ConfigManager::~ConfigManager() {}
@@ -836,29 +950,72 @@ void ConfigManager::LoadSettings() {
       L"Layout_PlaybackControls", L"ButtonSize", 16, m_iniFilePath.c_str());
 
   wchar_t iconBuf[256];
-  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipIconPoints", L"0.25,-0.5,0.5,-0.5,0.0,0.0,0.5,0.5,0.25,0.5,-0.25,0.0", iconBuf, 256, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(
+      L"Layout_PlaybackControls", L"SkipIconPoints",
+      L"0.25,-0.5,0.5,-0.5,0.0,0.0,0.5,0.5,0.25,0.5,-0.25,0.0", iconBuf, 256,
+      m_iniFilePath.c_str());
   m_skipIconPoints = iconBuf;
-  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextFontSize", L"10.0", buf, 32, m_iniFilePath.c_str());
-  try { m_skipTextFontSize = std::stof(buf); } catch (...) { m_skipTextFontSize = 10.0f; }
-  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetX", L"0.2", buf, 32, m_iniFilePath.c_str());
-  try { m_skipTextOffsetX = std::stof(buf); } catch (...) { m_skipTextOffsetX = 0.2f; }
-  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetY", L"0.1", buf, 32, m_iniFilePath.c_str());
-  try { m_skipTextOffsetY = std::stof(buf); } catch (...) { m_skipTextOffsetY = 0.1f; }
-  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowColor", L"#000000", buf, 32, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextFontSize",
+                           L"10.0", buf, 32, m_iniFilePath.c_str());
+  try {
+    m_skipTextFontSize = std::stof(buf);
+  } catch (...) {
+    m_skipTextFontSize = 10.0f;
+  }
+  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetX",
+                           L"0.2", buf, 32, m_iniFilePath.c_str());
+  try {
+    m_skipTextOffsetX = std::stof(buf);
+  } catch (...) {
+    m_skipTextOffsetX = 0.2f;
+  }
+  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetY",
+                           L"0.1", buf, 32, m_iniFilePath.c_str());
+  try {
+    m_skipTextOffsetY = std::stof(buf);
+  } catch (...) {
+    m_skipTextOffsetY = 0.1f;
+  }
+  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowColor",
+                           L"#000000", buf, 32, m_iniFilePath.c_str());
   m_skipTextShadowColor = buf;
-  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowOpacity", L"0.8", buf, 32, m_iniFilePath.c_str());
-  try { m_skipTextShadowOpacity = std::stof(buf); } catch (...) { m_skipTextShadowOpacity = 0.8f; }
-  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowShift", L"1.0", buf, 32, m_iniFilePath.c_str());
-  try { m_skipTextShadowShift = std::stof(buf); } catch (...) { m_skipTextShadowShift = 1.0f; }
+  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowOpacity",
+                           L"0.8", buf, 32, m_iniFilePath.c_str());
+  try {
+    m_skipTextShadowOpacity = std::stof(buf);
+  } catch (...) {
+    m_skipTextShadowOpacity = 0.8f;
+  }
+  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowShift",
+                           L"1.0", buf, 32, m_iniFilePath.c_str());
+  try {
+    m_skipTextShadowShift = std::stof(buf);
+  } catch (...) {
+    m_skipTextShadowShift = 1.0f;
+  }
 
   // Hotfix: Force output to INI file so user can edit them
-  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipIconPoints", m_skipIconPoints.c_str(), m_iniFilePath.c_str());
-  swprintf_s(buf, L"%.1f", m_skipTextFontSize); WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextFontSize", buf, m_iniFilePath.c_str());
-  swprintf_s(buf, L"%.2f", m_skipTextOffsetX); WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetX", buf, m_iniFilePath.c_str());
-  swprintf_s(buf, L"%.2f", m_skipTextOffsetY); WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetY", buf, m_iniFilePath.c_str());
-  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowColor", m_skipTextShadowColor.c_str(), m_iniFilePath.c_str());
-  swprintf_s(buf, L"%.2f", m_skipTextShadowOpacity); WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowOpacity", buf, m_iniFilePath.c_str());
-  swprintf_s(buf, L"%.2f", m_skipTextShadowShift); WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowShift", buf, m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipIconPoints",
+                             m_skipIconPoints.c_str(), m_iniFilePath.c_str());
+  swprintf_s(buf, L"%.1f", m_skipTextFontSize);
+  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextFontSize",
+                             buf, m_iniFilePath.c_str());
+  swprintf_s(buf, L"%.2f", m_skipTextOffsetX);
+  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetX",
+                             buf, m_iniFilePath.c_str());
+  swprintf_s(buf, L"%.2f", m_skipTextOffsetY);
+  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetY",
+                             buf, m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowColor",
+                             m_skipTextShadowColor.c_str(),
+                             m_iniFilePath.c_str());
+  swprintf_s(buf, L"%.2f", m_skipTextShadowOpacity);
+  WritePrivateProfileStringW(L"Layout_PlaybackControls",
+                             L"SkipTextShadowOpacity", buf,
+                             m_iniFilePath.c_str());
+  swprintf_s(buf, L"%.2f", m_skipTextShadowShift);
+  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowShift",
+                             buf, m_iniFilePath.c_str());
 
   GetPrivateProfileStringW(L"Layout_NowPlaying", L"TrackCountFontFamily",
                            L"Courier New", buf, 32, m_iniFilePath.c_str());
@@ -1039,6 +1196,41 @@ void ConfigManager::LoadSettings() {
     m_playlistGripShadowOpacity = std::stof(buf);
   } catch (...) {
     m_playlistGripShadowOpacity = 0.7f;
+    m_showHotkeys = false;
+    m_modNextTrack = 10;
+    m_vkNextTrack = 39;
+    m_modPrevTrack = 10;
+    m_vkPrevTrack = 37;
+    m_modPlayPause = 10;
+    m_vkPlayPause = 38;
+    m_modStop = 10;
+    m_vkStop = 40;
+    m_modVolUp5 = 13;
+    m_vkVolUp5 = 39;
+    m_modVolDown5 = 13;
+    m_vkVolDown5 = 37;
+    m_modVolUp25 = 13;
+    m_vkVolUp25 = 38;
+    m_modVolDown25 = 13;
+    m_vkVolDown25 = 40;
+    m_modPrevPlaylist = 10;
+    m_vkPrevPlaylist = 33;
+    m_modNextPlaylist = 10;
+    m_vkNextPlaylist = 34;
+    m_modActiveTopMost = 10;
+    m_vkActiveTopMost = 36;
+    m_modActiveBottom = 10;
+    m_vkActiveBottom = 35;
+    m_modExitApp = 10;
+    m_vkExitApp = 46;
+
+    m_ghFontFamily = L"Meiryo";
+    m_ghFontSize = 14.0f;
+    m_ghLineSpacing = 20.0f;
+    m_ghCoreColor = L"#FFFFFF";
+    m_ghGlowColor = L"#00FFFF";
+    m_ghShadowColor = L"#000000";
+    m_ghShadowOpacity = 0.8f;
   }
 
   m_playlistTitleOffsetX = GetPrivateProfileIntW(
@@ -1127,6 +1319,96 @@ void ConfigManager::LoadSettings() {
   } else {
     m_defaultPlaylistPath = loadedPlaylistPath;
   }
+
+  wchar_t ghBuf[32];
+  GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"FontFamily", L"Meiryo",
+                           ghBuf, 32, m_iniFilePath.c_str());
+  m_ghFontFamily = ghBuf;
+  GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"FontSize", L"14.0", ghBuf,
+                           32, m_iniFilePath.c_str());
+  try {
+    m_ghFontSize = std::stof(ghBuf);
+  } catch (...) {
+    m_ghFontSize = 14.0f;
+  }
+  GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"LineSpacing", L"20.0",
+                           ghBuf, 32, m_iniFilePath.c_str());
+  try {
+    m_ghLineSpacing = std::stof(ghBuf);
+  } catch (...) {
+    m_ghLineSpacing = 20.0f;
+  }
+  GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"CoreColor", L"#FFFFFF",
+                           ghBuf, 32, m_iniFilePath.c_str());
+  m_ghCoreColor = ghBuf;
+  GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"GlowColor", L"#00FFFF",
+                           ghBuf, 32, m_iniFilePath.c_str());
+  m_ghGlowColor = ghBuf;
+  GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"ShadowColor", L"#000000",
+                           ghBuf, 32, m_iniFilePath.c_str());
+  m_ghShadowColor = ghBuf;
+  GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"ShadowOpacity", L"0.8",
+                           ghBuf, 32, m_iniFilePath.c_str());
+  try {
+    m_ghShadowOpacity = std::stof(ghBuf);
+  } catch (...) {
+    m_ghShadowOpacity = 0.8f;
+  }
+
+  m_showHotkeys = GetPrivateProfileIntW(L"GlobalHotkeys", L"ShowHotkeys", 0,
+                                        m_iniFilePath.c_str()) != 0;
+  m_modNextTrack = GetPrivateProfileIntW(
+      L"GlobalHotkeys", L"Modifier_NextTrack", 10, m_iniFilePath.c_str());
+  m_vkNextTrack = GetPrivateProfileIntW(L"GlobalHotkeys", L"VK_NextTrack", 39,
+                                        m_iniFilePath.c_str());
+  m_modPrevTrack = GetPrivateProfileIntW(
+      L"GlobalHotkeys", L"Modifier_PrevTrack", 10, m_iniFilePath.c_str());
+  m_vkPrevTrack = GetPrivateProfileIntW(L"GlobalHotkeys", L"VK_PrevTrack", 37,
+                                        m_iniFilePath.c_str());
+  m_modPlayPause = GetPrivateProfileIntW(
+      L"GlobalHotkeys", L"Modifier_PlayPause", 10, m_iniFilePath.c_str());
+  m_vkPlayPause = GetPrivateProfileIntW(L"GlobalHotkeys", L"VK_PlayPause", 38,
+                                        m_iniFilePath.c_str());
+  m_modStop = GetPrivateProfileIntW(L"GlobalHotkeys", L"Modifier_Stop", 10,
+                                    m_iniFilePath.c_str());
+  m_vkStop = GetPrivateProfileIntW(L"GlobalHotkeys", L"VK_Stop", 40,
+                                   m_iniFilePath.c_str());
+  m_modVolUp5 = GetPrivateProfileIntW(L"GlobalHotkeys", L"Modifier_VolUp5", 13,
+                                      m_iniFilePath.c_str());
+  m_vkVolUp5 = GetPrivateProfileIntW(L"GlobalHotkeys", L"VK_VolUp5", 39,
+                                     m_iniFilePath.c_str());
+  m_modVolDown5 = GetPrivateProfileIntW(L"GlobalHotkeys", L"Modifier_VolDown5",
+                                        13, m_iniFilePath.c_str());
+  m_vkVolDown5 = GetPrivateProfileIntW(L"GlobalHotkeys", L"VK_VolDown5", 37,
+                                       m_iniFilePath.c_str());
+  m_modVolUp25 = GetPrivateProfileIntW(L"GlobalHotkeys", L"Modifier_VolUp25",
+                                       13, m_iniFilePath.c_str());
+  m_vkVolUp25 = GetPrivateProfileIntW(L"GlobalHotkeys", L"VK_VolUp25", 38,
+                                      m_iniFilePath.c_str());
+  m_modVolDown25 = GetPrivateProfileIntW(
+      L"GlobalHotkeys", L"Modifier_VolDown25", 13, m_iniFilePath.c_str());
+  m_vkVolDown25 = GetPrivateProfileIntW(L"GlobalHotkeys", L"VK_VolDown25", 40,
+                                        m_iniFilePath.c_str());
+  m_modPrevPlaylist = GetPrivateProfileIntW(
+      L"GlobalHotkeys", L"Modifier_PrevPlaylist", 10, m_iniFilePath.c_str());
+  m_vkPrevPlaylist = GetPrivateProfileIntW(L"GlobalHotkeys", L"VK_PrevPlaylist",
+                                           33, m_iniFilePath.c_str());
+  m_modNextPlaylist = GetPrivateProfileIntW(
+      L"GlobalHotkeys", L"Modifier_NextPlaylist", 10, m_iniFilePath.c_str());
+  m_vkNextPlaylist = GetPrivateProfileIntW(L"GlobalHotkeys", L"VK_NextPlaylist",
+                                           34, m_iniFilePath.c_str());
+  m_modActiveTopMost = GetPrivateProfileIntW(
+      L"GlobalHotkeys", L"Modifier_ActiveTopMost", 10, m_iniFilePath.c_str());
+  m_vkActiveTopMost = GetPrivateProfileIntW(
+      L"GlobalHotkeys", L"VK_ActiveTopMost", 36, m_iniFilePath.c_str());
+  m_modActiveBottom = GetPrivateProfileIntW(
+      L"GlobalHotkeys", L"Modifier_ActiveBottom", 10, m_iniFilePath.c_str());
+  m_vkActiveBottom = GetPrivateProfileIntW(L"GlobalHotkeys", L"VK_ActiveBottom",
+                                           35, m_iniFilePath.c_str());
+  m_modExitApp = GetPrivateProfileIntW(L"GlobalHotkeys", L"Modifier_ExitApp",
+                                       10, m_iniFilePath.c_str());
+  m_vkExitApp = GetPrivateProfileIntW(L"GlobalHotkeys", L"VK_ExitApp", 46,
+                                      m_iniFilePath.c_str());
 }
 
 void ConfigManager::SaveDefaultSettings() {
@@ -1135,9 +1417,12 @@ void ConfigManager::SaveDefaultSettings() {
     std::tm tm{};
     localtime_s(&tm, &t);
     std::wostringstream wss;
-    wss << m_iniFilePath << L"." << std::put_time(&tm, L"%Y%m%d_%H%M%S") << L".bak";
+    wss << m_iniFilePath << L"." << std::put_time(&tm, L"%Y%m%d_%H%M%S")
+        << L".bak";
     std::error_code ec;
-    std::filesystem::copy_file(m_iniFilePath, wss.str(), std::filesystem::copy_options::overwrite_existing, ec);
+    std::filesystem::copy_file(
+        m_iniFilePath, wss.str(),
+        std::filesystem::copy_options::overwrite_existing, ec);
   }
 
   std::ofstream ofs(m_iniFilePath);
@@ -1286,8 +1571,145 @@ std::vector<std::wstring> ConfigManager::GetAvailablePlaylists() const {
 }
 
 void ConfigManager::SetSkipSeconds(float seconds) {
-    m_skipSeconds = seconds;
-    wchar_t buf[32];
-    swprintf_s(buf, L"%.1f", seconds);
-    WritePrivateProfileStringW(L"Audio", L"SkipSeconds", buf, m_iniFilePath.c_str());
+  m_skipSeconds = seconds;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.1f", seconds);
+  WritePrivateProfileStringW(L"Audio", L"SkipSeconds", buf,
+                             m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetShowHotkeys(bool show) {
+  m_showHotkeys = show;
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"ShowHotkeys",
+                             show ? L"1" : L"0", m_iniFilePath.c_str());
+}
+void ConfigManager::SetNextTrackHotkey(int mod, int vk) {
+  m_modNextTrack = mod;
+  m_vkNextTrack = vk;
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"Modifier_NextTrack",
+                             std::to_wstring(mod).c_str(),
+                             m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"VK_NextTrack",
+                             std::to_wstring(vk).c_str(),
+                             m_iniFilePath.c_str());
+}
+void ConfigManager::SetPrevTrackHotkey(int mod, int vk) {
+  m_modPrevTrack = mod;
+  m_vkPrevTrack = vk;
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"Modifier_PrevTrack",
+                             std::to_wstring(mod).c_str(),
+                             m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"VK_PrevTrack",
+                             std::to_wstring(vk).c_str(),
+                             m_iniFilePath.c_str());
+}
+void ConfigManager::SetPlayPauseHotkey(int mod, int vk) {
+  m_modPlayPause = mod;
+  m_vkPlayPause = vk;
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"Modifier_PlayPause",
+                             std::to_wstring(mod).c_str(),
+                             m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"VK_PlayPause",
+                             std::to_wstring(vk).c_str(),
+                             m_iniFilePath.c_str());
+}
+void ConfigManager::SetStopHotkey(int mod, int vk) {
+  m_modStop = mod;
+  m_vkStop = vk;
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"Modifier_Stop",
+                             std::to_wstring(mod).c_str(),
+                             m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"VK_Stop",
+                             std::to_wstring(vk).c_str(),
+                             m_iniFilePath.c_str());
+}
+void ConfigManager::SetVolUp5Hotkey(int mod, int vk) {
+  m_modVolUp5 = mod;
+  m_vkVolUp5 = vk;
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"Modifier_VolUp5",
+                             std::to_wstring(mod).c_str(),
+                             m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"VK_VolUp5",
+                             std::to_wstring(vk).c_str(),
+                             m_iniFilePath.c_str());
+}
+void ConfigManager::SetVolDown5Hotkey(int mod, int vk) {
+  m_modVolDown5 = mod;
+  m_vkVolDown5 = vk;
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"Modifier_VolDown5",
+                             std::to_wstring(mod).c_str(),
+                             m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"VK_VolDown5",
+                             std::to_wstring(vk).c_str(),
+                             m_iniFilePath.c_str());
+}
+void ConfigManager::SetVolUp25Hotkey(int mod, int vk) {
+  m_modVolUp25 = mod;
+  m_vkVolUp25 = vk;
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"Modifier_VolUp25",
+                             std::to_wstring(mod).c_str(),
+                             m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"VK_VolUp25",
+                             std::to_wstring(vk).c_str(),
+                             m_iniFilePath.c_str());
+}
+void ConfigManager::SetVolDown25Hotkey(int mod, int vk) {
+  m_modVolDown25 = mod;
+  m_vkVolDown25 = vk;
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"Modifier_VolDown25",
+                             std::to_wstring(mod).c_str(),
+                             m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"VK_VolDown25",
+                             std::to_wstring(vk).c_str(),
+                             m_iniFilePath.c_str());
+}
+void ConfigManager::SetNextPlaylistHotkey(int mod, int vk) {
+  m_modNextPlaylist = mod;
+  m_vkNextPlaylist = vk;
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"Modifier_NextPlaylist",
+                             std::to_wstring(mod).c_str(),
+                             m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"VK_NextPlaylist",
+                             std::to_wstring(vk).c_str(),
+                             m_iniFilePath.c_str());
+}
+void ConfigManager::SetPrevPlaylistHotkey(int mod, int vk) {
+  m_modPrevPlaylist = mod;
+  m_vkPrevPlaylist = vk;
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"Modifier_PrevPlaylist",
+                             std::to_wstring(mod).c_str(),
+                             m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"VK_PrevPlaylist",
+                             std::to_wstring(vk).c_str(),
+                             m_iniFilePath.c_str());
+}
+void ConfigManager::SetActiveTopMostHotkey(int mod, int vk) {
+  m_modActiveTopMost = mod;
+  m_vkActiveTopMost = vk;
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"Modifier_ActiveTopMost",
+                             std::to_wstring(mod).c_str(),
+                             m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"VK_ActiveTopMost",
+                             std::to_wstring(vk).c_str(),
+                             m_iniFilePath.c_str());
+}
+void ConfigManager::SetActiveBottomHotkey(int mod, int vk) {
+  m_modActiveBottom = mod;
+  m_vkActiveBottom = vk;
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"Modifier_ActiveBottom",
+                             std::to_wstring(mod).c_str(),
+                             m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"VK_ActiveBottom",
+                             std::to_wstring(vk).c_str(),
+                             m_iniFilePath.c_str());
+}
+void ConfigManager::SetExitAppHotkey(int mod, int vk) {
+  m_modExitApp = mod;
+  m_vkExitApp = vk;
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"Modifier_ExitApp",
+                             std::to_wstring(mod).c_str(),
+                             m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"VK_ExitApp",
+                             std::to_wstring(vk).c_str(),
+                             m_iniFilePath.c_str());
 }

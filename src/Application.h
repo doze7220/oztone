@@ -63,6 +63,13 @@ public:
      */
     void CreateNewPlaylist();
 
+    /**
+     * @brief メディアコマンドの共通処理を実行する
+     * @param cmd APPCOMMAND_MEDIA_... の定数
+     */
+    void HandleMediaCommand(int cmd);
+
+
 private:
     /**
      * @brief 特定のファイルパスに対するメタデータの比較・更新・保存処理を行う

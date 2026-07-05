@@ -22,6 +22,80 @@ Application::~Application() {
     m_audioPlayer.Uninitialize();
 }
 
+void Application::HandleMediaCommand(int cmd) {
+    if (cmd == APPCOMMAND_MEDIA_PLAY_PAUSE) {
+        m_audioPlayer.TogglePlayPause();
+    } else if (cmd == APPCOMMAND_MEDIA_STOP) {
+        m_audioPlayer.Stop();
+    } else if (cmd == APPCOMMAND_MEDIA_NEXTTRACK || cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) {
+        if (cmd == APPCOMMAND_MEDIA_NEXTTRACK) {
+            m_playlistManager.Advance();
+        } else {
+            m_playlistManager.Previous();
+        }
+        
+        size_t skipCount = 0;
+        bool played = false;
+        size_t totalCount = m_playlistManager.GetCount();
+        
+        m_audioPlayer.Stop();
+        
+        while (skipCount < totalCount) {
+            std::wstring track = m_playlistManager.GetCurrentTrack();
+
+            if (cmd == APPCOMMAND_MEDIA_NEXTTRACK && skipCount == 0 && m_isPrefetchReady.load()) {
+                m_renderer.SetTrackInfo(m_prefetchedTitle, m_prefetchedArtist);
+                m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
+            } else {
+                if (m_tagManager.Load(track)) {
+                    std::wstring title = m_tagManager.GetTitle();
+                    std::wstring artist = m_tagManager.GetArtist();
+                    if (title.empty()) title = std::filesystem::path(track).filename().wstring();
+                    if (artist.empty()) artist = L"---";
+                    m_renderer.SetTrackInfo(title, artist);
+
+                    const auto& artBytes = m_tagManager.GetAlbumArtBytes();
+                    if (!artBytes.empty()) {
+                        Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+                        if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
+                            m_renderer.SetAlbumArt(artBitmap.Get());
+                        } else {
+                            m_renderer.SetAlbumArt(nullptr);
+                        }
+                    } else {
+                        m_renderer.SetAlbumArt(nullptr);
+                    }
+                } else {
+                    std::wstring title;
+                    try { title = std::filesystem::path(track).filename().wstring(); } catch(...) { title = L"Unknown"; }
+                    m_renderer.SetTrackInfo(title, L"---");
+                    m_renderer.SetAlbumArt(nullptr);
+                }
+            }
+
+            if (m_audioPlayer.Play(track)) {
+                UpdateTrackMetadataIfNeeded(track);
+                PrefetchNextTrack();
+                played = true;
+                break;
+            }
+
+            if (cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) {
+                m_playlistManager.Previous();
+            } else {
+                m_playlistManager.Advance();
+            }
+            skipCount++;
+        }
+
+        if (!played) {
+            m_renderer.SetTrackInfo(L"No Track", L"---");
+            m_renderer.SetAlbumArt(nullptr);
+        }
+    }
+}
+
+
 bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     if (!m_config.Initialize()) {
         return false;
@@ -78,75 +152,85 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     });
 
     m_window.SetMediaCommandCallback([this](int cmd) {
-        if (cmd == APPCOMMAND_MEDIA_PLAY_PAUSE) {
-            m_audioPlayer.TogglePlayPause();
-        } else if (cmd == APPCOMMAND_MEDIA_STOP) {
-            m_audioPlayer.Stop();
-        } else if (cmd == APPCOMMAND_MEDIA_NEXTTRACK || cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) {
-            if (cmd == APPCOMMAND_MEDIA_NEXTTRACK) {
-                m_playlistManager.Advance();
-            } else {
-                m_playlistManager.Previous();
+        this->HandleMediaCommand(cmd);
+    });
+
+    m_window.SetHotkeyCallback([this](int hotkeyId) {
+        switch(hotkeyId) {
+            case Window::HK_NEXT_TRACK:
+                this->HandleMediaCommand(APPCOMMAND_MEDIA_NEXTTRACK);
+                break;
+            case Window::HK_PREV_TRACK:
+                this->HandleMediaCommand(APPCOMMAND_MEDIA_PREVIOUSTRACK);
+                break;
+            case Window::HK_PLAY_PAUSE:
+                this->HandleMediaCommand(APPCOMMAND_MEDIA_PLAY_PAUSE);
+                break;
+            case Window::HK_STOP:
+                this->HandleMediaCommand(APPCOMMAND_MEDIA_STOP);
+                break;
+            case Window::HK_VOL_UP_5: {
+                float vol = m_audioPlayer.GetVolume() + 0.05f;
+                if(vol > 1.0f) vol = 1.0f;
+                m_audioPlayer.SetVolume(vol);
+                m_config.SetDefaultVolume(vol);
+                break;
             }
-            
-            size_t skipCount = 0;
-            bool played = false;
-            size_t totalCount = m_playlistManager.GetCount();
-            
-            m_audioPlayer.Stop();
-            
-            while (skipCount < totalCount) {
-                std::wstring track = m_playlistManager.GetCurrentTrack();
-
-                if (cmd == APPCOMMAND_MEDIA_NEXTTRACK && skipCount == 0 && m_isPrefetchReady.load()) {
-                    m_renderer.SetTrackInfo(m_prefetchedTitle, m_prefetchedArtist);
-                    m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
-                } else {
-                    if (m_tagManager.Load(track)) {
-                        std::wstring title = m_tagManager.GetTitle();
-                        std::wstring artist = m_tagManager.GetArtist();
-                        if (title.empty()) title = std::filesystem::path(track).filename().wstring();
-                        if (artist.empty()) artist = L"---";
-                        m_renderer.SetTrackInfo(title, artist);
-
-                        const auto& artBytes = m_tagManager.GetAlbumArtBytes();
-                        if (!artBytes.empty()) {
-                            Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-                            if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
-                                m_renderer.SetAlbumArt(artBitmap.Get());
-                            } else {
-                                m_renderer.SetAlbumArt(nullptr);
-                            }
-                        } else {
-                            m_renderer.SetAlbumArt(nullptr);
-                        }
+            case Window::HK_VOL_DOWN_5: {
+                float vol = m_audioPlayer.GetVolume() - 0.05f;
+                if(vol < 0.0f) vol = 0.0f;
+                m_audioPlayer.SetVolume(vol);
+                m_config.SetDefaultVolume(vol);
+                break;
+            }
+            case Window::HK_VOL_UP_25: {
+                float vol = m_audioPlayer.GetVolume() + 0.25f;
+                if(vol > 1.0f) vol = 1.0f;
+                m_audioPlayer.SetVolume(vol);
+                m_config.SetDefaultVolume(vol);
+                break;
+            }
+            case Window::HK_VOL_DOWN_25: {
+                float vol = m_audioPlayer.GetVolume() - 0.25f;
+                if(vol < 0.0f) vol = 0.0f;
+                m_audioPlayer.SetVolume(vol);
+                m_config.SetDefaultVolume(vol);
+                break;
+            }
+            case Window::HK_PREV_PLAYLIST:
+            case Window::HK_NEXT_PLAYLIST: {
+                std::vector<std::wstring> playlists = m_config.GetAvailablePlaylists();
+                if (playlists.size() <= 1) break;
+                std::wstring current = m_config.GetDefaultPlaylistPath();
+                int idx = -1;
+                for (int i = 0; i < (int)playlists.size(); ++i) {
+                    if (playlists[i] == current) { idx = i; break; }
+                }
+                if (idx != -1) {
+                    if (hotkeyId == Window::HK_NEXT_PLAYLIST) {
+                        idx = static_cast<int>((idx + 1) % playlists.size());
                     } else {
-                        std::wstring title;
-                        try { title = std::filesystem::path(track).filename().wstring(); } catch(...) { title = L"Unknown"; }
-                        m_renderer.SetTrackInfo(title, L"---");
-                        m_renderer.SetAlbumArt(nullptr);
+                        idx = static_cast<int>((idx - 1 + playlists.size()) % playlists.size());
                     }
+                    this->SwitchPlaylist(playlists[idx]);
                 }
-
-                if (m_audioPlayer.Play(track)) {
-                    UpdateTrackMetadataIfNeeded(track);
-                    PrefetchNextTrack();
-                    played = true;
-                    break;
-                }
-
-                if (cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) {
-                    m_playlistManager.Previous();
-                } else {
-                    m_playlistManager.Advance();
-                }
-                skipCount++;
+                break;
             }
-
-            if (!played) {
-                m_renderer.SetTrackInfo(L"No Track", L"---");
-                m_renderer.SetAlbumArt(nullptr);
+            case Window::HK_ACTIVE_TOPMOST: {
+                m_config.SetZOrder(1);
+                SetWindowPos(m_window.GetHandle(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+                SetForegroundWindow(m_window.GetHandle());
+                break;
             }
+            case Window::HK_ACTIVE_BOTTOM: {
+                m_config.SetZOrder(2);
+                SetWindowPos(m_window.GetHandle(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+                break;
+            }
+            case Window::HK_EXIT_APP:
+                this->ClearPlaylist();
+                PostMessage(m_window.GetHandle(), WM_CLOSE, 0, 0);
+                break;
         }
     });
     
@@ -649,6 +733,7 @@ void Application::Run() {
             if (m_config.CheckForUpdates()) {
                 m_config.LoadSettings();
                 m_renderer.ReloadResources();
+                m_window.RegisterHotkeys();
             }
         }
 

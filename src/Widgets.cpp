@@ -584,6 +584,172 @@ void SeekBarWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
 }
 
 
+// ================= GlobalHotkeysWidget =================
+
+void GlobalHotkeysWidget::CreateResources(ID2D1DeviceContext* context, IWICImagingFactory* wicFactory, IDWriteFactory* dwriteFactory, const ConfigManager* config) {
+    if (!config) return;
+    m_dwriteFactory = dwriteFactory;
+
+    m_textLayout.Reset(); // Force recreation of text layout when resources are recreated
+
+    dwriteFactory->CreateTextFormat(
+        config->GetGlobalHotkeysFontFamily().c_str(), nullptr, DWRITE_FONT_WEIGHT_BOLD,
+        DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL,
+        config->GetGlobalHotkeysFontSize(), L"en-us", &m_textFormat);
+    
+    if (m_textFormat) {
+        m_textFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
+        m_textFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+    }
+
+    auto HexToColorF = [](const std::wstring& hex, float alpha) {
+        if (hex.length() >= 7 && hex[0] == L'#') {
+            int r, g, b;
+            if (swscanf_s(hex.c_str() + 1, L"%02x%02x%02x", &r, &g, &b) == 3) {
+                return D2D1::ColorF(r / 255.0f, g / 255.0f, b / 255.0f, alpha);
+            }
+        }
+        return D2D1::ColorF(1.0f, 1.0f, 1.0f, alpha);
+    };
+
+    context->CreateSolidColorBrush(HexToColorF(config->GetGlobalHotkeysCoreColor(), 0.9f), &m_coreBrush);
+    context->CreateSolidColorBrush(HexToColorF(config->GetGlobalHotkeysGlowColor(), 0.6f), &m_glowBrush);
+    context->CreateSolidColorBrush(HexToColorF(config->GetGlobalHotkeysShadowColor(), 1.0f), &m_shadowBrush);
+}
+
+void GlobalHotkeysWidget::ReleaseResources() {
+    m_textFormat.Reset();
+    m_textLayout.Reset();
+    m_dwriteFactory.Reset();
+    m_coreBrush.Reset();
+    m_glowBrush.Reset();
+    m_shadowBrush.Reset();
+}
+
+void GlobalHotkeysWidget::UpdateAnimation(const WidgetContext& ctx) {}
+
+std::wstring GlobalHotkeysWidget::GetKeyName(int mod, int vk) {
+    if (vk == 0) return L"None";
+    std::wstring result;
+    if (mod & MOD_CONTROL) result += L"CTRL + ";
+    if (mod & MOD_SHIFT) result += L"SHIFT + ";
+    if (mod & MOD_ALT) result += L"ALT + ";
+    if (mod & MOD_WIN) result += L"WIN + ";
+
+    if (vk >= 'A' && vk <= 'Z') {
+        result += static_cast<wchar_t>(vk);
+    } else if (vk >= '0' && vk <= '9') {
+        result += static_cast<wchar_t>(vk);
+    } else {
+        switch (vk) {
+        case VK_LEFT: result += L"LEFT"; break;
+        case VK_RIGHT: result += L"RIGHT"; break;
+        case VK_UP: result += L"UP"; break;
+        case VK_DOWN: result += L"DOWN"; break;
+        case VK_SPACE: result += L"SPACE"; break;
+        case VK_ESCAPE: result += L"ESC"; break;
+        case VK_RETURN: result += L"ENTER"; break;
+        case VK_HOME: result += L"HOME"; break;
+        case VK_END: result += L"END"; break;
+        case VK_PRIOR: result += L"PAGE UP"; break;
+        case VK_NEXT: result += L"PAGE DOWN"; break;
+        case VK_INSERT: result += L"INSERT"; break;
+        case VK_DELETE: result += L"DELETE"; break;
+        case VK_OEM_PLUS: result += L"+"; break;
+        case VK_OEM_MINUS: result += L"-"; break;
+        default: result += L"Key(" + std::to_wstring(vk) + L")"; break;
+        }
+    }
+    return result;
+}
+
+std::wstring GlobalHotkeysWidget::GenerateHotkeysString(const ConfigManager* config) {
+    std::wstring str;
+    auto append = [&](const std::wstring& action, int mod, int vk) {
+        if (vk != 0) {
+            str += GetKeyName(mod, vk) + L" : " + action + L"\n";
+        }
+    };
+    append(L"Next Track", config->GetModifierNextTrack(), config->GetVKNextTrack());
+    append(L"Prev Track", config->GetModifierPrevTrack(), config->GetVKPrevTrack());
+    append(L"Play/Pause", config->GetModifierPlayPause(), config->GetVKPlayPause());
+    append(L"Stop", config->GetModifierStop(), config->GetVKStop());
+    append(L"Vol +5%", config->GetModifierVolUp5(), config->GetVKVolUp5());
+    append(L"Vol -5%", config->GetModifierVolDown5(), config->GetVKVolDown5());
+    append(L"Vol +25%", config->GetModifierVolUp25(), config->GetVKVolUp25());
+    append(L"Vol -25%", config->GetModifierVolDown25(), config->GetVKVolDown25());
+    append(L"Next Playlist", config->GetModifierNextPlaylist(), config->GetVKNextPlaylist());
+    append(L"Prev Playlist", config->GetModifierPrevPlaylist(), config->GetVKPrevPlaylist());
+    append(L"Pin Top", config->GetModifierActiveTopMost(), config->GetVKActiveTopMost());
+    append(L"Pin Bottom", config->GetModifierActiveBottom(), config->GetVKActiveBottom());
+    append(L"Exit App", config->GetModifierExitApp(), config->GetVKExitApp());
+    return str;
+}
+
+void GlobalHotkeysWidget::UpdateLayout(const WidgetContext& ctx, const ConfigManager* config) {
+    // Keep it empty because we don't have logicalWidth here.
+    // We will update text layout in Draw.
+}
+
+void GlobalHotkeysWidget::Draw(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config) {
+    if (!config || !config->GetShowHotkeys()) return;
+
+    D2D1_SIZE_F rtSize = context->GetSize();
+    float logicWidth = rtSize.width / ctx.dpiScale;
+
+    bool show = config->GetShowHotkeys();
+    std::wstring currentStr = show ? GenerateHotkeysString(config) : L"";
+
+    if (currentStr != m_lastString || show != m_wasShow || !m_textLayout) {
+        m_textLayout.Reset();
+        if (show && !currentStr.empty()) {
+            GlobalHotkeysLayout layout = LayoutCalculator::CalculateGlobalHotkeysLayout(logicWidth, config);
+            float w = layout.drawRect.right - layout.drawRect.left;
+            float h = layout.drawRect.bottom - layout.drawRect.top;
+            m_dwriteFactory->CreateTextLayout(
+                currentStr.c_str(),
+                static_cast<UINT32>(currentStr.length()),
+                m_textFormat.Get(),
+                w, h,
+                &m_textLayout
+            );
+            if (m_textLayout) {
+                Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
+                if (SUCCEEDED(m_textLayout.As(&textLayout1))) {
+                    textLayout1->SetLineSpacing(DWRITE_LINE_SPACING_METHOD_UNIFORM, config->GetGlobalHotkeysLineSpacing(), config->GetGlobalHotkeysFontSize());
+                }
+            }
+        }
+        m_lastString = currentStr;
+        m_wasShow = show;
+    }
+
+    if (!m_textLayout) return;
+
+    GlobalHotkeysLayout layout = LayoutCalculator::CalculateGlobalHotkeysLayout(logicWidth, config);
+    D2D1_POINT_2F origin = D2D1::Point2F(layout.drawRect.left, layout.drawRect.top);
+    
+    // Draw Shadow
+    if (m_shadowBrush) {
+        m_shadowBrush->SetOpacity(config->GetGlobalHotkeysShadowOpacity());
+        context->DrawTextLayout(D2D1::Point2F(origin.x + 2.0f, origin.y + 2.0f), m_textLayout.Get(), m_shadowBrush.Get());
+    }
+
+    if (m_glowBrush) {
+        float glowOffsets[] = { 1.5f, 3.0f };
+        for (float offset : glowOffsets) {
+            context->DrawTextLayout(D2D1::Point2F(origin.x - offset, origin.y), m_textLayout.Get(), m_glowBrush.Get());
+            context->DrawTextLayout(D2D1::Point2F(origin.x + offset, origin.y), m_textLayout.Get(), m_glowBrush.Get());
+            context->DrawTextLayout(D2D1::Point2F(origin.x, origin.y - offset), m_textLayout.Get(), m_glowBrush.Get());
+            context->DrawTextLayout(D2D1::Point2F(origin.x, origin.y + offset), m_textLayout.Get(), m_glowBrush.Get());
+        }
+    }
+
+    if (m_coreBrush) {
+        context->DrawTextLayout(origin, m_textLayout.Get(), m_coreBrush.Get());
+    }
+}
+
 // ================= ResizeGripWidget =================
 
 void ResizeGripWidget::CreateResources(ID2D1DeviceContext *context,

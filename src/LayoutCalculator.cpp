@@ -455,3 +455,20 @@ ResizeGripLayout LayoutCalculator::CalculateResizeGripLayout(float logicalWidth,
     layout.pt3 = D2D1::Point2F(logicalWidth, logicalHeight - size);
     return layout;
 }
+
+GlobalHotkeysLayout LayoutCalculator::CalculateGlobalHotkeysLayout(float logicalWidth, const ConfigManager* config) {
+    GlobalHotkeysLayout layout = {};
+    if (!config) return layout;
+
+    // Right-top, fixed position, independent of playlist sliding
+    float rightMargin = 20.0f;
+    float topMargin = 20.0f;
+    float width = 600.0f;
+    float x = logicalWidth - rightMargin - width;
+    if (x < 0) x = 0;
+
+    layout.drawRect = D2D1::RectF(x, topMargin, logicalWidth - rightMargin, topMargin + 800.0f);
+    
+    return layout;
+}
+

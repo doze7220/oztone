@@ -170,6 +170,7 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     m_widgets.push_back(std::make_unique<SeekBarWidget>());
     m_widgets.push_back(std::make_unique<PlaybackControlsWidget>());
     m_widgets.push_back(std::make_unique<VolumeControlWidget>());
+    m_widgets.push_back(std::make_unique<GlobalHotkeysWidget>());
     m_widgets.push_back(std::make_unique<PlaylistWidget>());
     m_widgets.push_back(std::make_unique<ResizeGripWidget>());
     for (auto& widget : m_widgets) {
