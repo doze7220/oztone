@@ -82,8 +82,11 @@ public:
     float GetGlobalHotkeysLineSpacing() const { return m_ghLineSpacing; }
     std::wstring GetGlobalHotkeysCoreColor() const { return m_ghCoreColor; }
     std::wstring GetGlobalHotkeysGlowColor() const { return m_ghGlowColor; }
+    float GetGlobalHotkeysGlowOpacity() const { return m_ghGlowOpacity; }
     std::wstring GetGlobalHotkeysShadowColor() const { return m_ghShadowColor; }
     float GetGlobalHotkeysShadowOpacity() const { return m_ghShadowOpacity; }
+    float GetGlobalHotkeysKeyColumnOffset() const { return m_ghKeyColumnOffset; }
+    float GetGlobalHotkeysActionColumnOffset() const { return m_ghActionColumnOffset; }
 
     bool GetShowHotkeys() const { return m_showHotkeys; }
     void SetShowHotkeys(bool show);
@@ -467,8 +470,11 @@ private:
     float m_ghLineSpacing;
     std::wstring m_ghCoreColor;
     std::wstring m_ghGlowColor;
+    float m_ghGlowOpacity;
     std::wstring m_ghShadowColor;
     float m_ghShadowOpacity;
+    float m_ghKeyColumnOffset;
+    float m_ghActionColumnOffset;
 
     std::wstring GetExecutablePath() const;
 

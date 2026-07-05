@@ -90,7 +90,8 @@ struct NextTrackLayout {
 };
 
 struct GlobalHotkeysLayout {
-    D2D1_RECT_F drawRect;
+    D2D1_RECT_F keyColumnRect;
+    D2D1_RECT_F actionColumnRect;
 };
 
 

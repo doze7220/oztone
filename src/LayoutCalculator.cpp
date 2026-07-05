@@ -460,14 +460,17 @@ GlobalHotkeysLayout LayoutCalculator::CalculateGlobalHotkeysLayout(float logical
     GlobalHotkeysLayout layout = {};
     if (!config) return layout;
 
-    // Right-top, fixed position, independent of playlist sliding
-    float rightMargin = 20.0f;
     float topMargin = 20.0f;
-    float width = 600.0f;
-    float x = logicalWidth - rightMargin - width;
-    if (x < 0) x = 0;
+    float keyOffset = config->GetGlobalHotkeysKeyColumnOffset();
+    float actionOffset = config->GetGlobalHotkeysActionColumnOffset();
 
-    layout.drawRect = D2D1::RectF(x, topMargin, logicalWidth - rightMargin, topMargin + 800.0f);
+    float keyX = logicalWidth - keyOffset;
+    float actionX = logicalWidth - actionOffset;
+    if (keyX < 0) keyX = 0;
+    if (actionX < 0) actionX = 0;
+
+    layout.keyColumnRect = D2D1::RectF(keyX, topMargin, logicalWidth, topMargin + 800.0f);
+    layout.actionColumnRect = D2D1::RectF(actionX, topMargin, logicalWidth, topMargin + 800.0f);
     
     return layout;
 }
