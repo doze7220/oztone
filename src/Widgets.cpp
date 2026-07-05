@@ -1342,16 +1342,20 @@ void PlaylistWidget::UpdateAnimation(const WidgetContext &ctx) {
     size_t activeIndex = ctx.currentTrackIndex;
     size_t activeTotal = ctx.totalTracks;
 
-    if (ctx.isPlaylistListViewMode && ctx.config) {
-      std::vector<std::wstring> playlists = ctx.config->GetAvailablePlaylists();
-      activeTotal = playlists.size();
-      std::wstring currentPlaylist = ctx.config->GetDefaultPlaylistPath();
-      activeIndex = 0;
-      for (size_t i = 0; i < playlists.size(); ++i) {
-        if (playlists[i] == currentPlaylist) {
-          activeIndex = i;
-          break;
+    if (ctx.isPlaylistListViewMode) {
+      if (ctx.availablePlaylistsCache) {
+        activeTotal = ctx.availablePlaylistsCache->size();
+        std::wstring currentPlaylist = ctx.config->GetDefaultPlaylistPath();
+        activeIndex = 0;
+        for (size_t i = 0; i < ctx.availablePlaylistsCache->size(); ++i) {
+          if ((*ctx.availablePlaylistsCache)[i].filepath == currentPlaylist) {
+            activeIndex = i;
+            break;
+          }
         }
+      } else {
+        activeTotal = 0;
+        activeIndex = 0;
       }
     }
 
@@ -1384,15 +1388,19 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
   size_t activeTotal = ctx.totalTracks;
 
   if (ctx.isPlaylistListViewMode && config) {
-    std::vector<std::wstring> playlists = config->GetAvailablePlaylists();
-    activeTotal = playlists.size();
-    std::wstring currentPlaylist = config->GetDefaultPlaylistPath();
-    activeIndex = 0;
-    for (size_t i = 0; i < playlists.size(); ++i) {
-      if (playlists[i] == currentPlaylist) {
-        activeIndex = i;
-        break;
+    if (ctx.availablePlaylistsCache) {
+      activeTotal = ctx.availablePlaylistsCache->size();
+      std::wstring currentPlaylist = config->GetDefaultPlaylistPath();
+      activeIndex = 0;
+      for (size_t i = 0; i < ctx.availablePlaylistsCache->size(); ++i) {
+        if ((*ctx.availablePlaylistsCache)[i].filepath == currentPlaylist) {
+          activeIndex = i;
+          break;
+        }
       }
+    } else {
+      activeTotal = 0;
+      activeIndex = 0;
     }
   }
 
@@ -1475,7 +1483,19 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
       }
     }
 
-    if (!hoverText.empty() && m_toolbarTextFormat && m_textBrush) {
+    std::wstring toolbarCenterText = hoverText;
+    if (toolbarCenterText.empty() && !ctx.isPlaylistListViewMode) {
+      std::wstring currentPlaylist = config->GetDefaultPlaylistPath();
+      if (!currentPlaylist.empty()) {
+        try {
+          toolbarCenterText = std::filesystem::path(currentPlaylist).stem().wstring();
+        } catch (...) {
+          toolbarCenterText = L"Playlist";
+        }
+      }
+    }
+
+    if (!toolbarCenterText.empty() && m_toolbarTextFormat && m_textBrush) {
       if (m_shadowBrush && config->GetEnableShadow()) {
         m_shadowBrush->SetOpacity(config->GetShadowOpacity());
         D2D1_RECT_F sRect = layout.toolbarLayout.textRect;
@@ -1484,11 +1504,11 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
         sRect.right += 1.0f;
         sRect.bottom += 1.0f;
         context->DrawText(
-            hoverText.c_str(), static_cast<UINT32>(hoverText.length()),
+            toolbarCenterText.c_str(), static_cast<UINT32>(toolbarCenterText.length()),
             m_toolbarTextFormat.Get(), &sRect, m_shadowBrush.Get());
       }
-      context->DrawText(hoverText.c_str(),
-                        static_cast<UINT32>(hoverText.length()),
+      context->DrawText(toolbarCenterText.c_str(),
+                        static_cast<UINT32>(toolbarCenterText.length()),
                         m_toolbarTextFormat.Get(),
                         &layout.toolbarLayout.textRect, m_textBrush.Get());
     }
@@ -1521,10 +1541,10 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
     }
 
     if (ctx.isPlaylistListViewMode) {
-      std::vector<std::wstring> playlists = config->GetAvailablePlaylists();
-      std::wstring currentPlaylist = config->GetDefaultPlaylistPath();
+      if (ctx.availablePlaylistsCache) {
+        std::wstring currentPlaylist = config->GetDefaultPlaylistPath();
 
-      for (size_t i = 0; i < playlists.size(); ++i) {
+        for (size_t i = 0; i < ctx.availablePlaylistsCache->size(); ++i) {
         if (currentY + layout.itemHeight > 0 &&
             currentY < layout.playlistHeight) {
           PlaylistItemLayout itemLayout =
@@ -1532,25 +1552,43 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
                                                             currentY);
 
           bool isFocused = ctx.focusedPlaylistIndex && *ctx.focusedPlaylistIndex == i;
-          if ((playlists[i] == currentPlaylist || isFocused) && m_playlistHighlightBrush) {
-            float opacity = (playlists[i] == currentPlaylist) ? 0.2f : 0.1f;
+          if (((*ctx.availablePlaylistsCache)[i].filepath == currentPlaylist || isFocused) && m_playlistHighlightBrush) {
+            float opacity = ((*ctx.availablePlaylistsCache)[i].filepath == currentPlaylist) ? 0.2f : 0.1f;
             m_playlistHighlightBrush->SetOpacity(opacity);
             context->FillRectangle(&itemLayout.hlRect,
                                    m_playlistHighlightBrush.Get());
           }
 
-          std::wstring title;
-          try {
-            title = std::filesystem::path(playlists[i]).filename().wstring();
-          } catch (...) {
-            title = L"Unknown";
-          }
+          std::wstring title = (*ctx.availablePlaylistsCache)[i].displayName;
+          std::wstring info = std::to_wstring((*ctx.availablePlaylistsCache)[i].trackCount) + L" tracks";
+          std::wstring timeStr = (*ctx.availablePlaylistsCache)[i].totalTimeString;
 
           context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
                             m_playlistTitleTextFormat.Get(),
                             &itemLayout.titleRect, m_textBrush.Get());
+
+          if (!info.empty()) {
+            context->DrawText(
+                info.c_str(), static_cast<UINT32>(info.length()),
+                m_playlistArtistTextFormat.Get(), &itemLayout.artistRect,
+                m_playlistArtistBrush ? m_playlistArtistBrush.Get()
+                                      : m_textBrush.Get());
+          }
+
+          if (!timeStr.empty() && m_playlistTimeTextFormat) {
+            D2D1_RECT_F timeRect =
+                D2D1::RectF(itemLayout.timeOrigin.x, itemLayout.timeOrigin.y,
+                            itemLayout.timeOrigin.x + itemLayout.timeMaxWidth,
+                            itemLayout.timeOrigin.y + itemLayout.timeMaxHeight);
+            context->DrawText(timeStr.c_str(),
+                              static_cast<UINT32>(timeStr.length()),
+                              m_playlistTimeTextFormat.Get(), &timeRect,
+                              m_playlistTimeBrush ? m_playlistTimeBrush.Get()
+                                                  : m_textBrush.Get());
+          }
         }
         currentY += layout.itemHeight;
+      }
       }
     } else {
       for (size_t i = 0; i < ctx.totalTracks && ctx.shuffleMetadataList &&

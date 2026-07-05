@@ -159,17 +159,27 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
                 this->CreateNewPlaylist();
                 m_isPlaylistListViewMode = false;
             } else if (btnIndex == 2) { // 🗑️ (リスト削除)
-                std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
-                if (std::filesystem::exists(defaultPath)) {
-                    std::error_code ec;
-                    std::filesystem::remove(defaultPath, ec);
-                }
-                
-                std::vector<std::wstring> available = m_config.GetAvailablePlaylists();
-                if (!available.empty()) {
-                    this->SwitchPlaylist(available[0]);
-                } else {
-                    this->CreateNewPlaylist();
+                if (m_focusedPlaylistIndex.has_value()) {
+                    std::vector<std::wstring> available = m_config.GetAvailablePlaylists();
+                    if (m_focusedPlaylistIndex.value() < available.size()) {
+                        std::wstring targetPath = available[m_focusedPlaylistIndex.value()];
+                        if (std::filesystem::exists(targetPath)) {
+                            std::error_code ec;
+                            std::filesystem::remove(targetPath, ec);
+                        }
+
+                        UpdatePlaylistSummaries();
+
+                        if (targetPath == m_config.GetDefaultPlaylistPath()) {
+                            std::vector<std::wstring> newAvailable = m_config.GetAvailablePlaylists();
+                            if (!newAvailable.empty()) {
+                                this->SwitchPlaylist(newAvailable[0]);
+                            } else {
+                                this->CreateNewPlaylist();
+                            }
+                            m_isPlaylistListViewMode = false;
+                        }
+                    }
                 }
             }
         } else {
@@ -179,6 +189,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
                 if (!m_playlistManager.IsEmpty()) {
                     m_playlistManager.RemoveCurrentTrack();
                     m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
+                    UpdatePlaylistSummaries();
                     
                     m_audioPlayer.Stop();
                     if (!m_playlistManager.IsEmpty()) {
@@ -479,6 +490,8 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         m_parseCV.notify_one();
     }
 
+    UpdatePlaylistSummaries();
+
     return true;
 }
 
@@ -570,6 +583,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring>& paths) {
             std::filesystem::create_directories(playlistDir);
         }
         m_playlistManager.SaveToFile(defaultPath.wstring());
+        UpdatePlaylistSummaries();
 
         bool isShiftPressed = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
         if (!isShiftPressed) {
@@ -757,7 +771,7 @@ void Application::ForceRender() {
 
     m_renderer.UpdateAnimation(0.016f, m_window.IsControlHovered(), m_window.IsPlaylistHovered(), m_window.IsLogoMenuHovered(), m_window.GetLogoMenuHoveredIndex(), m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount(), m_isPlaylistListViewMode);
     m_renderer.UpdateTextLayouts(timeString, m_audioPlayer.GetVolume(), m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount());
-    m_renderer.Render(m_window.IsHovered(), m_window.IsControlHovered(), m_window.IsPlaylistHovered(), m_window.IsLogoMenuHovered(), m_window.GetLogoMenuHoveredIndex(), &m_window.GetLogoMenuItems(), m_isPlaylistListViewMode, m_audioPlayer.IsPlaying(), progress, spectrum, m_audioPlayer.GetVolume(), m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount(), m_playlistManager.GetShuffleMetadataList(), m_window.GetPlaylistToolbarHoveredIndex());
+    m_renderer.Render(m_window.IsHovered(), m_window.IsControlHovered(), m_window.IsPlaylistHovered(), m_window.IsLogoMenuHovered(), m_window.GetLogoMenuHoveredIndex(), &m_window.GetLogoMenuItems(), m_isPlaylistListViewMode, m_audioPlayer.IsPlaying(), progress, spectrum, m_audioPlayer.GetVolume(), m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount(), m_playlistManager.GetShuffleMetadataList(), m_window.GetPlaylistToolbarHoveredIndex(), &m_playlistSummaries);
 }
 
 
@@ -842,6 +856,7 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring& filepath) {
                 m_playlistManager.UpdateMetadata(filepath, title, artist, localTagManager.GetTimeString());
                 std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
                 m_playlistManager.SaveToFile(defaultPath);
+                UpdatePlaylistSummaries();
             }
         }
     }
@@ -870,6 +885,7 @@ void Application::ClearPlaylist() {
 
     std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
     m_playlistManager.SaveToFile(defaultPath);
+    UpdatePlaylistSummaries();
 
     m_audioPlayer.Stop();
 
@@ -1031,9 +1047,108 @@ void Application::ParseThreadFunc() {
             try { title = std::filesystem::path(targetPath).filename().wstring(); } catch(...) { title = L"Unknown"; }
             m_playlistManager.UpdateMetadata(targetPath, title, L"---", L"");
         }
+
+        bool shouldSave = false;
+        {
+            std::lock_guard<std::mutex> lock(m_parseMutex);
+            if (m_parseQueue.empty()) {
+                shouldSave = true;
+            }
+        }
+        if (shouldSave) {
+            m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
+        }
     }
 
     if (SUCCEEDED(hr)) {
         CoUninitialize();
     }
+}
+
+void Application::UpdatePlaylistSummaries() {
+    std::vector<std::wstring> available = m_config.GetAvailablePlaylists();
+    std::vector<PlaylistSummary> summaries;
+    
+    auto parseTime = [](const std::wstring& tStr) -> long long {
+        if (tStr.empty() || tStr == L"---") return 0;
+        long long total = 0;
+        std::wstringstream ss(tStr);
+        std::wstring part;
+        std::vector<long long> parts;
+        while (std::getline(ss, part, L':')) {
+            try {
+                parts.push_back(std::stoll(part));
+            } catch(...) {
+                return 0;
+            }
+        }
+        if (parts.size() == 2) {
+            total = parts[0] * 60 + parts[1];
+        } else if (parts.size() == 3) {
+            total = parts[0] * 3600 + parts[1] * 60 + parts[2];
+        }
+        return total;
+    };
+
+    for (const auto& path : available) {
+        PlaylistSummary summary;
+        summary.filepath = path;
+        
+        std::filesystem::path p(path);
+        summary.displayName = p.stem().wstring();
+        
+        size_t count = 0;
+        long long totalSeconds = 0;
+        bool hasUnparsed = false;
+        
+        std::ifstream ifs(path, std::ios::binary);
+        if (ifs) {
+            std::string line;
+            while (std::getline(ifs, line)) {
+                if (line.empty()) continue;
+                if (line.back() == '\r') line.pop_back();
+                count++;
+                
+                if (!hasUnparsed) {
+                    int size_needed = MultiByteToWideChar(CP_UTF8, 0, line.c_str(), (int)line.length(), NULL, 0);
+                    if (size_needed > 0) {
+                        std::wstring wline(size_needed, 0);
+                        MultiByteToWideChar(CP_UTF8, 0, line.c_str(), (int)line.length(), &wline[0], size_needed);
+                        
+                        std::wstringstream wss(wline);
+                        std::wstring token;
+                        std::vector<std::wstring> tokens;
+                        while (std::getline(wss, token, L'\t')) {
+                            tokens.push_back(token);
+                        }
+                        if (tokens.size() >= 4) {
+                            totalSeconds += parseTime(tokens[3]);
+                        } else {
+                            hasUnparsed = true;
+                        }
+                    } else {
+                        hasUnparsed = true;
+                    }
+                }
+            }
+        }
+        
+        summary.trackCount = count;
+        if (hasUnparsed) {
+            summary.totalTimeString = L"---";
+        } else {
+            long long h = totalSeconds / 3600;
+            long long m = (totalSeconds % 3600) / 60;
+            long long s = totalSeconds % 60;
+            wchar_t timeBuf[32];
+            if (h > 0) {
+                swprintf_s(timeBuf, L"%lld:%02lld:%02lld", h, m, s);
+            } else {
+                swprintf_s(timeBuf, L"%lld:%02lld", m, s);
+            }
+            summary.totalTimeString = timeBuf;
+        }
+        summaries.push_back(summary);
+    }
+    m_playlistSummaries = summaries;
 }

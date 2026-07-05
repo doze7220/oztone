@@ -71,6 +71,11 @@ private:
     void UpdateTrackMetadataIfNeeded(const std::wstring& filepath);
 
     /**
+     * @brief プレイリスト一覧のメタデータを解析・キャッシュする
+     */
+    void UpdatePlaylistSummaries();
+
+    /**
      * @brief 次の曲のタグ情報と画像を先読みする
      */
     void PrefetchNextTrack();
@@ -111,4 +116,6 @@ private:
     bool m_isPlaylistListViewMode = false;
     ULONGLONG m_lastConfigCheckTime = 0;
     std::optional<size_t> m_focusedPlaylistIndex;
+
+    std::vector<PlaylistSummary> m_playlistSummaries;
 };

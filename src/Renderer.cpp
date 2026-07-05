@@ -368,7 +368,7 @@ void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, s
     }
 }
 
-void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isPlaylistListViewMode, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList, int playlistToolbarHoveredIndex) {
+void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isPlaylistListViewMode, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList, int playlistToolbarHoveredIndex, const std::vector<PlaylistSummary>* availablePlaylistsCache) {
     if (!m_d2dContext) return;
 
     m_d2dContext->BeginDraw();
@@ -411,6 +411,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHove
     ctx.nextArtBitmap = m_nextArtBitmap.Get();
     ctx.config = m_config;
     ctx.focusedPlaylistIndex = m_focusedPlaylistIndex;
+    ctx.availablePlaylistsCache = availablePlaylistsCache;
 
     for (auto& widget : m_widgets) {
         widget->Draw(m_d2dContext.Get(), ctx, m_config);

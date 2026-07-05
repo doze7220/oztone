@@ -14,6 +14,13 @@
 
 class ConfigManager;
 
+struct PlaylistSummary {
+    std::wstring filepath;
+    std::wstring displayName;
+    size_t trackCount = 0;
+    std::wstring totalTimeString = L"---";
+};
+
 /**
  * @brief 描画・更新に必要な「そのフレームで全Widgetに共通する情報」をまとめたコンテキスト
  * 
@@ -55,6 +62,8 @@ struct WidgetContext {
     ID2D1Bitmap* nextArtBitmap;
     
     std::optional<size_t> focusedPlaylistIndex;
+
+    const std::vector<PlaylistSummary>* availablePlaylistsCache;
 };
 
 /**
