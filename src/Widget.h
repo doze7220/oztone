@@ -7,6 +7,7 @@
 #include <wincodec.h>
 #include <string>
 #include <vector>
+#include <optional>
 #include "PlaylistManager.h"
 
 #include "Window.h"
@@ -52,6 +53,8 @@ struct WidgetContext {
     std::wstring nextTrackTitle;
     std::wstring nextTrackArtist;
     ID2D1Bitmap* nextArtBitmap;
+    
+    std::optional<size_t> focusedPlaylistIndex;
 };
 
 /**

@@ -1531,8 +1531,10 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
               LayoutCalculator::CalculatePlaylistItemLayout(layout, config,
                                                             currentY);
 
-          if (playlists[i] == currentPlaylist && m_playlistHighlightBrush) {
-            m_playlistHighlightBrush->SetOpacity(0.2f);
+          bool isFocused = ctx.focusedPlaylistIndex && *ctx.focusedPlaylistIndex == i;
+          if ((playlists[i] == currentPlaylist || isFocused) && m_playlistHighlightBrush) {
+            float opacity = (playlists[i] == currentPlaylist) ? 0.2f : 0.1f;
+            m_playlistHighlightBrush->SetOpacity(opacity);
             context->FillRectangle(&itemLayout.hlRect,
                                    m_playlistHighlightBrush.Get());
           }
@@ -1560,8 +1562,10 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
               LayoutCalculator::CalculatePlaylistItemLayout(layout, config,
                                                             currentY);
 
-          if (i == ctx.currentTrackIndex && m_playlistHighlightBrush) {
-            m_playlistHighlightBrush->SetOpacity(0.2f);
+          bool isFocused = ctx.focusedPlaylistIndex && *ctx.focusedPlaylistIndex == i;
+          if ((i == ctx.currentTrackIndex || isFocused) && m_playlistHighlightBrush) {
+            float opacity = (i == ctx.currentTrackIndex) ? 0.2f : 0.1f;
+            m_playlistHighlightBrush->SetOpacity(opacity);
             context->FillRectangle(&itemLayout.hlRect,
                                    m_playlistHighlightBrush.Get());
           }

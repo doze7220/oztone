@@ -216,6 +216,14 @@ public:
         m_onPlaylistClick = cb;
     }
 
+    /**
+     * @brief プレイリスト上がダブルクリックされたときのコールバックを設定する
+     */
+    void SetPlaylistDoubleClickCallback(std::function<void(int, int)> cb) {
+        m_onPlaylistDoubleClick = cb;
+    }
+
+
     void SetPlaylistToolbarClickCallback(std::function<void(int)> cb) {
         m_onPlaylistToolbarClick = cb;
     }
@@ -259,6 +267,7 @@ private:
     std::function<void(int)> m_onVolumeScroll;
     std::function<void(int)> m_onPlaylistScroll;
     std::function<void(int, int)> m_onPlaylistClick;
+    std::function<void(int, int)> m_onPlaylistDoubleClick;
     std::function<void(int)> m_onPlaylistToolbarClick;
     std::function<void(int, int)> m_onResize;
     DropTarget* m_pDropTarget;

@@ -4,7 +4,9 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <condition_variable>
 #include <queue>
+#include <optional>
 #include "Window.h"
 #include "ConfigManager.h"
 #include "Renderer.h"
@@ -108,4 +110,5 @@ private:
 
     bool m_isPlaylistListViewMode = false;
     ULONGLONG m_lastConfigCheckTime = 0;
+    std::optional<size_t> m_focusedPlaylistIndex;
 };

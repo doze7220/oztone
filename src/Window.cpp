@@ -136,7 +136,7 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow,
 
   WNDCLASSEXW wc = {};
   wc.cbSize = sizeof(WNDCLASSEXW);
-  wc.style = CS_HREDRAW | CS_VREDRAW;
+  wc.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
   wc.lpfnWndProc = WindowProcStatic;
   wc.hInstance = m_hInstance;
   wc.hIcon = LoadIcon(m_hInstance, MAKEINTRESOURCE(IDI_APP_ICON));
@@ -652,6 +652,18 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     if (!m_config || !m_config->GetLockWindowPosition()) {
       ReleaseCapture();
       SendMessage(hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+    }
+    return 0;
+  }
+  case WM_LBUTTONDBLCLK: {
+    int xPos = GET_X_LPARAM(lParam);
+    int yPos = GET_Y_LPARAM(lParam);
+
+    if (m_isPlaylistHovered) {
+      if (m_onPlaylistDoubleClick) {
+        m_onPlaylistDoubleClick(xPos, yPos);
+      }
+      return 0; // スキップ
     }
     return 0;
   }

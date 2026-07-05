@@ -257,6 +257,10 @@ void Renderer::SetNextTrackInfo(bool isReady, ID2D1Bitmap* art, const std::wstri
     m_nextTrackArtist = artist;
 }
 
+void Renderer::SetFocusedPlaylistIndex(std::optional<size_t> idx) {
+    m_focusedPlaylistIndex = idx;
+}
+
 bool Renderer::LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitmap** ppBitmap) {
     if (data.empty() || !m_wicFactory || !m_d2dContext) return false;
 
@@ -406,6 +410,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHove
     ctx.nextTrackArtist = m_nextTrackArtist;
     ctx.nextArtBitmap = m_nextArtBitmap.Get();
     ctx.config = m_config;
+    ctx.focusedPlaylistIndex = m_focusedPlaylistIndex;
 
     for (auto& widget : m_widgets) {
         widget->Draw(m_d2dContext.Get(), ctx, m_config);

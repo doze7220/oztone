@@ -268,8 +268,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
             int index = static_cast<int>(clickedY / itemHeight);
             
             if (clickedY >= 0.0f && index >= 0 && index < totalPlaylists) {
-                this->SwitchPlaylist(playlists[index]);
-                m_isPlaylistListViewMode = false;
+                m_focusedPlaylistIndex = index;
             }
             return;
         }
@@ -294,6 +293,8 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         int index = static_cast<int>(clickedY / itemHeight);
         
         if (clickedY >= 0.0f && index >= 0 && index < totalTracks) {
+            m_focusedPlaylistIndex = index;
+            
             int oldIndex = static_cast<int>(m_playlistManager.GetCurrentIndex());
             m_playlistManager.JumpToIndex(index);
             
@@ -339,6 +340,53 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
                     m_renderer.SetAlbumArt(nullptr);
                 }
             }
+        }
+    });
+
+    m_window.SetPlaylistDoubleClickCallback([this](int x, int y) {
+        HWND hwnd = m_window.GetHandle();
+        UINT dpi = GetDpiForWindow(hwnd);
+        float logicalY = static_cast<float>(y) / (static_cast<float>(dpi) / 96.0f);
+
+        float toolbarHeight = m_config.GetPlaylistToolbarHeight();
+        if (logicalY < toolbarHeight) {
+            return;
+        }
+
+        if (m_isPlaylistListViewMode) {
+            std::vector<std::wstring> playlists = m_config.GetAvailablePlaylists();
+            int totalPlaylists = static_cast<int>(playlists.size());
+            if (totalPlaylists == 0) return;
+
+            std::wstring currentPlaylist = m_config.GetDefaultPlaylistPath();
+            int currentIndex = 0;
+            for (int i = 0; i < totalPlaylists; ++i) {
+                if (playlists[i] == currentPlaylist) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+
+            float itemHeight = static_cast<float>(m_config.GetPlaylistItemOffsetY());
+            float playlistHeight = static_cast<float>(m_config.GetWindowHeight());
+            float listHeight = playlistHeight - toolbarHeight;
+            
+            float baseScrollY = (listHeight / 2.0f) - (currentIndex * itemHeight);
+            float scrollY = baseScrollY + m_renderer.GetPlaylistManualScrollY();
+            
+            float maxScroll = 0.0f;
+            float minScroll = listHeight - (totalPlaylists * itemHeight);
+            if (minScroll > 0) minScroll = 0;
+            scrollY = std::clamp(scrollY, minScroll, maxScroll);
+            
+            float clickedY = logicalY - toolbarHeight - scrollY;
+            int index = static_cast<int>(clickedY / itemHeight);
+            
+            if (clickedY >= 0.0f && index >= 0 && index < totalPlaylists) {
+                this->SwitchPlaylist(playlists[index]);
+                m_isPlaylistListViewMode = false;
+            }
+            return;
         }
     });
 
@@ -676,6 +724,8 @@ void Application::Run() {
 }
 
 void Application::ForceRender() {
+    m_renderer.SetFocusedPlaylistIndex(m_focusedPlaylistIndex);
+
     float posSec = m_audioPlayer.GetPositionSeconds();
     float lenSec = m_audioPlayer.GetLengthSeconds();
 
@@ -809,6 +859,7 @@ void Application::ProcessCommandLineArgs(int argc, LPWSTR* argv) {
 }
 
 void Application::ClearPlaylist() {
+    m_focusedPlaylistIndex.reset();
     m_playlistManager.Clear();
 
     {
@@ -828,6 +879,7 @@ void Application::ClearPlaylist() {
 }
 
 void Application::SwitchPlaylist(const std::wstring& filepath) {
+    m_focusedPlaylistIndex.reset();
     m_config.SetDefaultPlaylistPath(filepath);
     
     // 既存の再生やキューをクリアする（ClearPlaylist() はファイルを空にしてしまうので呼ばない）
@@ -894,6 +946,7 @@ void Application::SwitchPlaylist(const std::wstring& filepath) {
 }
 
 void Application::CreateNewPlaylist() {
+    m_focusedPlaylistIndex.reset();
     auto now = std::chrono::system_clock::now();
     auto in_time_t = std::chrono::system_clock::to_time_t(now);
     std::tm bt {};

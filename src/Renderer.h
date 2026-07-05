@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <optional>
 #include "PlaylistManager.h"
 #include "Visualizer.h"
 #include "Widgets.h"
@@ -82,6 +83,11 @@ public:
     void SetNextTrackInfo(bool isReady, ID2D1Bitmap* art, const std::wstring& title, const std::wstring& artist);
 
     /**
+     * @brief フォーカスされているプレイリストインデックスを設定する
+     */
+    void SetFocusedPlaylistIndex(std::optional<size_t> idx);
+
+    /**
      * @brief プレイリストのスクロール量を加算する
      */
     void AddPlaylistScroll(float delta);
@@ -141,6 +147,8 @@ private:
     std::wstring m_nextTrackTitle = L"";
     std::wstring m_nextTrackArtist = L"";
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_nextArtBitmap;
+
+    std::optional<size_t> m_focusedPlaylistIndex;
 
     HWND m_hwnd;
     const ConfigManager* m_config;
