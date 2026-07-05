@@ -46,29 +46,11 @@ oztone/
  ├── build/                  # CMakeのビルド出力ディレクトリ
  │   └── Debug               # デバッグビルド出力先
  ├── src/                    # C++ソースコード
- │   ├── main.cpp            # エントリポイント(wWinMain)
- │   ├── Application.h/cpp   # アプリケーションライフサイクル・メインループ
- │   ├── AudioPlayer.h/cpp   # 音声再生エンジン (miniaudioラップ)
- │   ├── ConfigManager.h/cpp # 設定ファイル(OZtone.ini)の管理
- │   ├── LayoutCalculator.h/cpp # 各UI要素のレイアウト（描画座標・矩形）計算クラス
- │   ├── miniaudio.h         # miniaudio シングルヘッダライブラリ
- │   ├── PlaylistManager.h/cpp # 再生待ちキュー（プレイリスト）管理
- │   ├── Renderer.h/cpp      # Direct3D11 / Direct2D ハイブリッド描画エンジン
- │   ├── Visualizer.h/cpp    # 7色ネオン心電図風スペクトラムビジュアライザ
- │   ├── resource.h          # リソースID定義ヘッダ
- │   ├── TagManager.h/cpp    # MP3メタデータ抽出クラス
- │   ├── Widget.h            # Widgetコアインターフェース・Context定義
- │   ├── Widgets.h/cpp       # 各種UI要素の具体Widget実装クラス
- │   ├── PlaylistWidget.h/cpp # プレイリストUI専用のWidget実装クラス
- │   ├── Window.h/cpp        # Win32ウィンドウ管理・WndProc
- │   └── OZtone.rc           # 画像などを埋め込むリソーススクリプト
  ├── assets/                 # ボタン類などのリソース、テスト用音声ファイル
  ├── _docs/                  # 開発関連ドキュメント
- │   ├── logs/               # AIの実装レポート出力先 (YYYYMMDD_HHMM_タスク名.md)
- │   └── OzPlayer_Plan.txt   # 開発初期の要望メモ
+ │   └── logs/               # AIの実装レポート出力先 (YYYYMMDD_HHMM_タスク名.md)
  ├── PROJECT_ARCHITECTURE.md # 本ファイル（全体仕様・設計・アーキテクチャ）
- ├── PROJECT_CONSTITUTION.md # プロジェクト憲法（AI向け絶対ルール）
- └── README.md               # プロジェクト概要
+ └── PROJECT_CONSTITUTION.md # プロジェクト憲法（AI向け絶対ルール）
 ```
 
 ---
