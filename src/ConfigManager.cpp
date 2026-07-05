@@ -154,6 +154,7 @@ VisualizerMode=2
 
 [Layout_Playlist]
 PlaylistPosition=1
+IsPlaylistPinned=0
 PlaylistHoverWidth=120
 PlaylistWidth=250
 PlaylistItemOffsetY=45
@@ -198,22 +199,23 @@ ConfigManager::ConfigManager()
       m_showAppLogo(true), m_showNowPlaying(true), m_showNextTrack(true),
       m_enableNextTrack(false), m_showSeekBar(true),
       m_showPlaybackControls(true), m_showVolumeControl(true), m_zOrder(0),
-      m_savePositionOnExit(true), m_enableResize(false), m_lockWindowPosition(false), m_shuffleMode(true),
-      m_isPlaylistPinned(false),
-      m_windowX(CW_USEDEFAULT), m_windowY(CW_USEDEFAULT), m_windowWidth(1024),
-      m_windowHeight(512), m_enableShadow(true), m_shadowOffsetX(2.0f),
-      m_shadowOffsetY(2.0f), m_shadowOpacity(0.7f), m_bgDarkenOpacity(0.3f),
-      m_bgOpacity(0.8f), m_backgroundArtMode(0), m_visualizerMode(0),
-      m_logoX(16), m_logoY(16), m_logoWidth(64), m_logoHeight(64),
-      m_logoMenuIconSize(24.0f), m_logoMenuIconSpacing(40),
-      m_logoMenuIconOffsetX(0), m_logoMenuIconOffsetY(0),
-      m_logoMenuScrollDuration(0.5f), m_logoMenuFontFamily(L"Segoe UI Emoji"),
-      m_logoMenuTextColor(L"#FFFFFF"), m_logoMenuTypingFontFamily(L"Consolas"),
-      m_logoMenuTypingFontSize(14.0f), m_logoMenuTextOffsetX(0),
-      m_logoMenuTextOffsetY(60), m_logoMenuTypingLetterSpacing(0.0f),
-      m_logoMenuStrikeLength(20.0f), m_logoMenuStrikeThickness(2.0f),
-      m_baseX(30), m_baseBottomOffset(162), m_artOffsetX(0), m_artOffsetY(0),
-      m_artSize(120), m_fallbackArtOpacity(0.5f),
+      m_savePositionOnExit(true), m_enableResize(false),
+      m_lockWindowPosition(false), m_shuffleMode(true),
+      m_isPlaylistPinned(false), m_windowX(CW_USEDEFAULT),
+      m_windowY(CW_USEDEFAULT), m_windowWidth(1024), m_windowHeight(512),
+      m_enableShadow(true), m_shadowOffsetX(2.0f), m_shadowOffsetY(2.0f),
+      m_shadowOpacity(0.7f), m_bgDarkenOpacity(0.3f), m_bgOpacity(0.8f),
+      m_backgroundArtMode(0), m_visualizerMode(0), m_logoX(16), m_logoY(16),
+      m_logoWidth(64), m_logoHeight(64), m_logoMenuIconSize(24.0f),
+      m_logoMenuIconSpacing(40), m_logoMenuIconOffsetX(0),
+      m_logoMenuIconOffsetY(0), m_logoMenuScrollDuration(0.5f),
+      m_logoMenuFontFamily(L"Segoe UI Emoji"), m_logoMenuTextColor(L"#FFFFFF"),
+      m_logoMenuTypingFontFamily(L"Consolas"), m_logoMenuTypingFontSize(14.0f),
+      m_logoMenuTextOffsetX(0), m_logoMenuTextOffsetY(60),
+      m_logoMenuTypingLetterSpacing(0.0f), m_logoMenuStrikeLength(20.0f),
+      m_logoMenuStrikeThickness(2.0f), m_baseX(30), m_baseBottomOffset(162),
+      m_artOffsetX(0), m_artOffsetY(0), m_artSize(120),
+      m_fallbackArtOpacity(0.5f),
 
       m_titleOffsetX(140), m_titleOffsetY(10), m_titleFontSize(32.0f),
       m_titleFontFamily(L"Meiryo"), m_artistOffsetX(140), m_artistOffsetY(55),
@@ -319,7 +321,8 @@ bool ConfigManager::Initialize() {
 }
 
 bool ConfigManager::CheckForUpdates() {
-  if (m_iniFilePath.empty()) return false;
+  if (m_iniFilePath.empty())
+    return false;
   std::error_code ec;
   auto currentWriteTime = std::filesystem::last_write_time(m_iniFilePath, ec);
   if (!ec) {
@@ -355,11 +358,12 @@ void ConfigManager::LoadSettings() {
                                                1, m_iniFilePath.c_str()) != 0;
   m_enableResize = GetPrivateProfileIntW(L"Window", L"EnableResize", 0,
                                          m_iniFilePath.c_str()) != 0;
-  m_lockWindowPosition = GetPrivateProfileIntW(L"Window", L"LockWindowPosition", 0,
-                                               m_iniFilePath.c_str()) != 0;
+  m_lockWindowPosition = GetPrivateProfileIntW(L"Window", L"LockWindowPosition",
+                                               0, m_iniFilePath.c_str()) != 0;
 
-  m_isPlaylistPinned = GetPrivateProfileIntW(L"Layout_Playlist", L"IsPlaylistPinned", 0,
-                                             m_iniFilePath.c_str()) != 0;
+  m_isPlaylistPinned =
+      GetPrivateProfileIntW(L"Layout_Playlist", L"IsPlaylistPinned", 0,
+                            m_iniFilePath.c_str()) != 0;
 
   m_windowX = GetPrivateProfileIntW(L"Window", L"WindowX", CW_USEDEFAULT,
                                     m_iniFilePath.c_str());
@@ -427,7 +431,8 @@ void ConfigManager::LoadSettings() {
     m_defaultVolume = 1.0f;
   }
 
-  m_shuffleMode = GetPrivateProfileIntW(L"Audio", L"ShuffleMode", 1, m_iniFilePath.c_str()) != 0;
+  m_shuffleMode = GetPrivateProfileIntW(L"Audio", L"ShuffleMode", 1,
+                                        m_iniFilePath.c_str()) != 0;
 
   m_volBaseLeftOffset = GetPrivateProfileIntW(
       L"Layout_VolumeControl", L"BaseLeftOffset", 30, m_iniFilePath.c_str());
@@ -1010,25 +1015,57 @@ void ConfigManager::LoadSettings() {
   m_playlistTimeOffsetY = GetPrivateProfileIntW(
       L"Layout_Playlist", L"PlaylistTimeOffsetY", 35, m_iniFilePath.c_str());
 
-  GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarHeight", L"60.0", buf, 32, m_iniFilePath.c_str());
-  try { m_playlistToolbarHeight = std::stof(buf); } catch (...) { m_playlistToolbarHeight = 60.0f; }
+  GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarHeight", L"60.0", buf,
+                           32, m_iniFilePath.c_str());
+  try {
+    m_playlistToolbarHeight = std::stof(buf);
+  } catch (...) {
+    m_playlistToolbarHeight = 60.0f;
+  }
 
-  GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarIconSize", L"18.0", buf, 32, m_iniFilePath.c_str());
-  try { m_playlistToolbarIconSize = std::stof(buf); } catch (...) { m_playlistToolbarIconSize = 18.0f; }
+  GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarIconSize", L"18.0", buf,
+                           32, m_iniFilePath.c_str());
+  try {
+    m_playlistToolbarIconSize = std::stof(buf);
+  } catch (...) {
+    m_playlistToolbarIconSize = 18.0f;
+  }
 
-  GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarIconSpacing", L"10.0", buf, 32, m_iniFilePath.c_str());
-  try { m_playlistToolbarIconSpacing = std::stof(buf); } catch (...) { m_playlistToolbarIconSpacing = 10.0f; }
+  GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarIconSpacing", L"10.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_playlistToolbarIconSpacing = std::stof(buf);
+  } catch (...) {
+    m_playlistToolbarIconSpacing = 10.0f;
+  }
 
-  GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarTextOffsetY", L"30.0", buf, 32, m_iniFilePath.c_str());
-  try { m_playlistToolbarTextOffsetY = std::stof(buf); } catch (...) { m_playlistToolbarTextOffsetY = 30.0f; }
+  GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarTextOffsetY", L"30.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_playlistToolbarTextOffsetY = std::stof(buf);
+  } catch (...) {
+    m_playlistToolbarTextOffsetY = 30.0f;
+  }
 
-  GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarTextFontSize", L"12.0", buf, 32, m_iniFilePath.c_str());
-  try { m_playlistToolbarTextFontSize = std::stof(buf); } catch (...) { m_playlistToolbarTextFontSize = 12.0f; }
+  GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarTextFontSize", L"12.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_playlistToolbarTextFontSize = std::stof(buf);
+  } catch (...) {
+    m_playlistToolbarTextFontSize = 12.0f;
+  }
 
-  m_pinSubIconOffsetX = GetPrivateProfileIntW(L"Layout_Playlist", L"PinSubIconOffsetX", 6, m_iniFilePath.c_str());
-  m_pinSubIconOffsetY = GetPrivateProfileIntW(L"Layout_Playlist", L"PinSubIconOffsetY", 6, m_iniFilePath.c_str());
-  GetPrivateProfileStringW(L"Layout_Playlist", L"PinSubIconFontSize", L"10.0", buf, 32, m_iniFilePath.c_str());
-  try { m_pinSubIconFontSize = std::stof(buf); } catch (...) { m_pinSubIconFontSize = 10.0f; }
+  m_pinSubIconOffsetX = GetPrivateProfileIntW(
+      L"Layout_Playlist", L"PinSubIconOffsetX", 6, m_iniFilePath.c_str());
+  m_pinSubIconOffsetY = GetPrivateProfileIntW(
+      L"Layout_Playlist", L"PinSubIconOffsetY", 6, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_Playlist", L"PinSubIconFontSize", L"10.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_pinSubIconFontSize = std::stof(buf);
+  } catch (...) {
+    m_pinSubIconFontSize = 10.0f;
+  }
 
   wchar_t pathBuf[MAX_PATH];
 
@@ -1109,14 +1146,14 @@ void ConfigManager::SetEnableResize(bool enable) {
 
 void ConfigManager::SetLockWindowPosition(bool lock) {
   m_lockWindowPosition = lock;
-  WritePrivateProfileStringW(L"Window", L"LockWindowPosition", lock ? L"1" : L"0",
-                             m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"Window", L"LockWindowPosition",
+                             lock ? L"1" : L"0", m_iniFilePath.c_str());
 }
 
 void ConfigManager::SetIsPlaylistPinned(bool pinned) {
   m_isPlaylistPinned = pinned;
-  WritePrivateProfileStringW(L"Layout_Playlist", L"IsPlaylistPinned", pinned ? L"1" : L"0",
-                             m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"Layout_Playlist", L"IsPlaylistPinned",
+                             pinned ? L"1" : L"0", m_iniFilePath.c_str());
 }
 
 void ConfigManager::SetBackgroundArtMode(int mode) {
@@ -1142,7 +1179,8 @@ void ConfigManager::SetDefaultVolume(float volume) {
 
 void ConfigManager::SetShuffleMode(bool mode) {
   m_shuffleMode = mode;
-  WritePrivateProfileStringW(L"Audio", L"ShuffleMode", mode ? L"1" : L"0", m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"Audio", L"ShuffleMode", mode ? L"1" : L"0",
+                             m_iniFilePath.c_str());
 }
 
 void ConfigManager::SetDefaultPlaylistPath(const std::wstring &path) {
