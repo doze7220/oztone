@@ -403,6 +403,25 @@ PlaylistLayout LayoutCalculator::CalculatePlaylistLayout(float logicalWidth, flo
     return layout;
 }
 
+int LayoutCalculator::GetPlaylistItemIndexAt(float logicalY, const PlaylistLayout& layout, size_t totalItems) {
+    float toolbarHeight = layout.toolbarLayout.fullRect.bottom - layout.toolbarLayout.fullRect.top;
+    if (logicalY < layout.playlistY + toolbarHeight) {
+        return -1;
+    }
+    
+    float clickedY = logicalY - layout.startY;
+    if (clickedY < 0.0f) {
+        return -1;
+    }
+    
+    int index = static_cast<int>(clickedY / layout.itemHeight);
+    if (index >= 0 && index < static_cast<int>(totalItems)) {
+        return index;
+    }
+    
+    return -1;
+}
+
 PlaylistItemLayout LayoutCalculator::CalculatePlaylistItemLayout(const PlaylistLayout& baseLayout, const ConfigManager* config, float currentY) {
     PlaylistItemLayout layout = {};
     if (!config) return layout;

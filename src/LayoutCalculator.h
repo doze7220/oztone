@@ -164,6 +164,7 @@ public:
     static VolumeControlLayout CalculateVolumeControlLayout(float logicalWidth, float logicalHeight, const ConfigManager* config);
 
     static PlaylistLayout CalculatePlaylistLayout(float logicalWidth, float logicalHeight, const ConfigManager* config, float slideX, float manualScrollY, size_t currentTrackIndex, size_t totalTracks);
+    static int GetPlaylistItemIndexAt(float logicalY, const PlaylistLayout& layout, size_t totalItems);
     static PlaylistItemLayout CalculatePlaylistItemLayout(const PlaylistLayout& baseLayout, const ConfigManager* config, float currentY);
     static ResizeGripLayout CalculateResizeGripLayout(float logicalWidth, float logicalHeight);
 

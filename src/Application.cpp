@@ -5,6 +5,7 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
+#include "LayoutCalculator.h"
 
 Application::Application() {}
 
@@ -239,13 +240,16 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         HWND hwnd = m_window.GetHandle();
         UINT dpi = GetDpiForWindow(hwnd);
         float logicalY = static_cast<float>(y) / (static_cast<float>(dpi) / 96.0f);
+        
+        RECT rect;
+        GetClientRect(hwnd, &rect);
+        float logicalWidth = static_cast<float>(rect.right - rect.left) / (static_cast<float>(dpi) / 96.0f);
+        float logicalHeight = static_cast<float>(rect.bottom - rect.top) / (static_cast<float>(dpi) / 96.0f);
 
         float toolbarHeight = m_config.GetPlaylistToolbarHeight();
         if (logicalY < toolbarHeight) {
             // ツールバー領域へのクリックはWindow.cpp(WM_LBUTTONDOWN)から
             // SetPlaylistToolbarClickCallbackを通じて飛んでくるためここでは無視する。
-            // (要件通り Application 内で処理する場合はここでアイコン判定を行うことも可能だが、
-            // 既に ToolbarClickCallback が実装済・バインド済であるため、今回はリストの補正に留める)
             return;
         }
 
@@ -263,22 +267,10 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
                 }
             }
 
-            float itemHeight = static_cast<float>(m_config.GetPlaylistItemOffsetY());
-            float playlistHeight = static_cast<float>(m_config.GetWindowHeight());
-            float listHeight = playlistHeight - toolbarHeight;
+            PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(logicalWidth, logicalHeight, &m_config, 0.0f, m_renderer.GetPlaylistManualScrollY(), currentIndex, totalPlaylists);
+            int index = LayoutCalculator::GetPlaylistItemIndexAt(logicalY, layout, totalPlaylists);
             
-            float baseScrollY = (listHeight / 2.0f) - (currentIndex * itemHeight);
-            float scrollY = baseScrollY + m_renderer.GetPlaylistManualScrollY();
-            
-            float maxScroll = 0.0f;
-            float minScroll = listHeight - (totalPlaylists * itemHeight);
-            if (minScroll > 0) minScroll = 0;
-            scrollY = std::clamp(scrollY, minScroll, maxScroll);
-            
-            float clickedY = logicalY - toolbarHeight - scrollY;
-            int index = static_cast<int>(clickedY / itemHeight);
-            
-            if (clickedY >= 0.0f && index >= 0 && index < totalPlaylists) {
+            if (index >= 0) {
                 m_focusedPlaylistIndex = index;
             }
             return;
@@ -288,27 +280,17 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         if (totalTracks == 0) return;
         
         int currentTrackIndex = static_cast<int>(m_playlistManager.GetCurrentIndex());
-        float itemHeight = static_cast<float>(m_config.GetPlaylistItemOffsetY());
-        float playlistHeight = static_cast<float>(m_config.GetWindowHeight());
-        float listHeight = playlistHeight - toolbarHeight;
         
-        float baseScrollY = (listHeight / 2.0f) - (currentTrackIndex * itemHeight);
-        float scrollY = baseScrollY + m_renderer.GetPlaylistManualScrollY();
+        PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(logicalWidth, logicalHeight, &m_config, 0.0f, m_renderer.GetPlaylistManualScrollY(), currentTrackIndex, totalTracks);
+        int index = LayoutCalculator::GetPlaylistItemIndexAt(logicalY, layout, totalTracks);
         
-        float maxScroll = 0.0f;
-        float minScroll = listHeight - (totalTracks * itemHeight);
-        if (minScroll > 0) minScroll = 0;
-        scrollY = std::clamp(scrollY, minScroll, maxScroll);
-        
-        float clickedY = logicalY - toolbarHeight - scrollY;
-        int index = static_cast<int>(clickedY / itemHeight);
-        
-        if (clickedY >= 0.0f && index >= 0 && index < totalTracks) {
+        if (index >= 0) {
             m_focusedPlaylistIndex = index;
             
             int oldIndex = static_cast<int>(m_playlistManager.GetCurrentIndex());
             m_playlistManager.JumpToIndex(index);
             
+            float itemHeight = static_cast<float>(m_config.GetPlaylistItemOffsetY());
             float offsetCorrection = static_cast<float>(index - oldIndex) * itemHeight;
             m_renderer.AddPlaylistScroll(offsetCorrection);
             
@@ -358,6 +340,11 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         HWND hwnd = m_window.GetHandle();
         UINT dpi = GetDpiForWindow(hwnd);
         float logicalY = static_cast<float>(y) / (static_cast<float>(dpi) / 96.0f);
+        
+        RECT rect;
+        GetClientRect(hwnd, &rect);
+        float logicalWidth = static_cast<float>(rect.right - rect.left) / (static_cast<float>(dpi) / 96.0f);
+        float logicalHeight = static_cast<float>(rect.bottom - rect.top) / (static_cast<float>(dpi) / 96.0f);
 
         float toolbarHeight = m_config.GetPlaylistToolbarHeight();
         if (logicalY < toolbarHeight) {
@@ -378,22 +365,10 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
                 }
             }
 
-            float itemHeight = static_cast<float>(m_config.GetPlaylistItemOffsetY());
-            float playlistHeight = static_cast<float>(m_config.GetWindowHeight());
-            float listHeight = playlistHeight - toolbarHeight;
+            PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(logicalWidth, logicalHeight, &m_config, 0.0f, m_renderer.GetPlaylistManualScrollY(), currentIndex, totalPlaylists);
+            int index = LayoutCalculator::GetPlaylistItemIndexAt(logicalY, layout, totalPlaylists);
             
-            float baseScrollY = (listHeight / 2.0f) - (currentIndex * itemHeight);
-            float scrollY = baseScrollY + m_renderer.GetPlaylistManualScrollY();
-            
-            float maxScroll = 0.0f;
-            float minScroll = listHeight - (totalPlaylists * itemHeight);
-            if (minScroll > 0) minScroll = 0;
-            scrollY = std::clamp(scrollY, minScroll, maxScroll);
-            
-            float clickedY = logicalY - toolbarHeight - scrollY;
-            int index = static_cast<int>(clickedY / itemHeight);
-            
-            if (clickedY >= 0.0f && index >= 0 && index < totalPlaylists) {
+            if (index >= 0) {
                 this->SwitchPlaylist(playlists[index]);
                 m_isPlaylistListViewMode = false;
             }
