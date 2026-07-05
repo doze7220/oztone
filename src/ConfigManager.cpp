@@ -205,14 +205,14 @@ PinSubIconOffsetY=6
 PinSubIconFontSize=10.0
 
 [Layout_GlobalHotkeys]
-FontFamily=Meiryo
-FontSize=14.0
+FontFamily=MS Gothic
+FontSize=15.0
 LineSpacing=20.0
 CoreColor=#FFFFFF
 GlowColor=#00FFFF
-GlowOpacity=0.8
-KeyColumnOffset=400.0
-ActionColumnOffset=150.0
+GlowOpacity=0.10
+KeyColumnOffset=360.0
+ActionColumnOffset=140.0
 ShadowColor=#000000
 ShadowOpacity=0.2
 
@@ -1354,28 +1354,32 @@ void ConfigManager::LoadSettings() {
   GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"ShadowColor", L"#000000",
                            ghBuf, 32, m_iniFilePath.c_str());
   m_ghShadowColor = ghBuf;
-  GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"ShadowOpacity", L"0.8", buf, 32, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"ShadowOpacity", L"0.8",
+                           buf, 32, m_iniFilePath.c_str());
   try {
     m_ghShadowOpacity = std::stof(buf);
   } catch (...) {
     m_ghShadowOpacity = 0.8f;
   }
 
-  GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"GlowOpacity", L"0.8", buf, 32, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"GlowOpacity", L"0.8", buf,
+                           32, m_iniFilePath.c_str());
   try {
     m_ghGlowOpacity = std::stof(buf);
   } catch (...) {
     m_ghGlowOpacity = 0.8f;
   }
 
-  GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"KeyColumnOffset", L"400.0", buf, 32, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"KeyColumnOffset",
+                           L"400.0", buf, 32, m_iniFilePath.c_str());
   try {
     m_ghKeyColumnOffset = std::stof(buf);
   } catch (...) {
     m_ghKeyColumnOffset = 400.0f;
   }
 
-  GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"ActionColumnOffset", L"150.0", buf, 32, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_GlobalHotkeys", L"ActionColumnOffset",
+                           L"150.0", buf, 32, m_iniFilePath.c_str());
   try {
     m_ghActionColumnOffset = std::stof(buf);
   } catch (...) {
