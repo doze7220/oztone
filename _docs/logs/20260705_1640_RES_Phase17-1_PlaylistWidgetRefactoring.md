@@ -17,26 +17,31 @@
     - `CMakeLists.txt` のソースリストに新規作成した `src/PlaylistWidget.h` および `src/PlaylistWidget.cpp` を追加する。
 
 ## 3. 実装タスクリスト
-[ ] タスク1: 新規ファイルの作成とコードの移行
+[x] タスク1: 新規ファイルの作成とコードの移行
     - `src/PlaylistWidget.h` を作成し、`Widgets.h` からクラス宣言を移植する。
     - `src/PlaylistWidget.cpp` を作成し、`Widgets.cpp` からメソッド実装を移植する。
-[ ] タスク2: 依存関係の解決
+[x] タスク2: 依存関係の解決
     - `PlaylistWidget.h` / `PlaylistWidget.cpp` のインクルードパスを整備する。
     - `Renderer.cpp` および必要に応じて他の関連ファイルに `#include "PlaylistWidget.h"` を追加する。
-[ ] タスク3: ビルド設定の更新
+[x] タスク3: ビルド設定の更新
     - `CMakeLists.txt` を修正し、新しいソースファイルをビルドターゲットに追加する。
-[ ] タスク4: ドキュメントの更新
+[x] タスク4: ドキュメントの更新
     - `PROJECT_ARCHITECTURE.md` の「各具象 Widget 実装 (`Widgets.h/cpp`)」等の記載を修正し、`PlaylistWidget` が独立したファイルにあることを明記する。
 
 ## 4. 詳細作業内容
 ### タスク1: 新規ファイルの作成とコードの移行
-    - 未実施
+    - `src/PlaylistWidget.h` を新規作成し、`Widgets.h` から `PlaylistWidget` クラスの宣言を移植した。
+    - `src/PlaylistWidget.cpp` を新規作成し、`Widgets.cpp` から `PlaylistWidget` の全ての実装を移植した。
+    - `Widgets.h` と `Widgets.cpp` からそれぞれ該当部分を削除した。
 
 ### タスク2: 依存関係の解決
-    - 未実施
+    - `PlaylistWidget.h` で必要なヘッダ（`Widget.h`, `<wrl/client.h>`, `<d2d1effects.h>`, `<string>`）をインクルードした。
+    - `PlaylistWidget.cpp` に必要なインクルードを追加した。
+    - `Renderer.cpp` で `#include "PlaylistWidget.h"` を追加した。
 
 ### タスク3: ビルド設定の更新
-    - 未実施
+    - `CMakeLists.txt` の `SOURCES` に `src/PlaylistWidget.cpp` を追加した。
+    - `CMakeLists.txt` の `HEADERS` に `src/PlaylistWidget.h` を追加した。
 
 ### タスク4: ドキュメントの更新
-    - 未実施
+    - `PROJECT_ARCHITECTURE.md` の `Widget` 実装リストにおいて、`PlaylistWidget` が `src/PlaylistWidget.h/cpp` にあることを追記した。
