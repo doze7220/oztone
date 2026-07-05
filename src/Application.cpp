@@ -895,6 +895,20 @@ void Application::ClearPlaylist() {
 }
 
 void Application::SwitchPlaylist(const std::wstring& filepath) {
+    std::filesystem::path newPath(filepath);
+    std::filesystem::path currentPath(m_config.GetDefaultPlaylistPath());
+
+    std::error_code ec;
+    bool isSame = std::filesystem::equivalent(newPath, currentPath, ec);
+    if (ec) {
+        isSame = (newPath == currentPath);
+    }
+
+    if (isSame) {
+        m_isPlaylistListViewMode = false;
+        return;
+    }
+
     m_focusedPlaylistIndex.reset();
     m_config.SetDefaultPlaylistPath(filepath);
     
