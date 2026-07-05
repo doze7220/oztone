@@ -110,7 +110,9 @@ void AppLogoWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
                                   ? m_appLogoHoverBitmap.Get()
                                   : m_appLogoBitmap.Get();
   if (config && config->GetShowAppLogo() && bitmapToDraw) {
-    AppLogoLayout layout = LayoutCalculator::CalculateAppLogoLayout(config);
+    D2D1_SIZE_F rtSize = context->GetSize();
+    float logicWidth = rtSize.width / ctx.dpiScale;
+    AppLogoLayout layout = LayoutCalculator::CalculateAppLogoLayout(logicWidth, config);
 
     if (m_shadowEffect && config->GetEnableShadow()) {
       m_shadowEffect->SetInput(0, bitmapToDraw);

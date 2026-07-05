@@ -289,6 +289,16 @@ bool Window::IsInLogoRegion(int x, int y) const {
   int logicalX = MulDiv(x, 96, dpi);
   int logicalY = MulDiv(y, 96, dpi);
 
+  RECT clientRect;
+  GetClientRect(m_hwnd, &clientRect);
+  int logicalWidth = MulDiv(clientRect.right - clientRect.left, 96, dpi);
+
+  if (m_config->GetIsPlaylistPinned() && m_config->GetPlaylistPosition() == 0) {
+    if (logicalWidth > 495 + m_config->GetPlaylistWidth()) {
+      logicalX -= m_config->GetPlaylistWidth();
+    }
+  }
+
   return (logicalX >= m_config->GetLogoX() &&
           logicalX <= m_config->GetLogoX() + m_config->GetLogoWidth() &&
           logicalY >= m_config->GetLogoY() &&
@@ -305,8 +315,12 @@ bool Window::IsInLogoMenuRegion(int x, int y, float progress) const {
   int logicalX = MulDiv(x, 96, dpi);
   int logicalY = MulDiv(y, 96, dpi);
 
+  RECT rect;
+  GetClientRect(m_hwnd, &rect);
+  int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
+
   LogoMenuLayout layout = LayoutCalculator::CalculateLogoMenuLayout(
-      m_config, progress, m_logoMenuItems.size());
+      static_cast<float>(logicalWidth), m_config, progress, m_logoMenuItems.size());
 
   return (logicalX >= layout.fullRegionRect.left &&
           logicalX <= layout.fullRegionRect.right &&
@@ -322,8 +336,12 @@ int Window::GetLogoMenuButtonAt(int x, int y, float progress) const {
   int logicalX = MulDiv(x, 96, dpi);
   int logicalY = MulDiv(y, 96, dpi);
 
+  RECT rect;
+  GetClientRect(m_hwnd, &rect);
+  int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
+
   LogoMenuLayout layout = LayoutCalculator::CalculateLogoMenuLayout(
-      m_config, progress, m_logoMenuItems.size());
+      static_cast<float>(logicalWidth), m_config, progress, m_logoMenuItems.size());
   for (size_t i = 0; i < layout.items.size(); ++i) {
     if (logicalX >= layout.items[i].hitRect.left &&
         logicalX <= layout.items[i].hitRect.right &&
@@ -426,7 +444,7 @@ int Window::GetPlaylistToolbarButtonAt(int x, int y) const {
   int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
 
   PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
-      logicalWidth, logicalHeight, m_config, 0.0f, 0.0f, 0, 0);
+      static_cast<float>(logicalWidth), static_cast<float>(logicalHeight), m_config, 0.0f, 0.0f, 0, 0);
   for (int i = 0; i < 3; ++i) {
     if (logicalX >= layout.toolbarLayout.buttonHitRects[i].left &&
         logicalX <= layout.toolbarLayout.buttonHitRects[i].right &&
@@ -436,6 +454,27 @@ int Window::GetPlaylistToolbarButtonAt(int x, int y) const {
     }
   }
   return -1;
+}
+
+bool Window::IsPlaylistPinnedButtonAt(int x, int y) const {
+  if (!m_config || !m_hwnd || !m_isPlaylistHovered)
+    return false;
+  UINT dpi = GetDpiForWindow(m_hwnd);
+  int logicalX = MulDiv(x, 96, dpi);
+  int logicalY = MulDiv(y, 96, dpi);
+
+  RECT rect;
+  GetClientRect(m_hwnd, &rect);
+  int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
+  int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
+
+  PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
+      static_cast<float>(logicalWidth), static_cast<float>(logicalHeight), m_config, 0.0f, 0.0f, 0, 0);
+
+  return (logicalX >= layout.toolbarLayout.pinButtonHitRect.left &&
+          logicalX <= layout.toolbarLayout.pinButtonHitRect.right &&
+          logicalY >= layout.toolbarLayout.pinButtonHitRect.top &&
+          logicalY <= layout.toolbarLayout.pinButtonHitRect.bottom);
 }
 
 int Window::GetPlaybackButtonAt(int x, int y) const {
@@ -528,15 +567,23 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
       int xPos = GET_X_LPARAM(lParam);
       int yPos = GET_Y_LPARAM(lParam);
 
-      m_isPlaylistHovered = IsInPlaylistRegion(xPos, yPos);
+      bool isPinned = m_config->GetIsPlaylistPinned();
+      bool isInPlaylistRegion = IsInPlaylistRegion(xPos, yPos);
+      m_isPlaylistHovered = isPinned || isInPlaylistRegion;
 
       if (m_isPlaylistHovered) {
         m_playlistToolbarHoveredIndex = GetPlaylistToolbarButtonAt(xPos, yPos);
+        m_isPlaylistPinnedHovered = IsPlaylistPinnedButtonAt(xPos, yPos);
+      } else {
+        m_playlistToolbarHoveredIndex = -1;
+        m_isPlaylistPinnedHovered = false;
+      }
+
+      if (m_isPlaylistHovered && !isPinned) {
         m_isHovered = false;
         m_isControlHovered = false;
         m_isLogoMenuHovered = false;
       } else {
-        m_playlistToolbarHoveredIndex = -1;
         m_isHovered = IsInLogoRegion(xPos, yPos);
         m_isControlHovered = IsInPlaybackControlRegion(xPos, yPos);
 
@@ -568,6 +615,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     m_isLogoMenuHovered = false;
     m_logoMenuHoveredIndex = -1;
     m_playlistToolbarHoveredIndex = -1;
+    m_isPlaylistPinnedHovered = false;
     m_isTrackingMouse = false;
     return 0;
   }
@@ -576,6 +624,11 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     int yPos = GET_Y_LPARAM(lParam);
 
     if (m_isPlaylistHovered) {
+      if (IsPlaylistPinnedButtonAt(xPos, yPos)) {
+        m_config->SetIsPlaylistPinned(!m_config->GetIsPlaylistPinned());
+        return 0;
+      }
+
       int btnIndex = GetPlaylistToolbarButtonAt(xPos, yPos);
       if (btnIndex != -1) {
         if (m_onPlaylistToolbarClick) {
@@ -583,10 +636,13 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         }
         return 0;
       }
-      if (m_onPlaylistClick) {
-        m_onPlaylistClick(xPos, yPos);
+
+      if (IsInPlaylistRegion(xPos, yPos)) {
+        if (m_onPlaylistClick) {
+          m_onPlaylistClick(xPos, yPos);
+        }
+        return 0;
       }
-      return 0;
     }
 
     if (m_isLogoMenuHovered) {
@@ -594,8 +650,12 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
       int logicalX = MulDiv(xPos, 96, dpi);
       int logicalY = MulDiv(yPos, 96, dpi);
 
+      RECT rect;
+      GetClientRect(hwnd, &rect);
+      int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
+
       LogoMenuLayout layout = LayoutCalculator::CalculateLogoMenuLayout(
-          m_config, 1.0f, m_logoMenuItems.size());
+          static_cast<float>(logicalWidth), m_config, 1.0f, m_logoMenuItems.size());
       for (size_t i = 0; i < m_logoMenuItems.size(); ++i) {
         if (logicalX >= layout.items[i].hitRect.left &&
             logicalX <= layout.items[i].hitRect.right &&
@@ -660,10 +720,12 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     int yPos = GET_Y_LPARAM(lParam);
 
     if (m_isPlaylistHovered) {
-      if (m_onPlaylistDoubleClick) {
-        m_onPlaylistDoubleClick(xPos, yPos);
+      if (IsInPlaylistRegion(xPos, yPos)) {
+        if (m_onPlaylistDoubleClick) {
+          m_onPlaylistDoubleClick(xPos, yPos);
+        }
+        return 0;
       }
-      return 0; // スキップ
     }
     return 0;
   }
@@ -674,7 +736,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
       pt.y = GET_Y_LPARAM(lParam);
       ScreenToClient(hwnd, &pt);
 
-      if (m_isPlaylistHovered) {
+      if (m_isPlaylistHovered && IsInPlaylistRegion(pt.x, pt.y)) {
         if (m_onPlaylistScroll) {
           int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
           m_onPlaylistScroll(zDelta);

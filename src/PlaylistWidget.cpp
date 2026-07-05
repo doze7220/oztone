@@ -72,6 +72,15 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
         DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
   }
 
+  dwriteFactory->CreateTextFormat(
+      L"Segoe UI Emoji", nullptr, DWRITE_FONT_WEIGHT_NORMAL,
+      DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL,
+      config->GetPinSubIconFontSize(), L"ja-jp", &m_pinSubIconFormat);
+  if (m_pinSubIconFormat) {
+    m_pinSubIconFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+    m_pinSubIconFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+  }
+
   auto ParseHexColor = [](const std::wstring &hexColor) -> D2D1_COLOR_F {
     if (hexColor.empty() || hexColor[0] != L'#')
       return D2D1::ColorF(D2D1::ColorF::White);
@@ -148,6 +157,7 @@ void PlaylistWidget::ReleaseResources() {
   m_playlistTimeTextFormat.Reset();
   m_toolbarTextFormat.Reset();
   m_toolbarIconFormat.Reset();
+  m_pinSubIconFormat.Reset();
   m_playlistArtistBrush.Reset();
   m_playlistTimeBrush.Reset();
   m_playlistGripLineBrush.Reset();
@@ -170,10 +180,11 @@ void PlaylistWidget::UpdateAnimation(const WidgetContext &ctx) {
   if (m_playlistSlideX > configPlaylistWidth * 2.0f)
     m_playlistSlideX = configPlaylistWidth;
 
-  float targetSlideX = ctx.isPlaylistHovered ? 0.0f : configPlaylistWidth;
+  bool isExpanded = ctx.isPlaylistHovered || ctx.config->GetIsPlaylistPinned();
+  float targetSlideX = isExpanded ? 0.0f : configPlaylistWidth;
   m_playlistSlideX += (targetSlideX - m_playlistSlideX) * 0.2f;
 
-  if (!ctx.isPlaylistHovered) {
+  if (!isExpanded) {
     m_playlistManualScrollY = 0.0f;
   } else {
     D2D1_SIZE_F renderTargetSize =
@@ -264,14 +275,16 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
                                       layout.playlistY + layout.playlistHeight),
                         m_shadowBrush.Get(), layout.gripLineWidth);
 
-      D2D1_MATRIX_3X2_F shadowTransform = D2D1::Matrix3x2F::Translation(
-          layout.gripShadowX,
-          layout.gripShadowY + layout.playlistHeight / 2.0f);
-      context->SetTransform(shadowTransform * D2D1::Matrix3x2F::Scale(
-                                                  ctx.dpiScale, ctx.dpiScale));
-      context->FillGeometry(arrowGeometry, m_shadowBrush.Get());
-      context->SetTransform(
-          D2D1::Matrix3x2F::Scale(ctx.dpiScale, ctx.dpiScale));
+      if (!config->GetIsPlaylistPinned()) {
+        D2D1_MATRIX_3X2_F shadowTransform = D2D1::Matrix3x2F::Translation(
+            layout.gripShadowX,
+            layout.gripShadowY + layout.playlistHeight / 2.0f);
+        context->SetTransform(shadowTransform * D2D1::Matrix3x2F::Scale(
+                                                    ctx.dpiScale, ctx.dpiScale));
+        context->FillGeometry(arrowGeometry, m_shadowBrush.Get());
+        context->SetTransform(
+            D2D1::Matrix3x2F::Scale(ctx.dpiScale, ctx.dpiScale));
+      }
     }
 
     context->DrawLine(
@@ -279,12 +292,14 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
         D2D1::Point2F(layout.gripX, layout.playlistY + layout.playlistHeight),
         m_playlistGripLineBrush.Get(), layout.gripLineWidth);
 
-    D2D1_MATRIX_3X2_F arrowTransform = D2D1::Matrix3x2F::Translation(
-        layout.gripX, layout.playlistY + layout.playlistHeight / 2.0f);
-    context->SetTransform(arrowTransform *
-                          D2D1::Matrix3x2F::Scale(ctx.dpiScale, ctx.dpiScale));
-    context->FillGeometry(arrowGeometry, m_playlistGripArrowBrush.Get());
-    context->SetTransform(D2D1::Matrix3x2F::Scale(ctx.dpiScale, ctx.dpiScale));
+    if (!config->GetIsPlaylistPinned()) {
+      D2D1_MATRIX_3X2_F arrowTransform = D2D1::Matrix3x2F::Translation(
+          layout.gripX, layout.playlistY + layout.playlistHeight / 2.0f);
+      context->SetTransform(arrowTransform *
+                            D2D1::Matrix3x2F::Scale(ctx.dpiScale, ctx.dpiScale));
+      context->FillGeometry(arrowGeometry, m_playlistGripArrowBrush.Get());
+      context->SetTransform(D2D1::Matrix3x2F::Scale(ctx.dpiScale, ctx.dpiScale));
+    }
   }
 
   if (m_playlistSlideX < layout.playlistWidth - 0.5f) {
@@ -324,6 +339,10 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
         if (idx == 2)
           hoverText = L"プレイリストの全曲を削除する";
       }
+    }
+    
+    if (ctx.isPlaylistPinnedHovered) {
+      hoverText = config->GetIsPlaylistPinned() ? L"表示モード: 画面固定" : L"表示モード: 自動格納";
     }
 
     std::wstring toolbarCenterText = hoverText;
@@ -372,6 +391,45 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
             m_toolbarIconFormat.Get(), &layout.toolbarLayout.buttonHitRects[i],
             m_textBrush.Get());
       }
+    }
+
+    // ピン留めボタンの描画
+    if (ctx.isPlaylistPinnedHovered && m_playlistHighlightBrush) {
+      m_playlistHighlightBrush->SetOpacity(0.2f);
+      context->FillRectangle(&layout.toolbarLayout.pinButtonHitRect, m_playlistHighlightBrush.Get());
+    }
+
+    bool isPinned = config->GetIsPlaylistPinned();
+    std::wstring pinBaseIcon = L"📌";
+    std::wstring pinSubIcon = isPinned ? L"🔒" : L"🔓";
+
+    if (m_toolbarIconFormat && m_textBrush) {
+      m_textBrush->SetOpacity(isPinned ? 1.0f : 0.4f);
+      context->DrawText(pinBaseIcon.c_str(), static_cast<UINT32>(pinBaseIcon.length()),
+                        m_toolbarIconFormat.Get(), &layout.toolbarLayout.pinButtonHitRect,
+                        m_textBrush.Get());
+      m_textBrush->SetOpacity(1.0f);
+    }
+
+    if (m_pinSubIconFormat && m_textBrush && m_shadowBrush) {
+      D2D1_RECT_F subRect = layout.toolbarLayout.pinButtonHitRect;
+      subRect.left += config->GetPinSubIconOffsetX();
+      subRect.right += config->GetPinSubIconOffsetX();
+      subRect.top += config->GetPinSubIconOffsetY();
+      subRect.bottom += config->GetPinSubIconOffsetY();
+
+      m_shadowBrush->SetOpacity(1.0f);
+      D2D1_RECT_F outlineRects[4] = {
+          {subRect.left - 1, subRect.top, subRect.right - 1, subRect.bottom},
+          {subRect.left + 1, subRect.top, subRect.right + 1, subRect.bottom},
+          {subRect.left, subRect.top - 1, subRect.right, subRect.bottom - 1},
+          {subRect.left, subRect.top + 1, subRect.right, subRect.bottom + 1}};
+      for (int i = 0; i < 4; ++i) {
+        context->DrawText(pinSubIcon.c_str(), static_cast<UINT32>(pinSubIcon.length()),
+                          m_pinSubIconFormat.Get(), &outlineRects[i], m_shadowBrush.Get());
+      }
+      context->DrawText(pinSubIcon.c_str(), static_cast<UINT32>(pinSubIcon.length()),
+                        m_pinSubIconFormat.Get(), &subRect, m_textBrush.Get());
     }
 
     context->PushAxisAlignedClip(&layout.clipRect,

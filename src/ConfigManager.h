@@ -59,6 +59,9 @@ public:
     bool GetLockWindowPosition() const { return m_lockWindowPosition; }
     void SetLockWindowPosition(bool lock);
 
+    bool GetIsPlaylistPinned() const { return m_isPlaylistPinned; }
+    void SetIsPlaylistPinned(bool pinned);
+
     bool GetShuffleMode() const { return m_shuffleMode; }
     void SetShuffleMode(bool mode);
 
@@ -225,6 +228,10 @@ public:
     float GetPlaylistToolbarTextOffsetY() const { return m_playlistToolbarTextOffsetY; }
     float GetPlaylistToolbarTextFontSize() const { return m_playlistToolbarTextFontSize; }
 
+    int GetPinSubIconOffsetX() const { return m_pinSubIconOffsetX; }
+    int GetPinSubIconOffsetY() const { return m_pinSubIconOffsetY; }
+    float GetPinSubIconFontSize() const { return m_pinSubIconFontSize; }
+
     int GetPlaylistHoverWidth() const { return m_playlistHoverWidth; }
 
     float GetPlaylistBgOpacity() const { return m_playlistBgOpacity; }
@@ -264,6 +271,7 @@ private:
     bool m_enableResize;
     bool m_lockWindowPosition;
     bool m_shuffleMode;
+    bool m_isPlaylistPinned;
 
 
     int m_windowX;
@@ -424,6 +432,10 @@ private:
     float m_playlistToolbarIconSpacing;
     float m_playlistToolbarTextOffsetY;
     float m_playlistToolbarTextFontSize;
+
+    int m_pinSubIconOffsetX;
+    int m_pinSubIconOffsetY;
+    float m_pinSubIconFontSize;
 
     float m_playlistBgOpacity;
 

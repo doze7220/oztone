@@ -2,6 +2,18 @@
 #include "ConfigManager.h"
 #include <algorithm>
 
+static void ApplyPinningOffset(float& logicalWidth, float& offsetX, const ConfigManager* config) {
+    if (!config || !config->GetIsPlaylistPinned()) return;
+    float playlistWidth = static_cast<float>(config->GetPlaylistWidth());
+    float minRequiredWidth = 495.0f + playlistWidth;
+    if (logicalWidth >= minRequiredWidth) {
+        logicalWidth -= playlistWidth;
+        if (config->GetPlaylistPosition() == 0) { // Left
+            offsetX = playlistWidth;
+        }
+    }
+}
+
 BackgroundLayout LayoutCalculator::CalculateBackgroundLayout(float logicalWidth, float logicalHeight, D2D1_SIZE_F bitmapSize) {
     BackgroundLayout layout;
     layout.destRect = D2D1::RectF(0.0f, 0.0f, logicalWidth, logicalHeight);
@@ -33,11 +45,14 @@ VisualizerLayout LayoutCalculator::CalculateVisualizerLayout(float logicalWidth,
 
 
 
-AppLogoLayout LayoutCalculator::CalculateAppLogoLayout(const ConfigManager* config) {
+AppLogoLayout LayoutCalculator::CalculateAppLogoLayout(float logicalWidth, const ConfigManager* config) {
     AppLogoLayout layout = {};
     if (!config) return layout;
 
-    float x = static_cast<float>(config->GetLogoX());
+    float offsetX = 0.0f;
+    ApplyPinningOffset(logicalWidth, offsetX, config);
+
+    float x = offsetX + static_cast<float>(config->GetLogoX());
     float y = static_cast<float>(config->GetLogoY());
     float w = static_cast<float>(config->GetLogoWidth());
     float h = static_cast<float>(config->GetLogoHeight());
@@ -48,11 +63,14 @@ AppLogoLayout LayoutCalculator::CalculateAppLogoLayout(const ConfigManager* conf
     return layout;
 }
 
-LogoMenuLayout LayoutCalculator::CalculateLogoMenuLayout(const ConfigManager* config, float progress, size_t itemCount) {
+LogoMenuLayout LayoutCalculator::CalculateLogoMenuLayout(float logicalWidth, const ConfigManager* config, float progress, size_t itemCount) {
     LogoMenuLayout layout;
     if (!config || itemCount == 0) return layout;
 
-    float logoX = static_cast<float>(config->GetLogoX());
+    float offsetX = 0.0f;
+    ApplyPinningOffset(logicalWidth, offsetX, config);
+
+    float logoX = offsetX + static_cast<float>(config->GetLogoX());
     float logoY = static_cast<float>(config->GetLogoY());
     float logoW = static_cast<float>(config->GetLogoWidth());
     float logoH = static_cast<float>(config->GetLogoHeight());
@@ -97,8 +115,11 @@ TrackInfoLayout LayoutCalculator::CalculateTrackInfoLayout(float logicalWidth, f
     TrackInfoLayout layout = {};
     if (!config) return layout;
 
+    float offsetX = 0.0f;
+    ApplyPinningOffset(logicalWidth, offsetX, config);
+
     float size = static_cast<float>(config->GetArtSize());
-    float x = static_cast<float>(config->GetBaseX() + config->GetArtOffsetX());
+    float x = offsetX + static_cast<float>(config->GetBaseX() + config->GetArtOffsetX());
     float y = logicalHeight - static_cast<float>(config->GetBaseBottomOffset()) + static_cast<float>(config->GetArtOffsetY());
 
     // Album Art
@@ -125,14 +146,14 @@ TrackInfoLayout LayoutCalculator::CalculateTrackInfoLayout(float logicalWidth, f
     }
 
     // Texts
-    float baseX = static_cast<float>(config->GetBaseX());
+    float baseX = offsetX + static_cast<float>(config->GetBaseX());
     float baseY = logicalHeight - static_cast<float>(config->GetBaseBottomOffset());
     float rightMargin = 30.0f;
 
     // Title
     float titleX = baseX + static_cast<float>(config->GetTitleOffsetX());
     float titleY = baseY + static_cast<float>(config->GetTitleOffsetY());
-    float titleRight = logicalWidth - rightMargin;
+    float titleRight = offsetX + logicalWidth - rightMargin;
     if (titleRight < titleX) titleRight = titleX + 1.0f;
 
     layout.titleRect = D2D1::RectF(titleX, titleY, titleRight, titleY + 100.0f);
@@ -146,7 +167,7 @@ TrackInfoLayout LayoutCalculator::CalculateTrackInfoLayout(float logicalWidth, f
     // Artist
     float artistX = baseX + static_cast<float>(config->GetArtistOffsetX());
     float artistY = baseY + static_cast<float>(config->GetArtistOffsetY());
-    float artistRight = logicalWidth - rightMargin;
+    float artistRight = offsetX + logicalWidth - rightMargin;
     if (artistRight < artistX) artistRight = artistX + 1.0f;
 
     layout.artistRect = D2D1::RectF(artistX, artistY, artistRight, artistY + 50.0f);
@@ -172,7 +193,10 @@ NextTrackLayout LayoutCalculator::CalculateNextTrackLayout(float logicalWidth, f
     NextTrackLayout layout = {};
     if (!config) return layout;
 
-    float baseX = logicalWidth - static_cast<float>(config->GetNextBaseRightOffset());
+    float offsetX = 0.0f;
+    ApplyPinningOffset(logicalWidth, offsetX, config);
+
+    float baseX = offsetX + logicalWidth - static_cast<float>(config->GetNextBaseRightOffset());
     float baseY = logicalHeight - static_cast<float>(config->GetNextBaseBottomOffset());
 
     float artSize = static_cast<float>(config->GetNextArtSize());
@@ -245,9 +269,12 @@ SeekBarLayout LayoutCalculator::CalculateSeekBarLayout(float logicalWidth, float
     SeekBarLayout layout = {};
     if (!config) return layout;
 
+    float offsetX = 0.0f;
+    ApplyPinningOffset(logicalWidth, offsetX, config);
+
     float margin = config->GetSeekBarMargin();
     float totalWidth = logicalWidth - (margin * 2.0f);
-    float startX = margin;
+    float startX = offsetX + margin;
     float barAreaWidth = totalWidth - static_cast<float>(config->GetSeekBarTimeAreaWidth());
     float y = logicalHeight - static_cast<float>(config->GetSeekBarBottomOffset());
     float h = static_cast<float>(config->GetSeekBarHeight());
@@ -266,7 +293,10 @@ PlaybackControlsLayout LayoutCalculator::CalculatePlaybackControlsLayout(float l
     PlaybackControlsLayout layout = {};
     if (!config) return layout;
 
-    layout.centerX = (logicalWidth / 2.0f) + config->GetPlaybackCenterOffsetX();
+    float offsetX = 0.0f;
+    ApplyPinningOffset(logicalWidth, offsetX, config);
+
+    layout.centerX = offsetX + (logicalWidth / 2.0f) + config->GetPlaybackCenterOffsetX();
     layout.centerY = logicalHeight - config->GetPlaybackBaseBottomOffset();
     layout.size = static_cast<float>(config->GetPlaybackButtonSize());
     layout.spacing = static_cast<float>(config->GetPlaybackButtonSpacing());
@@ -279,7 +309,10 @@ VolumeControlLayout LayoutCalculator::CalculateVolumeControlLayout(float logical
     VolumeControlLayout layout = {};
     if (!config) return layout;
 
-    layout.volX = static_cast<float>(config->GetVolumeBaseLeftOffset());
+    float offsetX = 0.0f;
+    ApplyPinningOffset(logicalWidth, offsetX, config);
+
+    layout.volX = offsetX + static_cast<float>(config->GetVolumeBaseLeftOffset());
     layout.volY = logicalHeight - static_cast<float>(config->GetVolumeBaseBottomOffset());
     layout.volSize = static_cast<float>(config->GetVolumeIconSize());
 
@@ -333,6 +366,12 @@ PlaylistLayout LayoutCalculator::CalculatePlaylistLayout(float logicalWidth, flo
         layout.toolbarLayout.buttonHitRects[i] = D2D1::RectF(startX, startY, startX + btnSize, startY + btnSize);
         startX += (btnSize + iconSpacing);
     }
+
+    // ピン留めボタンの配置 (ツールバーの右上)
+    float pinBtnMarginRight = 10.0f;
+    float pinBtnX = layout.playlistX + layout.playlistWidth - btnSize - pinBtnMarginRight;
+    layout.toolbarLayout.pinButtonHitRect = D2D1::RectF(pinBtnX, startY, pinBtnX + btnSize, startY + btnSize);
+
     
     float textOffsetY = config->GetPlaylistToolbarTextOffsetY();
     layout.toolbarLayout.textRect = D2D1::RectF(layout.playlistX, layout.playlistY + textOffsetY, layout.playlistX + layout.playlistWidth, layout.playlistY + toolbarHeight);

@@ -32,6 +32,7 @@ struct WidgetContext {
     bool isControlHovered;
     bool isPlaylistHovered;
     int playlistToolbarHoveredIndex;
+    bool isPlaylistPinnedHovered;
     bool isPlaylistListViewMode;
     bool isPlaying;
     float progress;

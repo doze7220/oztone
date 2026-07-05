@@ -178,8 +178,11 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
 
   float easedProgress = CubicEaseOut(m_menuProgress);
 
+  D2D1_SIZE_F rtSize = context->GetSize();
+  float logicWidth = rtSize.width / ctx.dpiScale;
+
   LogoMenuLayout layout = LayoutCalculator::CalculateLogoMenuLayout(
-      config, easedProgress, ctx.logoMenuItems->size());
+      logicWidth, config, easedProgress, ctx.logoMenuItems->size());
 
   D2D1_DRAW_TEXT_OPTIONS options = D2D1_DRAW_TEXT_OPTIONS_NONE;
 

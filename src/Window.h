@@ -126,6 +126,7 @@ public:
      */
     bool IsInPlaylistRegion(int x, int y) const;
     int GetPlaylistToolbarButtonAt(int x, int y) const;
+    bool IsPlaylistPinnedButtonAt(int x, int y) const;
     int GetPlaylistToolbarHoveredIndex() const { return m_playlistToolbarHoveredIndex; }
 
     /**
@@ -286,4 +287,5 @@ private:
     bool m_isLogoMenuHovered;
     int m_logoMenuHoveredIndex = -1;
     int m_playlistToolbarHoveredIndex = -1;
+    bool m_isPlaylistPinnedHovered = false;
 };

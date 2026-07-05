@@ -187,6 +187,9 @@ ToolbarIconSize=18.0
 ToolbarIconSpacing=10.0
 ToolbarTextOffsetY=30.0
 ToolbarTextFontSize=12.0
+PinSubIconOffsetX=6
+PinSubIconOffsetY=6
+PinSubIconFontSize=10.0
 
 )";
 
@@ -196,6 +199,7 @@ ConfigManager::ConfigManager()
       m_enableNextTrack(false), m_showSeekBar(true),
       m_showPlaybackControls(true), m_showVolumeControl(true), m_zOrder(0),
       m_savePositionOnExit(true), m_enableResize(false), m_lockWindowPosition(false), m_shuffleMode(true),
+      m_isPlaylistPinned(false),
       m_windowX(CW_USEDEFAULT), m_windowY(CW_USEDEFAULT), m_windowWidth(1024),
       m_windowHeight(512), m_enableShadow(true), m_shadowOffsetX(2.0f),
       m_shadowOffsetY(2.0f), m_shadowOpacity(0.7f), m_bgDarkenOpacity(0.3f),
@@ -265,6 +269,10 @@ ConfigManager::ConfigManager()
   m_playlistToolbarIconSpacing = 10.0f;
   m_playlistToolbarTextOffsetY = 30.0f;
   m_playlistToolbarTextFontSize = 12.0f;
+
+  m_pinSubIconOffsetX = 6;
+  m_pinSubIconOffsetY = 6;
+  m_pinSubIconFontSize = 10.0f;
 
   m_playlistPosition = 1;
   m_playlistGripOffset = 10.0f;
@@ -349,6 +357,9 @@ void ConfigManager::LoadSettings() {
                                          m_iniFilePath.c_str()) != 0;
   m_lockWindowPosition = GetPrivateProfileIntW(L"Window", L"LockWindowPosition", 0,
                                                m_iniFilePath.c_str()) != 0;
+
+  m_isPlaylistPinned = GetPrivateProfileIntW(L"Layout_Playlist", L"IsPlaylistPinned", 0,
+                                             m_iniFilePath.c_str()) != 0;
 
   m_windowX = GetPrivateProfileIntW(L"Window", L"WindowX", CW_USEDEFAULT,
                                     m_iniFilePath.c_str());
@@ -1014,6 +1025,11 @@ void ConfigManager::LoadSettings() {
   GetPrivateProfileStringW(L"Layout_Playlist", L"ToolbarTextFontSize", L"12.0", buf, 32, m_iniFilePath.c_str());
   try { m_playlistToolbarTextFontSize = std::stof(buf); } catch (...) { m_playlistToolbarTextFontSize = 12.0f; }
 
+  m_pinSubIconOffsetX = GetPrivateProfileIntW(L"Layout_Playlist", L"PinSubIconOffsetX", 6, m_iniFilePath.c_str());
+  m_pinSubIconOffsetY = GetPrivateProfileIntW(L"Layout_Playlist", L"PinSubIconOffsetY", 6, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_Playlist", L"PinSubIconFontSize", L"10.0", buf, 32, m_iniFilePath.c_str());
+  try { m_pinSubIconFontSize = std::stof(buf); } catch (...) { m_pinSubIconFontSize = 10.0f; }
+
   wchar_t pathBuf[MAX_PATH];
 
   GetPrivateProfileStringW(L"Playlist", L"DefaultPlaylistPath", L"", pathBuf,
@@ -1094,6 +1110,12 @@ void ConfigManager::SetEnableResize(bool enable) {
 void ConfigManager::SetLockWindowPosition(bool lock) {
   m_lockWindowPosition = lock;
   WritePrivateProfileStringW(L"Window", L"LockWindowPosition", lock ? L"1" : L"0",
+                             m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetIsPlaylistPinned(bool pinned) {
+  m_isPlaylistPinned = pinned;
+  WritePrivateProfileStringW(L"Layout_Playlist", L"IsPlaylistPinned", pinned ? L"1" : L"0",
                              m_iniFilePath.c_str());
 }
 

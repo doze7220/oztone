@@ -107,6 +107,7 @@ struct PlaylistItemLayout {
 struct PlaylistToolbarLayout {
     D2D1_RECT_F fullRect;
     D2D1_RECT_F buttonHitRects[3];
+    D2D1_RECT_F pinButtonHitRect;
     D2D1_RECT_F textRect;
 };
 
@@ -153,8 +154,8 @@ public:
     static BackgroundLayout CalculateBackgroundLayout(float logicalWidth, float logicalHeight, D2D1_SIZE_F bitmapSize);
     static VisualizerLayout CalculateVisualizerLayout(float logicalWidth, float logicalHeight);
     
-    static AppLogoLayout CalculateAppLogoLayout(const ConfigManager* config);
-    static LogoMenuLayout CalculateLogoMenuLayout(const ConfigManager* config, float progress, size_t itemCount);
+    static AppLogoLayout CalculateAppLogoLayout(float logicalWidth, const ConfigManager* config);
+    static LogoMenuLayout CalculateLogoMenuLayout(float logicalWidth, const ConfigManager* config, float progress, size_t itemCount);
     static TrackInfoLayout CalculateTrackInfoLayout(float logicalWidth, float logicalHeight, const ConfigManager* config, D2D1_SIZE_F bitmapSize);
     static NextTrackLayout CalculateNextTrackLayout(float logicalWidth, float logicalHeight, const ConfigManager* config, D2D1_SIZE_F bitmapSize);
 
