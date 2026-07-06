@@ -836,7 +836,42 @@ void Application::ForceRender() {
     std::vector<float> spectrum;
     m_audioPlayer.GetSpectrumData(spectrum);
 
-    m_renderer.UpdateAnimation(0.016f, m_window.IsControlHovered(), m_window.IsPlaylistHovered(), m_window.IsLogoMenuHovered(), m_window.GetLogoMenuHoveredIndex(), m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount(), m_isPlaylistListViewMode);
+    int playlistHoveredItemIndex = -1;
+    if (m_window.IsPlaylistHovered()) {
+        POINT pt;
+        GetCursorPos(&pt);
+        ScreenToClient(m_window.GetHandle(), &pt);
+        UINT dpi = GetDpiForWindow(m_window.GetHandle());
+        float logicalY = static_cast<float>(pt.y) / (static_cast<float>(dpi) / 96.0f);
+
+        RECT rect;
+        GetClientRect(m_window.GetHandle(), &rect);
+        float logicalWidth = static_cast<float>(rect.right - rect.left) / (static_cast<float>(dpi) / 96.0f);
+        float logicalHeight = static_cast<float>(rect.bottom - rect.top) / (static_cast<float>(dpi) / 96.0f);
+
+        if (m_isPlaylistListViewMode) {
+            std::vector<std::wstring> playlists = m_config.GetAvailablePlaylists();
+            int totalPlaylists = static_cast<int>(playlists.size());
+            std::wstring currentPlaylist = m_config.GetDefaultPlaylistPath();
+            int currentIndex = 0;
+            for (int i = 0; i < totalPlaylists; ++i) {
+                if (playlists[i] == currentPlaylist) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+            PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(logicalWidth, logicalHeight, &m_config, 0.0f, m_renderer.GetPlaylistManualScrollY(), currentIndex, totalPlaylists);
+            playlistHoveredItemIndex = LayoutCalculator::GetPlaylistItemIndexAt(logicalY, layout, totalPlaylists);
+        } else {
+            int totalTracks = static_cast<int>(m_playlistManager.GetCount());
+            int currentTrackIndex = static_cast<int>(m_playlistManager.GetCurrentIndex());
+            PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(logicalWidth, logicalHeight, &m_config, 0.0f, m_renderer.GetPlaylistManualScrollY(), currentTrackIndex, totalTracks);
+            playlistHoveredItemIndex = LayoutCalculator::GetPlaylistItemIndexAt(logicalY, layout, totalTracks);
+        }
+    }
+    m_window.SetPlaylistHoveredItemIndex(playlistHoveredItemIndex);
+
+    m_renderer.UpdateAnimation(0.016f, m_window.IsControlHovered(), m_window.IsPlaylistHovered(), m_window.IsLogoMenuHovered(), m_window.GetLogoMenuHoveredIndex(), m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount(), m_isPlaylistListViewMode, m_window.GetPlaybackHoveredIndex(), playlistHoveredItemIndex, &m_window.GetLogoMenuItems());
     m_renderer.UpdateTextLayouts(timeString, m_audioPlayer.GetVolume(), m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount());
     m_renderer.Render(m_window.IsHovered(), m_window.IsControlHovered(), m_window.IsPlaylistHovered(), m_window.IsLogoMenuHovered(), m_window.GetLogoMenuHoveredIndex(), &m_window.GetLogoMenuItems(), m_isPlaylistListViewMode, m_audioPlayer.IsPlaying(), progress, spectrum, m_audioPlayer.GetVolume(), m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount(), m_playlistManager.GetShuffleMetadataList(), m_window.GetPlaylistToolbarHoveredIndex(), &m_playlistSummaries);
 }

@@ -218,6 +218,28 @@ void PlaylistWidget::UpdateAnimation(const WidgetContext &ctx) {
         m_playlistManualScrollY, activeIndex, activeTotal);
     m_playlistManualScrollY = layout.newManualScrollY;
   }
+
+  float fadeOutSpeed = ctx.config->GetHoverFadeOutSpeed() * ctx.deltaTime;
+  float fadeInSpeed = 10.0f * ctx.deltaTime;
+
+  for (auto it = m_hoverAlpha.begin(); it != m_hoverAlpha.end(); ) {
+      if (it->first == ctx.playlistHoveredItemIndex) {
+          it->second += fadeInSpeed;
+          if (it->second > 1.0f) it->second = 1.0f;
+          ++it;
+      } else {
+          it->second -= fadeOutSpeed;
+          if (it->second <= 0.0f) {
+              it = m_hoverAlpha.erase(it);
+          } else {
+              ++it;
+          }
+      }
+  }
+
+  if (ctx.playlistHoveredItemIndex >= 0 && m_hoverAlpha.find(ctx.playlistHoveredItemIndex) == m_hoverAlpha.end()) {
+      m_hoverAlpha[ctx.playlistHoveredItemIndex] = fadeInSpeed > 1.0f ? 1.0f : fadeInSpeed;
+  }
 }
 
 void PlaylistWidget::UpdateLayout(const WidgetContext &ctx,
@@ -441,6 +463,24 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
       m_playlistHighlightBrush->SetOpacity(0.2f);
     }
 
+    D2D1_COLOR_F originalTextColor = m_textBrush->GetColor();
+    auto GetBlendedTextColor = [&](int index, bool isPlaying) {
+        D2D1_COLOR_F baseColor = isPlaying ? ParseHexColor(config->GetPlayingItemColor()) : originalTextColor;
+        float t = 0.0f;
+        auto it = m_hoverAlpha.find(index);
+        if (it != m_hoverAlpha.end()) t = it->second;
+
+        if (t <= 0.0f) return baseColor;
+
+        D2D1_COLOR_F hoverColor = ParseHexColor(config->GetHoverItemColor());
+        return D2D1_COLOR_F{
+            baseColor.r + (hoverColor.r - baseColor.r) * t,
+            baseColor.g + (hoverColor.g - baseColor.g) * t,
+            baseColor.b + (hoverColor.b - baseColor.b) * t,
+            baseColor.a
+        };
+    };
+
     if (ctx.isPlaylistListViewMode) {
       if (ctx.availablePlaylistsCache) {
         std::wstring currentPlaylist = config->GetDefaultPlaylistPath();
@@ -452,9 +492,10 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
               LayoutCalculator::CalculatePlaylistItemLayout(layout, config,
                                                             currentY);
 
+          bool isPlaying = ((*ctx.availablePlaylistsCache)[i].filepath == currentPlaylist);
           bool isFocused = ctx.focusedPlaylistIndex && *ctx.focusedPlaylistIndex == i;
-          if (((*ctx.availablePlaylistsCache)[i].filepath == currentPlaylist || isFocused) && m_playlistHighlightBrush) {
-            float opacity = ((*ctx.availablePlaylistsCache)[i].filepath == currentPlaylist) ? 0.2f : 0.1f;
+          if ((isPlaying || isFocused) && m_playlistHighlightBrush) {
+            float opacity = isPlaying ? 0.2f : 0.1f;
             m_playlistHighlightBrush->SetOpacity(opacity);
             context->FillRectangle(&itemLayout.hlRect,
                                    m_playlistHighlightBrush.Get());
@@ -463,6 +504,8 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
           std::wstring title = (*ctx.availablePlaylistsCache)[i].displayName;
           std::wstring info = std::to_wstring((*ctx.availablePlaylistsCache)[i].trackCount) + L" tracks";
           std::wstring timeStr = (*ctx.availablePlaylistsCache)[i].totalTimeString;
+
+          m_textBrush->SetColor(GetBlendedTextColor(static_cast<int>(i), isPlaying));
 
           context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
                             m_playlistTitleTextFormat.Get(),
@@ -501,9 +544,10 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
               LayoutCalculator::CalculatePlaylistItemLayout(layout, config,
                                                             currentY);
 
+          bool isPlaying = (i == ctx.currentTrackIndex);
           bool isFocused = ctx.focusedPlaylistIndex && *ctx.focusedPlaylistIndex == i;
-          if ((i == ctx.currentTrackIndex || isFocused) && m_playlistHighlightBrush) {
-            float opacity = (i == ctx.currentTrackIndex) ? 0.2f : 0.1f;
+          if ((isPlaying || isFocused) && m_playlistHighlightBrush) {
+            float opacity = isPlaying ? 0.2f : 0.1f;
             m_playlistHighlightBrush->SetOpacity(opacity);
             context->FillRectangle(&itemLayout.hlRect,
                                    m_playlistHighlightBrush.Get());
@@ -526,6 +570,8 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
             }
             artist = L"Unknown Artist";
           }
+
+          m_textBrush->SetColor(GetBlendedTextColor(static_cast<int>(i), isPlaying));
 
           context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
                             m_playlistTitleTextFormat.Get(),
@@ -554,6 +600,8 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
         currentY += layout.itemHeight;
       }
     }
+
+    m_textBrush->SetColor(originalTextColor); // Restore
 
     context->PopAxisAlignedClip();
   }

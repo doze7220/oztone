@@ -271,6 +271,10 @@ public:
     int GetLogoMenuButtonAt(int x, int y, float progress) const;
     int GetLogoMenuHoveredIndex() const { return m_logoMenuHoveredIndex; }
 
+    int GetPlaybackHoveredIndex() const { return m_playbackHoveredIndex; }
+    int GetPlaylistHoveredItemIndex() const { return m_playlistHoveredItemIndex; }
+    void SetPlaylistHoveredItemIndex(int index) { m_playlistHoveredItemIndex = index; }
+
 private:
     static LRESULT CALLBACK WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -315,4 +319,6 @@ private:
     int m_logoMenuHoveredIndex = -1;
     int m_playlistToolbarHoveredIndex = -1;
     bool m_isPlaylistPinnedHovered = false;
+    int m_playbackHoveredIndex = -1;
+    int m_playlistHoveredItemIndex = -1;
 };

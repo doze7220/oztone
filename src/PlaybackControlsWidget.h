@@ -21,4 +21,5 @@ private:
     Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_chevronLeftGeometry;
     Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_chevronRightGeometry;
     Microsoft::WRL::ComPtr<IDWriteTextLayout> m_indicatorTextLayout;
+    float m_hoverAlpha[5] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 };

@@ -29,4 +29,5 @@ private:
     Microsoft::WRL::ComPtr<ID2D1Effect> m_shadowEffect;
 
     float m_menuProgress = 0.0f;
+    std::vector<float> m_hoverAlpha;
 };

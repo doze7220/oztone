@@ -5,7 +5,7 @@
 
 #### 【作業手順（厳守事項）】
 1. 本プロンプトでは **絶対にコードの修正（ファイルの書き換え）を行わない** こと。計画立案のみに留めること。
-2. 以下の【実装要件】を満たすための高度なアーキテクチャ設計と実装計画、兼作業レポート（`D:\ozlab\oztone\_docs\logs\YYYYMMDD_HHMM_RES_Phase19-1_HoverColorFade.md`）として新規作成すること。
+2. 以下の【実装要件】を満たすための高度なアーキテクチャ設計と実装計画、兼作業レポート（`D:\ozlab\oztone\_docs\logs\YYYYMMDD_HHMM_RES_Phase18-6_HoverColorFade.md`）として新規作成すること。
 3. レポートのフォーマットは、PROJECT_CONSTITUTION.md の「3.3. 実装計画、兼作業レポート (RES) 標準出力フォーマット」に完全に準拠し、細かなタスクリストを含めること。
 4. チャットにて「計画書の作成が完了しました。タスクを実行するための新しいチャットへ移行してください」と報告すること。
 
@@ -34,7 +34,7 @@
   * **【重要】ロゴメニュー等において背面に画像ハイライト（app_logo_back.png等）を描画している場合、その画像の描画不透明度（Opacity）に対しても `HoverAlpha` を乗算し、文字色のフェードと完全に連動して背景画像も滑らかにフェードアウトして残像のように消えていく処理を実装すること。**
 
 #### 【作業終了後】
-1. 作業レポート（`D:\ozlab\oztone\_docs\logs\YYYYMMDD_HHMM_RES_Phase19-1_HoverColorFade.md`）に、詳細作業内容を記載する（タスクリストに含める）こと。
+1. 作業レポート（`D:\ozlab\oztone\_docs\logs\YYYYMMDD_HHMM_RES_Phase18-6_HoverColorFade.md`）に、詳細作業内容を記載する（タスクリストに含める）こと。
 2. `D:\ozlab\oztone\PROJECT_ARCHITECTURE.md` を確認し、作業内容が記載に影響のある場合は修正を行う（タスクリストに含める）こと。
 
 #### 【絶対遵守ルール (Constraints)】

@@ -42,7 +42,7 @@ public:
     /**
      * @brief アニメーション状態の更新を行う（UIフェードやスライド等の変数を更新する）
      */
-    void UpdateAnimation(float deltaTime, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode);
+    void UpdateAnimation(float deltaTime, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode, int playbackHoveredIndex, int playlistHoveredItemIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems);
 
     /**
      * @brief 描画処理（毎フレーム呼ばれる）

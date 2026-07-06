@@ -94,7 +94,21 @@ void PlaybackControlsWidget::ReleaseResources() {
   m_indicatorTextLayout.Reset();
 }
 
-void PlaybackControlsWidget::UpdateAnimation(const WidgetContext &ctx) {}
+void PlaybackControlsWidget::UpdateAnimation(const WidgetContext &ctx) {
+    if (!ctx.config) return;
+    float fadeOutSpeed = ctx.config->GetHoverFadeOutSpeed() * ctx.deltaTime;
+    float fadeInSpeed = 10.0f * ctx.deltaTime; // Fade in is generally faster
+
+    for (int i = 0; i < 5; ++i) {
+        if (ctx.playbackHoveredIndex == i + 1) { // 1-based index from Window
+            m_hoverAlpha[i] += fadeInSpeed;
+            if (m_hoverAlpha[i] > 1.0f) m_hoverAlpha[i] = 1.0f;
+        } else {
+            m_hoverAlpha[i] -= fadeOutSpeed;
+            if (m_hoverAlpha[i] < 0.0f) m_hoverAlpha[i] = 0.0f;
+        }
+    }
+}
 void PlaybackControlsWidget::UpdateLayout(const WidgetContext &ctx,
                                           const ConfigManager *config) {}
 
@@ -113,7 +127,29 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
                                                         config);
 
   if (m_controlBrush) {
-    m_controlBrush->SetOpacity(ctx.controlAlpha);
+    auto HexToColorF = [](const std::wstring& hex) {
+        if (hex.length() == 7 && hex[0] == L'#') {
+            int r, g, b;
+            if (swscanf_s(hex.c_str(), L"#%02x%02x%02x", &r, &g, &b) == 3) {
+                return D2D1::ColorF(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
+            }
+        }
+        return D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f);
+    };
+
+    auto GetButtonColor = [&](int index) {
+        D2D1_COLOR_F baseColor = D2D1::ColorF(1.0f, 1.0f, 1.0f, ctx.controlAlpha);
+        D2D1_COLOR_F hoverColor = ParseHexColor(config->GetHoverIconColor());
+        hoverColor.a = ctx.controlAlpha;
+        float t = m_hoverAlpha[index];
+        return D2D1::ColorF(
+            baseColor.r + (hoverColor.r - baseColor.r) * t,
+            baseColor.g + (hoverColor.g - baseColor.g) * t,
+            baseColor.b + (hoverColor.b - baseColor.b) * t,
+            ctx.controlAlpha
+        );
+    };
+
     auto DrawTriangle = [&](float cx, float cy, float w, float h, bool right) {
       D2D1_MATRIX_3X2_F oldTransform;
       context->GetTransform(&oldTransform);
@@ -144,22 +180,13 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
       context->SetTransform(oldTransform);
     };
 
-    auto HexToColorF = [](const std::wstring& hex) {
-        if (hex.length() == 7 && hex[0] == L'#') {
-            int r, g, b;
-            if (swscanf_s(hex.c_str(), L"#%02x%02x%02x", &r, &g, &b) == 3) {
-                return D2D1::ColorF(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
-            }
-        }
-        return D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f);
-    };
-
     float positions[5] = {layout.centerX - layout.spacing * 2.0f,
                           layout.centerX - layout.spacing, layout.centerX,
                           layout.centerX + layout.spacing,
                           layout.centerX + layout.spacing * 2.0f};
 
     // 1. Prev
+    m_controlBrush->SetColor(GetButtonColor(0));
     float prevX = positions[0];
     DrawRect(prevX - layout.half + layout.size * 0.1f, layout.centerY,
              layout.size * 0.2f, layout.size);
@@ -169,6 +196,7 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
                  layout.size, false);
 
     // 2. Skip Back
+    m_controlBrush->SetColor(GetButtonColor(1));
     float skipBackX = positions[1];
     DrawChevron(skipBackX - layout.size * 0.15f, layout.centerY,
                 layout.size * 0.5f, layout.size, false);
@@ -197,6 +225,7 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
     }
 
     // 3. Play/Pause
+    m_controlBrush->SetColor(GetButtonColor(2));
     if (ctx.isPlaying) {
       DrawRect(layout.centerX - layout.size * 0.2f, layout.centerY,
                layout.size * 0.3f, layout.size);
@@ -208,6 +237,7 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
     }
 
     // 4. Skip Forward
+    m_controlBrush->SetColor(GetButtonColor(3));
     float skipFwdX = positions[3];
     DrawChevron(skipFwdX - layout.size * 0.15f, layout.centerY,
                 layout.size * 0.5f, layout.size, true);
@@ -236,7 +266,7 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
     }
 
     // 5. Next
-
+    m_controlBrush->SetColor(GetButtonColor(4));
     float nextX = positions[4];
     DrawTriangle(nextX - layout.size * 0.3f, layout.centerY, layout.size * 0.4f,
                  layout.size, true);

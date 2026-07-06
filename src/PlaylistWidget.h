@@ -2,6 +2,7 @@
 #include "Widget.h"
 #include <wrl/client.h>
 #include <d2d1effects.h>
+#include <unordered_map>
 
 class PlaylistWidget : public IWidget {
 public:
@@ -41,4 +42,5 @@ private:
 
     float m_playlistSlideX;
     float m_playlistManualScrollY;
+    std::unordered_map<int, float> m_hoverAlpha;
 };

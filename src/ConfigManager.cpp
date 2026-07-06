@@ -43,6 +43,8 @@ BgOpacity=0.8
 BgDarkenOpacity=0.4
 BackgroundArtMode=0
 ControlHoverHeight=50.0
+HoverIconColor=#2452a6
+HoverFadeOutSpeed=2
 
 [Layout_AppLogo]
 X=16
@@ -170,6 +172,8 @@ IsPlaylistPinned=0
 PlaylistHoverWidth=120
 PlaylistWidth=250
 PlaylistItemOffsetY=45
+PlayingItemColor=#FFA500
+HoverItemColor=#a3a362
 PlaylistTitleFontSize=16.0
 PlaylistTitleFontFamily=Meiryo
 PlaylistTitleOffsetX=20
@@ -302,7 +306,9 @@ ConfigManager::ConfigManager()
       m_logoMenuTextOffsetX(0), m_logoMenuTextOffsetY(60),
       m_logoMenuTypingLetterSpacing(0.0f), m_baseX(30), m_baseBottomOffset(162),
       m_artOffsetX(0), m_artOffsetY(0), m_artSize(120),
-      m_fallbackArtOpacity(0.5f),
+      m_fallbackArtOpacity(0.5f), m_hoverIconColor(L"#88CCFF"),
+      m_hoverFadeOutSpeed(3.0f), m_playingItemColor(L"#FFA500"),
+      m_hoverItemColor(L"#FFFF99"),
 
       m_logoMenuVisualizerFontSize(12.0f), m_logoMenuVisualizerIconOffsetX(12),
       m_logoMenuVisualizerIconOffsetY(7), m_logoMenuLockIconFontSize(14.0f),
@@ -552,6 +558,19 @@ void ConfigManager::LoadSettings() {
     m_controlHoverHeight = std::stof(buf);
   } catch (...) {
     m_controlHoverHeight = 50.0f;
+  }
+
+  wchar_t colorBuf[256];
+  GetPrivateProfileStringW(L"Layout_Window", L"HoverIconColor", L"#88CCFF",
+                           colorBuf, 256, m_iniFilePath.c_str());
+  m_hoverIconColor = colorBuf;
+
+  GetPrivateProfileStringW(L"Layout_Window", L"HoverFadeOutSpeed", L"3.0", buf,
+                           32, m_iniFilePath.c_str());
+  try {
+    m_hoverFadeOutSpeed = std::stof(buf);
+  } catch (...) {
+    m_hoverFadeOutSpeed = 3.0f;
   }
 
   GetPrivateProfileStringW(L"Audio", L"DefaultVolume", L"1.0", buf, 32,
@@ -1080,6 +1099,15 @@ void ConfigManager::LoadSettings() {
                                           400, m_iniFilePath.c_str());
   m_playlistItemOffsetY = GetPrivateProfileIntW(
       L"Layout_Playlist", L"PlaylistItemOffsetY", 45, m_iniFilePath.c_str());
+
+  GetPrivateProfileStringW(L"Layout_Playlist", L"PlayingItemColor", L"#FFA500",
+                           colorBuf, 256, m_iniFilePath.c_str());
+  m_playingItemColor = colorBuf;
+
+  GetPrivateProfileStringW(L"Layout_Playlist", L"HoverItemColor", L"#FFFF99",
+                           colorBuf, 256, m_iniFilePath.c_str());
+  m_hoverItemColor = colorBuf;
+
   GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistTitleFontSize",
                            L"16.0", buf, 32, m_iniFilePath.c_str());
   try {

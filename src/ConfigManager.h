@@ -181,6 +181,11 @@ public:
     float GetLogoMenuDescShadowOffsetY() const { return m_logoMenuDescShadowOffsetY; }
     float GetLogoMenuDescShadowOpacity() const { return m_logoMenuDescShadowOpacity; }
 
+    std::wstring GetHoverIconColor() const { return m_hoverIconColor; }
+    float GetHoverFadeOutSpeed() const { return m_hoverFadeOutSpeed; }
+    std::wstring GetPlayingItemColor() const { return m_playingItemColor; }
+    std::wstring GetHoverItemColor() const { return m_hoverItemColor; }
+
     /**
      * @brief デフォルト設定で上書き保存する
      */
@@ -401,6 +406,11 @@ private:
     int m_artOffsetY;
     int m_artSize;
     float m_fallbackArtOpacity;
+
+    std::wstring m_hoverIconColor;
+    float m_hoverFadeOutSpeed;
+    std::wstring m_playingItemColor;
+    std::wstring m_hoverItemColor;
 
 
 

@@ -315,7 +315,7 @@ bool Renderer::LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitma
     return true;
 }
 
-void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode) {
+void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode, int playbackHoveredIndex, int playlistHoveredItemIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems) {
     if (isControlHovered) {
         m_controlAlpha += 0.05f;
         if (m_controlAlpha > 1.0f) m_controlAlpha = 1.0f;
@@ -335,6 +335,9 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPl
     ctx.totalTracks = totalTracks;
     ctx.config = m_config;
     ctx.dpiScale = m_dpiScale;
+    ctx.playbackHoveredIndex = playbackHoveredIndex;
+    ctx.playlistHoveredItemIndex = playlistHoveredItemIndex;
+    ctx.logoMenuItems = logoMenuItems;
     
     for (auto& widget : m_widgets) {
         widget->UpdateAnimation(ctx);

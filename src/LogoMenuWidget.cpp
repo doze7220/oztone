@@ -175,6 +175,26 @@ void LogoMenuWidget::UpdateAnimation(const WidgetContext &ctx) {
     if (m_menuProgress < 0.0f)
       m_menuProgress = 0.0f;
   }
+
+  if (ctx.logoMenuItems && ctx.config) {
+    size_t count = ctx.logoMenuItems->size();
+    if (m_hoverAlpha.size() != count) {
+      m_hoverAlpha.resize(count, 0.0f);
+    }
+
+    float fadeOutSpeed = ctx.config->GetHoverFadeOutSpeed() * ctx.deltaTime;
+    float fadeInSpeed = 10.0f * ctx.deltaTime;
+
+    for (size_t i = 0; i < count; ++i) {
+      if (ctx.logoMenuHoveredIndex == static_cast<int>(i)) {
+        m_hoverAlpha[i] += fadeInSpeed;
+        if (m_hoverAlpha[i] > 1.0f) m_hoverAlpha[i] = 1.0f;
+      } else {
+        m_hoverAlpha[i] -= fadeOutSpeed;
+        if (m_hoverAlpha[i] < 0.0f) m_hoverAlpha[i] = 0.0f;
+      }
+    }
+  }
 }
 
 void LogoMenuWidget::UpdateLayout(const WidgetContext &ctx,
@@ -262,8 +282,21 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
                           D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
     }
 
+    auto GetBlendedColor = [&](bool isActive, int index) {
+        D2D1_COLOR_F baseColor = isActive ? D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f) : D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.4f);
+        D2D1_COLOR_F hoverColor = ParseHexColor(config->GetHoverIconColor());
+        float t = (index >= 0 && index < static_cast<int>(m_hoverAlpha.size())) ? m_hoverAlpha[index] : 0.0f;
+        return D2D1_COLOR_F{
+            baseColor.r + (hoverColor.r - baseColor.r) * t,
+            baseColor.g + (hoverColor.g - baseColor.g) * t,
+            baseColor.b + (hoverColor.b - baseColor.b) * t,
+            baseColor.a + (hoverColor.a - baseColor.a) * t
+        };
+    };
+
     ID2D1SolidColorBrush *brush =
         active ? m_iconBrush.Get() : m_inactiveIconBrush.Get();
+    brush->SetColor(GetBlendedColor(active, static_cast<int>(i)));
 
     context->DrawText(
         iconText.c_str(), static_cast<UINT32>(iconText.length()),
@@ -310,6 +343,7 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
             }
 
             // White body
+            m_iconBrush->SetColor(GetBlendedColor(true, static_cast<int>(i)));
             context->DrawTextLayout(D2D1::Point2F(indRect.left, indRect.top),
                                     modeLayout.Get(), m_iconBrush.Get());
           }

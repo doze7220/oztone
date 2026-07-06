@@ -623,9 +623,16 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         m_isHovered = false;
         m_isControlHovered = false;
         m_isLogoMenuHovered = false;
+        m_playbackHoveredIndex = -1;
       } else {
         m_isHovered = IsInLogoRegion(xPos, yPos);
         m_isControlHovered = IsInPlaybackControlRegion(xPos, yPos);
+
+        if (m_isControlHovered) {
+          m_playbackHoveredIndex = GetPlaybackButtonAt(xPos, yPos);
+        } else {
+          m_playbackHoveredIndex = -1;
+        }
 
         if (m_isHovered ||
             (m_isLogoMenuHovered && IsInLogoMenuRegion(xPos, yPos, 1.0f))) {
@@ -656,6 +663,8 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     m_logoMenuHoveredIndex = -1;
     m_playlistToolbarHoveredIndex = -1;
     m_isPlaylistPinnedHovered = false;
+    m_playbackHoveredIndex = -1;
+    m_playlistHoveredItemIndex = -1;
     m_isTrackingMouse = false;
     return 0;
   }
