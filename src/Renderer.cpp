@@ -315,7 +315,7 @@ bool Renderer::LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitma
     return true;
 }
 
-void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode, int playbackHoveredIndex, int playlistHoveredItemIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems) {
+void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode, int playbackHoveredIndex, int playlistHoveredItemIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems) {
     if (isControlHovered) {
         m_controlAlpha += 0.05f;
         if (m_controlAlpha > 1.0f) m_controlAlpha = 1.0f;
@@ -327,6 +327,7 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isPl
     WidgetContext ctx = {};
     ctx.deltaTime = deltaTime;
     ctx.isControlHovered = isControlHovered;
+    ctx.isVolumeHovered = isVolumeHovered;
     ctx.isPlaylistHovered = isPlaylistHovered;
     ctx.isLogoMenuHovered = isLogoMenuHovered;
     ctx.logoMenuHoveredIndex = logoMenuHoveredIndex;
@@ -375,7 +376,7 @@ void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, s
     }
 }
 
-void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isPlaylistListViewMode, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList, int playlistToolbarHoveredIndex, const std::vector<PlaylistSummary>* availablePlaylistsCache) {
+void Renderer::Render(bool isHovered, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isPlaylistListViewMode, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList, int playlistToolbarHoveredIndex, const std::vector<PlaylistSummary>* availablePlaylistsCache) {
     if (!m_d2dContext) return;
 
     m_d2dContext->BeginDraw();
@@ -391,13 +392,15 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isPlaylistHove
     DrawVisualizer(spectrum);
 
     WidgetContext ctx = {};
-    ctx.isHovered = isHovered;
+    ctx.logoMenuItems = logoMenuItems;
     ctx.isControlHovered = isControlHovered;
+    ctx.isVolumeHovered = isVolumeHovered;
     ctx.isPlaylistHovered = isPlaylistHovered;
     ctx.isLogoMenuHovered = isLogoMenuHovered;
     ctx.logoMenuHoveredIndex = logoMenuHoveredIndex;
     ctx.logoMenuItems = logoMenuItems;
     ctx.playlistToolbarHoveredIndex = playlistToolbarHoveredIndex;
+    ctx.isHovered = isHovered;
     ctx.isPlaylistListViewMode = isPlaylistListViewMode;
     ctx.isPlaying = isPlaying;
     ctx.progress = progress;

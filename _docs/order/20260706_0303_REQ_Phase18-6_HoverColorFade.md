@@ -1,4 +1,4 @@
-### 作業指示書 REQ: Phase 19-1: UIホバー時の非対称カラーフェードUX
+### 作業指示書 REQ: Phase 18-6: UIホバー時の非対称カラーフェードUX
 以下のプロジェクトルールと開発資料を熟読すること。
 * D:\ozlab\oztone\PROJECT_CONSTITUTION.md
 * D:\ozlab\oztone\PROJECT_ARCHITECTURE.md

@@ -22,4 +22,12 @@ private:
     Microsoft::WRL::ComPtr<IDWriteTextLayout> m_volTextLayout;
     float m_lastVolume = -1.0f;
     Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
+    Microsoft::WRL::ComPtr<ID2D1Factory> m_d2dFactory;
+
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_tooltipBgBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_tooltipTextBrush;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_tooltipTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_tooltipTextLayout;
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_tooltipGeometry;
+    float m_tooltipAlpha = 0.0f;
 };

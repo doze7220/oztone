@@ -141,6 +141,8 @@ public:
      * @brief 座標が音量コントロール領域内にあるかを判定する
      */
     bool IsInVolumeControlRegion(int x, int y) const;
+    bool IsVolumeHovered() const { return m_isVolumeHovered; }
+    void SetVolumeHovered(bool hovered) { m_isVolumeHovered = hovered; }
 
 
     /**
@@ -286,6 +288,7 @@ private:
     ConfigManager* m_config;
     bool m_isHovered;
     bool m_isControlHovered;
+    bool m_isVolumeHovered;
     bool m_isPlaylistHovered;
     bool m_isTrackingMouse;
     std::function<void(const std::vector<std::wstring>&)> m_onFilesDropped;

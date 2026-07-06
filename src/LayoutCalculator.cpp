@@ -329,6 +329,27 @@ VolumeControlLayout LayoutCalculator::CalculateVolumeControlLayout(float logical
     layout.textMaxWidth = 100.0f;
     layout.textMaxHeight = layout.volSize * 2.0f;
 
+    // Tooltip Layout
+    float tooltipW = config->GetVolumeTooltipWidth();
+    float tooltipH = config->GetVolumeTooltipHeight();
+    layout.tooltipBoxW = tooltipW;
+    layout.tooltipBoxH = tooltipH;
+    layout.tooltipBoxX = layout.volX + 16.0f - tooltipW / 2.0f; // center relative to speaker
+    layout.tooltipBoxY = layout.volY - layout.volSize - tooltipH - config->GetVolumeTooltipOffsetY();
+
+    layout.tooltipRadius = 4.0f;
+
+    // Triangle below box
+    layout.tooltipTriangleX1 = layout.tooltipBoxX + tooltipW / 2.0f - 6.0f;
+    layout.tooltipTriangleY1 = layout.tooltipBoxY + tooltipH;
+    layout.tooltipTriangleX2 = layout.tooltipBoxX + tooltipW / 2.0f + 6.0f;
+    layout.tooltipTriangleY2 = layout.tooltipBoxY + tooltipH;
+    layout.tooltipTriangleX3 = layout.tooltipBoxX + tooltipW / 2.0f;
+    layout.tooltipTriangleY3 = layout.tooltipBoxY + tooltipH + 6.0f;
+
+    layout.tooltipTextX = layout.tooltipBoxX;
+    layout.tooltipTextY = layout.tooltipBoxY;
+
     return layout;
 }
 

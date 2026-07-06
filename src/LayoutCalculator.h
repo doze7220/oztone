@@ -72,6 +72,21 @@ struct VolumeControlLayout {
     float textY;
     float textMaxWidth;
     float textMaxHeight;
+
+    // Tooltip layout fields
+    float tooltipBoxX;
+    float tooltipBoxY;
+    float tooltipBoxW;
+    float tooltipBoxH;
+    float tooltipTextX;
+    float tooltipTextY;
+    float tooltipTriangleX1;
+    float tooltipTriangleY1;
+    float tooltipTriangleX2;
+    float tooltipTriangleY2;
+    float tooltipTriangleX3;
+    float tooltipTriangleY3;
+    float tooltipRadius;
 };
 
 struct NextTrackLayout {

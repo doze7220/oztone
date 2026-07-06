@@ -21,7 +21,7 @@ HWND Window::s_hwnd = nullptr;
 
 Window::Window()
     : m_hwnd(nullptr), m_hInstance(nullptr), m_config(nullptr),
-      m_isHovered(false), m_isControlHovered(false), m_isPlaylistHovered(false),
+      m_isHovered(false), m_isControlHovered(false), m_isVolumeHovered(false), m_isPlaylistHovered(false),
       m_isTrackingMouse(false), m_pDropTarget(nullptr), m_keyboardHook(nullptr),
       m_isLogoMenuHovered(false) {
   m_logoMenuItems = {
@@ -622,11 +622,13 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
       if (m_isPlaylistHovered && !isPinned) {
         m_isHovered = false;
         m_isControlHovered = false;
+        m_isVolumeHovered = false;
         m_isLogoMenuHovered = false;
         m_playbackHoveredIndex = -1;
       } else {
         m_isHovered = IsInLogoRegion(xPos, yPos);
         m_isControlHovered = IsInPlaybackControlRegion(xPos, yPos);
+        m_isVolumeHovered = IsInVolumeControlRegion(xPos, yPos);
 
         if (m_isControlHovered) {
           m_playbackHoveredIndex = GetPlaybackButtonAt(xPos, yPos);
@@ -658,6 +660,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   case WM_MOUSELEAVE: {
     m_isHovered = false;
     m_isControlHovered = false;
+    m_isVolumeHovered = false;
     m_isPlaylistHovered = false;
     m_isLogoMenuHovered = false;
     m_logoMenuHoveredIndex = -1;

@@ -158,6 +158,15 @@ EnableShadow=1
 ShadowOffsetX=2.0
 ShadowOffsetY=2.0
 ShadowOpacity=0.7
+TooltipText="🖱️↕"
+TooltipFontSize=14.0
+TooltipFontFamily="Segoe UI Emoji"
+TooltipOffsetY=10.0
+TooltipWidth=50.0
+TooltipHeight=26.0
+TooltipBgColor=#80000000
+TooltipBgOpacity=1.0
+TooltipTextColor=#FFFFFF
 
 [Audio]
 DefaultVolume=1.0
@@ -347,6 +356,17 @@ ConfigManager::ConfigManager()
   m_volShadowOffsetX = 2.0f;
   m_volShadowOffsetY = 2.0f;
   m_volShadowOpacity = 0.7f;
+
+  m_volTooltipText = L"\U0001F5B1\uFE0F\u2195";
+  m_volTooltipFontSize = 14.0f;
+  m_volTooltipFontFamily = L"Segoe UI Emoji";
+  m_volTooltipOffsetY = 10.0f;
+  m_volTooltipBgColor = L"#80000000";
+  m_volTooltipBgOpacity = 1.0f;
+  m_volTooltipTextColor = L"#FFFFFF";
+  m_volTooltipWidth = 50.0f;
+  m_volTooltipHeight = 26.0f;
+
   m_skipSeconds = 10.0f;
 
   m_trackCountFontFamily = L"Courier New";
@@ -643,6 +663,66 @@ void ConfigManager::LoadSettings() {
     m_volShadowOpacity = std::stof(buf);
   } catch (...) {
     m_volShadowOpacity = 0.7f;
+  }
+
+  wchar_t tooltipTextBuf[256];
+  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipText", L"",
+                           tooltipTextBuf, 256, m_iniFilePath.c_str());
+  m_volTooltipText = tooltipTextBuf;
+  if (m_volTooltipText.empty() || m_volTooltipText.find(L'?') != std::wstring::npos || m_volTooltipText.find(L"・") != std::wstring::npos) {
+      m_volTooltipText = L"\U0001F5B1\uFE0F\u2195";
+  }
+
+  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipFontSize", L"14.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_volTooltipFontSize = std::stof(buf);
+  } catch (...) {
+    m_volTooltipFontSize = 14.0f;
+  }
+
+  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipFontFamily", L"Segoe UI Emoji",
+                           tooltipTextBuf, 256, m_iniFilePath.c_str());
+  m_volTooltipFontFamily = tooltipTextBuf;
+
+  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipOffsetY", L"10.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_volTooltipOffsetY = std::stof(buf);
+  } catch (...) {
+    m_volTooltipOffsetY = 10.0f;
+  }
+
+  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipBgColor", L"#80000000",
+                           tooltipTextBuf, 256, m_iniFilePath.c_str());
+  m_volTooltipBgColor = tooltipTextBuf;
+
+  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipBgOpacity", L"1.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_volTooltipBgOpacity = std::stof(buf);
+  } catch (...) {
+    m_volTooltipBgOpacity = 1.0f;
+  }
+
+  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipTextColor", L"#FFFFFF",
+                           tooltipTextBuf, 256, m_iniFilePath.c_str());
+  m_volTooltipTextColor = tooltipTextBuf;
+
+  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipWidth", L"50.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_volTooltipWidth = std::stof(buf);
+  } catch (...) {
+    m_volTooltipWidth = 50.0f;
+  }
+
+  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipHeight", L"26.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_volTooltipHeight = std::stof(buf);
+  } catch (...) {
+    m_volTooltipHeight = 26.0f;
   }
 
   m_visualizerMode = GetPrivateProfileIntW(L"Visualizer", L"VisualizerMode", 0,

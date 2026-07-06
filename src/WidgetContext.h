@@ -30,6 +30,7 @@ struct WidgetContext {
     int logoMenuHoveredIndex;
     const std::vector<Window::LogoMenuItem>* logoMenuItems;
     bool isControlHovered;
+    bool isVolumeHovered;
     bool isPlaylistHovered;
     int playlistToolbarHoveredIndex;
     bool isPlaylistPinnedHovered;

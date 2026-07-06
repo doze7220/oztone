@@ -22,13 +22,30 @@ void VolumeControlWidget::CreateResources(ID2D1DeviceContext *context,
     if (m_volumeTextFormat) {
       // Text alignment setup removed to fix text positioning issue
     }
+
+    context->CreateSolidColorBrush(ParseHexColor(config->GetVolumeTooltipBgColor()), &m_tooltipBgBrush);
+    context->CreateSolidColorBrush(ParseHexColor(config->GetVolumeTooltipTextColor()), &m_tooltipTextBrush);
+
+    dwriteFactory->CreateTextFormat(
+        config->GetVolumeTooltipFontFamily().c_str(), nullptr,
+        DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL, config->GetVolumeTooltipFontSize(), L"ja-jp",
+        &m_tooltipTextFormat);
+    if (m_tooltipTextFormat) {
+      m_tooltipTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+      m_tooltipTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+
+      std::wstring text = config->GetVolumeTooltipText();
+      dwriteFactory->CreateTextLayout(
+          text.c_str(), static_cast<UINT32>(text.length()), m_tooltipTextFormat.Get(),
+          config->GetVolumeTooltipWidth(), config->GetVolumeTooltipHeight(), &m_tooltipTextLayout);
+    }
   }
 
-  Microsoft::WRL::ComPtr<ID2D1Factory> d2dFactory;
-  context->GetFactory(&d2dFactory);
+  context->GetFactory(&m_d2dFactory);
 
-  if (d2dFactory) {
-    d2dFactory->CreatePathGeometry(&m_speakerIconGeometry);
+  if (m_d2dFactory) {
+    m_d2dFactory->CreatePathGeometry(&m_speakerIconGeometry);
     if (m_speakerIconGeometry) {
       Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
       m_speakerIconGeometry->Open(&sink);
@@ -45,6 +62,35 @@ void VolumeControlWidget::CreateResources(ID2D1DeviceContext *context,
       sink->EndFigure(D2D1_FIGURE_END_CLOSED);
       sink->Close();
     }
+
+    m_d2dFactory->CreatePathGeometry(&m_tooltipGeometry);
+    if (m_tooltipGeometry) {
+      Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+      m_tooltipGeometry->Open(&sink);
+      sink->SetFillMode(D2D1_FILL_MODE_WINDING);
+
+      float w = config ? config->GetVolumeTooltipWidth() : 50.0f;
+      float h = config ? config->GetVolumeTooltipHeight() : 26.0f;
+      float r = 4.0f;
+
+      sink->BeginFigure(D2D1::Point2F(r, 0.0f), D2D1_FIGURE_BEGIN_FILLED);
+      sink->AddLine(D2D1::Point2F(w - r, 0.0f));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(w, r), D2D1::SizeF(r, r), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      sink->AddLine(D2D1::Point2F(w, h - r));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(w - r, h), D2D1::SizeF(r, r), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      
+      sink->AddLine(D2D1::Point2F(w / 2.0f + 6.0f, h));
+      sink->AddLine(D2D1::Point2F(w / 2.0f, h + 6.0f));
+      sink->AddLine(D2D1::Point2F(w / 2.0f - 6.0f, h));
+
+      sink->AddLine(D2D1::Point2F(r, h));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(0.0f, h - r), D2D1::SizeF(r, r), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      sink->AddLine(D2D1::Point2F(0.0f, r));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(r, 0.0f), D2D1::SizeF(r, r), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      
+      sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+      sink->Close();
+    }
   }
 }
 
@@ -55,11 +101,30 @@ void VolumeControlWidget::ReleaseResources() {
   m_volumeTextFormat.Reset();
   m_volTextLayout.Reset();
   m_dwriteFactory.Reset();
+
+  m_tooltipBgBrush.Reset();
+  m_tooltipTextBrush.Reset();
+  m_tooltipTextFormat.Reset();
+  m_tooltipTextLayout.Reset();
+  m_tooltipGeometry.Reset();
+  m_d2dFactory.Reset();
 }
 
-void VolumeControlWidget::UpdateAnimation(const WidgetContext &ctx) {}
+void VolumeControlWidget::UpdateAnimation(const WidgetContext &ctx) {
+  if (ctx.isVolumeHovered) {
+    m_tooltipAlpha = 1.0f;
+  } else {
+    float fadeOutSpeed = ctx.config ? ctx.config->GetHoverFadeOutSpeed() : 3.0f;
+    m_tooltipAlpha -= ctx.deltaTime * fadeOutSpeed;
+    if (m_tooltipAlpha < 0.0f) m_tooltipAlpha = 0.0f;
+  }
+}
 void VolumeControlWidget::UpdateLayout(const WidgetContext &ctx,
-                                       const ConfigManager *config) {}
+                                       const ConfigManager *config) {
+  if (!config || !m_dwriteFactory) return;
+
+  D2D1_SIZE_F renderTargetSize = ctx.currentArtBitmap ? D2D1_SIZE_F{1024, 512} : D2D1_SIZE_F{1024, 512}; // Need actual context size, but we can just use DPI scale logic
+}
 
 void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
                                const WidgetContext &ctx,
@@ -163,6 +228,20 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
     if (m_volTextLayout) {
       context->DrawTextLayout(D2D1::Point2F(layout.textX, layout.textY),
                               m_volTextLayout.Get(), m_controlBrush.Get());
+    }
+
+    if (m_tooltipAlpha > 0.0f && m_tooltipGeometry && m_tooltipTextLayout) {
+      float tooltipAlphaFinal = m_tooltipAlpha * ctx.controlAlpha;
+      if (m_tooltipBgBrush) {
+        m_tooltipBgBrush->SetOpacity(tooltipAlphaFinal * config->GetVolumeTooltipBgOpacity());
+        context->SetTransform(D2D1::Matrix3x2F::Translation(layout.tooltipBoxX, layout.tooltipBoxY) * oldTransform);
+        context->FillGeometry(m_tooltipGeometry.Get(), m_tooltipBgBrush.Get());
+      }
+      if (m_tooltipTextBrush) {
+        m_tooltipTextBrush->SetOpacity(tooltipAlphaFinal);
+        context->SetTransform(oldTransform);
+        context->DrawTextLayout(D2D1::Point2F(layout.tooltipTextX, layout.tooltipTextY), m_tooltipTextLayout.Get(), m_tooltipTextBrush.Get());
+      }
     }
   }
 }

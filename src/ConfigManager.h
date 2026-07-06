@@ -275,6 +275,16 @@ public:
     float GetVolumeShadowOffsetY() const { return m_volShadowOffsetY; }
     float GetVolumeShadowOpacity() const { return m_volShadowOpacity; }
 
+    std::wstring GetVolumeTooltipText() const { return m_volTooltipText; }
+    float GetVolumeTooltipFontSize() const { return m_volTooltipFontSize; }
+    std::wstring GetVolumeTooltipFontFamily() const { return m_volTooltipFontFamily; }
+    float GetVolumeTooltipOffsetY() const { return m_volTooltipOffsetY; }
+    std::wstring GetVolumeTooltipBgColor() const { return m_volTooltipBgColor; }
+    float GetVolumeTooltipBgOpacity() const { return m_volTooltipBgOpacity; }
+    std::wstring GetVolumeTooltipTextColor() const { return m_volTooltipTextColor; }
+    float GetVolumeTooltipWidth() const { return m_volTooltipWidth; }
+    float GetVolumeTooltipHeight() const { return m_volTooltipHeight; }
+
     std::wstring GetTrackCountFontFamily() const { return m_trackCountFontFamily; }
     float GetTrackCountFontSize() const { return m_trackCountFontSize; }
     int GetTrackCountOffsetX() const { return m_trackCountOffsetX; }
@@ -503,6 +513,16 @@ private:
     float m_volShadowOffsetX;
     float m_volShadowOffsetY;
     float m_volShadowOpacity;
+
+    std::wstring m_volTooltipText;
+    float m_volTooltipFontSize;
+    std::wstring m_volTooltipFontFamily;
+    float m_volTooltipOffsetY;
+    std::wstring m_volTooltipBgColor;
+    float m_volTooltipBgOpacity;
+    std::wstring m_volTooltipTextColor;
+    float m_volTooltipWidth;
+    float m_volTooltipHeight;
 
     std::wstring m_trackCountFontFamily;
     float m_trackCountFontSize;
