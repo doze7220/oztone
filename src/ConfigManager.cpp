@@ -159,12 +159,12 @@ ShadowOffsetX=2.0
 ShadowOffsetY=2.0
 ShadowOpacity=0.7
 TooltipText="🖱️↕"
-TooltipFontSize=14.0
+TooltipFontSize=20.0
 TooltipFontFamily="Segoe UI Emoji"
-TooltipOffsetY=10.0
-TooltipWidth=50.0
-TooltipHeight=26.0
-TooltipBgColor=#80000000
+TooltipOffsetY=-5.0
+TooltipWidth=65.0
+TooltipHeight=40.0
+TooltipBgColor=#A0000000
 TooltipBgOpacity=1.0
 TooltipTextColor=#FFFFFF
 
@@ -669,8 +669,10 @@ void ConfigManager::LoadSettings() {
   GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipText", L"",
                            tooltipTextBuf, 256, m_iniFilePath.c_str());
   m_volTooltipText = tooltipTextBuf;
-  if (m_volTooltipText.empty() || m_volTooltipText.find(L'?') != std::wstring::npos || m_volTooltipText.find(L"・") != std::wstring::npos) {
-      m_volTooltipText = L"\U0001F5B1\uFE0F\u2195";
+  if (m_volTooltipText.empty() ||
+      m_volTooltipText.find(L'?') != std::wstring::npos ||
+      m_volTooltipText.find(L"・") != std::wstring::npos) {
+    m_volTooltipText = L"\U0001F5B1\uFE0F\u2195";
   }
 
   GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipFontSize", L"14.0",
@@ -681,8 +683,9 @@ void ConfigManager::LoadSettings() {
     m_volTooltipFontSize = 14.0f;
   }
 
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipFontFamily", L"Segoe UI Emoji",
-                           tooltipTextBuf, 256, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipFontFamily",
+                           L"Segoe UI Emoji", tooltipTextBuf, 256,
+                           m_iniFilePath.c_str());
   m_volTooltipFontFamily = tooltipTextBuf;
 
   GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipOffsetY", L"10.0",
@@ -693,8 +696,9 @@ void ConfigManager::LoadSettings() {
     m_volTooltipOffsetY = 10.0f;
   }
 
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipBgColor", L"#80000000",
-                           tooltipTextBuf, 256, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipBgColor",
+                           L"#80000000", tooltipTextBuf, 256,
+                           m_iniFilePath.c_str());
   m_volTooltipBgColor = tooltipTextBuf;
 
   GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipBgOpacity", L"1.0",
@@ -705,8 +709,9 @@ void ConfigManager::LoadSettings() {
     m_volTooltipBgOpacity = 1.0f;
   }
 
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipTextColor", L"#FFFFFF",
-                           tooltipTextBuf, 256, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipTextColor",
+                           L"#FFFFFF", tooltipTextBuf, 256,
+                           m_iniFilePath.c_str());
   m_volTooltipTextColor = tooltipTextBuf;
 
   GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipWidth", L"50.0",
