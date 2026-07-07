@@ -45,6 +45,7 @@ BackgroundArtMode=0
 ControlHoverHeight=50.0
 HoverIconColor=#2452a6
 HoverFadeOutSpeed=2
+ControlLeaveDelay=3.0
 
 [Layout_AppLogo]
 X=16
@@ -75,6 +76,7 @@ LockIconOffsetY=-2
 DescShadowOffsetX=2.0
 DescShadowOffsetY=1.0
 DescShadowOpacity=0.8
+MenuLeaveDelay=2
 
 [Layout_NowPlaying]
 BaseX=20
@@ -216,6 +218,7 @@ ToolbarTextFontSize=12.0
 PinSubIconOffsetX=6
 PinSubIconOffsetY=6
 PinSubIconFontSize=10.0
+PlaylistLeaveDelay=0.5
 
 [Layout_GlobalHotkeys]
 FontFamily=MS Gothic
@@ -320,13 +323,13 @@ ConfigManager::ConfigManager()
       m_backgroundArtMode(0), m_visualizerMode(0), m_logoX(16), m_logoY(16),
       m_logoWidth(64), m_logoHeight(64), m_logoMenuIconSize(24.0f),
       m_logoMenuIconSpacing(40), m_logoMenuIconOffsetX(0),
-      m_logoMenuIconOffsetY(0), m_logoMenuScrollDuration(0.5f), m_menuLeaveDelay(3.0f),
-      m_logoMenuFontFamily(L"Segoe UI Emoji"), m_logoMenuTextColor(L"#FFFFFF"),
-      m_logoMenuTypingFontFamily(L"Consolas"), m_logoMenuTypingFontSize(14.0f),
-      m_logoMenuTextOffsetX(0), m_logoMenuTextOffsetY(60),
-      m_logoMenuTypingLetterSpacing(0.0f), m_baseX(30), m_baseBottomOffset(162),
-      m_artOffsetX(0), m_artOffsetY(0), m_artSize(120),
-      m_fallbackArtOpacity(0.5f), m_hoverIconColor(L"#88CCFF"),
+      m_logoMenuIconOffsetY(0), m_logoMenuScrollDuration(0.5f),
+      m_menuLeaveDelay(3.0f), m_logoMenuFontFamily(L"Segoe UI Emoji"),
+      m_logoMenuTextColor(L"#FFFFFF"), m_logoMenuTypingFontFamily(L"Consolas"),
+      m_logoMenuTypingFontSize(14.0f), m_logoMenuTextOffsetX(0),
+      m_logoMenuTextOffsetY(60), m_logoMenuTypingLetterSpacing(0.0f),
+      m_baseX(30), m_baseBottomOffset(162), m_artOffsetX(0), m_artOffsetY(0),
+      m_artSize(120), m_fallbackArtOpacity(0.5f), m_hoverIconColor(L"#88CCFF"),
       m_hoverFadeOutSpeed(3.0f), m_playingItemColor(L"#FFA500"),
       m_hoverItemColor(L"#FFFF99"),
 
@@ -601,8 +604,8 @@ void ConfigManager::LoadSettings() {
     m_controlHoverHeight = 50.0f;
   }
 
-  GetPrivateProfileStringW(L"Layout_Window", L"ControlLeaveDelay", L"3.0",
-                           buf, 32, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_Window", L"ControlLeaveDelay", L"3.0", buf,
+                           32, m_iniFilePath.c_str());
   try {
     m_controlLeaveDelay = std::stof(buf);
   } catch (...) {
@@ -812,8 +815,8 @@ void ConfigManager::LoadSettings() {
     m_logoMenuScrollDuration = 0.5f;
   }
 
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuLeaveDelay", L"3.0",
-                           buf, 32, m_iniFilePath.c_str());
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuLeaveDelay", L"3.0", buf,
+                           32, m_iniFilePath.c_str());
   try {
     m_menuLeaveDelay = std::stof(buf);
   } catch (...) {

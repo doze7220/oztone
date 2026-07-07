@@ -394,6 +394,18 @@ bool Window::IsInPlaybackControlRegion(int x, int y) const {
   int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
   int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
 
+  if (m_config->GetIsPlaylistPinned()) {
+    int playlistWidth = m_config->GetPlaylistWidth();
+    if (m_config->GetPlaylistPosition() == 0) {
+      logicalX -= playlistWidth;
+      logicalWidth -= playlistWidth;
+      if (logicalX < 0) return false;
+    } else {
+      logicalWidth -= playlistWidth;
+      if (logicalX >= logicalWidth) return false;
+    }
+  }
+
   return (logicalY >= logicalHeight - m_config->GetControlHoverHeight());
 }
 
@@ -405,7 +417,20 @@ bool Window::IsInVolumeControlRegion(int x, int y) const {
   int logicalY = MulDiv(y, 96, dpi);
   RECT rect;
   GetClientRect(m_hwnd, &rect);
+  int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
   int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
+
+  if (m_config->GetIsPlaylistPinned()) {
+    int playlistWidth = m_config->GetPlaylistWidth();
+    if (m_config->GetPlaylistPosition() == 0) {
+      logicalX -= playlistWidth;
+      logicalWidth -= playlistWidth;
+      if (logicalX < 0) return false;
+    } else {
+      logicalWidth -= playlistWidth;
+      if (logicalX >= logicalWidth) return false;
+    }
+  }
 
   float volX = static_cast<float>(m_config->GetVolumeBaseLeftOffset());
   float volY =
@@ -519,6 +544,18 @@ int Window::GetPlaybackButtonAt(int x, int y) const {
   GetClientRect(m_hwnd, &rect);
   int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
   int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
+
+  if (m_config->GetIsPlaylistPinned()) {
+    int playlistWidth = m_config->GetPlaylistWidth();
+    if (m_config->GetPlaylistPosition() == 0) {
+      logicalX -= playlistWidth;
+      logicalWidth -= playlistWidth;
+      if (logicalX < 0) return 0;
+    } else {
+      logicalWidth -= playlistWidth;
+      if (logicalX >= logicalWidth) return 0;
+    }
+  }
 
   float centerX = (logicalWidth / 2.0f) + m_config->GetPlaybackCenterOffsetX();
   float centerY = logicalHeight -
