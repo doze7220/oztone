@@ -496,3 +496,26 @@ GlobalHotkeysLayout LayoutCalculator::CalculateGlobalHotkeysLayout(float logical
     return layout;
 }
 
+OsdLayout LayoutCalculator::CalculateOsdLayout(float logicalWidth, float logicalHeight, float textWidth, float textHeight, const ConfigManager* config) {
+    OsdLayout layout = {};
+    if (!config) return layout;
+
+    float offsetX = 0.0f;
+    ApplyPinningOffset(logicalWidth, offsetX, config);
+
+    float centerX = offsetX + logicalWidth / 2.0f;
+    float centerY = logicalHeight / 2.0f;
+
+    float left = centerX - textWidth / 2.0f;
+    float top = centerY - textHeight / 2.0f;
+
+    layout.textRect = D2D1::RectF(left, top, left + textWidth, top + textHeight);
+    layout.shadowRect = D2D1::RectF(
+        left + config->GetOsdShadowOffsetX(),
+        top + config->GetOsdShadowOffsetY(),
+        left + textWidth + config->GetOsdShadowOffsetX(),
+        top + textHeight + config->GetOsdShadowOffsetY()
+    );
+
+    return layout;
+}

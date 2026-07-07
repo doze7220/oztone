@@ -98,6 +98,16 @@ public:
     float GetPlaylistManualScrollY() const;
 
     /**
+     * @brief ボリューム操作時のOSD表示をトリガーする
+     */
+    void TriggerVolumeOsd();
+
+    /**
+     * @brief 画面中央のフライテキスト（通知）をトリガーする
+     */
+    void TriggerFlyText(const std::wstring& text);
+
+    /**
      * @brief メモリ上のバイナリデータからID2D1Bitmapを生成する
      */
     bool LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitmap** ppBitmap);
@@ -154,6 +164,11 @@ private:
     const ConfigManager* m_config;
     float m_dpiScale = 1.0f;
     float m_controlAlpha = 0.0f;
+    float m_osdVolumeAlpha = 0.0f;
+    float m_osdVolumeWaitTimer = 0.0f;
+    float m_flyTextAlpha = 0.0f;
+    float m_flyTextWaitTimer = 0.0f;
+    std::wstring m_flyTextString;
     Visualizer m_visualizer;
 
     std::vector<std::unique_ptr<IWidget>> m_widgets;

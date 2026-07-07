@@ -229,6 +229,17 @@ ActionColumnOffset=140.0
 ShadowColor=#000000
 ShadowOpacity=0.2
 
+[Layout_OSD]
+OsdFontFamily=Meiryo
+OsdFontSize=48.0
+OsdTextColor=#FFFFFF
+OsdShadowColor=#000000
+OsdShadowOffsetX=2.0
+OsdShadowOffsetY=2.0
+OsdShadowOpacity=0.8
+OsdFadeWait=1.5
+OsdFadeSpeed=1.5
+
 [GlobalHotkeys]
 ShowHotkeys=0
 
@@ -441,8 +452,16 @@ ConfigManager::ConfigManager()
   m_ghGlowOpacity = 0.8f;
   m_ghShadowColor = L"#000000";
   m_ghShadowOpacity = 0.8f;
+  m_ghShadowOpacity = 0.8f;
   m_ghKeyColumnOffset = 400.0f;
   m_ghActionColumnOffset = 150.0f;
+
+  m_osdFontFamily = L"Meiryo";
+  m_osdFontSize = 48.0f;
+  m_osdTextColor = L"#FFFFFF";
+  m_osdShadowColor = L"#000000";
+  m_osdShadowOpacity = 0.8f;
+  m_osdFadeSpeed = 2.0f;
 }
 
 ConfigManager::~ConfigManager() {}
@@ -1497,6 +1516,59 @@ void ConfigManager::LoadSettings() {
     m_ghActionColumnOffset = std::stof(buf);
   } catch (...) {
     m_ghActionColumnOffset = 150.0f;
+  }
+
+  wchar_t osdBuf[256];
+  GetPrivateProfileStringW(L"Layout_OSD", L"OsdFontFamily", L"Meiryo", osdBuf,
+                           256, m_iniFilePath.c_str());
+  m_osdFontFamily = osdBuf;
+  GetPrivateProfileStringW(L"Layout_OSD", L"OsdFontSize", L"48.0", buf, 32,
+                           m_iniFilePath.c_str());
+  try {
+    m_osdFontSize = std::stof(buf);
+  } catch (...) {
+    m_osdFontSize = 48.0f;
+  }
+  GetPrivateProfileStringW(L"Layout_OSD", L"OsdTextColor", L"#FFFFFF", osdBuf,
+                           256, m_iniFilePath.c_str());
+  m_osdTextColor = osdBuf;
+  GetPrivateProfileStringW(L"Layout_OSD", L"OsdShadowColor", L"#000000", osdBuf,
+                           256, m_iniFilePath.c_str());
+  m_osdShadowColor = osdBuf;
+  GetPrivateProfileStringW(L"Layout_OSD", L"OsdShadowOffsetX", L"2.0", buf, 32,
+                           m_iniFilePath.c_str());
+  try {
+    m_osdShadowOffsetX = std::stof(buf);
+  } catch (...) {
+    m_osdShadowOffsetX = 2.0f;
+  }
+  GetPrivateProfileStringW(L"Layout_OSD", L"OsdShadowOffsetY", L"2.0", buf, 32,
+                           m_iniFilePath.c_str());
+  try {
+    m_osdShadowOffsetY = std::stof(buf);
+  } catch (...) {
+    m_osdShadowOffsetY = 2.0f;
+  }
+  GetPrivateProfileStringW(L"Layout_OSD", L"OsdShadowOpacity", L"0.8", buf, 32,
+                           m_iniFilePath.c_str());
+  try {
+    m_osdShadowOpacity = std::stof(buf);
+  } catch (...) {
+    m_osdShadowOpacity = 0.8f;
+  }
+  GetPrivateProfileStringW(L"Layout_OSD", L"OsdFadeWait", L"1.0", buf, 32,
+                           m_iniFilePath.c_str());
+  try {
+    m_osdFadeWait = std::stof(buf);
+  } catch (...) {
+    m_osdFadeWait = 1.0f;
+  }
+  GetPrivateProfileStringW(L"Layout_OSD", L"OsdFadeSpeed", L"2.0", buf, 32,
+                           m_iniFilePath.c_str());
+  try {
+    m_osdFadeSpeed = std::stof(buf);
+  } catch (...) {
+    m_osdFadeSpeed = 2.0f;
   }
 
   m_showHotkeys = GetPrivateProfileIntW(L"GlobalHotkeys", L"ShowHotkeys", 0,

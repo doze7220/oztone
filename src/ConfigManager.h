@@ -88,6 +88,17 @@ public:
     float GetGlobalHotkeysKeyColumnOffset() const { return m_ghKeyColumnOffset; }
     float GetGlobalHotkeysActionColumnOffset() const { return m_ghActionColumnOffset; }
 
+    // --- Layout_OSD ---
+    std::wstring GetOsdFontFamily() const { return m_osdFontFamily; }
+    float GetOsdFontSize() const { return m_osdFontSize; }
+    std::wstring GetOsdTextColor() const { return m_osdTextColor; }
+    std::wstring GetOsdShadowColor() const { return m_osdShadowColor; }
+    float GetOsdShadowOffsetX() const { return m_osdShadowOffsetX; }
+    float GetOsdShadowOffsetY() const { return m_osdShadowOffsetY; }
+    float GetOsdShadowOpacity() const { return m_osdShadowOpacity; }
+    float GetOsdFadeSpeed() const { return m_osdFadeSpeed; }
+    float GetOsdFadeWait() const { return m_osdFadeWait; }
+
     bool GetShowHotkeys() const { return m_showHotkeys; }
     void SetShowHotkeys(bool show);
 
@@ -495,6 +506,17 @@ private:
     float m_ghShadowOpacity;
     float m_ghKeyColumnOffset;
     float m_ghActionColumnOffset;
+
+    // --- Layout_OSD ---
+    std::wstring m_osdFontFamily;
+    float m_osdFontSize;
+    std::wstring m_osdTextColor;
+    std::wstring m_osdShadowColor;
+    float m_osdShadowOffsetX;
+    float m_osdShadowOffsetY;
+    float m_osdShadowOpacity;
+    float m_osdFadeSpeed;
+    float m_osdFadeWait;
 
     std::wstring GetExecutablePath() const;
 

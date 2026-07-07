@@ -33,6 +33,7 @@ set(SOURCES
     src/PlaybackControlsWidget.cpp
     src/VolumeControlWidget.cpp
     src/LogoMenuWidget.cpp
+    src/OsdWidget.cpp
     src/AudioPlayer.cpp
     src/TagManager.cpp
     src/PlaylistManager.cpp
@@ -53,6 +54,7 @@ set(HEADERS
     src/PlaybackControlsWidget.h
     src/VolumeControlWidget.h
     src/LogoMenuWidget.h
+    src/OsdWidget.h
     src/AudioPlayer.h
     src/TagManager.h
     src/PlaylistManager.h

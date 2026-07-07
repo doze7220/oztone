@@ -46,6 +46,9 @@ struct WidgetContext {
     float dpiScale;
 
     float controlAlpha;
+    float osdVolumeAlpha;
+    float flyTextAlpha;
+    std::wstring flyTextString;
     const ConfigManager* config;
 
     std::wstring timeString;

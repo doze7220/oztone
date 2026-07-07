@@ -14,8 +14,9 @@
 #include "PlaybackControlsWidget.h"
 #include "VolumeControlWidget.h"
 #include "LogoMenuWidget.h"
+#include "OsdWidget.h"
 
-Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_controlAlpha(0.0f) {}
+Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_controlAlpha(0.0f), m_osdVolumeAlpha(0.0f), m_flyTextAlpha(0.0f) {}
 
 Renderer::~Renderer() {}
 
@@ -173,6 +174,7 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     m_widgets.push_back(std::make_unique<GlobalHotkeysWidget>());
     m_widgets.push_back(std::make_unique<PlaylistWidget>());
     m_widgets.push_back(std::make_unique<ResizeGripWidget>());
+    m_widgets.push_back(std::make_unique<OsdWidget>());
     for (auto& widget : m_widgets) {
         widget->CreateResources(m_d2dContext.Get(), m_wicFactory.Get(), m_dwriteFactory.Get(), m_config);
     }
@@ -324,6 +326,24 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
         if (m_controlAlpha < 0.0f) m_controlAlpha = 0.0f;
     }
 
+    if (m_config) {
+        float fadeSpeed = m_config->GetOsdFadeSpeed();
+        
+        if (m_osdVolumeWaitTimer > 0.0f) {
+            m_osdVolumeWaitTimer -= deltaTime;
+        } else if (m_osdVolumeAlpha > 0.0f) {
+            m_osdVolumeAlpha -= deltaTime * fadeSpeed;
+            if (m_osdVolumeAlpha < 0.0f) m_osdVolumeAlpha = 0.0f;
+        }
+
+        if (m_flyTextWaitTimer > 0.0f) {
+            m_flyTextWaitTimer -= deltaTime;
+        } else if (m_flyTextAlpha > 0.0f) {
+            m_flyTextAlpha -= deltaTime * fadeSpeed;
+            if (m_flyTextAlpha < 0.0f) m_flyTextAlpha = 0.0f;
+        }
+    }
+
     WidgetContext ctx = {};
     ctx.deltaTime = deltaTime;
     ctx.isControlHovered = isControlHovered;
@@ -422,6 +442,9 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isVolumeHovere
     ctx.config = m_config;
     ctx.focusedPlaylistIndex = m_focusedPlaylistIndex;
     ctx.availablePlaylistsCache = availablePlaylistsCache;
+    ctx.osdVolumeAlpha = m_osdVolumeAlpha;
+    ctx.flyTextAlpha = m_flyTextAlpha;
+    ctx.flyTextString = m_flyTextString;
 
     for (auto& widget : m_widgets) {
         widget->Draw(m_d2dContext.Get(), ctx, m_config);
@@ -538,4 +561,15 @@ void Renderer::ReloadResources() {
         widget->ReleaseResources();
         widget->CreateResources(m_d2dContext.Get(), m_wicFactory.Get(), m_dwriteFactory.Get(), m_config);
     }
+}
+
+void Renderer::TriggerVolumeOsd() {
+    m_osdVolumeAlpha = 1.0f;
+    m_osdVolumeWaitTimer = m_config ? m_config->GetOsdFadeWait() : 1.0f;
+}
+
+void Renderer::TriggerFlyText(const std::wstring& text) {
+    m_flyTextString = text;
+    m_flyTextAlpha = 1.0f;
+    m_flyTextWaitTimer = m_config ? m_config->GetOsdFadeWait() : 1.0f;
 }

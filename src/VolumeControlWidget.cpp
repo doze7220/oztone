@@ -129,7 +129,8 @@ void VolumeControlWidget::UpdateLayout(const WidgetContext &ctx,
 void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
                                const WidgetContext &ctx,
                                const ConfigManager *config) {
-  if (ctx.controlAlpha <= 0.0f || !config || !config->GetShowVolumeControl())
+  float finalAlpha = (std::max)(ctx.controlAlpha, ctx.osdVolumeAlpha);
+  if (finalAlpha <= 0.0f || !config || !config->GetShowVolumeControl())
     return;
 
   D2D1_SIZE_F renderTargetSize = context->GetSize();
@@ -161,7 +162,7 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
   }
 
   if (m_controlBrush) {
-    m_controlBrush->SetOpacity(ctx.controlAlpha);
+    m_controlBrush->SetOpacity(finalAlpha);
 
     D2D1::Matrix3x2F oldTransform;
     context->GetTransform(&oldTransform);
@@ -171,7 +172,7 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
 
     if (m_shadowBrush && config->GetVolumeEnableShadow()) {
       m_shadowBrush->SetOpacity(config->GetVolumeShadowOpacity() *
-                                ctx.controlAlpha);
+                                finalAlpha);
 
       context->SetTransform(
           spkTransform * oldTransform *
@@ -231,7 +232,7 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
     }
 
     if (m_tooltipAlpha > 0.0f && m_tooltipGeometry && m_tooltipTextLayout) {
-      float tooltipAlphaFinal = m_tooltipAlpha * ctx.controlAlpha;
+      float tooltipAlphaFinal = m_tooltipAlpha * finalAlpha;
       if (m_tooltipBgBrush) {
         m_tooltipBgBrush->SetOpacity(tooltipAlphaFinal * config->GetVolumeTooltipBgOpacity());
         context->SetTransform(D2D1::Matrix3x2F::Translation(layout.tooltipBoxX, layout.tooltipBoxY) * oldTransform);
