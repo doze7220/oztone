@@ -167,13 +167,22 @@ void LogoMenuWidget::UpdateAnimation(const WidgetContext &ctx) {
   float duration = ctx.config ? ctx.config->GetLogoMenuScrollDuration() : 0.5f;
   float speed = (duration > 0.0f) ? (1.0f / duration) : 2.0f;
   if (ctx.isLogoMenuHovered || ctx.isHovered) {
+    m_logoMenuLeaveTimer = ctx.config ? ctx.config->GetMenuLeaveDelay() : 3.0f;
     m_menuProgress += ctx.deltaTime * speed;
     if (m_menuProgress > 1.0f)
       m_menuProgress = 1.0f;
   } else {
-    m_menuProgress -= ctx.deltaTime * speed;
-    if (m_menuProgress < 0.0f)
-      m_menuProgress = 0.0f;
+    if (m_logoMenuLeaveTimer > 0.0f) {
+        m_logoMenuLeaveTimer -= ctx.deltaTime;
+    } else {
+        m_menuProgress -= ctx.deltaTime * speed;
+        if (m_menuProgress < 0.0f)
+          m_menuProgress = 0.0f;
+    }
+  }
+
+  if (ctx.outIsLogoMenuExpanded) {
+      *ctx.outIsLogoMenuExpanded = (m_logoMenuLeaveTimer > 0.0f) || (m_menuProgress > 0.0f);
   }
 
   if (ctx.logoMenuItems && ctx.config) {

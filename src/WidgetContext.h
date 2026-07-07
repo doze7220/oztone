@@ -68,6 +68,8 @@ struct WidgetContext {
     int playlistHoveredItemIndex = -1;
 
     const std::vector<PlaylistSummary>* availablePlaylistsCache;
+    bool* outIsPlaylistExpanded = nullptr;
+    bool* outIsLogoMenuExpanded = nullptr;
 };
 
 // ヘックスカラー（"#RRGGBB" または "#AARRGGBB"）をD2D1_COLOR_Fに変換するユーティリティ

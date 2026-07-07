@@ -41,6 +41,7 @@ private:
     Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
 
     float m_playlistSlideX;
+    float m_playlistLeaveTimer = 0.0f;
     float m_playlistManualScrollY;
     std::unordered_map<int, float> m_hoverAlpha;
 };

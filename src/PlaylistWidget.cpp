@@ -181,8 +181,22 @@ void PlaylistWidget::UpdateAnimation(const WidgetContext &ctx) {
     m_playlistSlideX = configPlaylistWidth;
 
   bool isExpanded = ctx.isPlaylistHovered || ctx.config->GetIsPlaylistPinned();
+  
+  if (isExpanded) {
+      m_playlistLeaveTimer = ctx.config->GetPlaylistLeaveDelay();
+  } else {
+      if (m_playlistLeaveTimer > 0.0f) {
+          m_playlistLeaveTimer -= ctx.deltaTime;
+          isExpanded = true;
+      }
+  }
+
   float targetSlideX = isExpanded ? 0.0f : configPlaylistWidth;
   m_playlistSlideX += (targetSlideX - m_playlistSlideX) * 0.2f;
+
+  if (ctx.outIsPlaylistExpanded) {
+      *ctx.outIsPlaylistExpanded = isExpanded || (m_playlistSlideX < configPlaylistWidth - 0.5f);
+  }
 
   if (!isExpanded) {
     m_playlistManualScrollY = 0.0f;

@@ -174,6 +174,7 @@ public:
     int GetLogoMenuIconOffsetX() const { return m_logoMenuIconOffsetX; }
     int GetLogoMenuIconOffsetY() const { return m_logoMenuIconOffsetY; }
     float GetLogoMenuScrollDuration() const { return m_logoMenuScrollDuration; }
+    float GetMenuLeaveDelay() const { return m_menuLeaveDelay; }
     std::wstring GetLogoMenuFontFamily() const { return m_logoMenuFontFamily; }
     std::wstring GetLogoMenuTextColor() const { return m_logoMenuTextColor; }
     std::wstring GetLogoMenuTypingFontFamily() const { return m_logoMenuTypingFontFamily; }
@@ -271,6 +272,7 @@ public:
     void SetDefaultVolume(float volume);
 
     float GetControlHoverHeight() const { return m_controlHoverHeight; }
+    float GetControlLeaveDelay() const { return m_controlLeaveDelay; }
 
     int GetVolumeBaseLeftOffset() const { return m_volBaseLeftOffset; }
     int GetVolumeBaseBottomOffset() const { return m_volBaseBottomOffset; }
@@ -339,6 +341,7 @@ public:
     int GetPlaylistHoverWidth() const { return m_playlistHoverWidth; }
 
     float GetPlaylistBgOpacity() const { return m_playlistBgOpacity; }
+    float GetPlaylistLeaveDelay() const { return m_playlistLeaveDelay; }
 
     int GetPlaylistPosition() const { return m_playlistPosition; }
     void SetPlaylistPosition(int position);
@@ -403,6 +406,7 @@ private:
     int m_logoMenuIconOffsetX;
     int m_logoMenuIconOffsetY;
     float m_logoMenuScrollDuration;
+    float m_menuLeaveDelay;
     std::wstring m_logoMenuFontFamily;
     std::wstring m_logoMenuTextColor;
     std::wstring m_logoMenuTypingFontFamily;
@@ -522,6 +526,7 @@ private:
 
     float m_defaultVolume;
     float m_controlHoverHeight;
+    float m_controlLeaveDelay;
     int m_volBaseLeftOffset;
     int m_volBaseBottomOffset;
     int m_volIconSize;
@@ -590,6 +595,7 @@ private:
     float m_pinSubIconFontSize;
 
     float m_playlistBgOpacity;
+    float m_playlistLeaveDelay;
 
     int m_playlistPosition;
     float m_playlistGripOffset;

@@ -317,13 +317,18 @@ bool Renderer::LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitma
     return true;
 }
 
-void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode, int playbackHoveredIndex, int playlistHoveredItemIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems) {
+void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode, int playbackHoveredIndex, int playlistHoveredItemIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool* outIsPlaylistExpanded, bool* outIsLogoMenuExpanded) {
     if (isControlHovered) {
+        m_controlLeaveTimer = m_config ? m_config->GetControlLeaveDelay() : 3.0f;
         m_controlAlpha += 0.05f;
         if (m_controlAlpha > 1.0f) m_controlAlpha = 1.0f;
     } else {
-        m_controlAlpha -= 0.05f;
-        if (m_controlAlpha < 0.0f) m_controlAlpha = 0.0f;
+        if (m_controlLeaveTimer > 0.0f) {
+            m_controlLeaveTimer -= deltaTime;
+        } else {
+            m_controlAlpha -= 0.05f;
+            if (m_controlAlpha < 0.0f) m_controlAlpha = 0.0f;
+        }
     }
 
     if (m_config) {
@@ -359,6 +364,8 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
     ctx.playbackHoveredIndex = playbackHoveredIndex;
     ctx.playlistHoveredItemIndex = playlistHoveredItemIndex;
     ctx.logoMenuItems = logoMenuItems;
+    ctx.outIsPlaylistExpanded = outIsPlaylistExpanded;
+    ctx.outIsLogoMenuExpanded = outIsLogoMenuExpanded;
     
     for (auto& widget : m_widgets) {
         widget->UpdateAnimation(ctx);

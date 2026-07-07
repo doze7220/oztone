@@ -320,7 +320,7 @@ ConfigManager::ConfigManager()
       m_backgroundArtMode(0), m_visualizerMode(0), m_logoX(16), m_logoY(16),
       m_logoWidth(64), m_logoHeight(64), m_logoMenuIconSize(24.0f),
       m_logoMenuIconSpacing(40), m_logoMenuIconOffsetX(0),
-      m_logoMenuIconOffsetY(0), m_logoMenuScrollDuration(0.5f),
+      m_logoMenuIconOffsetY(0), m_logoMenuScrollDuration(0.5f), m_menuLeaveDelay(3.0f),
       m_logoMenuFontFamily(L"Segoe UI Emoji"), m_logoMenuTextColor(L"#FFFFFF"),
       m_logoMenuTypingFontFamily(L"Consolas"), m_logoMenuTypingFontSize(14.0f),
       m_logoMenuTextOffsetX(0), m_logoMenuTextOffsetY(60),
@@ -355,6 +355,7 @@ ConfigManager::ConfigManager()
       m_playbackButtonSize(20) {
   m_defaultVolume = 1.0f;
   m_controlHoverHeight = 50.0f;
+  m_controlLeaveDelay = 3.0f;
   m_volBaseLeftOffset = 30;
   m_volBaseBottomOffset = 22;
   m_volIconSize = 16;
@@ -393,6 +394,7 @@ ConfigManager::ConfigManager()
   m_playlistWidth = 400;
   m_playlistItemOffsetY = 45;
   m_playlistTitleFontSize = 16.0f;
+  m_playlistLeaveDelay = 3.0f;
   m_playlistArtistFontSize = 12.0f;
   m_playlistTimeFontSize = 12.0f;
 
@@ -599,6 +601,14 @@ void ConfigManager::LoadSettings() {
     m_controlHoverHeight = 50.0f;
   }
 
+  GetPrivateProfileStringW(L"Layout_Window", L"ControlLeaveDelay", L"3.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_controlLeaveDelay = std::stof(buf);
+  } catch (...) {
+    m_controlLeaveDelay = 3.0f;
+  }
+
   wchar_t colorBuf[256];
   GetPrivateProfileStringW(L"Layout_Window", L"HoverIconColor", L"#88CCFF",
                            colorBuf, 256, m_iniFilePath.c_str());
@@ -800,6 +810,14 @@ void ConfigManager::LoadSettings() {
     m_logoMenuScrollDuration = std::stof(buf);
   } catch (...) {
     m_logoMenuScrollDuration = 0.5f;
+  }
+
+  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuLeaveDelay", L"3.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_menuLeaveDelay = std::stof(buf);
+  } catch (...) {
+    m_menuLeaveDelay = 3.0f;
   }
 
   wchar_t logoFontBuf[256];
@@ -1271,6 +1289,14 @@ void ConfigManager::LoadSettings() {
     m_playlistBgOpacity = std::stof(buf);
   } catch (...) {
     m_playlistBgOpacity = 0.8f;
+  }
+
+  GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistLeaveDelay", L"3.0",
+                           buf, 32, m_iniFilePath.c_str());
+  try {
+    m_playlistLeaveDelay = std::stof(buf);
+  } catch (...) {
+    m_playlistLeaveDelay = 3.0f;
   }
 
   GetPrivateProfileStringW(L"Layout_Playlist", L"PlaylistGripOffset", L"10.0",

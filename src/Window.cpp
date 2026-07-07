@@ -23,7 +23,7 @@ Window::Window()
     : m_hwnd(nullptr), m_hInstance(nullptr), m_config(nullptr),
       m_isHovered(false), m_isControlHovered(false), m_isVolumeHovered(false), m_isPlaylistHovered(false),
       m_isTrackingMouse(false), m_pDropTarget(nullptr), m_keyboardHook(nullptr),
-      m_isLogoMenuHovered(false) {
+      m_isLogoMenuHovered(false), m_isPlaylistExpanded(false), m_isLogoMenuExpanded(false) {
   m_logoMenuItems = {
       {ID_LOGO_EXIT, L"❌", false, false, L"OZtoneの終了"},
       {ID_LOGO_VISUALIZER, L"📽️", false, false, L"ビジュアライザ表示切り替え"},
@@ -419,7 +419,7 @@ bool Window::IsInVolumeControlRegion(int x, int y) const {
 }
 
 bool Window::IsInPlaylistRegion(int x, int y) const {
-  if (!m_isPlaylistHovered && IsInLogoRegion(x, y))
+  if (!(m_isPlaylistHovered || m_isPlaylistExpanded) && IsInLogoRegion(x, y))
     return false;
 
   if (!m_config || !m_hwnd)
@@ -433,13 +433,13 @@ bool Window::IsInPlaylistRegion(int x, int y) const {
   int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
 
   // ロゴ拡張メニュー等との干渉排除
-  if (!m_isPlaylistHovered &&
+  if (!(m_isPlaylistHovered || m_isPlaylistExpanded) &&
       logicalY <= m_config->GetLogoY() + m_config->GetLogoHeight() + 10.0f) {
     return false;
   }
 
   float hoverWidth =
-      m_isPlaylistHovered
+      (m_isPlaylistHovered || m_isPlaylistExpanded)
           ? static_cast<float>(m_config->GetPlaylistWidth())
           : static_cast<float>(m_config->GetPlaylistHoverWidth());
   float controlHeight = m_config->GetControlHoverHeight();
@@ -454,7 +454,7 @@ bool Window::IsInPlaylistRegion(int x, int y) const {
   // プレイリストが展開されている場合は、画面下部であってもリスト上にマウスがあればホバーを維持する。
   // 展開されていない場合のみ、右下のリサイズやコントロールとの干渉を避けるためY座標を制限する。
   bool isYMatch =
-      m_isPlaylistHovered || (logicalY < logicalHeight - controlHeight);
+      (m_isPlaylistHovered || m_isPlaylistExpanded) || (logicalY < logicalHeight - controlHeight);
 
   return isXMatch && isYMatch;
 }
@@ -637,7 +637,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         }
 
         if (m_isHovered ||
-            (m_isLogoMenuHovered && IsInLogoMenuRegion(xPos, yPos, 1.0f))) {
+            ((m_isLogoMenuHovered || m_isLogoMenuExpanded) && IsInLogoMenuRegion(xPos, yPos, 1.0f))) {
           m_isLogoMenuHovered = true;
           m_logoMenuHoveredIndex = GetLogoMenuButtonAt(xPos, yPos, 1.0f);
         } else {

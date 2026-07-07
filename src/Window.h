@@ -277,7 +277,14 @@ public:
     int GetPlaylistHoveredItemIndex() const { return m_playlistHoveredItemIndex; }
     void SetPlaylistHoveredItemIndex(int index) { m_playlistHoveredItemIndex = index; }
 
+    bool IsPlaylistExpanded() const { return m_isPlaylistExpanded; }
+    void SetPlaylistExpanded(bool expanded) { m_isPlaylistExpanded = expanded; }
+
+    bool IsLogoMenuExpanded() const { return m_isLogoMenuExpanded; }
+    void SetLogoMenuExpanded(bool expanded) { m_isLogoMenuExpanded = expanded; }
+
 private:
+
     static LRESULT CALLBACK WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -324,4 +331,7 @@ private:
     bool m_isPlaylistPinnedHovered = false;
     int m_playbackHoveredIndex = -1;
     int m_playlistHoveredItemIndex = -1;
+    bool m_isPlaylistExpanded = false;
+    bool m_isLogoMenuExpanded = false;
 };
+
