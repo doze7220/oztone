@@ -234,6 +234,35 @@ public:
         m_onPlaylistToolbarClick = cb;
     }
 
+    /**
+     * @brief 背景フレーミングのスクロール（マウスホイール・キーボード）コールバック
+     */
+    void SetArtFramingScrollCallback(std::function<void(float)> cb) {
+        m_onArtFramingScroll = cb;
+    }
+
+    /**
+     * @brief 背景フレーミングの移動（ドラッグ・キーボード）コールバック
+     */
+    void SetArtFramingMoveCallback(std::function<void(float, float)> cb) {
+        m_onArtFramingMove = cb;
+    }
+
+    /**
+     * @brief 背景フレーミングのリセットコールバック
+     */
+    void SetArtFramingResetCallback(std::function<void()> cb) {
+        m_onArtFramingReset = cb;
+    }
+
+    /**
+     * @brief 背景フレーミングの保存コールバック
+     */
+    void SetArtFramingSaveCallback(std::function<void()> cb) {
+        m_onArtFramingSave = cb;
+    }
+
+
     enum HotkeyID {
         HK_NEXT_TRACK = 100,
         HK_PREV_TRACK,
@@ -317,6 +346,10 @@ private:
     std::function<void(int)> m_onPlaylistToolbarClick;
     std::function<void(int)> m_onHotkey;
     std::function<void(int, int)> m_onResize;
+    std::function<void(float)> m_onArtFramingScroll;
+    std::function<void(float, float)> m_onArtFramingMove;
+    std::function<void()> m_onArtFramingReset;
+    std::function<void()> m_onArtFramingSave;
     DropTarget* m_pDropTarget;
 
     static constexpr UINT WM_TRAYICON = WM_APP + 1;
@@ -341,5 +374,7 @@ private:
     int m_playlistHoveredItemIndex = -1;
     bool m_isPlaylistExpanded = false;
     bool m_isLogoMenuExpanded = false;
+    bool m_isArtFramingDragging = false;
+    POINT m_artFramingDragStartPt = {0, 0};
 };
 

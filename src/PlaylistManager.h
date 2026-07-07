@@ -11,6 +11,9 @@ struct TrackMetadata {
     std::wstring artist;
     std::wstring timeString; // 例: "03:45"
     bool isLoaded = false;   // 解析済みかどうか
+    float artOffsetX = 0.0f; // フレーミング: Xオフセット
+    float artOffsetY = 0.0f; // フレーミング: Yオフセット
+    float artScale = 1.0f;   // フレーミング: スケール
 };
 
 /**
@@ -92,6 +95,20 @@ public:
      * @param timeString 再生時間文字列
      */
     void UpdateMetadata(const std::wstring& filepath, const std::wstring& title, const std::wstring& artist, const std::wstring& timeString);
+
+    /**
+     * @brief 特定のファイルパスの背景アートフレーミング情報を更新する
+     * @param filepath 更新対象のファイルパス
+     * @param offsetX Xオフセット
+     * @param offsetY Yオフセット
+     * @param scale スケール
+     */
+    void UpdateArtFraming(const std::wstring& filepath, float offsetX, float offsetY, float scale);
+
+    /**
+     * @brief 特定のファイルパスの背景アートフレーミング情報を取得する
+     */
+    void GetArtFraming(const std::wstring& filepath, float& offsetX, float& offsetY, float& scale) const;
 
     /**
      * @brief 特定のファイルパスが解析済みかどうかを確認する

@@ -263,6 +263,36 @@ void Renderer::SetNextTrackInfo(bool isReady, ID2D1Bitmap* art, const std::wstri
     m_nextTrackArtist = artist;
 }
 
+void Renderer::SetBackgroundFraming(float offsetX, float offsetY, float scale) {
+    m_bgOffsetX = offsetX;
+    m_bgOffsetY = offsetY;
+    m_bgScale = scale;
+}
+
+void Renderer::ClampArtFraming(float scale, float& offsetX, float& offsetY) {
+    if (!m_d2dContext) return;
+    int bgMode = m_config ? m_config->GetBackgroundArtMode() : 0;
+    ID2D1Bitmap* artBitmap = nullptr;
+    if (bgMode == 0) {
+        artBitmap = m_currentArtBitmap ? m_currentArtBitmap.Get() : m_placeholderArtBitmap.Get();
+    } else if (bgMode == 2) {
+        artBitmap = m_placeholderArtBitmap.Get();
+    }
+    if (!artBitmap) return;
+
+    D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
+    float logicWidth = renderTargetSize.width / m_dpiScale;
+    float logicHeight = renderTargetSize.height / m_dpiScale;
+    
+    float maxOffsetX, maxOffsetY;
+    LayoutCalculator::CalculateArtFramingBounds(logicWidth, logicHeight, artBitmap->GetSize(), scale, maxOffsetX, maxOffsetY);
+
+    if (offsetX > maxOffsetX) offsetX = maxOffsetX;
+    if (offsetX < -maxOffsetX) offsetX = -maxOffsetX;
+    if (offsetY > maxOffsetY) offsetY = maxOffsetY;
+    if (offsetY < -maxOffsetY) offsetY = -maxOffsetY;
+}
+
 void Renderer::SetFocusedPlaylistIndex(std::optional<size_t> idx) {
     m_focusedPlaylistIndex = idx;
 }
@@ -520,7 +550,7 @@ void Renderer::DrawBackground() {
         float logicWidth = renderTargetSize.width / m_dpiScale;
         float logicHeight = renderTargetSize.height / m_dpiScale;
         
-        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, artBitmap->GetSize());
+        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, artBitmap->GetSize(), m_bgOffsetX, m_bgOffsetY, m_bgScale);
         
         m_d2dContext->DrawBitmap(
             artBitmap,

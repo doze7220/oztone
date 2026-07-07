@@ -654,6 +654,23 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   }
   case WM_MOUSEMOVE: {
     if (m_config) {
+      if (m_isArtFramingDragging) {
+        int xPos = GET_X_LPARAM(lParam);
+        int yPos = GET_Y_LPARAM(lParam);
+        float deltaX = static_cast<float>(xPos - m_artFramingDragStartPt.x);
+        float deltaY = static_cast<float>(yPos - m_artFramingDragStartPt.y);
+        
+        if (m_onArtFramingMove && (deltaX != 0.0f || deltaY != 0.0f)) {
+            UINT dpi = GetDpiForWindow(hwnd);
+            float logDX = deltaX * 96.0f / dpi;
+            float logDY = deltaY * 96.0f / dpi;
+            m_onArtFramingMove(logDX, logDY);
+        }
+        m_artFramingDragStartPt.x = xPos;
+        m_artFramingDragStartPt.y = yPos;
+        return 0;
+      }
+
       int xPos = GET_X_LPARAM(lParam);
       int yPos = GET_Y_LPARAM(lParam);
 
@@ -722,8 +739,22 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     return 0;
   }
   case WM_LBUTTONDOWN: {
+    if (m_isArtFramingDragging) {
+      m_isArtFramingDragging = false;
+      ReleaseCapture();
+    }
     int xPos = GET_X_LPARAM(lParam);
     int yPos = GET_Y_LPARAM(lParam);
+
+    if (!m_isPlaylistHovered && !m_isLogoMenuHovered && !m_isControlHovered && !m_isVolumeHovered && !IsInLogoRegion(xPos, yPos)) {
+        if (GetAsyncKeyState(VK_SHIFT) & 0x8000) {
+            m_isArtFramingDragging = true;
+            m_artFramingDragStartPt.x = xPos;
+            m_artFramingDragStartPt.y = yPos;
+            SetCapture(hwnd);
+            return 0;
+        }
+    }
 
     if (m_isPlaylistHovered) {
       if (IsPlaylistPinnedButtonAt(xPos, yPos)) {
@@ -850,6 +881,14 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     }
     return 0;
   }
+  case WM_LBUTTONUP: {
+    if (m_isArtFramingDragging) {
+      m_isArtFramingDragging = false;
+      ReleaseCapture();
+      return 0;
+    }
+    break;
+  }
   case WM_LBUTTONDBLCLK: {
     int xPos = GET_X_LPARAM(lParam);
     int yPos = GET_Y_LPARAM(lParam);
@@ -884,6 +923,43 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         m_onVolumeScroll(zDelta);
         return 0;
       }
+      
+      if (!m_isPlaylistHovered && !m_isVolumeHovered) {
+        if (GetAsyncKeyState(VK_SHIFT) & 0x8000) {
+          if (m_onArtFramingScroll) {
+            int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+            m_onArtFramingScroll(static_cast<float>(zDelta));
+          }
+          return 0;
+        }
+      }
+    }
+    break;
+  }
+  case WM_KEYDOWN: {
+    if (GetAsyncKeyState(VK_SHIFT) & 0x8000) {
+        if (wParam == VK_HOME) {
+            if (m_onArtFramingReset) m_onArtFramingReset();
+            return 0;
+        }
+        if (wParam == VK_UP || wParam == VK_DOWN || wParam == VK_LEFT || wParam == VK_RIGHT) {
+            float dx = 0.0f;
+            float dy = 0.0f;
+            if (wParam == VK_UP) dy = -10.0f;
+            if (wParam == VK_DOWN) dy = 10.0f;
+            if (wParam == VK_LEFT) dx = -10.0f;
+            if (wParam == VK_RIGHT) dx = 10.0f;
+            if (m_onArtFramingMove) m_onArtFramingMove(dx, dy);
+            return 0;
+        }
+        if (wParam == VK_PRIOR) { // PAGEUP
+            if (m_onArtFramingScroll) m_onArtFramingScroll(120.0f);
+            return 0;
+        }
+        if (wParam == VK_NEXT) { // PAGEDOWN
+            if (m_onArtFramingScroll) m_onArtFramingScroll(-120.0f);
+            return 0;
+        }
     }
     break;
   }

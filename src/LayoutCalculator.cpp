@@ -14,27 +14,53 @@ static void ApplyPinningOffset(float& logicalWidth, float& offsetX, const Config
     }
 }
 
-BackgroundLayout LayoutCalculator::CalculateBackgroundLayout(float logicalWidth, float logicalHeight, D2D1_SIZE_F bitmapSize) {
+BackgroundLayout LayoutCalculator::CalculateBackgroundLayout(float logicalWidth, float logicalHeight, D2D1_SIZE_F bitmapSize, float offsetX, float offsetY, float artScale) {
     BackgroundLayout layout;
-    layout.destRect = D2D1::RectF(0.0f, 0.0f, logicalWidth, logicalHeight);
     layout.overlayRect = D2D1::RectF(0.0f, 0.0f, logicalWidth, logicalHeight);
 
     if (bitmapSize.width > 0 && bitmapSize.height > 0) {
         float scaleX = logicalWidth / bitmapSize.width;
         float scaleY = logicalHeight / bitmapSize.height;
-        float scale = (std::max)(scaleX, scaleY);
+        float baseScale = (std::max)(scaleX, scaleY);
+        float finalScale = baseScale * artScale;
         
-        float newWidth = logicalWidth / scale;
-        float newHeight = logicalHeight / scale;
-        float srcX = (bitmapSize.width - newWidth) / 2.0f;
-        float srcY = (bitmapSize.height - newHeight) / 2.0f;
+        float drawWidth = bitmapSize.width * finalScale;
+        float drawHeight = bitmapSize.height * finalScale;
         
-        layout.srcRect = D2D1::RectF(srcX, srcY, srcX + newWidth, srcY + newHeight);
+        float limitX = (std::max)(0.0f, (drawWidth - logicalWidth) / 2.0f);
+        float limitY = (std::max)(0.0f, (drawHeight - logicalHeight) / 2.0f);
+        
+        float clampedOffsetX = std::clamp(offsetX, -limitX, limitX);
+        float clampedOffsetY = std::clamp(offsetY, -limitY, limitY);
+        
+        float x = (logicalWidth - drawWidth) / 2.0f + clampedOffsetX;
+        float y = (logicalHeight - drawHeight) / 2.0f + clampedOffsetY;
+        
+        layout.srcRect = D2D1::RectF(0.0f, 0.0f, bitmapSize.width, bitmapSize.height);
+        layout.destRect = D2D1::RectF(x, y, x + drawWidth, y + drawHeight);
     } else {
         layout.srcRect = D2D1::RectF(0.0f, 0.0f, 0.0f, 0.0f);
+        layout.destRect = D2D1::RectF(0.0f, 0.0f, logicalWidth, logicalHeight);
     }
 
     return layout;
+}
+
+void LayoutCalculator::CalculateArtFramingBounds(float logicalWidth, float logicalHeight, D2D1_SIZE_F bitmapSize, float scale, float& outMaxOffsetX, float& outMaxOffsetY) {
+    outMaxOffsetX = 0.0f;
+    outMaxOffsetY = 0.0f;
+    if (bitmapSize.width <= 0 || bitmapSize.height <= 0) return;
+
+    float scaleX = logicalWidth / bitmapSize.width;
+    float scaleY = logicalHeight / bitmapSize.height;
+    float baseScale = (std::max)(scaleX, scaleY);
+    float finalScale = baseScale * scale;
+
+    float scaledImageWidth = bitmapSize.width * finalScale;
+    float scaledImageHeight = bitmapSize.height * finalScale;
+
+    outMaxOffsetX = (std::max)(0.0f, (scaledImageWidth - logicalWidth) / 2.0f);
+    outMaxOffsetY = (std::max)(0.0f, (scaledImageHeight - logicalHeight) / 2.0f);
 }
 
 VisualizerLayout LayoutCalculator::CalculateVisualizerLayout(float logicalWidth, float logicalHeight) {

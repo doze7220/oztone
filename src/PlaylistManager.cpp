@@ -13,6 +13,21 @@ PlaylistManager::PlaylistManager() : m_shuffleIndex(0) {
 
 PlaylistManager::~PlaylistManager() {}
 
+void PlaylistManager::GetArtFraming(const std::wstring& filepath, float& offsetX, float& offsetY, float& scale) const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    for (const auto& meta : m_playlist) {
+        if (meta.filepath == filepath) {
+            offsetX = meta.artOffsetX;
+            offsetY = meta.artOffsetY;
+            scale = meta.artScale;
+            return;
+        }
+    }
+    offsetX = 0.0f;
+    offsetY = 0.0f;
+    scale = 1.0f;
+}
+
 void PlaylistManager::Clear() {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_playlist.clear();
@@ -192,7 +207,8 @@ void PlaylistManager::SaveToFile(const std::wstring& outPath) const {
 
         std::wstring wline;
         if (item.isLoaded) {
-            wline = item.filepath + L"\t" + item.title + L"\t" + item.artist + L"\t" + item.timeString;
+            wline = item.filepath + L"\t" + item.title + L"\t" + item.artist + L"\t" + item.timeString + L"\t" +
+                    std::to_wstring(item.artOffsetX) + L"\t" + std::to_wstring(item.artOffsetY) + L"\t" + std::to_wstring(item.artScale);
         } else {
             wline = item.filepath;
         }
@@ -241,6 +257,17 @@ void PlaylistManager::LoadFromFile(const std::wstring& inPath) {
                                     it->artist = tokens[2];
                                     it->timeString = tokens[3];
                                     it->isLoaded = true;
+                                    if (tokens.size() >= 7) {
+                                        try {
+                                            it->artOffsetX = std::stof(tokens[4]);
+                                            it->artOffsetY = std::stof(tokens[5]);
+                                            it->artScale = std::stof(tokens[6]);
+                                        } catch (...) {
+                                            it->artOffsetX = 0.0f;
+                                            it->artOffsetY = 0.0f;
+                                            it->artScale = 1.0f;
+                                        }
+                                    }
                                     break;
                                 }
                             }
@@ -276,6 +303,18 @@ void PlaylistManager::UpdateMetadata(const std::wstring& filepath, const std::ws
             item.artist = artist;
             item.timeString = timeString;
             item.isLoaded = true;
+            break;
+        }
+    }
+}
+
+void PlaylistManager::UpdateArtFraming(const std::wstring& filepath, float offsetX, float offsetY, float scale) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    for (auto& item : m_playlist) {
+        if (item.filepath == filepath) {
+            item.artOffsetX = offsetX;
+            item.artOffsetY = offsetY;
+            item.artScale = scale;
             break;
         }
     }

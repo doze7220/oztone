@@ -20,6 +20,10 @@ Application::~Application() {
     m_prefetchThread.join();
   }
   m_audioPlayer.Uninitialize();
+
+  if (!m_playlistManager.IsEmpty()) {
+    m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
+  }
 }
 
 void Application::HandleMediaCommand(int cmd) {
@@ -31,6 +35,9 @@ void Application::HandleMediaCommand(int cmd) {
     m_renderer.TriggerFlyText(L"STOP");
   } else if (cmd == APPCOMMAND_MEDIA_NEXTTRACK ||
              cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) {
+    if (!m_playlistManager.IsEmpty()) {
+      m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
+    }
     if (cmd == APPCOMMAND_MEDIA_NEXTTRACK) {
       m_renderer.TriggerFlyText(L"NEXT TRACK");
       m_playlistManager.Advance();
@@ -85,6 +92,9 @@ void Application::HandleMediaCommand(int cmd) {
         }
       }
 
+      float _ox=0.f, _oy=0.f, _scale=1.f;
+      m_playlistManager.GetArtFraming(track, _ox, _oy, _scale);
+      m_renderer.SetBackgroundFraming(_ox, _oy, _scale);
       if (m_audioPlayer.Play(track)) {
         UpdateTrackMetadataIfNeeded(track);
         PrefetchNextTrack();
@@ -366,7 +376,10 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
               m_renderer.SetAlbumArt(nullptr);
             }
 
-            if (m_audioPlayer.Play(track)) {
+            float _ox=0.f, _oy=0.f, _scale=1.f;
+      m_playlistManager.GetArtFraming(track, _ox, _oy, _scale);
+      m_renderer.SetBackgroundFraming(_ox, _oy, _scale);
+      if (m_audioPlayer.Play(track)) {
               UpdateTrackMetadataIfNeeded(track);
               PrefetchNextTrack();
             }
@@ -444,6 +457,9 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     if (index >= 0) {
       m_focusedPlaylistIndex = index;
 
+      if (!m_playlistManager.IsEmpty()) {
+        m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
+      }
       int oldIndex = static_cast<int>(m_playlistManager.GetCurrentIndex());
       m_playlistManager.JumpToIndex(index);
 
@@ -489,7 +505,10 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
           m_renderer.SetAlbumArt(nullptr);
         }
 
-        if (m_audioPlayer.Play(track)) {
+        float _ox=0.f, _oy=0.f, _scale=1.f;
+      m_playlistManager.GetArtFraming(track, _ox, _oy, _scale);
+      m_renderer.SetBackgroundFraming(_ox, _oy, _scale);
+      if (m_audioPlayer.Play(track)) {
           UpdateTrackMetadataIfNeeded(track);
           PrefetchNextTrack();
         } else {
@@ -549,6 +568,40 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
   if (!m_renderer.Initialize(m_window.GetHandle(), m_config)) {
     return false;
   }
+
+  m_window.SetArtFramingMoveCallback([this](float dx, float dy) {
+    if (m_playlistManager.IsEmpty()) return;
+    std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
+    float ox, oy, scale;
+    m_playlistManager.GetArtFraming(currentTrack, ox, oy, scale);
+    ox -= dx;
+    oy -= dy;
+    m_renderer.ClampArtFraming(scale, ox, oy);
+    m_playlistManager.UpdateArtFraming(currentTrack, ox, oy, scale);
+    m_renderer.SetBackgroundFraming(ox, oy, scale);
+  });
+
+  m_window.SetArtFramingScrollCallback([this](float delta) {
+    if (m_playlistManager.IsEmpty()) return;
+    std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
+    float ox, oy, scale;
+    m_playlistManager.GetArtFraming(currentTrack, ox, oy, scale);
+    scale += delta * 0.001f;
+    if (scale < 1.0f) scale = 1.0f;
+    m_renderer.ClampArtFraming(scale, ox, oy);
+    m_playlistManager.UpdateArtFraming(currentTrack, ox, oy, scale);
+    m_renderer.SetBackgroundFraming(ox, oy, scale);
+  });
+
+  m_window.SetArtFramingResetCallback([this]() {
+    if (m_playlistManager.IsEmpty()) return;
+    std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
+    m_playlistManager.UpdateArtFraming(currentTrack, 0.0f, 0.0f, 1.0f);
+    m_renderer.SetBackgroundFraming(0.0f, 0.0f, 1.0f);
+  });
+
+  m_window.SetArtFramingSaveCallback([this]() {
+  });
 
   m_window.SetVolumeScrollCallback([this](int delta) {
     float vol = m_audioPlayer.GetVolume();
@@ -614,7 +667,10 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
           m_renderer.SetAlbumArt(nullptr);
         }
 
-        if (m_audioPlayer.Play(currentTrack)) {
+        float _ox=0.f, _oy=0.f, _scale=1.f;
+      m_playlistManager.GetArtFraming(currentTrack, _ox, _oy, _scale);
+      m_renderer.SetBackgroundFraming(_ox, _oy, _scale);
+      if (m_audioPlayer.Play(currentTrack)) {
           UpdateTrackMetadataIfNeeded(currentTrack);
           PrefetchNextTrack();
           played = true;
@@ -819,7 +875,10 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
           m_renderer.SetAlbumArt(nullptr);
         }
 
-        if (m_audioPlayer.Play(currentTrack)) {
+        float _ox=0.f, _oy=0.f, _scale=1.f;
+      m_playlistManager.GetArtFraming(currentTrack, _ox, _oy, _scale);
+      m_renderer.SetBackgroundFraming(_ox, _oy, _scale);
+      if (m_audioPlayer.Play(currentTrack)) {
           UpdateTrackMetadataIfNeeded(currentTrack);
           PrefetchNextTrack();
           played = true;
@@ -853,6 +912,9 @@ void Application::Run() {
     if (m_audioPlayer.IsAtEnd()) {
       // ロードが完了するまで待機（このフレームはスキップして待つ）
       if (m_isPrefetchReady.load()) {
+        if (!m_playlistManager.IsEmpty()) {
+          m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
+        }
         m_playlistManager.Advance();
 
         size_t skipCount = 0;
@@ -900,7 +962,10 @@ void Application::Run() {
             }
           }
 
-          if (m_audioPlayer.Play(track)) {
+          float _ox=0.f, _oy=0.f, _scale=1.f;
+      m_playlistManager.GetArtFraming(track, _ox, _oy, _scale);
+      m_renderer.SetBackgroundFraming(_ox, _oy, _scale);
+      if (m_audioPlayer.Play(track)) {
             UpdateTrackMetadataIfNeeded(track);
             PrefetchNextTrack();
             played = true;
@@ -1149,6 +1214,9 @@ void Application::ProcessCommandLineArgs(int argc, LPWSTR *argv) {
 
 void Application::ClearPlaylist() {
   m_focusedPlaylistIndex.reset();
+  if (!m_playlistManager.IsEmpty()) {
+    m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
+  }
   m_playlistManager.Clear();
 
   {
@@ -1198,6 +1266,9 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
   m_renderer.SetTrackInfo(L"NO TRACK", L"---");
   m_renderer.SetAlbumArt(nullptr);
 
+  if (!m_playlistManager.IsEmpty()) {
+    m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
+  }
   m_playlistManager.Clear();
   m_playlistManager.LoadFromFile(filepath);
   if (!m_playlistManager.IsEmpty()) {
@@ -1238,6 +1309,9 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
         m_renderer.SetAlbumArt(nullptr);
       }
 
+      float _ox=0.f, _oy=0.f, _scale=1.f;
+      m_playlistManager.GetArtFraming(currentTrack, _ox, _oy, _scale);
+      m_renderer.SetBackgroundFraming(_ox, _oy, _scale);
       if (m_audioPlayer.Play(currentTrack)) {
         UpdateTrackMetadataIfNeeded(currentTrack);
         PrefetchNextTrack();

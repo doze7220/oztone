@@ -177,7 +177,8 @@ struct LogoMenuLayout {
 
 class LayoutCalculator {
 public:
-    static BackgroundLayout CalculateBackgroundLayout(float logicalWidth, float logicalHeight, D2D1_SIZE_F bitmapSize);
+    static BackgroundLayout CalculateBackgroundLayout(float logicalWidth, float logicalHeight, D2D1_SIZE_F bitmapSize, float offsetX = 0.0f, float offsetY = 0.0f, float scale = 1.0f);
+    static void CalculateArtFramingBounds(float logicalWidth, float logicalHeight, D2D1_SIZE_F bitmapSize, float scale, float& outMaxOffsetX, float& outMaxOffsetY);
     static VisualizerLayout CalculateVisualizerLayout(float logicalWidth, float logicalHeight);
     
     static AppLogoLayout CalculateAppLogoLayout(float logicalWidth, const ConfigManager* config);

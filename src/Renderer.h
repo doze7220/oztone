@@ -83,6 +83,16 @@ public:
     void SetNextTrackInfo(bool isReady, ID2D1Bitmap* art, const std::wstring& title, const std::wstring& artist);
 
     /**
+     * @brief 背景アートのフレーミング情報を設定する
+     */
+    void SetBackgroundFraming(float offsetX, float offsetY, float scale);
+
+    /**
+     * @brief 指定されたスケールと現在の描画対象を元に、オフセットを有効範囲内にクランプする
+     */
+    void ClampArtFraming(float scale, float& offsetX, float& offsetY);
+
+    /**
      * @brief フォーカスされているプレイリストインデックスを設定する
      */
     void SetFocusedPlaylistIndex(std::optional<size_t> idx);
@@ -163,6 +173,9 @@ private:
     HWND m_hwnd;
     const ConfigManager* m_config;
     float m_dpiScale = 1.0f;
+    float m_bgOffsetX = 0.0f;
+    float m_bgOffsetY = 0.0f;
+    float m_bgScale = 1.0f;
     float m_controlAlpha = 0.0f;
     float m_controlLeaveTimer = 0.0f;
     float m_osdVolumeAlpha = 0.0f;
