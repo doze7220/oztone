@@ -187,6 +187,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
       m_audioPlayer.SetVolume(vol);
       m_config.SetDefaultVolume(vol);
       m_renderer.TriggerVolumeOsd();
+      m_renderer.TriggerFlyText(L"音量 " + std::to_wstring(static_cast<int>(vol * 100.0f + 0.5f)) + L"%");
       break;
     }
     case Window::HK_VOL_DOWN_5: {
@@ -196,6 +197,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
       m_audioPlayer.SetVolume(vol);
       m_config.SetDefaultVolume(vol);
       m_renderer.TriggerVolumeOsd();
+      m_renderer.TriggerFlyText(L"音量 " + std::to_wstring(static_cast<int>(vol * 100.0f + 0.5f)) + L"%");
       break;
     }
     case Window::HK_VOL_UP_25: {
@@ -205,6 +207,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
       m_audioPlayer.SetVolume(vol);
       m_config.SetDefaultVolume(vol);
       m_renderer.TriggerVolumeOsd();
+      m_renderer.TriggerFlyText(L"音量 " + std::to_wstring(static_cast<int>(vol * 100.0f + 0.5f)) + L"%");
       break;
     }
     case Window::HK_VOL_DOWN_25: {
@@ -214,6 +217,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
       m_audioPlayer.SetVolume(vol);
       m_config.SetDefaultVolume(vol);
       m_renderer.TriggerVolumeOsd();
+      m_renderer.TriggerFlyText(L"音量 " + std::to_wstring(static_cast<int>(vol * 100.0f + 0.5f)) + L"%");
       break;
     }
     case Window::HK_PREV_PLAYLIST:
@@ -540,10 +544,11 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
 
   m_window.SetVolumeScrollCallback([this](int delta) {
     float vol = m_audioPlayer.GetVolume();
-    if (delta > 0)
+    if (delta > 0) {
       vol += 0.05f;
-    else if (delta < 0)
+    } else if (delta < 0) {
       vol -= 0.05f;
+    }
     if (vol > 1.0f)
       vol = 1.0f;
     if (vol < 0.0f)
@@ -551,6 +556,9 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     m_audioPlayer.SetVolume(vol);
     m_config.SetDefaultVolume(vol);
     m_renderer.TriggerVolumeOsd();
+    if (delta != 0) {
+      m_renderer.TriggerFlyText(L"音量 " + std::to_wstring(static_cast<int>(vol * 100.0f + 0.5f)) + L"%");
+    }
   });
 
   if (m_audioPlayer.Initialize()) {
