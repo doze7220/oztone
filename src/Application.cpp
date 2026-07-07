@@ -1005,7 +1005,8 @@ void Application::ForceRender() {
       m_window.GetPlaybackHoveredIndex(), playlistHoveredItemIndex,
       &m_window.GetLogoMenuItems(), logoClicked, logoMenuClicked, playbackClicked, &isPlaylistExpanded, &isLogoMenuExpanded);
 
-
+  m_window.SetPlaylistExpanded(isPlaylistExpanded);
+  m_window.SetLogoMenuExpanded(isLogoMenuExpanded);
 
   m_renderer.UpdateTextLayouts(timeString, m_audioPlayer.GetVolume(),
                                m_playlistManager.GetCurrentIndex(),

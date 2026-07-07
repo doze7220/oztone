@@ -281,6 +281,7 @@ public:
     void SetPlaylistExpanded(bool expanded) { m_isPlaylistExpanded = expanded; }
 
     bool IsLogoMenuExpanded() const { return m_isLogoMenuExpanded; }
+    void SetLogoMenuExpanded(bool expanded) { m_isLogoMenuExpanded = expanded; }
     const std::vector<std::wstring>& GetDynamicPlaylistPaths() const { return m_dynamicPlaylistPaths; }
 
     bool ConsumeLogoClicked() { bool b = m_isLogoClicked; m_isLogoClicked = false; return b; }

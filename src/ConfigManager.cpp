@@ -43,7 +43,7 @@ BgOpacity=0.8
 BgDarkenOpacity=0.4
 BackgroundArtMode=0
 ControlHoverHeight=50.0
-HoverIconColor=#2452a6
+HoverIconColor=#ffa500
 HoverFadeOutSpeed=2
 ControlLeaveDelay=3.0
 
