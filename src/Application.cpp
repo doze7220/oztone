@@ -25,17 +25,17 @@ Application::~Application() {
 void Application::HandleMediaCommand(int cmd) {
   if (cmd == APPCOMMAND_MEDIA_PLAY_PAUSE) {
     m_audioPlayer.TogglePlayPause();
-    m_renderer.TriggerFlyText(L"再生/一時停止");
+    m_renderer.TriggerFlyText(L"PLAY/PUASE");
   } else if (cmd == APPCOMMAND_MEDIA_STOP) {
     m_audioPlayer.Stop();
-    m_renderer.TriggerFlyText(L"停止");
+    m_renderer.TriggerFlyText(L"STOP");
   } else if (cmd == APPCOMMAND_MEDIA_NEXTTRACK ||
              cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) {
     if (cmd == APPCOMMAND_MEDIA_NEXTTRACK) {
-      m_renderer.TriggerFlyText(L"次の曲");
+      m_renderer.TriggerFlyText(L"NEXT TRACK");
       m_playlistManager.Advance();
     } else {
-      m_renderer.TriggerFlyText(L"前の曲");
+      m_renderer.TriggerFlyText(L"PREV TRACK");
       m_playlistManager.Previous();
     }
 
@@ -101,7 +101,7 @@ void Application::HandleMediaCommand(int cmd) {
     }
 
     if (!played) {
-      m_renderer.SetTrackInfo(L"No Track", L"---");
+      m_renderer.SetTrackInfo(L"NO TRACK", L"---");
       m_renderer.SetAlbumArt(nullptr);
     }
   }
@@ -156,7 +156,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
 
     m_playlistManager.RebuildQueue(newMode);
 
-    m_renderer.TriggerFlyText(newMode ? L"Shuffle: ON" : L"Shuffle: OFF");
+    m_renderer.TriggerFlyText(newMode ? L"SHUFFLE: ON" : L"SHUFFLE: OFF");
 
     if (!currentTrack.empty()) {
       m_playlistManager.WarpToTrack(currentTrack);
@@ -187,7 +187,9 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
       m_audioPlayer.SetVolume(vol);
       m_config.SetDefaultVolume(vol);
       m_renderer.TriggerVolumeOsd();
-      m_renderer.TriggerFlyText(L"音量 " + std::to_wstring(static_cast<int>(vol * 100.0f + 0.5f)) + L"%");
+      m_renderer.TriggerFlyText(
+          L"VOL " + std::to_wstring(static_cast<int>(vol * 100.0f + 0.5f)) +
+          L"%");
       break;
     }
     case Window::HK_VOL_DOWN_5: {
@@ -197,7 +199,9 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
       m_audioPlayer.SetVolume(vol);
       m_config.SetDefaultVolume(vol);
       m_renderer.TriggerVolumeOsd();
-      m_renderer.TriggerFlyText(L"音量 " + std::to_wstring(static_cast<int>(vol * 100.0f + 0.5f)) + L"%");
+      m_renderer.TriggerFlyText(
+          L"VOL " + std::to_wstring(static_cast<int>(vol * 100.0f + 0.5f)) +
+          L"%");
       break;
     }
     case Window::HK_VOL_UP_25: {
@@ -207,7 +211,9 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
       m_audioPlayer.SetVolume(vol);
       m_config.SetDefaultVolume(vol);
       m_renderer.TriggerVolumeOsd();
-      m_renderer.TriggerFlyText(L"音量 " + std::to_wstring(static_cast<int>(vol * 100.0f + 0.5f)) + L"%");
+      m_renderer.TriggerFlyText(
+          L"VOL " + std::to_wstring(static_cast<int>(vol * 100.0f + 0.5f)) +
+          L"%");
       break;
     }
     case Window::HK_VOL_DOWN_25: {
@@ -217,7 +223,9 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
       m_audioPlayer.SetVolume(vol);
       m_config.SetDefaultVolume(vol);
       m_renderer.TriggerVolumeOsd();
-      m_renderer.TriggerFlyText(L"音量 " + std::to_wstring(static_cast<int>(vol * 100.0f + 0.5f)) + L"%");
+      m_renderer.TriggerFlyText(
+          L"VOL " + std::to_wstring(static_cast<int>(vol * 100.0f + 0.5f)) +
+          L"%");
       break;
     }
     case Window::HK_PREV_PLAYLIST:
@@ -242,9 +250,9 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         }
         this->SwitchPlaylist(playlists[idx]);
         if (hotkeyId == Window::HK_NEXT_PLAYLIST) {
-          m_renderer.TriggerFlyText(L"次プレイリスト");
+          m_renderer.TriggerFlyText(L"NEXT PLAYLIST");
         } else {
-          m_renderer.TriggerFlyText(L"前プレイリスト");
+          m_renderer.TriggerFlyText(L"PREV PLAYLIST");
         }
       }
       break;
@@ -254,19 +262,19 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
       SetWindowPos(m_window.GetHandle(), HWND_TOPMOST, 0, 0, 0, 0,
                    SWP_NOMOVE | SWP_NOSIZE);
       SetForegroundWindow(m_window.GetHandle());
-      m_renderer.TriggerFlyText(L"最前面固定");
+      m_renderer.TriggerFlyText(L"FIXED FRONT");
       break;
     }
     case Window::HK_ACTIVE_BOTTOM: {
       m_config.SetZOrder(2);
       SetWindowPos(m_window.GetHandle(), HWND_BOTTOM, 0, 0, 0, 0,
                    SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-      m_renderer.TriggerFlyText(L"最背面固定");
+      m_renderer.TriggerFlyText(L"FIXED BACK");
       break;
     }
     case Window::HK_EXIT_APP:
       this->ClearPlaylist();
-      m_renderer.TriggerFlyText(L"OZtone終了");
+      m_renderer.TriggerFlyText(L"EXIT");
       PostMessage(m_window.GetHandle(), WM_CLOSE, 0, 0);
       break;
     }
@@ -352,7 +360,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
               try {
                 title = std::filesystem::path(track).filename().wstring();
               } catch (...) {
-                title = L"Unknown";
+                title = L"UNKNOWN";
               }
               m_renderer.SetTrackInfo(title, L"---");
               m_renderer.SetAlbumArt(nullptr);
@@ -363,7 +371,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
               PrefetchNextTrack();
             }
           } else {
-            m_renderer.SetTrackInfo(L"No Track", L"---");
+            m_renderer.SetTrackInfo(L"NO TRACK", L"---");
             m_renderer.SetAlbumArt(nullptr);
             m_isPrefetchReady.store(false);
           }
@@ -475,7 +483,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
           try {
             title = std::filesystem::path(track).filename().wstring();
           } catch (...) {
-            title = L"Unknown";
+            title = L"UNKNOWN";
           }
           m_renderer.SetTrackInfo(title, L"---");
           m_renderer.SetAlbumArt(nullptr);
@@ -485,7 +493,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
           UpdateTrackMetadataIfNeeded(track);
           PrefetchNextTrack();
         } else {
-          m_renderer.SetTrackInfo(L"No Track", L"---");
+          m_renderer.SetTrackInfo(L"NO TRACK", L"---");
           m_renderer.SetAlbumArt(nullptr);
         }
       }
@@ -557,7 +565,9 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     m_config.SetDefaultVolume(vol);
     m_renderer.TriggerVolumeOsd();
     if (delta != 0) {
-      m_renderer.TriggerFlyText(L"音量 " + std::to_wstring(static_cast<int>(vol * 100.0f + 0.5f)) + L"%");
+      m_renderer.TriggerFlyText(
+          L"VOL. " + std::to_wstring(static_cast<int>(vol * 100.0f + 0.5f)) +
+          L"%");
     }
   });
 
@@ -598,7 +608,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
           try {
             title = std::filesystem::path(currentTrack).filename().wstring();
           } catch (...) {
-            title = L"Unknown";
+            title = L"UNKNOWN";
           }
           m_renderer.SetTrackInfo(title, L"---");
           m_renderer.SetAlbumArt(nullptr);
@@ -617,12 +627,12 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
 
       if (!played) {
         // UIの初期表示（空状態）
-        m_renderer.SetTrackInfo(L"No Track", L"---");
+        m_renderer.SetTrackInfo(L"NO TRACK", L"---");
         m_renderer.SetAlbumArt(nullptr);
       }
     } else {
       // UIの初期表示（空状態）
-      m_renderer.SetTrackInfo(L"No Track", L"---");
+      m_renderer.SetTrackInfo(L"NO TRACK", L"---");
       m_renderer.SetAlbumArt(nullptr);
     }
   }
@@ -803,7 +813,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
           try {
             title = std::filesystem::path(currentTrack).filename().wstring();
           } catch (...) {
-            title = L"Unknown";
+            title = L"UNKNOWN";
           }
           m_renderer.SetTrackInfo(title, L"---");
           m_renderer.SetAlbumArt(nullptr);
@@ -821,7 +831,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
       }
 
       if (!played) {
-        m_renderer.SetTrackInfo(L"No Track", L"---");
+        m_renderer.SetTrackInfo(L"NO TRACK", L"---");
         m_renderer.SetAlbumArt(nullptr);
       }
     }
@@ -883,7 +893,7 @@ void Application::Run() {
               try {
                 title = std::filesystem::path(track).filename().wstring();
               } catch (...) {
-                title = L"Unknown";
+                title = L"UNKNOWN";
               }
               m_renderer.SetTrackInfo(title, L"---");
               m_renderer.SetAlbumArt(nullptr);
@@ -902,7 +912,7 @@ void Application::Run() {
         }
 
         if (!played) {
-          m_renderer.SetTrackInfo(L"No Track", L"---");
+          m_renderer.SetTrackInfo(L"NO TRACK", L"---");
           m_renderer.SetAlbumArt(nullptr);
         }
       }
@@ -1003,7 +1013,8 @@ void Application::ForceRender() {
       m_window.GetLogoMenuHoveredIndex(), m_playlistManager.GetCurrentIndex(),
       m_playlistManager.GetCount(), m_isPlaylistListViewMode,
       m_window.GetPlaybackHoveredIndex(), playlistHoveredItemIndex,
-      &m_window.GetLogoMenuItems(), logoClicked, logoMenuClicked, playbackClicked, &isPlaylistExpanded, &isLogoMenuExpanded);
+      &m_window.GetLogoMenuItems(), logoClicked, logoMenuClicked,
+      playbackClicked, &isPlaylistExpanded, &isLogoMenuExpanded);
 
   m_window.SetPlaylistExpanded(isPlaylistExpanded);
   m_window.SetLogoMenuExpanded(isLogoMenuExpanded);
@@ -1056,7 +1067,7 @@ void Application::PrefetchNextTrack() {
             m_prefetchedTitle =
                 std::filesystem::path(nextFile).filename().wstring();
           } catch (...) {
-            m_prefetchedTitle = L"Unknown";
+            m_prefetchedTitle = L"UNKNOWN";
           }
         }
         if (m_prefetchedArtist.empty()) {
@@ -1074,7 +1085,7 @@ void Application::PrefetchNextTrack() {
           m_prefetchedTitle =
               std::filesystem::path(nextFile).filename().wstring();
         } catch (...) {
-          m_prefetchedTitle = L"Unknown";
+          m_prefetchedTitle = L"UNKNOWN";
         }
         m_prefetchedArtist = L"---";
       }
@@ -1097,7 +1108,7 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
       try {
         title = std::filesystem::path(filepath).filename().wstring();
       } catch (...) {
-        title = L"Unknown";
+        title = L"UNKNOWN";
       }
     }
     if (artist.empty()) {
@@ -1153,7 +1164,7 @@ void Application::ClearPlaylist() {
   m_audioPlayer.Stop();
 
   m_isPrefetchReady.store(false);
-  m_renderer.SetTrackInfo(L"No Track", L"---");
+  m_renderer.SetTrackInfo(L"NO TRACK", L"---");
   m_renderer.SetAlbumArt(nullptr);
 }
 
@@ -1184,7 +1195,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
     std::swap(m_parseQueue, empty);
   }
   m_isPrefetchReady.store(false);
-  m_renderer.SetTrackInfo(L"No Track", L"---");
+  m_renderer.SetTrackInfo(L"NO TRACK", L"---");
   m_renderer.SetAlbumArt(nullptr);
 
   m_playlistManager.Clear();
@@ -1221,7 +1232,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
         try {
           title = std::filesystem::path(currentTrack).filename().wstring();
         } catch (...) {
-          title = L"Unknown";
+          title = L"UNKNOWN";
         }
         m_renderer.SetTrackInfo(title, L"---");
         m_renderer.SetAlbumArt(nullptr);
@@ -1239,7 +1250,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
     }
 
     if (!played) {
-      m_renderer.SetTrackInfo(L"No Track", L"---");
+      m_renderer.SetTrackInfo(L"NO TRACK", L"---");
       m_renderer.SetAlbumArt(nullptr);
     }
   }
@@ -1325,7 +1336,7 @@ void Application::ParseThreadFunc() {
         try {
           title = std::filesystem::path(targetPath).filename().wstring();
         } catch (...) {
-          title = L"Unknown";
+          title = L"UNKNOWN";
         }
       }
       if (artist.empty())
@@ -1337,7 +1348,7 @@ void Application::ParseThreadFunc() {
       try {
         title = std::filesystem::path(targetPath).filename().wstring();
       } catch (...) {
-        title = L"Unknown";
+        title = L"UNKNOWN";
       }
       m_playlistManager.UpdateMetadata(targetPath, title, L"---", L"");
     }

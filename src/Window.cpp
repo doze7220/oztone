@@ -21,9 +21,11 @@ HWND Window::s_hwnd = nullptr;
 
 Window::Window()
     : m_hwnd(nullptr), m_hInstance(nullptr), m_config(nullptr),
-      m_isHovered(false), m_isControlHovered(false), m_isVolumeHovered(false), m_isPlaylistHovered(false),
-      m_isTrackingMouse(false), m_pDropTarget(nullptr), m_keyboardHook(nullptr),
-      m_isLogoMenuHovered(false), m_isPlaylistExpanded(false), m_isLogoMenuExpanded(false) {
+      m_isHovered(false), m_isControlHovered(false), m_isVolumeHovered(false),
+      m_isPlaylistHovered(false), m_isTrackingMouse(false),
+      m_pDropTarget(nullptr), m_keyboardHook(nullptr),
+      m_isLogoMenuHovered(false), m_isPlaylistExpanded(false),
+      m_isLogoMenuExpanded(false) {
   m_logoMenuItems = {
       {ID_LOGO_EXIT, L"❌", false, false, L"OZtoneの終了"},
       {ID_LOGO_VISUALIZER, L"📽️", false, false, L"ビジュアライザ表示切り替え"},
@@ -241,37 +243,46 @@ bool Window::ProcessMessages() {
 }
 
 void Window::RegisterHotkeys() {
-    UnregisterHotkeys();
+  UnregisterHotkeys();
 
-    if (!m_config) return;
+  if (!m_config)
+    return;
 
-    auto reg = [&](int id, int mod, int vk) {
-        if (vk != 0) {
-            RegisterHotKey(m_hwnd, id, mod | MOD_NOREPEAT, vk);
-        }
-    };
+  auto reg = [&](int id, int mod, int vk) {
+    if (vk != 0) {
+      RegisterHotKey(m_hwnd, id, mod | MOD_NOREPEAT, vk);
+    }
+  };
 
-    reg(HK_NEXT_TRACK, m_config->GetModifierNextTrack(), m_config->GetVKNextTrack());
-    reg(HK_PREV_TRACK, m_config->GetModifierPrevTrack(), m_config->GetVKPrevTrack());
-    reg(HK_PLAY_PAUSE, m_config->GetModifierPlayPause(), m_config->GetVKPlayPause());
-    reg(HK_STOP, m_config->GetModifierStop(), m_config->GetVKStop());
-    reg(HK_VOL_UP_5, m_config->GetModifierVolUp5(), m_config->GetVKVolUp5());
-    reg(HK_VOL_DOWN_5, m_config->GetModifierVolDown5(), m_config->GetVKVolDown5());
-    reg(HK_VOL_UP_25, m_config->GetModifierVolUp25(), m_config->GetVKVolUp25());
-    reg(HK_VOL_DOWN_25, m_config->GetModifierVolDown25(), m_config->GetVKVolDown25());
-    reg(HK_PREV_PLAYLIST, m_config->GetModifierPrevPlaylist(), m_config->GetVKPrevPlaylist());
-    reg(HK_NEXT_PLAYLIST, m_config->GetModifierNextPlaylist(), m_config->GetVKNextPlaylist());
-    reg(HK_ACTIVE_TOPMOST, m_config->GetModifierActiveTopMost(), m_config->GetVKActiveTopMost());
-    reg(HK_ACTIVE_BOTTOM, m_config->GetModifierActiveBottom(), m_config->GetVKActiveBottom());
-    reg(HK_EXIT_APP, m_config->GetModifierExitApp(), m_config->GetVKExitApp());
+  reg(HK_NEXT_TRACK, m_config->GetModifierNextTrack(),
+      m_config->GetVKNextTrack());
+  reg(HK_PREV_TRACK, m_config->GetModifierPrevTrack(),
+      m_config->GetVKPrevTrack());
+  reg(HK_PLAY_PAUSE, m_config->GetModifierPlayPause(),
+      m_config->GetVKPlayPause());
+  reg(HK_STOP, m_config->GetModifierStop(), m_config->GetVKStop());
+  reg(HK_VOL_UP_5, m_config->GetModifierVolUp5(), m_config->GetVKVolUp5());
+  reg(HK_VOL_DOWN_5, m_config->GetModifierVolDown5(),
+      m_config->GetVKVolDown5());
+  reg(HK_VOL_UP_25, m_config->GetModifierVolUp25(), m_config->GetVKVolUp25());
+  reg(HK_VOL_DOWN_25, m_config->GetModifierVolDown25(),
+      m_config->GetVKVolDown25());
+  reg(HK_PREV_PLAYLIST, m_config->GetModifierPrevPlaylist(),
+      m_config->GetVKPrevPlaylist());
+  reg(HK_NEXT_PLAYLIST, m_config->GetModifierNextPlaylist(),
+      m_config->GetVKNextPlaylist());
+  reg(HK_ACTIVE_TOPMOST, m_config->GetModifierActiveTopMost(),
+      m_config->GetVKActiveTopMost());
+  reg(HK_ACTIVE_BOTTOM, m_config->GetModifierActiveBottom(),
+      m_config->GetVKActiveBottom());
+  reg(HK_EXIT_APP, m_config->GetModifierExitApp(), m_config->GetVKExitApp());
 }
 
 void Window::UnregisterHotkeys() {
-    for (int i = HK_NEXT_TRACK; i <= HK_EXIT_APP; ++i) {
-        UnregisterHotKey(m_hwnd, i);
-    }
+  for (int i = HK_NEXT_TRACK; i <= HK_EXIT_APP; ++i) {
+    UnregisterHotKey(m_hwnd, i);
+  }
 }
-
 
 LRESULT CALLBACK Window::WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam,
                                           LPARAM lParam) {
@@ -399,10 +410,12 @@ bool Window::IsInPlaybackControlRegion(int x, int y) const {
     if (m_config->GetPlaylistPosition() == 0) {
       logicalX -= playlistWidth;
       logicalWidth -= playlistWidth;
-      if (logicalX < 0) return false;
+      if (logicalX < 0)
+        return false;
     } else {
       logicalWidth -= playlistWidth;
-      if (logicalX >= logicalWidth) return false;
+      if (logicalX >= logicalWidth)
+        return false;
     }
   }
 
@@ -425,10 +438,12 @@ bool Window::IsInVolumeControlRegion(int x, int y) const {
     if (m_config->GetPlaylistPosition() == 0) {
       logicalX -= playlistWidth;
       logicalWidth -= playlistWidth;
-      if (logicalX < 0) return false;
+      if (logicalX < 0)
+        return false;
     } else {
       logicalWidth -= playlistWidth;
-      if (logicalX >= logicalWidth) return false;
+      if (logicalX >= logicalWidth)
+        return false;
     }
   }
 
@@ -478,8 +493,8 @@ bool Window::IsInPlaylistRegion(int x, int y) const {
 
   // プレイリストが展開されている場合は、画面下部であってもリスト上にマウスがあればホバーを維持する。
   // 展開されていない場合のみ、右下のリサイズやコントロールとの干渉を避けるためY座標を制限する。
-  bool isYMatch =
-      (m_isPlaylistHovered || m_isPlaylistExpanded) || (logicalY < logicalHeight - controlHeight);
+  bool isYMatch = (m_isPlaylistHovered || m_isPlaylistExpanded) ||
+                  (logicalY < logicalHeight - controlHeight);
 
   return isXMatch && isYMatch;
 }
@@ -550,10 +565,12 @@ int Window::GetPlaybackButtonAt(int x, int y) const {
     if (m_config->GetPlaylistPosition() == 0) {
       logicalX -= playlistWidth;
       logicalWidth -= playlistWidth;
-      if (logicalX < 0) return 0;
+      if (logicalX < 0)
+        return 0;
     } else {
       logicalWidth -= playlistWidth;
-      if (logicalX >= logicalWidth) return 0;
+      if (logicalX >= logicalWidth)
+        return 0;
     }
   }
 
@@ -565,17 +582,13 @@ int Window::GetPlaybackButtonAt(int x, int y) const {
   float halfSize = size / 2.0f;
 
   if (logicalY >= centerY - halfSize && logicalY <= centerY + halfSize) {
-    float positions[5] = {
-        centerX - spacing * 2.0f,
-        centerX - spacing,
-        centerX,
-        centerX + spacing,
-        centerX + spacing * 2.0f
-    };
+    float positions[5] = {centerX - spacing * 2.0f, centerX - spacing, centerX,
+                          centerX + spacing, centerX + spacing * 2.0f};
     for (int i = 0; i < 5; ++i) {
-        if (logicalX >= positions[i] - halfSize && logicalX <= positions[i] + halfSize) {
-            return i + 1; // 1 to 5
-        }
+      if (logicalX >= positions[i] - halfSize &&
+          logicalX <= positions[i] + halfSize) {
+        return i + 1; // 1 to 5
+      }
     }
   }
   return 0;
@@ -584,10 +597,10 @@ int Window::GetPlaybackButtonAt(int x, int y) const {
 LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   switch (uMsg) {
   case WM_HOTKEY: {
-      if (m_onHotkey) {
-          m_onHotkey(static_cast<int>(wParam));
-      }
-      return 0;
+    if (m_onHotkey) {
+      m_onHotkey(static_cast<int>(wParam));
+    }
+    return 0;
   }
   case WM_GETMINMAXINFO: {
     MINMAXINFO *pMinMaxInfo = reinterpret_cast<MINMAXINFO *>(lParam);
@@ -673,8 +686,8 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
           m_playbackHoveredIndex = -1;
         }
 
-        if (m_isHovered ||
-            ((m_isLogoMenuHovered || m_isLogoMenuExpanded) && IsInLogoMenuRegion(xPos, yPos, 1.0f))) {
+        if (m_isHovered || ((m_isLogoMenuHovered || m_isLogoMenuExpanded) &&
+                            IsInLogoMenuRegion(xPos, yPos, 1.0f))) {
           m_isLogoMenuHovered = true;
           m_logoMenuHoveredIndex = GetLogoMenuButtonAt(xPos, yPos, 1.0f);
         } else {
@@ -809,25 +822,26 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     if (btnId > 0) {
       m_playbackClickedIndex = btnId;
       if (btnId == 2 || btnId == 4) {
-          if (m_onSkipCommand) {
-              float delta = (btnId == 2) ? -m_config->GetSkipSeconds() : m_config->GetSkipSeconds();
-              m_onSkipCommand(delta);
-          }
+        if (m_onSkipCommand) {
+          float delta = (btnId == 2) ? -m_config->GetSkipSeconds()
+                                     : m_config->GetSkipSeconds();
+          m_onSkipCommand(delta);
+        }
       } else {
-          if (m_onMediaCommand) {
-            if (btnId == 1)
-              m_onMediaCommand(APPCOMMAND_MEDIA_PREVIOUSTRACK);
-            else if (btnId == 3)
-              m_onMediaCommand(APPCOMMAND_MEDIA_PLAY_PAUSE);
-            else if (btnId == 5)
-              m_onMediaCommand(APPCOMMAND_MEDIA_NEXTTRACK);
-          }
+        if (m_onMediaCommand) {
+          if (btnId == 1)
+            m_onMediaCommand(APPCOMMAND_MEDIA_PREVIOUSTRACK);
+          else if (btnId == 3)
+            m_onMediaCommand(APPCOMMAND_MEDIA_PLAY_PAUSE);
+          else if (btnId == 5)
+            m_onMediaCommand(APPCOMMAND_MEDIA_NEXTTRACK);
+        }
       }
       return 0;
     }
 
     if (IsInLogoRegion(xPos, yPos) && !m_isLogoMenuHovered) {
-        m_isLogoClicked = true;
+      m_isLogoClicked = true;
     }
 
     if (!m_config || !m_config->GetLockWindowPosition()) {
@@ -948,8 +962,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
           AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hAdvMenu, L"詳細設定");
         } else if (id == Window::ID_TRAY_VOL_MENU) {
           HMENU hVolMenu = CreatePopupMenu();
-          AppendMenuW(hVolMenu, MF_STRING, Window::ID_TRAY_VOL_100,
-                      L"音量 100%");
+          AppendMenuW(hVolMenu, MF_STRING, Window::ID_TRAY_VOL_100,L"音量 100%");
           AppendMenuW(hVolMenu, MF_STRING, Window::ID_TRAY_VOL_75, L"音量 75%");
           AppendMenuW(hVolMenu, MF_STRING, Window::ID_TRAY_VOL_50, L"音量 50%");
           AppendMenuW(hVolMenu, MF_STRING, Window::ID_TRAY_VOL_25, L"音量 25%");

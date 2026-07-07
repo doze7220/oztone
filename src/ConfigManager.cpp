@@ -25,7 +25,6 @@ WindowY=-2147483648
 WindowWidth=1024
 WindowHeight=512
 
-
 [Visibility]
 ShowAppLogo=1
 ShowNowPlaying=1
@@ -93,13 +92,14 @@ ArtistOffsetY=60
 ArtistFontSize=18.0
 ArtistFontFamily=Meiryo
 TrackCountOffsetX=-82
-TrackCountOffsetY=94
-TrackCountFontFamily="Impact"
-TrackCountFontSize=22.0
-TrackCountLetterSpacing=-1.0
-TrackCountShadowOffsetX=2.0
-TrackCountShadowOffsetY=2.0
-TrackCountShadowOpacity=0.7
+TrackCountOffsetY=-18
+TrackCountFontFamily="Courier New"
+TrackCountFontSize=18.0
+TrackCountLetterSpacing=-3.0
+TrackCountShadowOffsetX=1.0
+TrackCountShadowOffsetY=1.0
+TrackCountShadowOpacity=1.0
+TrackCountTextAlignment=1
 
 [Layout_SeekBar]
 SeekBarMargin=20.0
@@ -172,6 +172,7 @@ TooltipTextColor=#FFFFFF
 [Audio]
 DefaultVolume=1.0
 ShuffleMode=1
+SkipSeconds=10.0
 
 [Visualizer]
 VisualizerMode=2
@@ -387,7 +388,7 @@ ConfigManager::ConfigManager()
   m_trackCountFontSize = 14.0f;
   m_trackCountOffsetX = 20;
   m_trackCountOffsetY = 100;
-  m_trackCountTextAlignment = 1;
+  m_trackCountTextAlignment = 0;
   m_trackCountLetterSpacing = -1.0f;
   m_trackCountShadowOffsetX = 2.0f;
   m_trackCountShadowOffsetY = 2.0f;
@@ -1174,7 +1175,7 @@ void ConfigManager::LoadSettings() {
   m_trackCountOffsetY = GetPrivateProfileIntW(
       L"Layout_NowPlaying", L"TrackCountOffsetY", 100, m_iniFilePath.c_str());
   m_trackCountTextAlignment =
-      GetPrivateProfileIntW(L"Layout_NowPlaying", L"TrackCountTextAlignment", 1,
+      GetPrivateProfileIntW(L"Layout_NowPlaying", L"TrackCountTextAlignment", 0,
                             m_iniFilePath.c_str());
   GetPrivateProfileStringW(L"Layout_NowPlaying", L"TrackCountLetterSpacing",
                            L"-1.0", buf, 32, m_iniFilePath.c_str());
