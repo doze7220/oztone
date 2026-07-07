@@ -25,13 +25,17 @@ Application::~Application() {
 void Application::HandleMediaCommand(int cmd) {
   if (cmd == APPCOMMAND_MEDIA_PLAY_PAUSE) {
     m_audioPlayer.TogglePlayPause();
+    m_renderer.TriggerFlyText(L"再生/一時停止");
   } else if (cmd == APPCOMMAND_MEDIA_STOP) {
     m_audioPlayer.Stop();
+    m_renderer.TriggerFlyText(L"停止");
   } else if (cmd == APPCOMMAND_MEDIA_NEXTTRACK ||
              cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) {
     if (cmd == APPCOMMAND_MEDIA_NEXTTRACK) {
+      m_renderer.TriggerFlyText(L"次の曲");
       m_playlistManager.Advance();
     } else {
+      m_renderer.TriggerFlyText(L"前の曲");
       m_playlistManager.Previous();
     }
 
@@ -233,6 +237,11 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
               static_cast<int>((idx - 1 + playlists.size()) % playlists.size());
         }
         this->SwitchPlaylist(playlists[idx]);
+        if (hotkeyId == Window::HK_NEXT_PLAYLIST) {
+          m_renderer.TriggerFlyText(L"次プレイリスト");
+        } else {
+          m_renderer.TriggerFlyText(L"前プレイリスト");
+        }
       }
       break;
     }
@@ -253,6 +262,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     }
     case Window::HK_EXIT_APP:
       this->ClearPlaylist();
+      m_renderer.TriggerFlyText(L"OZtone終了");
       PostMessage(m_window.GetHandle(), WM_CLOSE, 0, 0);
       break;
     }
