@@ -201,11 +201,15 @@ void PlaylistWidget::UpdateAnimation(const WidgetContext &ctx) {
   if (!isExpanded) {
     m_playlistManualScrollY = 0.0f;
   } else {
-    D2D1_SIZE_F renderTargetSize =
-        D2D1::SizeF(ctx.config->GetWindowWidth() * ctx.dpiScale,
-                    ctx.config->GetWindowHeight() * ctx.dpiScale);
-    float logicWidth = renderTargetSize.width / ctx.dpiScale;
-    float logicHeight = renderTargetSize.height / ctx.dpiScale;
+    float logicWidth = ctx.logicalWidth;
+    float logicHeight = ctx.logicalHeight;
+    if (logicWidth == 0.0f || logicHeight == 0.0f) {
+        D2D1_SIZE_F renderTargetSize =
+            D2D1::SizeF(ctx.config->GetWindowWidth() * ctx.dpiScale,
+                        ctx.config->GetWindowHeight() * ctx.dpiScale);
+        logicWidth = renderTargetSize.width / ctx.dpiScale;
+        logicHeight = renderTargetSize.height / ctx.dpiScale;
+    }
 
     size_t activeIndex = ctx.currentTrackIndex;
     size_t activeTotal = ctx.totalTracks;
@@ -297,6 +301,16 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
   PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
       logicWidth, logicHeight, config, m_playlistSlideX,
       m_playlistManualScrollY, activeIndex, activeTotal);
+
+  float viewHeight = layout.clipRect.bottom - layout.clipRect.top;
+  if (m_lastViewHeight != 0.0f && m_lastViewHeight != viewHeight) {
+      float diff = (viewHeight - m_lastViewHeight) / 2.0f;
+      m_playlistManualScrollY -= diff;
+      layout = LayoutCalculator::CalculatePlaylistLayout(
+          logicWidth, logicHeight, config, m_playlistSlideX,
+          m_playlistManualScrollY, activeIndex, activeTotal);
+  }
+  m_lastViewHeight = viewHeight;
 
   ID2D1PathGeometry *arrowGeometry =
       config->GetPlaylistPosition() == 0

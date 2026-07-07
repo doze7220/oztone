@@ -410,12 +410,19 @@ PlaylistLayout LayoutCalculator::CalculatePlaylistLayout(float logicalWidth, flo
 
     // Scroll
     layout.itemHeight = static_cast<float>(config->GetPlaylistItemOffsetY());
-    float listHeight = layout.playlistHeight - toolbarHeight;
-    float baseScrollY = (listHeight / 2.0f) - (currentTrackIndex * layout.itemHeight);
+    float viewHeight = layout.clipRect.bottom - layout.clipRect.top;
+    float totalHeight = totalTracks * layout.itemHeight;
+    
+    float baseScrollY = (viewHeight / 2.0f) - (currentTrackIndex * layout.itemHeight);
     float scrollY = baseScrollY + manualScrollY;
+    
     float maxScroll = 0.0f;
-    float minScroll = listHeight - (totalTracks * layout.itemHeight);
-    if (minScroll > 0) minScroll = 0;
+    float minScroll = viewHeight - totalHeight;
+    
+    if (minScroll > maxScroll) {
+        minScroll = maxScroll;
+    }
+    
     scrollY = std::clamp(scrollY, minScroll, maxScroll);
     
     layout.newManualScrollY = scrollY - baseScrollY;

@@ -361,6 +361,11 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
     ctx.totalTracks = totalTracks;
     ctx.config = m_config;
     ctx.dpiScale = m_dpiScale;
+    if (m_d2dContext) {
+        D2D1_SIZE_F sz = m_d2dContext->GetSize();
+        ctx.logicalWidth = sz.width / m_dpiScale;
+        ctx.logicalHeight = sz.height / m_dpiScale;
+    }
     ctx.playbackHoveredIndex = playbackHoveredIndex;
     ctx.playlistHoveredItemIndex = playlistHoveredItemIndex;
     ctx.logoMenuItems = logoMenuItems;
@@ -392,6 +397,11 @@ void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, s
     ctx.currentTrackIndex = currentTrackIndex;
     ctx.totalTracks = totalTracks;
     ctx.dpiScale = m_dpiScale;
+    if (m_d2dContext) {
+        D2D1_SIZE_F sz = m_d2dContext->GetSize();
+        ctx.logicalWidth = sz.width / m_dpiScale;
+        ctx.logicalHeight = sz.height / m_dpiScale;
+    }
     ctx.trackTitle = m_trackTitle;
     ctx.trackArtist = m_trackArtist;
     ctx.nextIsReady = m_nextIsReady;
@@ -437,6 +447,11 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isVolumeHovere
     ctx.totalTracks = totalTracks;
     ctx.shuffleMetadataList = &shuffleMetadataList;
     ctx.dpiScale = m_dpiScale;
+    if (m_d2dContext) {
+        D2D1_SIZE_F sz = m_d2dContext->GetSize();
+        ctx.logicalWidth = sz.width / m_dpiScale;
+        ctx.logicalHeight = sz.height / m_dpiScale;
+    }
     ctx.controlAlpha = m_controlAlpha;
     ctx.timeString = m_lastTimeString;
     ctx.trackTitle = m_trackTitle;

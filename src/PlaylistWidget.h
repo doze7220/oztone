@@ -43,5 +43,6 @@ private:
     float m_playlistSlideX;
     float m_playlistLeaveTimer = 0.0f;
     float m_playlistManualScrollY;
+    float m_lastViewHeight = 0.0f;
     std::unordered_map<int, float> m_hoverAlpha;
 };

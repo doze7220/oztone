@@ -44,6 +44,8 @@ struct WidgetContext {
     const std::vector<TrackMetadata>* shuffleMetadataList;
 
     float dpiScale;
+    float logicalWidth = 0.0f;
+    float logicalHeight = 0.0f;
 
     float controlAlpha;
     float osdVolumeAlpha;
