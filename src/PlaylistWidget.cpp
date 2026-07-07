@@ -149,6 +149,24 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
       }
     }
   }
+
+  D2D1_GRADIENT_STOP stops[2];
+  D2D1_COLOR_F playingColor = ParseHexColor(config->GetPlayingItemColor());
+  stops[0].color = playingColor;
+  stops[0].color.a = 0.0f;
+  stops[0].position = 0.0f;
+  stops[1].color = playingColor;
+  stops[1].color.a = 0.8f;
+  stops[1].position = 1.0f;
+  
+  context->CreateGradientStopCollection(stops, 2, D2D1_GAMMA_2_2, D2D1_EXTEND_MODE_CLAMP, &m_radarGradientStops);
+  if (m_radarGradientStops) {
+      context->CreateLinearGradientBrush(
+          D2D1::LinearGradientBrushProperties(D2D1::Point2F(0,0), D2D1::Point2F(100,0)),
+          m_radarGradientStops.Get(),
+          &m_radarGradientBrush
+      );
+  }
 }
 
 void PlaylistWidget::ReleaseResources() {
@@ -168,6 +186,8 @@ void PlaylistWidget::ReleaseResources() {
   m_playlistHighlightBrush.Reset();
   m_textBrush.Reset();
   m_shadowBrush.Reset();
+  m_radarGradientStops.Reset();
+  m_radarGradientBrush.Reset();
   m_dwriteFactory.Reset();
 }
 
@@ -235,6 +255,20 @@ void PlaylistWidget::UpdateAnimation(const WidgetContext &ctx) {
         logicWidth, logicHeight, ctx.config, m_playlistSlideX,
         m_playlistManualScrollY, activeIndex, activeTotal);
     m_playlistManualScrollY = layout.newManualScrollY;
+  }
+
+  if (m_lastTrackIndex != static_cast<size_t>(-1) && m_lastTrackIndex != ctx.currentTrackIndex && !ctx.isPlaylistListViewMode) {
+      m_isScanlineActive = true;
+      m_scanlineProgress = 0.0f;
+  }
+  m_lastTrackIndex = ctx.currentTrackIndex;
+
+  if (m_isScanlineActive) {
+      m_scanlineProgress += ctx.deltaTime * 2.0f;
+      if (m_scanlineProgress >= 1.0f) {
+          m_isScanlineActive = false;
+          m_scanlineProgress = 1.0f;
+      }
   }
 
   float fadeOutSpeed = ctx.config->GetHoverFadeOutSpeed() * ctx.deltaTime;
@@ -599,7 +633,7 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
             artist = L"Unknown Artist";
           }
 
-          m_textBrush->SetColor(GetBlendedTextColor(static_cast<int>(i), isPlaying));
+          m_textBrush->SetColor(GetBlendedTextColor(static_cast<int>(i), isPlaying && !m_isScanlineActive));
 
           context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
                             m_playlistTitleTextFormat.Get(),
@@ -623,6 +657,43 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
                               m_playlistTimeTextFormat.Get(), &timeRect,
                               m_playlistTimeBrush ? m_playlistTimeBrush.Get()
                                                   : m_textBrush.Get());
+          }
+
+          if (isPlaying && m_isScanlineActive && m_radarGradientBrush) {
+              float startX = itemLayout.hlRect.left;
+              float endX = itemLayout.hlRect.right;
+              float tailLength = 150.0f * ctx.dpiScale;
+              
+              float currentX = startX + (endX - startX + tailLength) * m_scanlineProgress;
+              float tailStart = currentX - tailLength;
+              
+              context->PushAxisAlignedClip(&itemLayout.hlRect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+              
+              m_radarGradientBrush->SetStartPoint(D2D1::Point2F(tailStart, itemLayout.hlRect.top));
+              m_radarGradientBrush->SetEndPoint(D2D1::Point2F(currentX, itemLayout.hlRect.top));
+              D2D1_RECT_F tailRect = D2D1::RectF(tailStart, itemLayout.hlRect.top, currentX, itemLayout.hlRect.bottom);
+              context->FillRectangle(&tailRect, m_radarGradientBrush.Get());
+              
+              D2D1_RECT_F textClipRect = D2D1::RectF(startX, itemLayout.hlRect.top, currentX, itemLayout.hlRect.bottom);
+              context->PushAxisAlignedClip(&textClipRect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+              
+              m_textBrush->SetColor(ParseHexColor(config->GetPlayingItemColor()));
+              context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
+                                m_playlistTitleTextFormat.Get(), &itemLayout.titleRect, m_textBrush.Get());
+              if (!artist.empty()) {
+                  context->DrawText(artist.c_str(), static_cast<UINT32>(artist.length()),
+                                    m_playlistArtistTextFormat.Get(), &itemLayout.artistRect, m_textBrush.Get());
+              }
+              if (!timeStr.empty() && m_playlistTimeTextFormat) {
+                  D2D1_RECT_F timeRect = D2D1::RectF(itemLayout.timeOrigin.x, itemLayout.timeOrigin.y,
+                                                     itemLayout.timeOrigin.x + itemLayout.timeMaxWidth,
+                                                     itemLayout.timeOrigin.y + itemLayout.timeMaxHeight);
+                  context->DrawText(timeStr.c_str(), static_cast<UINT32>(timeStr.length()),
+                                    m_playlistTimeTextFormat.Get(), &timeRect, m_textBrush.Get());
+              }
+              
+              context->PopAxisAlignedClip(); // Pop text clip
+              context->PopAxisAlignedClip(); // Pop hlRect clip
           }
         }
         currentY += layout.itemHeight;

@@ -752,6 +752,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             logicalY >= layout.items[i].hitRect.top &&
             logicalY <= layout.items[i].hitRect.bottom) {
 
+          m_logoMenuClickedIndex = static_cast<int>(i);
           auto &item = m_logoMenuItems[i];
           if (item.isToggle) {
             item.toggleState = !item.toggleState;
@@ -806,6 +807,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
     int btnId = GetPlaybackButtonAt(xPos, yPos);
     if (btnId > 0) {
+      m_playbackClickedIndex = btnId;
       if (btnId == 2 || btnId == 4) {
           if (m_onSkipCommand) {
               float delta = (btnId == 2) ? -m_config->GetSkipSeconds() : m_config->GetSkipSeconds();
@@ -822,6 +824,10 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
           }
       }
       return 0;
+    }
+
+    if (IsInLogoRegion(xPos, yPos) && !m_isLogoMenuHovered) {
+        m_isLogoClicked = true;
     }
 
     if (!m_config || !m_config->GetLockWindowPosition()) {

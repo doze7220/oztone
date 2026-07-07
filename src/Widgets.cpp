@@ -116,7 +116,19 @@ void AppLogoWidget::ReleaseResources() {
   m_shadowEffect.Reset();
 }
 
-void AppLogoWidget::UpdateAnimation(const WidgetContext &ctx) {}
+void AppLogoWidget::UpdateAnimation(const WidgetContext &ctx) {
+    if (ctx.isLogoClicked) {
+        m_isRippling = true;
+        m_rippleProgress = 0.0f;
+    }
+    if (m_isRippling) {
+        m_rippleProgress += ctx.deltaTime * 3.0f;
+        if (m_rippleProgress >= 1.0f) {
+            m_isRippling = false;
+            m_rippleProgress = 1.0f;
+        }
+    }
+}
 void AppLogoWidget::UpdateLayout(const WidgetContext &ctx,
                                  const ConfigManager *config) {}
 
@@ -143,6 +155,23 @@ void AppLogoWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
 
     context->DrawBitmap(bitmapToDraw, &layout.destRect, 1.0f,
                         D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+
+    if (m_isRippling) {
+        D2D1_POINT_2F center = {
+            layout.destRect.left + (layout.destRect.right - layout.destRect.left) / 2.0f,
+            layout.destRect.top + (layout.destRect.bottom - layout.destRect.top) / 2.0f
+        };
+        float scale = 1.0f + m_rippleProgress * 0.5f;
+        float opacity = 0.5f * (1.0f - m_rippleProgress);
+        
+        D2D1_MATRIX_3X2_F oldTransform;
+        context->GetTransform(&oldTransform);
+        context->SetTransform(D2D1::Matrix3x2F::Scale(scale, scale, center) * oldTransform);
+        
+        context->DrawBitmap(bitmapToDraw, &layout.destRect, opacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+        
+        context->SetTransform(oldTransform);
+    }
   }
 }
 

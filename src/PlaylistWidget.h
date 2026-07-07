@@ -40,9 +40,17 @@ private:
 
     Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
 
+    Microsoft::WRL::ComPtr<ID2D1GradientStopCollection> m_radarGradientStops;
+    Microsoft::WRL::ComPtr<ID2D1LinearGradientBrush> m_radarGradientBrush;
+
     float m_playlistSlideX;
     float m_playlistLeaveTimer = 0.0f;
     float m_playlistManualScrollY;
     float m_lastViewHeight = 0.0f;
+
+    size_t m_lastTrackIndex = static_cast<size_t>(-1);
+    bool m_isScanlineActive = false;
+    float m_scanlineProgress = 0.0f;
+
     std::unordered_map<int, float> m_hoverAlpha;
 };

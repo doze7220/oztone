@@ -281,7 +281,11 @@ public:
     void SetPlaylistExpanded(bool expanded) { m_isPlaylistExpanded = expanded; }
 
     bool IsLogoMenuExpanded() const { return m_isLogoMenuExpanded; }
-    void SetLogoMenuExpanded(bool expanded) { m_isLogoMenuExpanded = expanded; }
+    const std::vector<std::wstring>& GetDynamicPlaylistPaths() const { return m_dynamicPlaylistPaths; }
+
+    bool ConsumeLogoClicked() { bool b = m_isLogoClicked; m_isLogoClicked = false; return b; }
+    int ConsumeLogoMenuClickedIndex() { int i = m_logoMenuClickedIndex; m_logoMenuClickedIndex = -1; return i; }
+    int ConsumePlaybackClickedIndex() { int i = m_playbackClickedIndex; m_playbackClickedIndex = -1; return i; }
 
 private:
 
@@ -319,6 +323,9 @@ private:
     NOTIFYICONDATAW m_nid;
 
     std::vector<std::wstring> m_dynamicPlaylistPaths;
+    bool m_isLogoClicked = false;
+    int m_logoMenuClickedIndex = -1;
+    int m_playbackClickedIndex = -1;
 
     HHOOK m_keyboardHook;
     static HWND s_hwnd;

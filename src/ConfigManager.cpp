@@ -66,7 +66,6 @@ MenuIconOffsetX=-24
 MenuIconOffsetY=38
 MenuScrollDuration=0.5
 MenuFontFamily="Segoe UI Emoji"
-IconHoverBgAlpha=0.4
 VisualizerIconFontSize=24.0
 VisualizerIconOffsetX=6
 VisualizerIconOffsetY=0
@@ -858,14 +857,6 @@ void ConfigManager::LoadSettings() {
     m_logoMenuTypingLetterSpacing = std::stof(buf);
   } catch (...) {
     m_logoMenuTypingLetterSpacing = 0.0f;
-  }
-
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"IconHoverBgAlpha", L"0.6", buf,
-                           32, m_iniFilePath.c_str());
-  try {
-    m_logoMenuIconHoverBgAlpha = std::stof(buf);
-  } catch (...) {
-    m_logoMenuIconHoverBgAlpha = 0.6f;
   }
 
   GetPrivateProfileStringW(L"Layout_LogoMenu", L"VisualizerIconFontSize",

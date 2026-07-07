@@ -25,10 +25,10 @@ private:
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_shadowBrush;
     Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
     
-    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_appLogoBackBitmap;
-    Microsoft::WRL::ComPtr<ID2D1Effect> m_shadowEffect;
 
     float m_menuProgress = 0.0f;
     float m_logoMenuLeaveTimer = 0.0f;
     std::vector<float> m_hoverAlpha;
+    std::vector<float> m_rippleProgress;
+    std::vector<bool> m_isRippling;
 };

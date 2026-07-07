@@ -193,6 +193,7 @@ UI要素ごとの独立した描画・状態管理を担うコンポーネント
     *   全Widgetが実装する共通インターフェース。`CreateResources` (リソース生成), `UpdateAnimation` (アニメーション更新), `UpdateLayout` (テキストやレイアウトの更新), `Draw` (描画) のライフサイクルメソッドを持つ。
 *   **`WidgetContext` (`src/WidgetContext.h`)**
     *   各フレームで全Widgetに共通して必要な状態（`deltaTime`, `dpiScale`, `logicalWidth`, `logicalHeight` (実際のウィンドウ論理サイズ), `controlAlpha`, 現在のアルバムアート、スペクトルデータ、ConfigManagerへのポインタ等）を格納し、`Renderer` から各Widgetへ受け渡される構造体。リサイズ時などにおいて常に最新のウィンドウサイズを保証する。
+    *   **ワンショット・クリック検知とアニメーション機構**: `Window`で捕捉したクリックイベントを1フレーム限定で伝達するため、`isLogoClicked`、`clickedLogoMenuIndex`、`clickedPlaybackIndex` などのフラグが含まれる。各Widgetはこれを受信し、波紋エフェクト（Ripple Effect）や状態変化のアニメーションを開始する。
     *   **ルール**: `WidgetContext` は共有データのみを保持し、特定のWidget固有の状態（例：特定のテキストレイアウトキャッシュ）は持たない。
 *   **各具象 Widget 実装 (`Widgets.h/cpp`)**
     *   `AppLogoWidget`: アプリアイコンの描画。メニュー展開中（`isLogoMenuHovered`がtrueの時）は、大元のアプリアイコンもホバー状態画像（`app_logo_hover.png`）を維持する。

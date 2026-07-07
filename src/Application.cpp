@@ -993,16 +993,19 @@ void Application::ForceRender() {
   bool isPlaylistExpanded = false;
   bool isLogoMenuExpanded = false;
 
+  bool logoClicked = m_window.ConsumeLogoClicked();
+  int logoMenuClicked = m_window.ConsumeLogoMenuClickedIndex();
+  int playbackClicked = m_window.ConsumePlaybackClickedIndex();
+
   m_renderer.UpdateAnimation(
       0.016f, m_window.IsControlHovered(), m_window.IsVolumeHovered(),
       m_window.IsPlaylistHovered(), m_window.IsLogoMenuHovered(),
       m_window.GetLogoMenuHoveredIndex(), m_playlistManager.GetCurrentIndex(),
       m_playlistManager.GetCount(), m_isPlaylistListViewMode,
       m_window.GetPlaybackHoveredIndex(), playlistHoveredItemIndex,
-      &m_window.GetLogoMenuItems(), &isPlaylistExpanded, &isLogoMenuExpanded);
+      &m_window.GetLogoMenuItems(), logoClicked, logoMenuClicked, playbackClicked, &isPlaylistExpanded, &isLogoMenuExpanded);
 
-  m_window.SetPlaylistExpanded(isPlaylistExpanded);
-  m_window.SetLogoMenuExpanded(isLogoMenuExpanded);
+
 
   m_renderer.UpdateTextLayouts(timeString, m_audioPlayer.GetVolume(),
                                m_playlistManager.GetCurrentIndex(),

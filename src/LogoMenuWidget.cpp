@@ -145,9 +145,6 @@ void LogoMenuWidget::CreateResources(ID2D1DeviceContext *context,
     context->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f),
                                    &m_shadowBrush);
   }
-  LoadBitmapResourceHelper(wicFactory, context, L"app_logo_back.png",
-                           IDI_APP_LOGO_BACK, &m_appLogoBackBitmap);
-  context->CreateEffect(CLSID_D2D1Shadow, &m_shadowEffect);
 }
 
 void LogoMenuWidget::ReleaseResources() {
@@ -158,8 +155,6 @@ void LogoMenuWidget::ReleaseResources() {
   m_iconBrush.Reset();
   m_inactiveIconBrush.Reset();
   m_typingTextBrush.Reset();
-  m_appLogoBackBitmap.Reset();
-  m_shadowEffect.Reset();
   m_dwriteFactory.Reset();
 }
 
@@ -189,12 +184,26 @@ void LogoMenuWidget::UpdateAnimation(const WidgetContext &ctx) {
     size_t count = ctx.logoMenuItems->size();
     if (m_hoverAlpha.size() != count) {
       m_hoverAlpha.resize(count, 0.0f);
+      m_rippleProgress.resize(count, 0.0f);
+      m_isRippling.resize(count, false);
     }
 
     float fadeOutSpeed = ctx.config->GetHoverFadeOutSpeed() * ctx.deltaTime;
     float fadeInSpeed = 10.0f * ctx.deltaTime;
 
     for (size_t i = 0; i < count; ++i) {
+      if (ctx.clickedLogoMenuIndex == static_cast<int>(i)) {
+          m_isRippling[i] = true;
+          m_rippleProgress[i] = 0.0f;
+      }
+      if (m_isRippling[i]) {
+          m_rippleProgress[i] += ctx.deltaTime * 3.0f;
+          if (m_rippleProgress[i] >= 1.0f) {
+              m_isRippling[i] = false;
+              m_rippleProgress[i] = 1.0f;
+          }
+      }
+
       if (ctx.logoMenuHoveredIndex == static_cast<int>(i)) {
         m_hoverAlpha[i] += fadeInSpeed;
         if (m_hoverAlpha[i] > 1.0f) m_hoverAlpha[i] = 1.0f;
@@ -263,34 +272,6 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
       active = false;
     }
 
-    if (i == ctx.logoMenuHoveredIndex && m_appLogoBackBitmap) {
-      D2D1_SIZE_F bitmapSize = m_appLogoBackBitmap->GetSize();
-      float logoScale = 1.0f; // Scale if needed, but let's assume it fits well.
-      float bgWidth = bitmapSize.width * logoScale;
-      float bgHeight = bitmapSize.height * logoScale;
-      D2D1_RECT_F bgRect = D2D1::RectF(itemLayout.position.x - bgWidth / 2.0f,
-                                       itemLayout.position.y - bgHeight / 2.0f,
-                                       itemLayout.position.x + bgWidth / 2.0f,
-                                       itemLayout.position.y + bgHeight / 2.0f);
-
-      if (m_shadowEffect) {
-        m_shadowEffect->SetInput(0, m_appLogoBackBitmap.Get());
-        m_shadowEffect->SetValue(D2D1_SHADOW_PROP_COLOR,
-                                 D2D1::Vector4F(1.0f, 1.0f, 1.0f, 0.8f));
-        m_shadowEffect->SetValue(D2D1_SHADOW_PROP_BLUR_STANDARD_DEVIATION,
-                                 5.0f);
-        D2D1_POINT_2F offset =
-            D2D1::Point2F(itemLayout.position.x - bgWidth / 2.0f,
-                          itemLayout.position.y - bgHeight / 2.0f);
-        context->DrawImage(m_shadowEffect.Get(), &offset, nullptr,
-                           D2D1_INTERPOLATION_MODE_LINEAR,
-                           D2D1_COMPOSITE_MODE_SOURCE_OVER);
-      }
-      context->DrawBitmap(m_appLogoBackBitmap.Get(), &bgRect,
-                          config->GetLogoMenuIconHoverBgAlpha(),
-                          D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
-    }
-
     auto GetBlendedColor = [&](bool isActive, int index) {
         D2D1_COLOR_F baseColor = isActive ? D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f) : D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.4f);
         D2D1_COLOR_F hoverColor = ParseHexColor(config->GetHoverIconColor());
@@ -310,6 +291,32 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
     context->DrawText(
         iconText.c_str(), static_cast<UINT32>(iconText.length()),
         m_iconTextFormat.Get(), itemLayout.hitRect, brush, options);
+
+    if (m_isRippling[i]) {
+        float rp = m_rippleProgress[i];
+        float scale = 1.0f + rp * 0.5f;
+        float opacity = 0.5f * (1.0f - rp);
+        
+        D2D1_COLOR_F baseColor = GetBlendedColor(active, static_cast<int>(i));
+        baseColor.a = opacity;
+        ID2D1SolidColorBrush *rippleBrush = active ? m_iconBrush.Get() : m_inactiveIconBrush.Get();
+        rippleBrush->SetColor(baseColor);
+        
+        D2D1_POINT_2F center = {
+            itemLayout.hitRect.left + (itemLayout.hitRect.right - itemLayout.hitRect.left) / 2.0f,
+            itemLayout.hitRect.top + (itemLayout.hitRect.bottom - itemLayout.hitRect.top) / 2.0f
+        };
+        
+        D2D1_MATRIX_3X2_F oldTransform;
+        context->GetTransform(&oldTransform);
+        context->SetTransform(D2D1::Matrix3x2F::Scale(scale, scale, center) * oldTransform);
+        
+        context->DrawText(
+            iconText.c_str(), static_cast<UINT32>(iconText.length()),
+            m_iconTextFormat.Get(), itemLayout.hitRect, rippleBrush, options);
+            
+        context->SetTransform(oldTransform);
+    }
 
     if (hasIndicator) {
         D2D1_RECT_F indRect = itemLayout.hitRect;

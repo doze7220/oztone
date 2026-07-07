@@ -100,6 +100,18 @@ void PlaybackControlsWidget::UpdateAnimation(const WidgetContext &ctx) {
     float fadeInSpeed = 10.0f * ctx.deltaTime; // Fade in is generally faster
 
     for (int i = 0; i < 5; ++i) {
+        if (ctx.clickedPlaybackIndex == i + 1) { // 1-based index from Window
+            m_isRippling[i] = true;
+            m_rippleProgress[i] = 0.0f;
+        }
+        if (m_isRippling[i]) {
+            m_rippleProgress[i] += ctx.deltaTime * 3.0f;
+            if (m_rippleProgress[i] >= 1.0f) {
+                m_isRippling[i] = false;
+                m_rippleProgress[i] = 1.0f;
+            }
+        }
+
         if (ctx.playbackHoveredIndex == i + 1) { // 1-based index from Window
             m_hoverAlpha[i] += fadeInSpeed;
             if (m_hoverAlpha[i] > 1.0f) m_hoverAlpha[i] = 1.0f;
@@ -185,94 +197,138 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
                           layout.centerX + layout.spacing,
                           layout.centerX + layout.spacing * 2.0f};
 
+    auto DrawRipple = [&](int index, auto drawFunc) {
+        if (m_isRippling[index]) {
+            float rp = m_rippleProgress[index];
+            float scale = 1.0f + rp * 0.5f;
+            float opacity = 0.5f * (1.0f - rp) * ctx.controlAlpha;
+            
+            D2D1_COLOR_F rippleColor = ParseHexColor(config->GetHoverIconColor());
+            rippleColor.a = opacity;
+            m_controlBrush->SetColor(rippleColor);
+            
+            float cx = positions[index];
+            float cy = layout.centerY;
+            D2D1_POINT_2F center = { cx, cy };
+            
+            D2D1_MATRIX_3X2_F oldTransform;
+            context->GetTransform(&oldTransform);
+            context->SetTransform(D2D1::Matrix3x2F::Scale(scale, scale, center) * oldTransform);
+            
+            drawFunc();
+            
+            context->SetTransform(oldTransform);
+        }
+    };
+
     // 1. Prev
     m_controlBrush->SetColor(GetButtonColor(0));
     float prevX = positions[0];
-    DrawRect(prevX - layout.half + layout.size * 0.1f, layout.centerY,
-             layout.size * 0.2f, layout.size);
-    DrawTriangle(prevX - layout.size * 0.1f, layout.centerY, layout.size * 0.4f,
-                 layout.size, false);
-    DrawTriangle(prevX + layout.size * 0.3f, layout.centerY, layout.size * 0.4f,
-                 layout.size, false);
+    auto drawPrev = [&]() {
+      DrawRect(prevX - layout.half + layout.size * 0.1f, layout.centerY,
+               layout.size * 0.2f, layout.size);
+      DrawTriangle(prevX - layout.size * 0.1f, layout.centerY, layout.size * 0.4f,
+                   layout.size, false);
+      DrawTriangle(prevX + layout.size * 0.3f, layout.centerY, layout.size * 0.4f,
+                   layout.size, false);
+    };
+    drawPrev();
+    DrawRipple(0, drawPrev);
 
     // 2. Skip Back
     m_controlBrush->SetColor(GetButtonColor(1));
     float skipBackX = positions[1];
-    DrawChevron(skipBackX - layout.size * 0.15f, layout.centerY,
-                layout.size * 0.5f, layout.size, false);
-    DrawChevron(skipBackX + layout.size * 0.15f, layout.centerY,
-                layout.size * 0.5f, layout.size, false);
-    if (m_indicatorTextLayout) {
-      float textX = skipBackX + layout.size * config->GetSkipTextOffsetX();
-      float textY = layout.centerY + layout.size * config->GetSkipTextOffsetY();
-      float shift = config->GetSkipTextShadowShift();
-      Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> shadowBrush;
-      context->CreateSolidColorBrush(HexToColorF(config->GetSkipTextShadowColor()),
-                                     &shadowBrush);
-      if (shadowBrush) {
-          shadowBrush->SetOpacity(config->GetSkipTextShadowOpacity() * ctx.controlAlpha);
-          context->DrawTextLayout(D2D1::Point2F(textX + shift, textY + shift),
-                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
-          context->DrawTextLayout(D2D1::Point2F(textX - shift, textY - shift),
-                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
-          context->DrawTextLayout(D2D1::Point2F(textX + shift, textY - shift),
-                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
-          context->DrawTextLayout(D2D1::Point2F(textX - shift, textY + shift),
-                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
+    auto drawSkipBack = [&]() {
+      DrawChevron(skipBackX - layout.size * 0.15f, layout.centerY,
+                  layout.size * 0.5f, layout.size, false);
+      DrawChevron(skipBackX + layout.size * 0.15f, layout.centerY,
+                  layout.size * 0.5f, layout.size, false);
+      if (m_indicatorTextLayout) {
+        float textX = skipBackX + layout.size * config->GetSkipTextOffsetX();
+        float textY = layout.centerY + layout.size * config->GetSkipTextOffsetY();
+        float shift = config->GetSkipTextShadowShift();
+        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> shadowBrush;
+        context->CreateSolidColorBrush(HexToColorF(config->GetSkipTextShadowColor()),
+                                       &shadowBrush);
+        if (shadowBrush) {
+            shadowBrush->SetOpacity(config->GetSkipTextShadowOpacity() * ctx.controlAlpha);
+            context->DrawTextLayout(D2D1::Point2F(textX + shift, textY + shift),
+                                    m_indicatorTextLayout.Get(), shadowBrush.Get());
+            context->DrawTextLayout(D2D1::Point2F(textX - shift, textY - shift),
+                                    m_indicatorTextLayout.Get(), shadowBrush.Get());
+            context->DrawTextLayout(D2D1::Point2F(textX + shift, textY - shift),
+                                    m_indicatorTextLayout.Get(), shadowBrush.Get());
+            context->DrawTextLayout(D2D1::Point2F(textX - shift, textY + shift),
+                                    m_indicatorTextLayout.Get(), shadowBrush.Get());
+        }
+        context->DrawTextLayout(D2D1::Point2F(textX, textY),
+                                m_indicatorTextLayout.Get(), m_controlBrush.Get());
       }
-      context->DrawTextLayout(D2D1::Point2F(textX, textY),
-                              m_indicatorTextLayout.Get(), m_controlBrush.Get());
-    }
+    };
+    drawSkipBack();
+    DrawRipple(1, drawSkipBack);
 
     // 3. Play/Pause
     m_controlBrush->SetColor(GetButtonColor(2));
-    if (ctx.isPlaying) {
-      DrawRect(layout.centerX - layout.size * 0.2f, layout.centerY,
-               layout.size * 0.3f, layout.size);
-      DrawRect(layout.centerX + layout.size * 0.2f, layout.centerY,
-               layout.size * 0.3f, layout.size);
-    } else {
-      DrawTriangle(layout.centerX, layout.centerY, layout.size, layout.size,
-                   true);
-    }
+    auto drawPlay = [&]() {
+      if (ctx.isPlaying) {
+        DrawRect(layout.centerX - layout.size * 0.2f, layout.centerY,
+                 layout.size * 0.3f, layout.size);
+        DrawRect(layout.centerX + layout.size * 0.2f, layout.centerY,
+                 layout.size * 0.3f, layout.size);
+      } else {
+        DrawTriangle(layout.centerX, layout.centerY, layout.size, layout.size,
+                     true);
+      }
+    };
+    drawPlay();
+    DrawRipple(2, drawPlay);
 
     // 4. Skip Forward
     m_controlBrush->SetColor(GetButtonColor(3));
     float skipFwdX = positions[3];
-    DrawChevron(skipFwdX - layout.size * 0.15f, layout.centerY,
-                layout.size * 0.5f, layout.size, true);
-    DrawChevron(skipFwdX + layout.size * 0.15f, layout.centerY,
-                layout.size * 0.5f, layout.size, true);
-    if (m_indicatorTextLayout) {
-      float textX = skipFwdX + layout.size * config->GetSkipTextOffsetX();
-      float textY = layout.centerY + layout.size * config->GetSkipTextOffsetY();
-      float shift = config->GetSkipTextShadowShift();
-      Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> shadowBrush;
-      context->CreateSolidColorBrush(HexToColorF(config->GetSkipTextShadowColor()),
-                                     &shadowBrush);
-      if (shadowBrush) {
-          shadowBrush->SetOpacity(config->GetSkipTextShadowOpacity() * ctx.controlAlpha);
-          context->DrawTextLayout(D2D1::Point2F(textX + shift, textY + shift),
-                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
-          context->DrawTextLayout(D2D1::Point2F(textX - shift, textY - shift),
-                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
-          context->DrawTextLayout(D2D1::Point2F(textX + shift, textY - shift),
-                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
-          context->DrawTextLayout(D2D1::Point2F(textX - shift, textY + shift),
-                                  m_indicatorTextLayout.Get(), shadowBrush.Get());
+    auto drawSkipFwd = [&]() {
+      DrawChevron(skipFwdX - layout.size * 0.15f, layout.centerY,
+                  layout.size * 0.5f, layout.size, true);
+      DrawChevron(skipFwdX + layout.size * 0.15f, layout.centerY,
+                  layout.size * 0.5f, layout.size, true);
+      if (m_indicatorTextLayout) {
+        float textX = skipFwdX + layout.size * config->GetSkipTextOffsetX();
+        float textY = layout.centerY + layout.size * config->GetSkipTextOffsetY();
+        float shift = config->GetSkipTextShadowShift();
+        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> shadowBrush;
+        context->CreateSolidColorBrush(HexToColorF(config->GetSkipTextShadowColor()),
+                                       &shadowBrush);
+        if (shadowBrush) {
+            shadowBrush->SetOpacity(config->GetSkipTextShadowOpacity() * ctx.controlAlpha);
+            context->DrawTextLayout(D2D1::Point2F(textX + shift, textY + shift),
+                                    m_indicatorTextLayout.Get(), shadowBrush.Get());
+            context->DrawTextLayout(D2D1::Point2F(textX - shift, textY - shift),
+                                    m_indicatorTextLayout.Get(), shadowBrush.Get());
+            context->DrawTextLayout(D2D1::Point2F(textX + shift, textY - shift),
+                                    m_indicatorTextLayout.Get(), shadowBrush.Get());
+            context->DrawTextLayout(D2D1::Point2F(textX - shift, textY + shift),
+                                    m_indicatorTextLayout.Get(), shadowBrush.Get());
+        }
+        context->DrawTextLayout(D2D1::Point2F(textX, textY),
+                                m_indicatorTextLayout.Get(), m_controlBrush.Get());
       }
-      context->DrawTextLayout(D2D1::Point2F(textX, textY),
-                              m_indicatorTextLayout.Get(), m_controlBrush.Get());
-    }
+    };
+    drawSkipFwd();
+    DrawRipple(3, drawSkipFwd);
 
     // 5. Next
     m_controlBrush->SetColor(GetButtonColor(4));
     float nextX = positions[4];
-    DrawTriangle(nextX - layout.size * 0.3f, layout.centerY, layout.size * 0.4f,
-                 layout.size, true);
-    DrawTriangle(nextX + layout.size * 0.1f, layout.centerY, layout.size * 0.4f,
-                 layout.size, true);
-    DrawRect(nextX + layout.half - layout.size * 0.1f, layout.centerY,
-             layout.size * 0.2f, layout.size);
+    auto drawNext = [&]() {
+      DrawTriangle(nextX - layout.size * 0.3f, layout.centerY, layout.size * 0.4f,
+                   layout.size, true);
+      DrawTriangle(nextX + layout.size * 0.1f, layout.centerY, layout.size * 0.4f,
+                   layout.size, true);
+      DrawRect(nextX + layout.half - layout.size * 0.1f, layout.centerY,
+               layout.size * 0.2f, layout.size);
+    };
+    drawNext();
+    DrawRipple(4, drawNext);
   }
 }
