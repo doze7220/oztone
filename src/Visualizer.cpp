@@ -298,6 +298,8 @@ void Visualizer::DrawCircleParticle(ID2D1DeviceContext* context, const std::vect
         m_particleCooldown--;
     }
     
+    float scaleFactor = (std::min)(width, height) / 1024.0f;
+    
     // Process spectrum to bands
     int numBands = 64;
     if (m_circleAmplitudes.size() < numBands) {
@@ -346,8 +348,8 @@ void Visualizer::DrawCircleParticle(ID2D1DeviceContext* context, const std::vect
                 ray.angle = angleDist(rng);
                 ray.life = ray.maxLife = (60.0f + std::abs(randDist(rng)) * 40.0f) * CIRCLE_LASER_LIFE_MULTIPLIER; // Doubled life
                 ray.distance = 0.0f;
-                ray.length = lenDist(rng); // Fixed length of the beam
-                ray.speed = speedDist(rng);
+                ray.length = lenDist(rng) * scaleFactor; // Fixed length of the beam
+                ray.speed = speedDist(rng) * scaleFactor;
                 m_laserRays.push_back(ray);
             }
             
@@ -357,13 +359,13 @@ void Visualizer::DrawCircleParticle(ID2D1DeviceContext* context, const std::vect
                 Particle p;
                 float pAngle = radDist(rng);
                 float rDist = baseRadius + prevAmp;
-                float pSpeed = (1.0f + std::abs(randDist(rng))*2.0f) * CIRCLE_PARTICLE_SPEED_MULTIPLIER;
+                float pSpeed = (1.0f + std::abs(randDist(rng))*2.0f) * CIRCLE_PARTICLE_SPEED_MULTIPLIER * scaleFactor;
                 p.x = centerX + std::cos(pAngle) * rDist;
                 p.y = centerY + std::sin(pAngle) * rDist;
                 p.vx = std::cos(pAngle) * pSpeed;
                 p.vy = std::sin(pAngle) * pSpeed;
                 p.life = p.maxLife = (60.0f + std::abs(randDist(rng)) * 30.0f) * CIRCLE_PARTICLE_LIFE_MULTIPLIER;
-                p.size = sizeDist(rng);
+                p.size = sizeDist(rng) * scaleFactor;
                 p.axis = D2D1::Vector3F(randDist(rng), randDist(rng), randDist(rng));
                 p.angle = 0.0f;
                 p.angularVelocity = randDist(rng) * 5.0f;

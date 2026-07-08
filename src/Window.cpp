@@ -1081,6 +1081,17 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
       return 0;
     }
     switch (wmId) {
+    case ID_TRAY_RESET_ALL:
+      if (m_config) {
+        m_config->SaveDefaultSettings();
+      }
+      {
+        wchar_t exePath[MAX_PATH];
+        GetModuleFileNameW(nullptr, exePath, MAX_PATH);
+        ShellExecuteW(nullptr, L"open", exePath, nullptr, nullptr, SW_SHOWDEFAULT);
+        PostMessage(hwnd, WM_CLOSE, 0, 0);
+      }
+      break;
     case ID_TRAY_EXIT:
       PostMessage(hwnd, WM_CLOSE, 0, 0);
       break;

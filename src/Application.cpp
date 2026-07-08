@@ -723,9 +723,9 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
       return true;
     }
     // [EXPERIMENTAL] MP4/M4A Support
-    if (ext == L".mp4" || ext == L".m4a") {
-      return true;
-    }
+    // if (ext == L".mp4" || ext == L".m4a") {
+    //   return true;
+    // }
     return false;
   };
 
@@ -733,9 +733,9 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
     std::wstring ext = p.extension().wstring();
     std::transform(ext.begin(), ext.end(), ext.begin(), ::towlower);
 
-    if (ext == L".mp4" || ext == L".m4a") {
-      return true;
-    }
+    // if (ext == L".mp4" || ext == L".m4a") {
+    //   return true;
+    // }
 
     std::ifstream file(p, std::ios::binary);
     if (!file.is_open())

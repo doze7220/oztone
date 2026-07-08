@@ -8,11 +8,11 @@ namespace {
     const size_t FFT_SIZE = 4096;
     const double PI = 3.14159265358979323846;
 
-    unsigned int ReverseBits(unsigned int n, int bits) {
-        unsigned int reversed = 0;
+    size_t ReverseBits(size_t n, int bits) {
+        size_t reversed = 0;
         for (int i = 0; i < bits; ++i) {
-            if (n & (1 << i)) {
-                reversed |= (1 << ((bits - 1) - i));
+            if (n & (1ULL << i)) {
+                reversed |= (1ULL << ((bits - 1) - i));
             }
         }
         return reversed;
@@ -23,7 +23,7 @@ namespace {
         if (N <= 1) return;
         
         int bits = 0;
-        while ((1U << bits) < N) bits++;
+        while ((1ULL << bits) < N) bits++;
         
         for (size_t i = 0; i < N; ++i) {
             size_t j = ReverseBits(i, bits);
@@ -203,19 +203,27 @@ void AudioPlayer::ProcessAudioFrames(const float* pFrames, ma_uint64 frameCount,
 
     std::lock_guard<std::mutex> lock(m_bufferMutex);
     
+    float currentVol = GetVolume();
+    float volFactor = (currentVol > 0.0001f) ? (1.0f / currentVol) : 0.0f;
+    
     for (ma_uint64 i = 0; i < frameCount; ++i) {
         float monoSample = 0.0f;
         for (ma_uint32 c = 0; c < channels; ++c) {
             monoSample += pFrames[i * channels + c];
         }
         monoSample /= static_cast<float>(channels);
+        if (volFactor > 0.0f) {
+            monoSample *= volFactor;
+        } else {
+            monoSample = 0.0f;
+        }
         m_audioBuffer.push_back(monoSample);
     }
     
     while (m_audioBuffer.size() >= FFT_SIZE) {
         std::vector<std::complex<float>> fftData(FFT_SIZE);
         for (size_t i = 0; i < FFT_SIZE; ++i) {
-            float window = 0.5f * (1.0f - std::cos(2.0f * PI * i / (FFT_SIZE - 1)));
+            float window = 0.5f * (1.0f - std::cos(static_cast<float>(2.0 * PI * i / (FFT_SIZE - 1))));
             fftData[i] = std::complex<float>(m_audioBuffer[i] * window, 0.0f);
         }
         
