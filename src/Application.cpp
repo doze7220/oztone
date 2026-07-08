@@ -1214,9 +1214,6 @@ void Application::ProcessCommandLineArgs(int argc, LPWSTR *argv) {
 
 void Application::ClearPlaylist() {
   m_focusedPlaylistIndex.reset();
-  if (!m_playlistManager.IsEmpty()) {
-    m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
-  }
   m_playlistManager.Clear();
 
   {
@@ -1237,8 +1234,9 @@ void Application::ClearPlaylist() {
 }
 
 void Application::SwitchPlaylist(const std::wstring &filepath) {
+  std::wstring oldPath = m_config.GetDefaultPlaylistPath();
   std::filesystem::path newPath(filepath);
-  std::filesystem::path currentPath(m_config.GetDefaultPlaylistPath());
+  std::filesystem::path currentPath(oldPath);
 
   std::error_code ec;
   bool isSame = std::filesystem::equivalent(newPath, currentPath, ec);
@@ -1249,6 +1247,11 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
   if (isSame) {
     m_isPlaylistListViewMode = false;
     return;
+  }
+
+  // 切り替え前に現在のプレイリスト状態を保存
+  if (!m_playlistManager.IsEmpty()) {
+    m_playlistManager.SaveToFile(oldPath);
   }
 
   m_focusedPlaylistIndex.reset();
@@ -1266,9 +1269,6 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
   m_renderer.SetTrackInfo(L"NO TRACK", L"---");
   m_renderer.SetAlbumArt(nullptr);
 
-  if (!m_playlistManager.IsEmpty()) {
-    m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
-  }
   m_playlistManager.Clear();
   m_playlistManager.LoadFromFile(filepath);
   if (!m_playlistManager.IsEmpty()) {
@@ -1373,6 +1373,11 @@ void Application::CreateNewPlaylist() {
       newPath = dir / seq_ss.str();
     }
     sequence++;
+  }
+
+  // 新しいパスに変更する前に現在の状態を保存
+  if (!m_playlistManager.IsEmpty()) {
+    m_playlistManager.SaveToFile(defaultPath);
   }
 
   m_config.SetDefaultPlaylistPath(newPath.wstring());
