@@ -247,3 +247,79 @@ void AudioPlayer::GetSpectrumData(std::vector<float>& outSpectrum) {
     std::lock_guard<std::mutex> lock(m_spectrumMutex);
     outSpectrum = m_spectrumData;
 }
+
+bool AudioPlayer::ScanAudioData(const std::wstring& filepath, float noiseThreshold, float& outPeakAmplitude, float& outMaxFrequency) {
+    ma_decoder decoder;
+    ma_result result = ma_decoder_init_file_w(filepath.c_str(), NULL, &decoder);
+    if (result != MA_SUCCESS) {
+        OutputDebugStringW((L"AudioPlayer::ScanAudioData failed to open file: " + filepath + L"\n").c_str());
+        return false;
+    }
+
+    float peakAmplitude = 0.0f;
+    ma_uint32 channels = decoder.outputChannels;
+    if (channels == 0) channels = 2;
+
+    const size_t CHUNK_SIZE = 4096;
+    std::vector<float> pcmBuffer(CHUNK_SIZE * channels);
+    std::vector<float> maxSpectrum(FFT_SIZE / 2, 0.0f);
+    
+    std::vector<float> audioWindow(FFT_SIZE);
+    size_t windowIdx = 0;
+
+    while (true) {
+        ma_uint64 framesRead = 0;
+        result = ma_decoder_read_pcm_frames(&decoder, pcmBuffer.data(), CHUNK_SIZE, &framesRead);
+        if (framesRead == 0) {
+            break;
+        }
+
+        for (ma_uint64 i = 0; i < framesRead; ++i) {
+            float monoSample = 0.0f;
+            for (ma_uint32 c = 0; c < channels; ++c) {
+                monoSample += pcmBuffer[i * channels + c];
+            }
+            monoSample /= static_cast<float>(channels);
+            
+            float absSample = std::abs(monoSample);
+            if (absSample > peakAmplitude) {
+                peakAmplitude = absSample;
+            }
+
+            audioWindow[windowIdx++] = monoSample;
+            
+            if (windowIdx >= FFT_SIZE) {
+                std::vector<std::complex<float>> fftData(FFT_SIZE);
+                for (size_t j = 0; j < FFT_SIZE; ++j) {
+                    float window = 0.5f * (1.0f - std::cos(static_cast<float>(2.0 * PI * j / (FFT_SIZE - 1))));
+                    fftData[j] = std::complex<float>(audioWindow[j] * window, 0.0f);
+                }
+                
+                PerformFFT(fftData);
+                
+                for (size_t j = 0; j < FFT_SIZE / 2; ++j) {
+                    float mag = std::abs(fftData[j]);
+                    if (mag > maxSpectrum[j]) {
+                        maxSpectrum[j] = mag;
+                    }
+                }
+                
+                windowIdx = 0;
+            }
+        }
+    }
+
+    ma_decoder_uninit(&decoder);
+
+    outPeakAmplitude = peakAmplitude;
+
+    outMaxFrequency = static_cast<float>(FFT_SIZE / 2 - 1);
+    for (int i = static_cast<int>(FFT_SIZE / 2) - 1; i >= 0; --i) {
+        if (maxSpectrum[i] > noiseThreshold) {
+            outMaxFrequency = static_cast<float>(i);
+            break;
+        }
+    }
+
+    return true;
+}

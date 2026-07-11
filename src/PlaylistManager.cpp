@@ -318,6 +318,17 @@ void PlaylistManager::UpdateMetadata(const std::wstring& filepath, const std::ws
     }
 }
 
+void PlaylistManager::UpdateScanData(const std::wstring& filepath, float peakAmplitude, float maxFrequency) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    for (auto& item : m_playlist) {
+        if (item.filepath == filepath) {
+            item.peakAmplitude = peakAmplitude;
+            item.maxFrequency = maxFrequency;
+            break;
+        }
+    }
+}
+
 void PlaylistManager::UpdateArtFraming(const std::wstring& filepath, float offsetX, float offsetY, float scale) {
     std::lock_guard<std::mutex> lock(m_mutex);
     for (auto& item : m_playlist) {
@@ -355,7 +366,7 @@ std::vector<std::wstring> PlaylistManager::GetUnparsedTracks() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     std::vector<std::wstring> unparsed;
     for (const auto& item : m_playlist) {
-        if (!item.isLoaded) {
+        if (!item.isLoaded || item.peakAmplitude == 0.0f) {
             unparsed.push_back(item.filepath);
         }
     }

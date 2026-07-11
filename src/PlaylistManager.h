@@ -99,6 +99,14 @@ public:
     void UpdateMetadata(const std::wstring& filepath, const std::wstring& title, const std::wstring& artist, const std::wstring& timeString);
 
     /**
+     * @brief 特定のファイルパスの波形スキャン結果を更新する
+     * @param filepath 更新対象のファイルパス
+     * @param peakAmplitude 最大振幅
+     * @param maxFrequency 有効最高高音周波数
+     */
+    void UpdateScanData(const std::wstring& filepath, float peakAmplitude, float maxFrequency);
+
+    /**
      * @brief 特定のファイルパスの背景アートフレーミング情報を更新する
      * @param filepath 更新対象のファイルパス
      * @param offsetX Xオフセット

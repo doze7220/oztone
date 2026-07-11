@@ -1468,33 +1468,45 @@ void Application::ParseThreadFunc() {
       m_parseQueue.pop();
     }
 
-    if (m_playlistManager.IsTrackLoaded(targetPath)) {
+    TrackMetadata currentMeta;
+    bool hasMeta = m_playlistManager.GetTrackMetadata(targetPath, currentMeta);
+    bool isLoaded = hasMeta && currentMeta.isLoaded;
+    bool needsScan = hasMeta && (currentMeta.peakAmplitude == 0.0f);
+
+    if (isLoaded && !needsScan) {
       continue;
     }
 
-    if (localTagManager.Load(targetPath)) {
-      std::wstring title = localTagManager.GetTitle();
-      std::wstring artist = localTagManager.GetArtist();
-      std::wstring timeString = localTagManager.GetTimeString();
-      if (title.empty()) {
-        try {
-          title = std::filesystem::path(targetPath).filename().wstring();
-        } catch (...) {
-          title = L"UNKNOWN";
-        }
-      }
-      if (artist.empty())
-        artist = L"---";
+    bool updated = false;
 
-      m_playlistManager.UpdateMetadata(targetPath, title, artist, timeString);
-    } else {
-      std::wstring title;
-      try {
-        title = std::filesystem::path(targetPath).filename().wstring();
-      } catch (...) {
-        title = L"UNKNOWN";
+    if (!isLoaded) {
+      std::wstring title, artist, timeString;
+      if (localTagManager.Load(targetPath)) {
+        title = localTagManager.GetTitle();
+        artist = localTagManager.GetArtist();
+        timeString = localTagManager.GetTimeString();
+        if (title.empty()) {
+          try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
+        }
+        if (artist.empty()) artist = L"---";
+      } else {
+        try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
+        artist = L"---";
       }
-      m_playlistManager.UpdateMetadata(targetPath, title, L"---", L"");
+      m_playlistManager.UpdateMetadata(targetPath, title, artist, timeString);
+      updated = true;
+    }
+
+    if (needsScan || (!isLoaded && currentMeta.peakAmplitude == 0.0f)) {
+      float peakAmplitude = 0.0f;
+      float maxFrequency = 0.0f;
+      float noiseThreshold = m_config.GetHighFreqNoiseThreshold();
+      if (AudioPlayer::ScanAudioData(targetPath, noiseThreshold, peakAmplitude, maxFrequency)) {
+        m_playlistManager.UpdateScanData(targetPath, peakAmplitude, maxFrequency);
+      } else {
+        m_playlistManager.UpdateScanData(targetPath, 1.0f, static_cast<float>(2048 - 1));
+      }
+      updated = true;
     }
 
     bool shouldSave = false;
@@ -1504,7 +1516,7 @@ void Application::ParseThreadFunc() {
         shouldSave = true;
       }
     }
-    if (shouldSave) {
+    if (shouldSave && updated) {
       m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
     }
   }

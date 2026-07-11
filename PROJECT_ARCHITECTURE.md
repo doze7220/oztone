@@ -85,7 +85,7 @@ oztone/
 *   **`void UpdateTrackMetadataIfNeeded(const std::wstring& filepath)`**
     *   対象曲のタグ情報を取得し、`PlaylistManager` 内のキャッシュメタデータ（`TrackMetadata`）と比較して自己修復を行うロジックが共通化されている。未解析（`isLoaded == false`）であるか、既存情報との齟齬があった場合、プレイリスト側の情報を上書き更新し、自動的にTSVキャッシュファイルへ保存する。`PrefetchNextTrack` での先読み時だけでなく、現在の曲の再生開始時などにも呼び出されるようになり、最新のタグ情報との自動同期をバックグラウンドで行う。
 *   **`void ParseThreadFunc()` (バックグラウンド解析スレッド)**
-    *   起動時やファイルドロップ時に追加された未解析トラックを専用キューから順次取り出し、スレッドローカルな `TagManager` で解析して `PlaylistManager::UpdateMetadata` により情報を補完する。未解析トラックの処理が完了しキューが空になったタイミングで、ファイルへの一括永続化保存（TSV出力）を行う。これにより大量のファイル追加時にもUIスレッドをブロックしない。
+    *   起動時やファイルドロップ時に追加された未解析トラックを専用キューから順次取り出し、スレッドローカルな `TagManager` でタグ解析を行い、さらに `AudioPlayer::ScanAudioData` を用いて波形のピーク振幅と最大有効周波数を非同期で算出する。未解析トラックの処理が完了しキューが空になったタイミングで、ファイルへの一括永続化保存（TSV出力）を行う。これにより大量のファイル追加時にもUIスレッドをブロックしない。
 *   **`void UpdatePlaylistSummaries()`**
     *   `ConfigManager` から取得した利用可能なプレイリスト一覧に対し、各TSVファイルを軽量・非同期にパースして曲数と総再生時間を算出し、`PlaylistSummary` 構造体としてキャッシュ化する。未解析行が含まれる場合は時間を `---` とし、ファイルI/Oの毎フレーム発生を防ぐ。このキャッシュは `WidgetContext` を経由して `Renderer` や各Widgetへ供給される。
 *   **`void Run()`**

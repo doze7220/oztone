@@ -28,7 +28,7 @@
 - [x] タスク2: TrackMetadataとPlaylistManagerの拡張
   - `TrackMetadata` 構造体に `peakAmplitude`, `maxFrequency` を追加。
   - TSVファイルの読み書き処理において、新フィールドのパースおよび出力処理を追加。
-- [ ] タスク3: バックグラウンド波形スキャン処理の実装
+- [x] タスク3: バックグラウンド波形スキャン処理の実装
   - `Application::ParseThreadFunc` (またはそこから呼び出されるAudioPlayer/専用関数等) にて、ファイル全編の高速デコード処理を追加。
   - 最大振幅の計算およびFFTを用いた最高有効周波数(`maxFrequency`)の特定ロジックを実装。
 - [ ] タスク4: Visualizerでの波形前処理の実装
@@ -50,7 +50,9 @@
 - `LoadFromFile()` にて、フィールド長をチェックしながら読み込みを行う処理を組み込み、古いフォーマットからの後方互換性を確保した。
 
 ### タスク3: バックグラウンド波形スキャン処理の実装
-- 
+- `AudioPlayer.h` / `AudioPlayer.cpp` に、音声ファイル全編を高速デコードして `peakAmplitude` と `maxFrequency` を算出する静的メソッド `ScanAudioData` を追加した。
+- `PlaylistManager` に、スキャン結果のみを更新する `UpdateScanData` と、未解析および未スキャン（`peakAmplitude == 0.0f`）のトラックを抽出するよう `GetUnparsedTracks` を改修した。
+- `Application::ParseThreadFunc` の処理フローを見直し、「タグ解析」と「波形スキャン」を独立したステップとして実行するよう改善し、UIスレッドをブロックしない完全なバックグラウンド処理とした。
 
 ### タスク4: Visualizerでの波形前処理の実装
 - 
