@@ -705,3 +705,7 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
     context->PopAxisAlignedClip();
   }
 }
+
+void PlaylistWidget::ForceClearHoverDelay() {
+    m_playlistLeaveTimer = 0.0f;
+}

@@ -13,6 +13,7 @@ public:
     void UpdateAnimation(const WidgetContext& ctx) override;
     void UpdateLayout(const WidgetContext& ctx, const ConfigManager* config) override;
     void Draw(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config) override;
+    void ForceClearHoverDelay() override;
 
 private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_iconTextFormat;

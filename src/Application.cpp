@@ -131,6 +131,10 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         this->OnFilesDropped(files);
       });
 
+  m_window.SetBackgroundClickCallback([this]() {
+    m_renderer.ForceClearHoverDelays();
+  });
+
   m_window.SetOnResizeCallback([this](int width, int height) {
     m_renderer.Resize(width, height);
     this->ForceRender();

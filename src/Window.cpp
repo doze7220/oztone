@@ -885,6 +885,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     }
 
     if (!m_config || !m_config->GetLockWindowPosition()) {
+      if (m_onBackgroundClickCallback) m_onBackgroundClickCallback();
       ReleaseCapture();
       SendMessage(hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
     }
@@ -902,6 +903,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     int yPos = GET_Y_LPARAM(lParam);
 
     if (!m_isPlaylistHovered && !m_isLogoMenuHovered && !m_isControlHovered && !m_isVolumeHovered && !IsInLogoRegion(xPos, yPos)) {
+        if (m_onBackgroundClickCallback) m_onBackgroundClickCallback();
         m_isArtFramingDragging = true;
         m_artFramingDragStartPt.x = xPos;
         m_artFramingDragStartPt.y = yPos;

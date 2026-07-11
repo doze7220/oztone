@@ -270,6 +270,13 @@ public:
         m_onArtFramingSave = cb;
     }
 
+    /**
+     * @brief 背景クリックコールバック
+     */
+    void SetBackgroundClickCallback(std::function<void()> cb) {
+        m_onBackgroundClickCallback = cb;
+    }
+
 
     enum HotkeyID {
         HK_NEXT_TRACK = 100,
@@ -359,6 +366,7 @@ private:
     std::function<void()> m_onArtFramingReset;
     std::function<void()> m_onArtFramingSave;
     std::function<void(bool)> m_onPlaylistPinnedToggle;
+    std::function<void()> m_onBackgroundClickCallback;
     DropTarget* m_pDropTarget;
 
     static constexpr UINT WM_TRAYICON = WM_APP + 1;

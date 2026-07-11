@@ -113,6 +113,11 @@ public:
     void TriggerVolumeOsd();
 
     /**
+     * @brief ホバー展開中のUIの格納アニメーションを即座に開始させる
+     */
+    void ForceClearHoverDelays();
+
+    /**
      * @brief 画面中央のフライテキスト（通知）をトリガーする
      */
     void TriggerFlyText(const std::wstring& text);

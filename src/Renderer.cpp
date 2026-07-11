@@ -485,6 +485,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isVolumeHovere
         ctx.logicalWidth = sz.width / m_dpiScale;
         ctx.logicalHeight = sz.height / m_dpiScale;
     }
+
     ctx.controlAlpha = m_controlAlpha;
     ctx.timeString = m_lastTimeString;
     ctx.trackTitle = m_trackTitle;
@@ -629,4 +630,11 @@ void Renderer::TriggerFlyText(const std::wstring& text) {
     m_flyTextString = text;
     m_flyTextAlpha = 1.0f;
     m_flyTextWaitTimer = m_config ? m_config->GetOsdFadeWait() : 1.0f;
+}
+
+void Renderer::ForceClearHoverDelays() {
+    m_controlLeaveTimer = 0.0f;
+    for (auto& widget : m_widgets) {
+        widget->ForceClearHoverDelay();
+    }
 }

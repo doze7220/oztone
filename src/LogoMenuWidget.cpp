@@ -441,6 +441,7 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
                               config->GetLogoMenuDescShadowOffsetY()),
             textLayout.Get(), m_shadowBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE);
       }
+
       context->DrawTextLayout(
           D2D1::Point2F(layout.typingTextRect.left, layout.typingTextRect.top),
           textLayout.Get(), m_typingTextBrush.Get(),
@@ -464,4 +465,8 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
                       m_typingTextFormat.Get(), layout.typingTextRect,
                       m_typingTextBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE);
   }
+}
+
+void LogoMenuWidget::ForceClearHoverDelay() {
+    m_logoMenuLeaveTimer = 0.0f;
 }

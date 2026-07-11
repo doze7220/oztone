@@ -18,6 +18,7 @@ public:
 
     void AddScroll(float delta) override;
     float GetScrollY() const override;
+    void ForceClearHoverDelay() override;
 
 private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistTitleTextFormat;
