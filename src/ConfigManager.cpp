@@ -176,6 +176,7 @@ SkipSeconds=10.0
 
 [Visualizer]
 VisualizerMode=2
+EnablePreScan=1
 HighFreqNoiseThreshold=0.001
 BandGain0=1.0
 BandGain25=1.0
@@ -474,6 +475,7 @@ void ConfigManager::ResetToDefaults() {
   m_skipSeconds = 10.0f;
 
   m_visualizerMode = 2;
+  m_enablePreScan = true;
   m_highFreqNoiseThreshold = 0.001f;
   m_bandGain0 = 1.0f;
   m_bandGain25 = 1.0f;
@@ -869,6 +871,9 @@ void ConfigManager::LoadSettings() {
 
   m_visualizerMode = GetPrivateProfileIntW(L"Visualizer", L"VisualizerMode", 0,
                                            m_iniFilePath.c_str());
+
+  m_enablePreScan = GetPrivateProfileIntW(L"Visualizer", L"EnablePreScan", 0,
+                                          m_iniFilePath.c_str()) != 0;
 
   GetPrivateProfileStringW(L"Visualizer", L"HighFreqNoiseThreshold", L"0.001", buf, 32, m_iniFilePath.c_str());
   try { m_highFreqNoiseThreshold = std::stof(buf); } catch (...) { m_highFreqNoiseThreshold = 0.001f; }

@@ -950,6 +950,18 @@ void Application::Run() {
     if (m_audioPlayer.IsAtEnd()) {
       // ロードが完了するまで待機（このフレームはスキップして待つ）
       if (m_isPrefetchReady.load()) {
+        std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
+        if (m_audioPlayer.IsLearningValid()) {
+          float learnedPeak = m_audioPlayer.GetLearningPeakAmplitude();
+          float learnedFreq = m_audioPlayer.GetLearningMaxFrequency();
+          TrackMetadata meta;
+          if (m_playlistManager.GetTrackMetadata(currentTrack, meta)) {
+            if (learnedPeak > meta.peakAmplitude || meta.peakAmplitude == 0.0f) {
+              m_playlistManager.UpdateScanData(currentTrack, learnedPeak, learnedFreq);
+            }
+          }
+        }
+
         if (!m_playlistManager.IsEmpty()) {
           m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
         }
@@ -1498,15 +1510,17 @@ void Application::ParseThreadFunc() {
     }
 
     if (needsScan || (!isLoaded && currentMeta.peakAmplitude == 0.0f)) {
-      float peakAmplitude = 0.0f;
-      float maxFrequency = 0.0f;
-      float noiseThreshold = m_config.GetHighFreqNoiseThreshold();
-      if (AudioPlayer::ScanAudioData(targetPath, noiseThreshold, peakAmplitude, maxFrequency)) {
-        m_playlistManager.UpdateScanData(targetPath, peakAmplitude, maxFrequency);
-      } else {
-        m_playlistManager.UpdateScanData(targetPath, 1.0f, static_cast<float>(2048 - 1));
+      if (m_config.GetEnablePreScan()) {
+        float peakAmplitude = 0.0f;
+        float maxFrequency = 0.0f;
+        float noiseThreshold = m_config.GetHighFreqNoiseThreshold();
+        if (AudioPlayer::ScanAudioData(targetPath, noiseThreshold, peakAmplitude, maxFrequency)) {
+          m_playlistManager.UpdateScanData(targetPath, peakAmplitude, maxFrequency);
+        } else {
+          m_playlistManager.UpdateScanData(targetPath, 1.0f, static_cast<float>(2048 - 1));
+        }
+        updated = true;
       }
-      updated = true;
     }
 
     bool shouldSave = false;

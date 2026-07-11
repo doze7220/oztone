@@ -55,7 +55,7 @@ namespace {
         }
     }
 }
-AudioPlayer::AudioPlayer() : m_engine(nullptr), m_initialized(false), m_isSoundLoaded(false), m_cachedLengthSeconds(0.0f) {}
+AudioPlayer::AudioPlayer() : m_engine(nullptr), m_initialized(false), m_isSoundLoaded(false), m_cachedLengthSeconds(0.0f), m_learningPeakAmplitude(0.0f), m_learningMaxFrequency(0.0f), m_isLearningValid(false) {}
 
 AudioPlayer::~AudioPlayer() {
     Uninitialize();
@@ -117,6 +117,8 @@ void AudioPlayer::Seek(float targetSeconds) {
     if (targetSeconds < 0.0f) targetSeconds = 0.0f;
     if (targetSeconds > m_cachedLengthSeconds) targetSeconds = m_cachedLengthSeconds;
     
+    m_isLearningValid = false;
+    
     ma_uint32 sampleRate = 0;
     ma_sound_get_data_format(&m_sound, nullptr, nullptr, &sampleRate, nullptr, 0);
     if (sampleRate == 0) sampleRate = 44100;
@@ -141,6 +143,9 @@ bool AudioPlayer::Play(const std::wstring& filepath) {
     }
 
     m_isSoundLoaded = true;
+    m_learningPeakAmplitude = 0.0f;
+    m_learningMaxFrequency = 0.0f;
+    m_isLearningValid = true;
     
     float length = 0.0f;
     ma_sound_get_length_in_seconds(&m_sound, &length);
@@ -212,6 +217,14 @@ void AudioPlayer::ProcessAudioFrames(const float* pFrames, ma_uint64 frameCount,
             monoSample += pFrames[i * channels + c];
         }
         monoSample /= static_cast<float>(channels);
+        
+        if (m_isLearningValid) {
+            float absSample = std::abs(monoSample);
+            if (absSample > m_learningPeakAmplitude) {
+                m_learningPeakAmplitude = absSample;
+            }
+        }
+
         if (volFactor > 0.0f) {
             monoSample *= volFactor;
         } else {
@@ -232,8 +245,16 @@ void AudioPlayer::ProcessAudioFrames(const float* pFrames, ma_uint64 frameCount,
         PerformFFT(fftData);
         
         std::vector<float> spectrum(FFT_SIZE / 2);
+        float localMaxFreqIdx = 0.0f;
         for (size_t i = 0; i < FFT_SIZE / 2; ++i) {
             spectrum[i] = std::abs(fftData[i]);
+            if (m_isLearningValid && spectrum[i] > 0.001f) {
+                localMaxFreqIdx = static_cast<float>(i);
+            }
+        }
+        
+        if (m_isLearningValid && localMaxFreqIdx > m_learningMaxFrequency) {
+            m_learningMaxFrequency = localMaxFreqIdx;
         }
         
         {

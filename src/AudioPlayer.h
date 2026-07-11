@@ -89,6 +89,10 @@ public:
      */
     bool IsAtEnd();
 
+    bool IsLearningValid() const { return m_isLearningValid; }
+    float GetLearningPeakAmplitude() const { return m_learningPeakAmplitude; }
+    float GetLearningMaxFrequency() const { return m_learningMaxFrequency; }
+
     /**
      * @brief スペクトルデータ（FFT結果）を取得する
      * @param outSpectrum 取得したスペクトルデータを格納するベクター
@@ -111,4 +115,8 @@ private:
     std::mutex m_bufferMutex;
     std::vector<float> m_spectrumData;
     std::mutex m_spectrumMutex;
+
+    float m_learningPeakAmplitude;
+    float m_learningMaxFrequency;
+    bool m_isLearningValid;
 };

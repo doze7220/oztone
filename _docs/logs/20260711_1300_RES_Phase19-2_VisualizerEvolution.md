@@ -28,9 +28,11 @@
 - [x] タスク2: TrackMetadataとPlaylistManagerの拡張
   - `TrackMetadata` 構造体に `peakAmplitude`, `maxFrequency` を追加。
   - TSVファイルの読み書き処理において、新フィールドのパースおよび出力処理を追加。
-- [x] タスク3: バックグラウンド波形スキャン処理の実装
-  - `Application::ParseThreadFunc` (またはそこから呼び出されるAudioPlayer/専用関数等) にて、ファイル全編の高速デコード処理を追加。
-  - 最大振幅の計算およびFFTを用いた最高有効周波数(`maxFrequency`)の特定ロジックを実装。
+- [x] タスク3.1: Pre-Scan ON/OFFとリアルタイム自己学習の実装
+  - `ConfigManager` に `EnablePreScan` の設定・INI読み書きを追加。
+  - `Application::ParseThreadFunc` のスキャン処理を `EnablePreScan` が有効な場合のみ実行するよう条件化。
+  - `AudioPlayer` クラスに再生中の波形データ（振幅・高音）を自己学習する仕組み（`m_learningPeakAmplitude`, `m_learningMaxFrequency`）を実装。
+  - 再生終了後（`IsAtEnd()` 時）に自己学習データでTSVを自動更新するロジックを `Application::Run` へ追加し、バックグラウンドスキャンがOFFでも再生するだけで学習が完了する機構を実現。
 - [ ] タスク4: Visualizerでの波形前処理の実装
   - `Visualizer::Draw` メソッド内にて、渡された生スペクトルに対するノーマライズ、クリッピング、5バンドEQ（Lerp補間）の処理を追加。
   - 各描画プラグインへの前処理済みデータの受け渡し。
@@ -53,6 +55,13 @@
 - `AudioPlayer.h` / `AudioPlayer.cpp` に、音声ファイル全編を高速デコードして `peakAmplitude` と `maxFrequency` を算出する静的メソッド `ScanAudioData` を追加した。
 - `PlaylistManager` に、スキャン結果のみを更新する `UpdateScanData` と、未解析および未スキャン（`peakAmplitude == 0.0f`）のトラックを抽出するよう `GetUnparsedTracks` を改修した。
 - `Application::ParseThreadFunc` の処理フローを見直し、「タグ解析」と「波形スキャン」を独立したステップとして実行するよう改善し、UIスレッドをブロックしない完全なバックグラウンド処理とした。
+
+### タスク3.1: Pre-Scan ON/OFFとリアルタイム自己学習の実装
+- `ConfigManager` に `EnablePreScan` (デフォルト `false`) を追加し、INIファイルからの読み書き処理を実装した。
+- `Application::ParseThreadFunc` での波形スキャン（`AudioPlayer::ScanAudioData`）を `EnablePreScan` が有効な場合のみ実行するよう条件付きに改修した。
+- `AudioPlayer` クラスに自己学習用の変数 (`m_learningPeakAmplitude`, `m_learningMaxFrequency`, `m_isLearningValid`) を追加。`Play()` で学習開始状態にリセットし、`Seek()` で不連続なデータになるため学習を無効化（`m_isLearningValid = false`）する安全機構を設けた。
+- 音声処理コールバック（`ProcessAudioFrames`）内で、リアルタイムに全サンプルの最大振幅とFFT結果から有効高音域を算出し、学習変数を更新し続けるロジックを実装した。
+- `Application::Run` における曲の再生終了検知（`IsAtEnd()` 発生時）に、自己学習データが有効な場合は既存の `TrackMetadata` の値と比較し、未解析か自己学習値が既存値を超えている場合に `PlaylistManager::UpdateScanData` を用いてTSVファイルを更新する処理を追加した。これにより、事前スキャンがOFFであっても1周再生するだけで自動的に完全なデータが学習されるハイブリッド解析システムが完成した。
 
 ### タスク4: Visualizerでの波形前処理の実装
 - 
