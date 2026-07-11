@@ -186,6 +186,11 @@ BandGain100=1.0
 
 [Visualizer_PrismBeat]
 MaxHeightRatio=0.8
+PrismLineThickness=1.0
+PrismGlow1Thickness=3.0
+PrismGlow1Opacity=0.6
+PrismGlow2Thickness=8.0
+PrismGlow2Opacity=0.2
 
 [Visualizer_HaloDust]
 BaseRadiusRatio=0.35
@@ -504,6 +509,11 @@ void ConfigManager::ResetToDefaults() {
   m_bandGain100 = 1.0f;
 
   m_prismBeatMaxHeightRatio = 0.8f;
+  m_prismLineThickness = 1.0f;
+  m_prismGlow1Thickness = 6.0f;
+  m_prismGlow1Opacity = 0.6f;
+  m_prismGlow2Thickness = 16.0f;
+  m_prismGlow2Opacity = 0.2f;
   m_haloDustBaseRadiusRatio = 0.25f;
   m_haloDustGraphLengthRatio = 0.30f;
   m_haloLaserBaseOpacity = 0.3f;
@@ -930,8 +940,23 @@ void ConfigManager::LoadSettings() {
   GetPrivateProfileStringW(L"Visualizer", L"BandGain100", L"1.0", buf, 32, m_iniFilePath.c_str());
   try { m_bandGain100 = std::stof(buf); } catch (...) { m_bandGain100 = 1.0f; }
 
-  GetPrivateProfileStringW(L"Visualizer_PrismBeat", L"MaxHeightRatio", L"0.8", buf, 32, m_iniFilePath.c_str());
-  try { m_prismBeatMaxHeightRatio = std::stof(buf); } catch (...) { m_prismBeatMaxHeightRatio = 0.8f; }
+  GetPrivateProfileStringW(L"Visualizer_PrismBeat", L"MaxHeightRatio", L"0.80", buf, 32, m_iniFilePath.c_str());
+  try { m_prismBeatMaxHeightRatio = std::stof(buf); } catch (...) { m_prismBeatMaxHeightRatio = 0.80f; }
+
+  GetPrivateProfileStringW(L"Visualizer_PrismBeat", L"PrismLineThickness", L"1.00", buf, 32, m_iniFilePath.c_str());
+  try { m_prismLineThickness = std::stof(buf); } catch (...) { m_prismLineThickness = 1.0f; }
+
+  GetPrivateProfileStringW(L"Visualizer_PrismBeat", L"PrismGlow1Thickness", L"6.00", buf, 32, m_iniFilePath.c_str());
+  try { m_prismGlow1Thickness = std::stof(buf); } catch (...) { m_prismGlow1Thickness = 6.0f; }
+
+  GetPrivateProfileStringW(L"Visualizer_PrismBeat", L"PrismGlow1Opacity", L"0.60", buf, 32, m_iniFilePath.c_str());
+  try { m_prismGlow1Opacity = std::stof(buf); } catch (...) { m_prismGlow1Opacity = 0.6f; }
+
+  GetPrivateProfileStringW(L"Visualizer_PrismBeat", L"PrismGlow2Thickness", L"16.00", buf, 32, m_iniFilePath.c_str());
+  try { m_prismGlow2Thickness = std::stof(buf); } catch (...) { m_prismGlow2Thickness = 16.0f; }
+
+  GetPrivateProfileStringW(L"Visualizer_PrismBeat", L"PrismGlow2Opacity", L"0.20", buf, 32, m_iniFilePath.c_str());
+  try { m_prismGlow2Opacity = std::stof(buf); } catch (...) { m_prismGlow2Opacity = 0.2f; }
 
   GetPrivateProfileStringW(L"Visualizer_HaloDust", L"BaseRadiusRatio", L"0.25", buf, 32, m_iniFilePath.c_str());
   try { m_haloDustBaseRadiusRatio = std::stof(buf); } catch (...) { m_haloDustBaseRadiusRatio = 0.25f; }

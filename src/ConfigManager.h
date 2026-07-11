@@ -58,6 +58,21 @@ public:
     float GetPrismBeatMaxHeightRatio() const { return m_prismBeatMaxHeightRatio; }
     void SetPrismBeatMaxHeightRatio(float ratio);
 
+    float GetPrismLineThickness() const { return m_prismLineThickness; }
+    void SetPrismLineThickness(float thickness);
+
+    float GetPrismGlow1Thickness() const { return m_prismGlow1Thickness; }
+    void SetPrismGlow1Thickness(float thickness);
+
+    float GetPrismGlow1Opacity() const { return m_prismGlow1Opacity; }
+    void SetPrismGlow1Opacity(float opacity);
+
+    float GetPrismGlow2Thickness() const { return m_prismGlow2Thickness; }
+    void SetPrismGlow2Thickness(float thickness);
+
+    float GetPrismGlow2Opacity() const { return m_prismGlow2Opacity; }
+    void SetPrismGlow2Opacity(float opacity);
+
     float GetHaloDustBaseRadiusRatio() const { return m_haloDustBaseRadiusRatio; }
     void SetHaloDustBaseRadiusRatio(float ratio);
 
@@ -471,6 +486,11 @@ private:
     float m_bandGain100;
 
     float m_prismBeatMaxHeightRatio;
+    float m_prismLineThickness;
+    float m_prismGlow1Thickness;
+    float m_prismGlow1Opacity;
+    float m_prismGlow2Thickness;
+    float m_prismGlow2Opacity;
     float m_haloDustBaseRadiusRatio;
     float m_haloDustGraphLengthRatio;
     float m_haloLaserBaseOpacity;

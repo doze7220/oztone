@@ -4,12 +4,9 @@
 #include <random>
 
 // ==========================================
-// PrismBeat の設定
+// PrismBeat の設定 (Constants removed, now uses ConfigManager)
 // ==========================================
-namespace {
-    constexpr float NEON_GLOW_THICKNESS = 3.0f; // 外側の発光（グロー）の太さ
-    constexpr float NEON_CORE_THICKNESS = 1.0f; // 内側の芯（ライン）の太さ
-}
+
 
 VisualizerPrismBeat::VisualizerPrismBeat() : m_initialized(false) {}
 
@@ -20,15 +17,15 @@ VisualizerPrismBeat::~VisualizerPrismBeat() {
 bool VisualizerPrismBeat::Initialize(ID2D1DeviceContext* context) {
     if (m_initialized) return true;
 
-    // 7色の定義: 赤、オレンジ、黄、緑、水色、青、紫
+    // 7色の定義: 赤、オレンジ、黄、緑、水色、青、紫 (基本アルファは1.0f)
     D2D1_COLOR_F colors[7] = {
-        D2D1::ColorF(1.0f, 0.0f, 0.0f, 0.6f), // 赤
-        D2D1::ColorF(1.0f, 0.5f, 0.0f, 0.6f), // オレンジ
-        D2D1::ColorF(1.0f, 1.0f, 0.0f, 0.6f), // 黄
-        D2D1::ColorF(0.0f, 1.0f, 0.0f, 0.6f), // 緑
-        D2D1::ColorF(0.0f, 1.0f, 1.0f, 0.6f), // 水色
-        D2D1::ColorF(0.0f, 0.0f, 1.0f, 0.6f), // 青
-        D2D1::ColorF(0.5f, 0.0f, 1.0f, 0.6f)  // 紫
+        D2D1::ColorF(1.0f, 0.0f, 0.0f, 1.0f), // 赤
+        D2D1::ColorF(1.0f, 0.5f, 0.0f, 1.0f), // オレンジ
+        D2D1::ColorF(1.0f, 1.0f, 0.0f, 1.0f), // 黄
+        D2D1::ColorF(0.0f, 1.0f, 0.0f, 1.0f), // 緑
+        D2D1::ColorF(0.0f, 1.0f, 1.0f, 1.0f), // 水色
+        D2D1::ColorF(0.0f, 0.0f, 1.0f, 1.0f), // 青
+        D2D1::ColorF(0.5f, 0.0f, 1.0f, 1.0f)  // 紫
     };
 
     for (int i = 0; i < 7; ++i) {
@@ -193,8 +190,22 @@ void VisualizerPrismBeat::Draw(ID2D1DeviceContext* context, const std::vector<fl
 
         ID2D1SolidColorBrush* neonBrush = m_neonBrushes[seg.colorIndex].Get();
 
-        // ネオン効果
-        context->DrawGeometry(path.Get(), neonBrush, NEON_GLOW_THICKNESS);
-        context->DrawGeometry(path.Get(), m_coreBrush.Get(), NEON_CORE_THICKNESS);
+        float glow1Thick = m_config ? m_config->GetPrismGlow1Thickness() : 6.0f;
+        float glow1Opac = m_config ? m_config->GetPrismGlow1Opacity() : 0.6f;
+        float glow2Thick = m_config ? m_config->GetPrismGlow2Thickness() : 16.0f;
+        float glow2Opac = m_config ? m_config->GetPrismGlow2Opacity() : 0.2f;
+        float coreThick = m_config ? m_config->GetPrismLineThickness() : 1.0f;
+
+        // 第1パス (グロー外側)
+        neonBrush->SetOpacity(glow2Opac);
+        context->DrawGeometry(path.Get(), neonBrush, glow2Thick);
+        
+        // 第2パス (グロー内側)
+        neonBrush->SetOpacity(glow1Opac);
+        context->DrawGeometry(path.Get(), neonBrush, glow1Thick);
+        
+        // 第3パス (コア芯線)
+        m_coreBrush->SetOpacity(1.0f);
+        context->DrawGeometry(path.Get(), m_coreBrush.Get(), coreThick);
     }
 }
