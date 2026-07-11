@@ -14,6 +14,8 @@ struct TrackMetadata {
     float artOffsetX = 0.0f; // フレーミング: Xオフセット
     float artOffsetY = 0.0f; // フレーミング: Yオフセット
     float artScale = 1.0f;   // フレーミング: スケール
+    float peakAmplitude = 0.0f; // 解析: ピーク振幅
+    float maxFrequency = 0.0f;  // 解析: 最大周波数
 };
 
 /**

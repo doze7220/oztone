@@ -42,6 +42,16 @@ public:
     int GetVisualizerMode() const { return m_visualizerMode; }
     void SetVisualizerMode(int mode);
 
+    float GetHighFreqNoiseThreshold() const { return m_highFreqNoiseThreshold; }
+    void SetHighFreqNoiseThreshold(float threshold);
+
+    float GetBandGain0() const { return m_bandGain0; }
+    float GetBandGain25() const { return m_bandGain25; }
+    float GetBandGain50() const { return m_bandGain50; }
+    float GetBandGain75() const { return m_bandGain75; }
+    float GetBandGain100() const { return m_bandGain100; }
+    void SetBandGains(float b0, float b25, float b50, float b75, float b100);
+
     int GetWindowX() const { return m_windowX; }
     int GetWindowY() const { return m_windowY; }
     int GetWindowWidth() const { return m_windowWidth; }
@@ -401,6 +411,12 @@ private:
     float m_bgOpacity;
     int m_backgroundArtMode;
     int m_visualizerMode;
+    float m_highFreqNoiseThreshold;
+    float m_bandGain0;
+    float m_bandGain25;
+    float m_bandGain50;
+    float m_bandGain75;
+    float m_bandGain100;
 
 
     int m_logoX;

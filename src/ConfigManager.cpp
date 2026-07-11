@@ -176,6 +176,12 @@ SkipSeconds=10.0
 
 [Visualizer]
 VisualizerMode=2
+HighFreqNoiseThreshold=0.001
+BandGain0=1.0
+BandGain25=1.0
+BandGain50=1.0
+BandGain75=1.0
+BandGain100=1.0
 
 [Layout_Playlist]
 PlaylistPosition=1
@@ -468,6 +474,12 @@ void ConfigManager::ResetToDefaults() {
   m_skipSeconds = 10.0f;
 
   m_visualizerMode = 2;
+  m_highFreqNoiseThreshold = 0.001f;
+  m_bandGain0 = 1.0f;
+  m_bandGain25 = 1.0f;
+  m_bandGain50 = 1.0f;
+  m_bandGain75 = 1.0f;
+  m_bandGain100 = 1.0f;
 
   m_playlistPosition = 1;
   m_isPlaylistPinned = false;
@@ -857,6 +869,24 @@ void ConfigManager::LoadSettings() {
 
   m_visualizerMode = GetPrivateProfileIntW(L"Visualizer", L"VisualizerMode", 0,
                                            m_iniFilePath.c_str());
+
+  GetPrivateProfileStringW(L"Visualizer", L"HighFreqNoiseThreshold", L"0.001", buf, 32, m_iniFilePath.c_str());
+  try { m_highFreqNoiseThreshold = std::stof(buf); } catch (...) { m_highFreqNoiseThreshold = 0.001f; }
+
+  GetPrivateProfileStringW(L"Visualizer", L"BandGain0", L"1.0", buf, 32, m_iniFilePath.c_str());
+  try { m_bandGain0 = std::stof(buf); } catch (...) { m_bandGain0 = 1.0f; }
+
+  GetPrivateProfileStringW(L"Visualizer", L"BandGain25", L"1.0", buf, 32, m_iniFilePath.c_str());
+  try { m_bandGain25 = std::stof(buf); } catch (...) { m_bandGain25 = 1.0f; }
+
+  GetPrivateProfileStringW(L"Visualizer", L"BandGain50", L"1.0", buf, 32, m_iniFilePath.c_str());
+  try { m_bandGain50 = std::stof(buf); } catch (...) { m_bandGain50 = 1.0f; }
+
+  GetPrivateProfileStringW(L"Visualizer", L"BandGain75", L"1.0", buf, 32, m_iniFilePath.c_str());
+  try { m_bandGain75 = std::stof(buf); } catch (...) { m_bandGain75 = 1.0f; }
+
+  GetPrivateProfileStringW(L"Visualizer", L"BandGain100", L"1.0", buf, 32, m_iniFilePath.c_str());
+  try { m_bandGain100 = std::stof(buf); } catch (...) { m_bandGain100 = 1.0f; }
 
   m_showAppLogo = GetPrivateProfileIntW(L"Visibility", L"ShowAppLogo", 1,
                                         m_iniFilePath.c_str()) != 0;
@@ -2050,4 +2080,30 @@ void ConfigManager::SetEnableOSD(bool enable) {
   m_enableOSD = enable;
   WritePrivateProfileStringW(L"Layout_OSD", L"EnableOSD", enable ? L"1" : L"0",
                              m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHighFreqNoiseThreshold(float threshold) {
+  m_highFreqNoiseThreshold = threshold;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.4f", threshold);
+  WritePrivateProfileStringW(L"Visualizer", L"HighFreqNoiseThreshold", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetBandGains(float b0, float b25, float b50, float b75, float b100) {
+  m_bandGain0 = b0;
+  m_bandGain25 = b25;
+  m_bandGain50 = b50;
+  m_bandGain75 = b75;
+  m_bandGain100 = b100;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", b0);
+  WritePrivateProfileStringW(L"Visualizer", L"BandGain0", buf, m_iniFilePath.c_str());
+  swprintf_s(buf, L"%.2f", b25);
+  WritePrivateProfileStringW(L"Visualizer", L"BandGain25", buf, m_iniFilePath.c_str());
+  swprintf_s(buf, L"%.2f", b50);
+  WritePrivateProfileStringW(L"Visualizer", L"BandGain50", buf, m_iniFilePath.c_str());
+  swprintf_s(buf, L"%.2f", b75);
+  WritePrivateProfileStringW(L"Visualizer", L"BandGain75", buf, m_iniFilePath.c_str());
+  swprintf_s(buf, L"%.2f", b100);
+  WritePrivateProfileStringW(L"Visualizer", L"BandGain100", buf, m_iniFilePath.c_str());
 }

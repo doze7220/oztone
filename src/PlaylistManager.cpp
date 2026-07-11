@@ -208,7 +208,8 @@ void PlaylistManager::SaveToFile(const std::wstring& outPath) const {
         std::wstring wline;
         if (item.isLoaded) {
             wline = item.filepath + L"\t" + item.title + L"\t" + item.artist + L"\t" + item.timeString + L"\t" +
-                    std::to_wstring(item.artOffsetX) + L"\t" + std::to_wstring(item.artOffsetY) + L"\t" + std::to_wstring(item.artScale);
+                    std::to_wstring(item.artOffsetX) + L"\t" + std::to_wstring(item.artOffsetY) + L"\t" + std::to_wstring(item.artScale) + L"\t" +
+                    std::to_wstring(item.peakAmplitude) + L"\t" + std::to_wstring(item.maxFrequency);
         } else {
             wline = item.filepath;
         }
@@ -266,6 +267,15 @@ void PlaylistManager::LoadFromFile(const std::wstring& inPath) {
                                             it->artOffsetX = 0.0f;
                                             it->artOffsetY = 0.0f;
                                             it->artScale = 1.0f;
+                                        }
+                                    }
+                                    if (tokens.size() >= 9) {
+                                        try {
+                                            it->peakAmplitude = std::stof(tokens[7]);
+                                            it->maxFrequency = std::stof(tokens[8]);
+                                        } catch (...) {
+                                            it->peakAmplitude = 0.0f;
+                                            it->maxFrequency = 0.0f;
                                         }
                                     }
                                     break;
