@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 
+class ConfigManager;
+
 /**
  * @brief ビジュアライザ描画スタイルの共通インターフェース
  */
@@ -23,6 +25,11 @@ public:
      * @brief リソースの解放処理
      */
     virtual void ReleaseResources() = 0;
+
+    /**
+     * @brief ConfigManagerへのポインタを設定する
+     */
+    virtual void SetConfig(const ConfigManager* config) {}
 
     /**
      * @brief ビジュアライザを描画する

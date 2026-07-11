@@ -33,7 +33,11 @@ public:
     /**
      * @brief ConfigManagerへのポインタを設定する
      */
-    void SetConfig(const ConfigManager* config) { m_config = config; }
+    void SetConfig(const ConfigManager* config) {
+        m_config = config;
+        if (m_prismBeat) m_prismBeat->SetConfig(config);
+        if (m_haloDust) m_haloDust->SetConfig(config);
+    }
 
     /**
      * @brief 選択されているモードに応じてビジュアライザを描画する

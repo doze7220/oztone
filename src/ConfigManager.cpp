@@ -184,6 +184,13 @@ BandGain50=0.7
 BandGain75=1.0
 BandGain100=1.5
 
+[Visualizer_PrismBeat]
+MaxHeightRatio=0.8
+
+[Visualizer_HaloDust]
+BaseRadiusRatio=0.25
+GraphLengthRatio=0.30
+
 [Layout_Playlist]
 PlaylistPosition=1
 IsPlaylistPinned=0
@@ -482,6 +489,10 @@ void ConfigManager::ResetToDefaults() {
   m_bandGain50 = 1.0f;
   m_bandGain75 = 1.0f;
   m_bandGain100 = 1.0f;
+
+  m_prismBeatMaxHeightRatio = 0.8f;
+  m_haloDustBaseRadiusRatio = 0.25f;
+  m_haloDustGraphLengthRatio = 0.30f;
 
   m_playlistPosition = 1;
   m_isPlaylistPinned = false;
@@ -892,6 +903,15 @@ void ConfigManager::LoadSettings() {
 
   GetPrivateProfileStringW(L"Visualizer", L"BandGain100", L"1.0", buf, 32, m_iniFilePath.c_str());
   try { m_bandGain100 = std::stof(buf); } catch (...) { m_bandGain100 = 1.0f; }
+
+  GetPrivateProfileStringW(L"Visualizer_PrismBeat", L"MaxHeightRatio", L"0.8", buf, 32, m_iniFilePath.c_str());
+  try { m_prismBeatMaxHeightRatio = std::stof(buf); } catch (...) { m_prismBeatMaxHeightRatio = 0.8f; }
+
+  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"BaseRadiusRatio", L"0.25", buf, 32, m_iniFilePath.c_str());
+  try { m_haloDustBaseRadiusRatio = std::stof(buf); } catch (...) { m_haloDustBaseRadiusRatio = 0.25f; }
+
+  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"GraphLengthRatio", L"0.30", buf, 32, m_iniFilePath.c_str());
+  try { m_haloDustGraphLengthRatio = std::stof(buf); } catch (...) { m_haloDustGraphLengthRatio = 0.30f; }
 
   m_showAppLogo = GetPrivateProfileIntW(L"Visibility", L"ShowAppLogo", 1,
                                         m_iniFilePath.c_str()) != 0;
@@ -2111,4 +2131,25 @@ void ConfigManager::SetBandGains(float b0, float b25, float b50, float b75, floa
   WritePrivateProfileStringW(L"Visualizer", L"BandGain75", buf, m_iniFilePath.c_str());
   swprintf_s(buf, L"%.2f", b100);
   WritePrivateProfileStringW(L"Visualizer", L"BandGain100", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetPrismBeatMaxHeightRatio(float ratio) {
+  m_prismBeatMaxHeightRatio = ratio;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", ratio);
+  WritePrivateProfileStringW(L"Visualizer_PrismBeat", L"MaxHeightRatio", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloDustBaseRadiusRatio(float ratio) {
+  m_haloDustBaseRadiusRatio = ratio;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", ratio);
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"BaseRadiusRatio", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloDustGraphLengthRatio(float ratio) {
+  m_haloDustGraphLengthRatio = ratio;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", ratio);
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"GraphLengthRatio", buf, m_iniFilePath.c_str());
 }

@@ -82,3 +82,16 @@
   - 対応:
     - `Visualizer_PrismBeat.cpp`: `AMPLITUDE_MULTIPLIER` や `HIGH_FREQ_BOOST`、および各帯域ごとの不要なブースト比率設定を削除。渡された値を純粋な割合として扱い、描画領域の高さに乗算する素直なマッピングへ変更。
     - `Visualizer_HaloDust.cpp`: 同様に `CIRCLE_AMPLITUDE_MULTIPLIER` 等の強制増幅定数を削除。0.0f〜1.0fの振幅値をそのままパーセンテージとして信頼し、円の半径やパーティクル・レーザー放出判定、振幅計算などに直接利用する純粋なロジックへ修正。
+
+- ビジュアライザ描画領域のプラグイン別マッピング化 (Phase 19-2)
+  - `ConfigManager` を拡張し、プラグインごとに描画領域の割合を定義する新規パラメータを追加。
+    - `[Visualizer_PrismBeat]` : `MaxHeightRatio`
+    - `[Visualizer_HaloDust]` : `InnerRadiusRatio`, `OuterRadiusRatio`
+  - `IVisualizerStyle` に `SetConfig` を追加し、各プラグインで設定値を参照できるようにした。
+  - `Visualizer_PrismBeat` では描画高さを `MaxHeightRatio` に制約。
+  - `Visualizer_HaloDust` では、内径と外径をそれぞれ `InnerRadiusRatio`, `OuterRadiusRatio` の割合に基づいて算出し、0.0〜1.0 のスペクトル振幅が内径から外径までの間でマッピングされるよう描画計算式を修正した。
+
+- ビジュアライザ(HaloDust)の描画領域マッピングの更なる最適化 (Phase 19-2 Hotfix)
+  - `ConfigManager` における HaloDust の設定を `BaseRadiusRatio` (無音時基準円) と `GraphLengthRatio` (波形全体の長さ) に変更。
+  - `Visualizer_HaloDust` の描画にて、振幅を基準円から内側・外側に等分して伸ばす計算（`baseRadius ± (graphLength / 2.0f) * spectrum[i]`）に修正。
+  - パーティクルおよびレーザーの発生起点を外側の頂点（`baseRadius + ampPx`）に適合させた。

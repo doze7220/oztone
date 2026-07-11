@@ -1,4 +1,5 @@
 #include "Visualizer_PrismBeat.h"
+#include "ConfigManager.h"
 #include <cmath>
 #include <random>
 
@@ -145,7 +146,8 @@ void VisualizerPrismBeat::Draw(ID2D1DeviceContext* context, const std::vector<fl
         
         float normalized = m_smoothedAmplitudes[x_index];
         
-        float amplitude = normalized * (height * 0.5f);
+        float maxHeightRatio = m_config ? m_config->GetPrismBeatMaxHeightRatio() : 0.8f;
+        float amplitude = normalized * (height * maxHeightRatio * 0.5f);
         
         // 減衰係数（フェードアウト）の計算
         float fade = 1.0f;

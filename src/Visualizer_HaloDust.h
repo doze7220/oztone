@@ -12,9 +12,11 @@ public:
 
     bool Initialize(ID2D1DeviceContext* context) override;
     void ReleaseResources() override;
+    void SetConfig(const ConfigManager* config) override { m_config = config; }
     void Draw(ID2D1DeviceContext* context, const std::vector<float>& spectrum, D2D1_RECT_F drawRect, const std::wstring& trackTitle, const std::wstring& trackArtist) override;
 
 private:
+    const ConfigManager* m_config = nullptr;
     struct Particle {
         float x, y;
         float vx, vy;
@@ -32,6 +34,7 @@ private:
         float distance;
         float length;
         float speed;
+        float startRadius;
     };
 
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_coreBrush;

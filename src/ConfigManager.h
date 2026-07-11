@@ -55,6 +55,15 @@ public:
     float GetBandGain100() const { return m_bandGain100; }
     void SetBandGains(float b0, float b25, float b50, float b75, float b100);
 
+    float GetPrismBeatMaxHeightRatio() const { return m_prismBeatMaxHeightRatio; }
+    void SetPrismBeatMaxHeightRatio(float ratio);
+
+    float GetHaloDustBaseRadiusRatio() const { return m_haloDustBaseRadiusRatio; }
+    void SetHaloDustBaseRadiusRatio(float ratio);
+
+    float GetHaloDustGraphLengthRatio() const { return m_haloDustGraphLengthRatio; }
+    void SetHaloDustGraphLengthRatio(float ratio);
+
     int GetWindowX() const { return m_windowX; }
     int GetWindowY() const { return m_windowY; }
     int GetWindowWidth() const { return m_windowWidth; }
@@ -422,6 +431,9 @@ private:
     float m_bandGain75;
     float m_bandGain100;
 
+    float m_prismBeatMaxHeightRatio;
+    float m_haloDustBaseRadiusRatio;
+    float m_haloDustGraphLengthRatio;
 
     int m_logoX;
     int m_logoY;

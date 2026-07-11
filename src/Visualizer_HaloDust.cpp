@@ -1,4 +1,5 @@
 #include "Visualizer_HaloDust.h"
+#include "ConfigManager.h"
 #include <cmath>
 #include <random>
 
@@ -6,7 +7,6 @@
 // Halo Dust の設定
 // ==========================================
 namespace {
-    constexpr float CIRCLE_BASE_RADIUS_RATIO = 0.30f; // 円の基本半径（画面の短辺に対する割合）
     constexpr float CIRCLE_NEON_GLOW_THICKNESS = 5.0f; // ネオングローの太さ
     constexpr float CIRCLE_GLOW_OPACITY = 0.3f;      // ネオングローの透明度
     constexpr float CIRCLE_FILL_OPACITY = 0.2f;      // ポリゴン内部の塗りつぶし透明度
@@ -45,7 +45,12 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
     float height = drawRect.bottom - drawRect.top;
     float centerX = drawRect.left + width / 2.0f;
     float centerY = drawRect.top + height / 2.0f;
-    float baseRadius = (std::min)(width, height) * CIRCLE_BASE_RADIUS_RATIO;
+    
+    float refSize = (std::min)(width, height);
+    float baseRadiusRatio = m_config ? m_config->GetHaloDustBaseRadiusRatio() : 0.25f;
+    float graphLengthRatio = m_config ? m_config->GetHaloDustGraphLengthRatio() : 0.30f;
+    float baseRadius = refSize * baseRadiusRatio;
+    float graphLength = refSize * graphLengthRatio;
 
     // Hash track info for hue
     std::wstring combined = trackTitle + trackArtist;
@@ -124,7 +129,8 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
             m_circleAmplitudes[i] -= m_circleAmplitudes[i] * 0.15f;
         }
         
-        float maxAmpPx = (std::min)(width, height) * 0.5f - baseRadius;
+        float maxAmpPx = graphLength / 2.0f;
+        if (maxAmpPx < 0.0f) maxAmpPx = 0.0f;
         float ampPx = m_circleAmplitudes[i] * maxAmpPx;
         float prevAmpPx = prevAmp * maxAmpPx;
         
@@ -143,6 +149,7 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
                 ray.distance = 0.0f;
                 ray.length = lenDist(rng) * scaleFactor; // Fixed length of the beam
                 ray.speed = speedDist(rng) * scaleFactor;
+                ray.startRadius = baseRadius + prevAmpPx;
                 m_laserRays.push_back(ray);
             }
             
@@ -219,7 +226,7 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> currentRayBrush;
         context->CreateSolidColorBrush(D2D1::ColorF(finalR, finalG, finalB, CIRCLE_LASER_OPACITY * fade), &currentRayBrush);
         
-        D2D1_RECT_F rayRect = D2D1::RectF(centerX - 1.0f, centerY - baseRadius - it->distance - it->length, centerX + 1.0f, centerY - baseRadius - it->distance);
+        D2D1_RECT_F rayRect = D2D1::RectF(centerX - 1.0f, centerY - it->startRadius - it->distance - it->length, centerX + 1.0f, centerY - it->startRadius - it->distance);
         if (currentRayBrush) {
             context->FillRectangle(&rayRect, currentRayBrush.Get());
         }
