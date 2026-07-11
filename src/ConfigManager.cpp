@@ -176,6 +176,7 @@ SkipSeconds=10.0
 
 [Visualizer]
 VisualizerMode=2
+VisualizerGamma=4.0
 EnablePreScan=1
 HighFreqNoiseThreshold=0.001
 BandGain0=0.1
@@ -482,6 +483,7 @@ void ConfigManager::ResetToDefaults() {
   m_skipSeconds = 10.0f;
 
   m_visualizerMode = 2;
+  m_visualizerGamma = 4.0f;
   m_enablePreScan = true;
   m_highFreqNoiseThreshold = 0.001f;
   m_bandGain0 = 1.0f;
@@ -882,6 +884,9 @@ void ConfigManager::LoadSettings() {
 
   m_visualizerMode = GetPrivateProfileIntW(L"Visualizer", L"VisualizerMode", 0,
                                            m_iniFilePath.c_str());
+
+  GetPrivateProfileStringW(L"Visualizer", L"VisualizerGamma", L"4.0", buf, 32, m_iniFilePath.c_str());
+  try { m_visualizerGamma = std::stof(buf); } catch (...) { m_visualizerGamma = 4.0f; }
 
   m_enablePreScan = GetPrivateProfileIntW(L"Visualizer", L"EnablePreScan", 0,
                                           m_iniFilePath.c_str()) != 0;
@@ -2152,4 +2157,11 @@ void ConfigManager::SetHaloDustGraphLengthRatio(float ratio) {
   wchar_t buf[32];
   swprintf_s(buf, L"%.2f", ratio);
   WritePrivateProfileStringW(L"Visualizer_HaloDust", L"GraphLengthRatio", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetVisualizerGamma(float gamma) {
+  m_visualizerGamma = gamma;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", gamma);
+  WritePrivateProfileStringW(L"Visualizer", L"VisualizerGamma", buf, m_iniFilePath.c_str());
 }

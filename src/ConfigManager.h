@@ -42,6 +42,9 @@ public:
     int GetVisualizerMode() const { return m_visualizerMode; }
     void SetVisualizerMode(int mode);
 
+    float GetVisualizerGamma() const { return m_visualizerGamma; }
+    void SetVisualizerGamma(float gamma);
+
     bool GetEnablePreScan() const { return m_enablePreScan; }
     void SetEnablePreScan(bool enable) { m_enablePreScan = enable; }
 
@@ -423,6 +426,7 @@ private:
     float m_bgOpacity;
     int m_backgroundArtMode;
     int m_visualizerMode;
+    float m_visualizerGamma;
     bool m_enablePreScan = true;
     float m_highFreqNoiseThreshold;
     float m_bandGain0;
