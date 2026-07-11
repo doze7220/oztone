@@ -1594,6 +1594,8 @@ void ConfigManager::LoadSettings() {
 
   m_showHotkeys = GetPrivateProfileIntW(L"GlobalHotkeys", L"ShowHotkeys", 0,
                                         m_iniFilePath.c_str()) != 0;
+  m_enableOSD = GetPrivateProfileIntW(L"Layout_OSD", L"EnableOSD", 1,
+                                      m_iniFilePath.c_str()) != 0;
   m_modNextTrack = GetPrivateProfileIntW(
       L"GlobalHotkeys", L"Modifier_NextTrack", 10, m_iniFilePath.c_str());
   m_vkNextTrack = GetPrivateProfileIntW(L"GlobalHotkeys", L"VK_NextTrack", 39,
@@ -1948,5 +1950,11 @@ void ConfigManager::SetExitAppHotkey(int mod, int vk) {
                              m_iniFilePath.c_str());
   WritePrivateProfileStringW(L"GlobalHotkeys", L"VK_ExitApp",
                              std::to_wstring(vk).c_str(),
+                             m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetEnableOSD(bool enable) {
+  m_enableOSD = enable;
+  WritePrivateProfileStringW(L"Layout_OSD", L"EnableOSD", enable ? L"1" : L"0",
                              m_iniFilePath.c_str());
 }

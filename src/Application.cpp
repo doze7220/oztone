@@ -305,9 +305,11 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
   m_window.SetPlaylistToolbarClickCallback([this](int btnIndex) {
     if (m_isPlaylistListViewMode) {
       if (btnIndex == 1) { // ➕ (新規作成)
+        m_renderer.TriggerFlyText(L"NEW PLAYLIST CREATED");
         this->CreateNewPlaylist();
         m_isPlaylistListViewMode = false;
       } else if (btnIndex == 2) { // 🗑️ (リスト削除)
+        m_renderer.TriggerFlyText(L"PLAYLIST DELETED");
         if (m_focusedPlaylistIndex.has_value()) {
           std::vector<std::wstring> available =
               m_config.GetAvailablePlaylists();
@@ -337,6 +339,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
       if (btnIndex == 0) { // 📁 (上の階層へ)
         m_isPlaylistListViewMode = true;
       } else if (btnIndex == 1) { // ➖ (曲削除)
+        m_renderer.TriggerFlyText(L"TRACK REMOVED");
         if (!m_playlistManager.IsEmpty()) {
           m_playlistManager.RemoveCurrentTrack();
           m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
@@ -390,6 +393,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
           }
         }
       } else if (btnIndex == 2) { // 🗑️ (全曲削除)
+        m_renderer.TriggerFlyText(L"PLAYLIST CLEARED");
         this->ClearPlaylist();
       }
     }
@@ -598,6 +602,11 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
     m_playlistManager.UpdateArtFraming(currentTrack, 0.0f, 0.0f, 1.0f);
     m_renderer.SetBackgroundFraming(0.0f, 0.0f, 1.0f);
+    m_renderer.TriggerFlyText(L"FRAMING RESET");
+  });
+
+  m_window.SetPlaylistPinnedToggleCallback([this](bool pinned) {
+      m_renderer.TriggerFlyText(pinned ? L"PINNED: ON" : L"PINNED: OFF");
   });
 
   m_window.SetArtFramingSaveCallback([this]() {
@@ -1071,6 +1080,33 @@ void Application::ForceRender() {
   bool logoClicked = m_window.ConsumeLogoClicked();
   int logoMenuClicked = m_window.ConsumeLogoMenuClickedIndex();
   int playbackClicked = m_window.ConsumePlaybackClickedIndex();
+
+  if (logoMenuClicked >= 0) {
+      const auto& items = m_window.GetLogoMenuItems();
+      if (logoMenuClicked < items.size()) {
+          int cmdId = items[logoMenuClicked].commandId;
+          if (cmdId == Window::ID_LOGO_VISUALIZER) {
+              int mode = m_config.GetVisualizerMode();
+              if (mode == 1) m_renderer.TriggerFlyText(L"VISUALIZER: PRISM BEAT");
+              else if (mode == 2) m_renderer.TriggerFlyText(L"VISUALIZER: HALO DUST");
+              else m_renderer.TriggerFlyText(L"VISUALIZER: OFF");
+          } else if (cmdId == Window::ID_LOGO_BG_MODE) {
+              int mode = m_config.GetBackgroundArtMode();
+              if (mode == 0) m_renderer.TriggerFlyText(L"BACKGROUND: NOW PLAYING");
+              else if (mode == 1) m_renderer.TriggerFlyText(L"BACKGROUND: HIDDEN");
+              else m_renderer.TriggerFlyText(L"BACKGROUND: DEFAULT");
+          } else if (cmdId == Window::ID_LOGO_RESIZE_MODE) {
+              bool on = m_config.GetEnableResize();
+              m_renderer.TriggerFlyText(on ? L"RESIZE MODE: ON" : L"RESIZE MODE: OFF");
+          } else if (cmdId == Window::ID_LOGO_LOCK_POS) {
+              bool on = m_config.GetLockWindowPosition();
+              m_renderer.TriggerFlyText(on ? L"WINDOW LOCK: ON" : L"WINDOW LOCK: OFF");
+          } else if (cmdId == Window::ID_LOGO_PLAYLIST_POS) {
+              int pos = m_config.GetPlaylistPosition();
+              m_renderer.TriggerFlyText(pos == 0 ? L"PLAYLIST POS: LEFT" : L"PLAYLIST POS: RIGHT");
+          }
+      }
+  }
 
   m_renderer.UpdateAnimation(
       0.016f, m_window.IsControlHovered(), m_window.IsVolumeHovered(),

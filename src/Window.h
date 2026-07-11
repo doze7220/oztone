@@ -66,6 +66,7 @@ public:
     static constexpr UINT ID_TRAY_VOL_MENU = 1064;
     static constexpr UINT ID_TRAY_ADVANCED_MENU = 1070;
     static constexpr UINT ID_TRAY_SHOW_HOTKEYS = 1071;
+    static constexpr UINT ID_TRAY_SHOW_OSD = 1072;
 
     static constexpr UINT ID_LOGO_EXIT = 3001;
     static constexpr UINT ID_LOGO_BG_MODE = 3002;
@@ -235,6 +236,13 @@ public:
     }
 
     /**
+     * @brief プレイリストピン留め切り替えコールバック
+     */
+    void SetPlaylistPinnedToggleCallback(std::function<void(bool)> cb) {
+        m_onPlaylistPinnedToggle = cb;
+    }
+
+    /**
      * @brief 背景フレーミングのスクロール（マウスホイール・キーボード）コールバック
      */
     void SetArtFramingScrollCallback(std::function<void(float)> cb) {
@@ -350,6 +358,7 @@ private:
     std::function<void(float, float)> m_onArtFramingMove;
     std::function<void()> m_onArtFramingReset;
     std::function<void()> m_onArtFramingSave;
+    std::function<void(bool)> m_onPlaylistPinnedToggle;
     DropTarget* m_pDropTarget;
 
     static constexpr UINT WM_TRAYICON = WM_APP + 1;

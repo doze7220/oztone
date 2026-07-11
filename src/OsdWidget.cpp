@@ -24,6 +24,7 @@ void OsdWidget::CreateResources(ID2D1DeviceContext* context, IWICImagingFactory*
     if (m_textFormat) {
         m_textFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
         m_textFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+        m_textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
     }
 }
 

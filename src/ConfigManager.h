@@ -102,6 +102,9 @@ public:
     bool GetShowHotkeys() const { return m_showHotkeys; }
     void SetShowHotkeys(bool show);
 
+    bool GetEnableOSD() const { return m_enableOSD; }
+    void SetEnableOSD(bool enable);
+
     int GetModifierNextTrack() const { return m_modNextTrack; }
     int GetVKNextTrack() const { return m_vkNextTrack; }
     void SetNextTrackHotkey(int mod, int vk);
@@ -607,6 +610,7 @@ private:
     float m_playlistGripShadowOpacity;
 
     bool m_showHotkeys;
+    bool m_enableOSD;
     int m_modNextTrack;
     int m_vkNextTrack;
     int m_modPrevTrack;

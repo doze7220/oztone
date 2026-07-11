@@ -766,7 +766,11 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
     if (m_isPlaylistHovered) {
       if (IsPlaylistPinnedButtonAt(xPos, yPos)) {
-        m_config->SetIsPlaylistPinned(!m_config->GetIsPlaylistPinned());
+        bool pinned = !m_config->GetIsPlaylistPinned();
+        m_config->SetIsPlaylistPinned(pinned);
+        if (m_onPlaylistPinnedToggle) {
+            m_onPlaylistPinnedToggle(pinned);
+        }
         return 0;
       }
 
@@ -1028,6 +1032,8 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
           AppendMenuW(hAdvMenu, MF_SEPARATOR, 0, nullptr);
           AppendMenuW(hAdvMenu, MF_STRING, Window::ID_TRAY_SHOW_HOTKEYS,
                       L"ホットキー表示");
+          AppendMenuW(hAdvMenu, MF_STRING, Window::ID_TRAY_SHOW_OSD,
+                      L"OSD表示");
 
           if (m_config) {
             int zOrder = m_config->GetZOrder();
@@ -1040,6 +1046,10 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             }
             if (m_config->GetShowHotkeys()) {
               CheckMenuItem(hAdvMenu, ID_TRAY_SHOW_HOTKEYS,
+                            MF_BYCOMMAND | MF_CHECKED);
+            }
+            if (m_config->GetEnableOSD()) {
+              CheckMenuItem(hAdvMenu, ID_TRAY_SHOW_OSD,
                             MF_BYCOMMAND | MF_CHECKED);
             }
           }
@@ -1121,6 +1131,11 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     case ID_TRAY_SHOW_HOTKEYS:
       if (m_config) {
         m_config->SetShowHotkeys(!m_config->GetShowHotkeys());
+      }
+      break;
+    case ID_TRAY_SHOW_OSD:
+      if (m_config) {
+        m_config->SetEnableOSD(!m_config->GetEnableOSD());
       }
       break;
     case ID_TRAY_PLAY_PAUSE:
