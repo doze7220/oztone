@@ -1496,26 +1496,32 @@ void Application::ParseThreadFunc() {
 
     if (!isMetaLoaded) {
       std::wstring title, artist, timeString;
-      if (localTagManager.Load(targetPath)) {
-        title = localTagManager.GetTitle();
-        artist = localTagManager.GetArtist();
-        timeString = localTagManager.GetTimeString();
-        if (title.empty()) {
+      try {
+        if (localTagManager.Load(targetPath)) {
+          title = localTagManager.GetTitle();
+          artist = localTagManager.GetArtist();
+          timeString = localTagManager.GetTimeString();
+          if (title.empty()) {
+            try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
+          }
+          if (artist.empty()) artist = L"---";
+        } else {
           try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
+          artist = L"---";
         }
-        if (artist.empty()) artist = L"---";
-      } else {
+      } catch (...) {
         try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
         artist = L"---";
       }
       currentMeta.title = title;
       currentMeta.artist = artist;
       currentMeta.timeString = timeString;
+      currentMeta.isMetaLoaded = true;
       m_playlistManager.UpdateMetadata(currentMeta);
       updated = true;
     }
 
-    if (needsScan || (!isFFTLoaded && currentMeta.peakAmplitude <= 1.0f)) {
+    if (!isFFTLoaded || needsScan) {
       if (m_config.GetEnablePreScan()) {
         float peakAmplitude = 0.0f;
         float maxFrequency = 0.0f;
@@ -1525,6 +1531,7 @@ void Application::ParseThreadFunc() {
         } else {
           m_playlistManager.UpdateScanData(targetPath, 1.0f, static_cast<float>(2048 - 1));
         }
+        currentMeta.isFFTLoaded = true;
         updated = true;
       }
     }

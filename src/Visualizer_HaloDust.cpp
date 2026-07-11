@@ -102,15 +102,13 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
         m_circleAmplitudes.resize(numBands, 0.0f);
     }
 
-    float hzResolution = 44100.0f / 8192.0f;
-    float minHz = 20.0f;
-    float maxHz = 11000.0f;
     float angleStep = 360.0f / numBands;
 
     for (int i = 0; i < numBands; ++i) {
         float ct = (float)i / (numBands - 1);
-        float freq = minHz * std::pow(maxHz / minHz, ct);
-        float floatIndex = freq / hzResolution;
+        
+        // すでに対数・EQ適用済みの256個のデータを線形マッピング
+        float floatIndex = ct * static_cast<float>(spectrum.size() - 1);
         
         size_t idx1 = static_cast<size_t>(floatIndex);
         size_t idx2 = idx1 + 1;

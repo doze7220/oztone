@@ -70,26 +70,7 @@ void VisualizerPrismBeat::Draw(ID2D1DeviceContext* context, const std::vector<fl
     std::uniform_real_distribution<float> noiseDist(-2.0f, 2.0f);
 
     size_t spectrumSize = spectrum.size();
-    float hzResolution = 44100.0f / 8192.0f;
-    float minHz = 20.0f;
-    float maxHz = 10000.0f;
     float WAVE_STEP_X = 4.0f;
-
-    struct BandConfig {
-        float minHz;
-        float maxHz;
-        int colorIndex;
-    };
-
-    const BandConfig BANDS[] = {
-        {20.0f,    60.0f,   0},
-        {60.0f,    250.0f,  1},
-        {250.0f,   500.0f,  2},
-        {500.0f,   2000.0f, 3},
-        {2000.0f,  4000.0f, 4},
-        {4000.0f,  6000.0f, 5},
-        {6000.0f,  10000.0f,6}
-    };
 
     struct ColorSegment {
         int colorIndex;
@@ -114,17 +95,15 @@ void VisualizerPrismBeat::Draw(ID2D1DeviceContext* context, const std::vector<fl
         float ct = (t - 0.05f) / 0.90f;
         float clamped_ct = (std::max)(0.0f, (std::min)(ct, 1.0f));
         
-        float freq = minHz * std::pow(maxHz / minHz, clamped_ct);
-        
         // 色と帯域パラメータを、X座標(clamped_ct)の均等7分割で決定する
         int colorIndex = static_cast<int>(clamped_ct * 7.0f);
         if (colorIndex < 0) colorIndex = 0;
         if (colorIndex > 6) colorIndex = 6;
         
-        const BandConfig* band = &BANDS[colorIndex];
-        bandColor = band->colorIndex;
+        bandColor = colorIndex;
         
-        float floatIndex = freq / hzResolution;
+        // すでに対数・EQ適用済みの256個のデータを線形マッピング
+        float floatIndex = clamped_ct * static_cast<float>(spectrumSize - 1);
         if (floatIndex < 0.0f) floatIndex = 0.0f;
         if (floatIndex > static_cast<float>(spectrumSize - 1)) floatIndex = static_cast<float>(spectrumSize - 1);
         

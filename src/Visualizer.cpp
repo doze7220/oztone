@@ -40,12 +40,9 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
     if (mode == 0) return;
 
     size_t validSize = spectrum.size();
-    if (maxFrequency > 0.0f && maxFrequency < spectrum.size()) {
-        validSize = static_cast<size_t>(maxFrequency) + 1;
-        if (validSize > spectrum.size()) validSize = spectrum.size();
-    }
+    float actualMaxFreq = (maxFrequency > 0.0f && maxFrequency < spectrum.size()) ? maxFrequency : static_cast<float>(spectrum.size() - 1);
 
-    std::vector<float> processedSpectrum(validSize);
+    std::vector<float> processedSpectrum(256, 0.0f);
     float b0 = 1.0f, b25 = 1.0f, b50 = 1.0f, b75 = 1.0f, b100 = 1.0f;
     if (m_config) {
         b0 = m_config->GetBandGain0();
@@ -55,14 +52,23 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
         b100 = m_config->GetBandGain100();
     }
 
-    for (size_t i = 0; i < validSize; ++i) {
-        // ゼロ除算および log10(0) の -inf を回避するため 1.0f を加算する
-        float logI = std::log10(static_cast<float>(i) + 1.0f);
-        float logMax = std::log10(static_cast<float>(maxFrequency) + 1.0f);
-        
-        // 対数スケール上での進行割合 (0.0f 〜 1.0f)
-        float ratio = (logMax > 0.0f) ? (logI / logMax) : 0.0f;
+    float logMax = std::log10(actualMaxFreq + 1.0f);
+
+    for (int i = 0; i < 256; ++i) {
+        float ratio = static_cast<float>(i) / 255.0f;
         ratio = std::clamp(ratio, 0.0f, 1.0f);
+
+        // 対数補間によるインデックス計算
+        float currentLog = ratio * logMax;
+        float targetIndexF = std::pow(10.0f, currentLog) - 1.0f;
+        
+        size_t idx1 = static_cast<size_t>(targetIndexF);
+        size_t idx2 = idx1 + 1;
+        if (idx1 >= validSize) idx1 = validSize - 1;
+        if (idx2 >= validSize) idx2 = validSize - 1;
+        
+        float frac = targetIndexF - idx1;
+        float rawValue = spectrum[idx1] + frac * (spectrum[idx2] - spectrum[idx1]);
 
         float eqMultiplier = 1.0f;
         
@@ -80,7 +86,6 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
             eqMultiplier = std::lerp(b75, b100, localRatio);
         }
 
-        float rawValue = spectrum[i];
         float processed = rawValue * eqMultiplier;
         processedSpectrum[i] = std::clamp(processed, 0.0f, 1.0f);
     }
