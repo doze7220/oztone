@@ -52,15 +52,18 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
         b100 = m_config->GetBandGain100();
     }
 
-    float logMax = std::log10(actualMaxFreq + 1.0f);
+    float minIndex = 4.0f;
+    float maxIndex = (std::max)(actualMaxFreq, minIndex + 1.0f);
+    float logMin = std::log10(minIndex);
+    float logMax = std::log10(maxIndex);
 
     for (int i = 0; i < 256; ++i) {
         float ratio = static_cast<float>(i) / 255.0f;
         ratio = std::clamp(ratio, 0.0f, 1.0f);
 
         // 対数補間によるインデックス計算
-        float currentLog = ratio * logMax;
-        float targetIndexF = std::pow(10.0f, currentLog) - 1.0f;
+        float currentLog = logMin + (logMax - logMin) * ratio;
+        float targetIndexF = std::pow(10.0f, currentLog);
         
         size_t idx1 = static_cast<size_t>(targetIndexF);
         size_t idx2 = idx1 + 1;

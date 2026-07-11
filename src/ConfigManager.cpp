@@ -38,7 +38,7 @@ EnableShadow=1
 ShadowOffsetX=2.0
 ShadowOffsetY=2.0
 ShadowOpacity=0.7
-BgOpacity=0.8
+BgOpacity=0.6
 BgDarkenOpacity=0.4
 BackgroundArtMode=0
 ControlHoverHeight=50.0
@@ -177,19 +177,19 @@ SkipSeconds=10.0
 [Visualizer]
 VisualizerMode=2
 EnablePreScan=1
-HighFreqNoiseThreshold=0.001
-BandGain0=0.1
-BandGain25=0.5
-BandGain50=0.7
-BandGain75=1.0
-BandGain100=1.5
+HighFreqNoiseThreshold=8.0
+BandGain0=0.005
+BandGain25=0.02
+BandGain50=0.05
+BandGain75=0.1
+BandGain100=1.0
 
 [Visualizer_PrismBeat]
 MaxHeightRatio=0.8
 
 [Visualizer_HaloDust]
-BaseRadiusRatio=0.25
-GraphLengthRatio=0.30
+BaseRadiusRatio=0.35
+GraphLengthRatio=0.25
 
 [Layout_Playlist]
 PlaylistPosition=1
@@ -247,7 +247,7 @@ ShadowColor=#000000
 ShadowOpacity=0.2
 
 [Layout_OSD]
-OsdFontFamily=Meiryo
+OsdFontFamily=MS Gothic
 OsdFontSize=48.0
 OsdTextColor=#FFFFFF
 OsdShadowColor=#000000
