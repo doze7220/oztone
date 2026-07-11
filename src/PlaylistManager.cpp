@@ -1,4 +1,5 @@
 #include "PlaylistManager.h"
+#include "ArtFramingDatabase.h"
 #include <fstream>
 #include <filesystem>
 #include <numeric>
@@ -13,20 +14,7 @@ PlaylistManager::PlaylistManager() : m_shuffleIndex(0) {
 
 PlaylistManager::~PlaylistManager() {}
 
-void PlaylistManager::GetArtFraming(const std::wstring& filepath, float& offsetX, float& offsetY, float& scale) const {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    for (const auto& meta : m_playlist) {
-        if (meta.filepath == filepath) {
-            offsetX = meta.artOffsetX;
-            offsetY = meta.artOffsetY;
-            scale = meta.artScale;
-            return;
-        }
-    }
-    offsetX = 0.0f;
-    offsetY = 0.0f;
-    scale = 1.0f;
-}
+
 
 void PlaylistManager::Clear() {
     std::lock_guard<std::mutex> lock(m_mutex);
@@ -205,10 +193,7 @@ void PlaylistManager::SaveToFile(const std::wstring& outPath) const {
     for (const auto& item : playlistCopy) {
         if (item.filepath.empty()) continue;
 
-        std::wstring wline = item.filepath + L"\t" + 
-                std::to_wstring(item.artOffsetX) + L"\t" + 
-                std::to_wstring(item.artOffsetY) + L"\t" + 
-                std::to_wstring(item.artScale);
+        std::wstring wline = item.filepath;
 
         int size_needed = WideCharToMultiByte(CP_UTF8, 0, wline.c_str(), (int)wline.length(), NULL, 0, NULL, NULL);
         if (size_needed > 0) {
@@ -219,7 +204,7 @@ void PlaylistManager::SaveToFile(const std::wstring& outPath) const {
     }
 }
 
-void PlaylistManager::LoadFromFile(const std::wstring& inPath) {
+void PlaylistManager::LoadFromFile(const std::wstring& inPath, ArtFramingDatabase* framingDb) {
     std::ifstream ifs(inPath, std::ios::binary);
     if (!ifs) return;
 
@@ -246,21 +231,15 @@ void PlaylistManager::LoadFromFile(const std::wstring& inPath) {
                     std::filesystem::path p(filepath);
                     if (std::filesystem::exists(p) && std::filesystem::is_regular_file(p)) {
                         bool added = Add(filepath);
-                        if (added && tokens.size() >= 4) {
-                            std::lock_guard<std::mutex> lock(m_mutex);
-                            for (auto it = m_playlist.rbegin(); it != m_playlist.rend(); ++it) {
-                                if (it->filepath == filepath) {
-                                    try {
-                                        it->artOffsetX = std::stof(tokens[1]);
-                                        it->artOffsetY = std::stof(tokens[2]);
-                                        it->artScale = std::stof(tokens[3]);
-                                    } catch (...) {
-                                        it->artOffsetX = 0.0f;
-                                        it->artOffsetY = 0.0f;
-                                        it->artScale = 1.0f;
-                                    }
-                                    break;
-                                }
+                        // 古いプレイリストファイルのフォーマット検知とマイグレーション
+                        if (added && tokens.size() >= 4 && framingDb != nullptr) {
+                            try {
+                                float offsetX = std::stof(tokens[1]);
+                                float offsetY = std::stof(tokens[2]);
+                                float scale = std::stof(tokens[3]);
+                                framingDb->SetFraming(filepath, offsetX, offsetY, scale);
+                            } catch (...) {
+                                // 変換エラー時は無視
                             }
                         }
                     }
@@ -288,17 +267,7 @@ bool PlaylistManager::IsEmpty() const {
 
 
 
-void PlaylistManager::UpdateArtFraming(const std::wstring& filepath, float offsetX, float offsetY, float scale) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    for (auto& item : m_playlist) {
-        if (item.filepath == filepath) {
-            item.artOffsetX = offsetX;
-            item.artOffsetY = offsetY;
-            item.artScale = scale;
-            break;
-        }
-    }
-}
+
 
 
 size_t PlaylistManager::GetCount() const {

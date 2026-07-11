@@ -10,9 +10,6 @@
  */
 struct PlaylistItem {
     std::wstring filepath;
-    float artOffsetX = 0.0f;
-    float artOffsetY = 0.0f;
-    float artScale = 1.0f;
 };
 
 /**
@@ -83,22 +80,9 @@ public:
     /**
      * @brief ファイルからプレイリストを読み込む
      * @param inPath 読み込み元のファイルパス
+     * @param framingDb マイグレーション用のフレーミングデータベース（省略可能）
      */
-    void LoadFromFile(const std::wstring& inPath);
-
-    /**
-     * @brief 特定のファイルパスの背景アートフレーミング情報を更新する
-     * @param filepath 更新対象のファイルパス
-     * @param offsetX Xオフセット
-     * @param offsetY Yオフセット
-     * @param scale スケール
-     */
-    void UpdateArtFraming(const std::wstring& filepath, float offsetX, float offsetY, float scale);
-
-    /**
-     * @brief 特定のファイルパスの背景アートフレーミング情報を取得する
-     */
-    void GetArtFraming(const std::wstring& filepath, float& offsetX, float& offsetY, float& scale) const;
+    void LoadFromFile(const std::wstring& inPath, class ArtFramingDatabase* framingDb = nullptr);
 
     bool IsEmpty() const;
 

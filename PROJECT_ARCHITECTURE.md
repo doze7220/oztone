@@ -279,7 +279,7 @@ UI要素ごとの独立した描画・状態管理を担うコンポーネント
 
 #### `PlaylistManager` クラス (src/PlaylistManager.h, cpp)
 再生待ちキュー（プレイリスト）を管理するクラス。**常時シャッフル再生**および**ダブルバッファリングによるシームレスなループ**をサポートする。
-楽曲のタグやFFTなどのメタデータ管理責務を持たず、純粋に「ファイルパス（曲順）」と「フレーミング情報（`artOffsetX`, `artOffsetY`, `artScale`）」のみを `PlaylistItem` 構造体として管理する軽量なクラスへと純化されている。
+楽曲のタグやFFTなどのメタデータ、およびフレーミング情報の管理責務を持たず、純粋に「ファイルパス（曲順）」のみを管理する軽量なクラスへと純化されている。
 *   **`size_t GetCurrentIndex() const`, `std::vector<std::wstring> GetShuffleList() const`**
     *   現在のシャッフルインデックスと、次に再生される順番のプレイリスト全体のファイルパス一覧を取得する。UIに渡すメタデータ一覧は `Application` 側で `TrackDatabase` と結合して生成される。
 *   **`void JumpToIndex(size_t index)`**
@@ -289,10 +289,8 @@ UI要素ごとの独立した描画・状態管理を担うコンポーネント
     *   現在のシャッフルループおよび次回のシャッフルループの末尾に、シャッフルせずにそのまま追加する。これにより、再生中のキューにドロップした曲が即座に末尾に積まれる。
 *   **`std::wstring GetCurrentTrack() const` / `std::wstring GetNextTrack() const`**
     *   現在または次の曲のファイルパスを返す。次の曲がループ末尾にある場合は次周リストの先頭曲を返し、先読み処理と整合性を保つ。
-*   **`void UpdateFraming(...)` / `bool GetFraming(...) const`**
-    *   対象曲のアルバムアートのフレーミング情報（X, Y, スケール）を更新・取得する。
-*   **`void SaveToFile(const std::wstring& outPath) const` / `void LoadFromFile(const std::wstring& inPath)`**
-    *   プレイリストの実体を `.ozl` (TSV形式) として入出力する。保存されるのは曲の絶対パスとフレーミング情報のみであり、メタデータは一切含まれないため高速にロードされる。
+*   **`void SaveToFile(const std::wstring& outPath) const` / `void LoadFromFile(const std::wstring& inPath, class ArtFramingDatabase* framingDb = nullptr)`**
+    *   プレイリストの実体を `.ozl` (TSV形式) として入出力する。保存されるのは曲の絶対パスのみであり、メタデータは一切含まれないため高速にロードされる。（※古い `.ozl` からフレーミング情報を読み取った場合は自動で `ArtFramingDatabase` へ移譲する後方互換性マイグレーションを持つ）
 *   **`void RebuildQueue(bool isShuffle)`**
     *   シャッフルON/OFFに応じてインデックス配列（`m_shuffleIndices`）をランダムまたは連番で完全に再構築するロジック。設定変更時や即時再生モード時に呼び出される。
 *   **`void WarpToTrack(const std::wstring& filepath)`**
@@ -309,6 +307,12 @@ UI要素ごとの独立した描画・状態管理を担うコンポーネント
 *   キーをファイルパス（絶対パス）とする `std::unordered_map` によってO(1)の爆速レスポンスを実現し、メインスレッドへのリアルタイムなデータ供給を担う。
 *   **`UpdateMetadata` メソッド**: 非同期スレッドが互いのデータを上書き破壊しないよう、「タグ情報」と「FFT情報」を個別に安全にマージ更新するロジックを搭載している。
 *   **ファイルI/O**: 実行ファイルと同階層の `oztone_track.odb` に、純粋な楽曲メタデータのみ（フレーミング情報は含まない）を永続化保存する。
+
+#### `ArtFramingDatabase` クラス (src/ArtFramingDatabase.h, cpp)
+背景アートのフレーミング設定（X, Y, Scale）を独立して管理するデータベースクラス。
+*   曲のファイルパスをキーとして、フレーミング設定を `std::unordered_map` で管理する。
+*   `PlaylistManager` から分離されたことで、複数のプレイリスト間で同一楽曲のフレーミング設定を共有可能になっている。
+*   **ファイルI/O**: 実行ファイルと同階層の `oztone_framing.odb` (TSV形式) にフレーミング情報のみを永続化保存する。
 
 #### `TrackAnalyzer` クラス (src/TrackAnalyzer.h, cpp)
 タグ解析およびFFT波形事前スキャンのバックグラウンドスレッドとキュー管理の責務を完全にカプセル化した独立クラス。`Application` クラスの負担を軽減する。

@@ -41,6 +41,7 @@ set(SOURCES
     src/TrackDatabase.cpp
     src/TrackAnalyzer.cpp
     src/PlaylistManager.cpp
+    src/ArtFramingDatabase.cpp
     src/OZtone.rc
 )
 
@@ -67,6 +68,7 @@ set(HEADERS
     src/TrackDatabase.h
     src/TrackAnalyzer.h
     src/PlaylistManager.h
+    src/ArtFramingDatabase.h
 )
 
 # 実行ファイルの作成 (WIN32 を指定してコンソールウィンドウを非表示にする)

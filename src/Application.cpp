@@ -25,6 +25,9 @@ Application::~Application() {
   GetModuleFileNameW(NULL, exePath, MAX_PATH);
   std::wstring dbPath = std::filesystem::path(exePath).parent_path().wstring() + L"\\oztone_track.odb";
   m_trackDatabase.SaveToFile(dbPath);
+  if (!m_framingDbPath.empty()) {
+      m_framingDb.SaveToFile(m_framingDbPath);
+  }
 }
 
 void Application::ResetAllSettings() {
@@ -117,7 +120,7 @@ void Application::HandleMediaCommand(int cmd) {
       }
 
       float _ox=0.f, _oy=0.f, _scale=1.f;
-      m_playlistManager.GetArtFraming(track, _ox, _oy, _scale);
+      m_framingDb.GetFraming(track, _ox, _oy, _scale);
       m_renderer.SetBackgroundFraming(_ox, _oy, _scale);
       if (m_audioPlayer.Play(track)) {
         UpdateTrackMetadataIfNeeded(track);
@@ -146,6 +149,9 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
   GetModuleFileNameW(NULL, exePath, MAX_PATH);
   std::wstring dbPath = std::filesystem::path(exePath).parent_path().wstring() + L"\\oztone_track.odb";
   m_trackDatabase.LoadFromFile(dbPath);
+
+  m_framingDbPath = std::filesystem::path(exePath).parent_path().wstring() + L"\\oztone_framing.odb";
+  m_framingDb.LoadFromFile(m_framingDbPath);
 
   if (!m_config.Initialize()) {
     return false;
@@ -415,7 +421,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
             }
 
             float _ox=0.f, _oy=0.f, _scale=1.f;
-      m_playlistManager.GetArtFraming(track, _ox, _oy, _scale);
+      m_framingDb.GetFraming(track, _ox, _oy, _scale);
       m_renderer.SetBackgroundFraming(_ox, _oy, _scale);
       if (m_audioPlayer.Play(track)) {
               UpdateTrackMetadataIfNeeded(track);
@@ -545,7 +551,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         }
 
         float _ox=0.f, _oy=0.f, _scale=1.f;
-      m_playlistManager.GetArtFraming(track, _ox, _oy, _scale);
+      m_framingDb.GetFraming(track, _ox, _oy, _scale);
       m_renderer.SetBackgroundFraming(_ox, _oy, _scale);
       if (m_audioPlayer.Play(track)) {
           UpdateTrackMetadataIfNeeded(track);
@@ -612,11 +618,11 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     if (m_playlistManager.IsEmpty()) return;
     std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
     float ox, oy, scale;
-    m_playlistManager.GetArtFraming(currentTrack, ox, oy, scale);
+    m_framingDb.GetFraming(currentTrack, ox, oy, scale);
     ox -= dx;
     oy -= dy;
     m_renderer.ClampArtFraming(scale, ox, oy);
-    m_playlistManager.UpdateArtFraming(currentTrack, ox, oy, scale);
+    m_framingDb.SetFraming(currentTrack, ox, oy, scale);
     m_renderer.SetBackgroundFraming(ox, oy, scale);
   });
 
@@ -624,18 +630,18 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     if (m_playlistManager.IsEmpty()) return;
     std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
     float ox, oy, scale;
-    m_playlistManager.GetArtFraming(currentTrack, ox, oy, scale);
+    m_framingDb.GetFraming(currentTrack, ox, oy, scale);
     scale += delta * 0.001f;
     if (scale < 1.0f) scale = 1.0f;
     m_renderer.ClampArtFraming(scale, ox, oy);
-    m_playlistManager.UpdateArtFraming(currentTrack, ox, oy, scale);
+    m_framingDb.SetFraming(currentTrack, ox, oy, scale);
     m_renderer.SetBackgroundFraming(ox, oy, scale);
   });
 
   m_window.SetArtFramingResetCallback([this]() {
     if (m_playlistManager.IsEmpty()) return;
     std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
-    m_playlistManager.UpdateArtFraming(currentTrack, 0.0f, 0.0f, 1.0f);
+    m_framingDb.SetFraming(currentTrack, 0.0f, 0.0f, 1.0f);
     m_renderer.SetBackgroundFraming(0.0f, 0.0f, 1.0f);
     m_renderer.TriggerFlyText(L"FRAMING RESET");
   });
@@ -645,6 +651,9 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
   });
 
   m_window.SetArtFramingSaveCallback([this]() {
+    if (!m_framingDbPath.empty()) {
+      m_framingDb.SaveToFile(m_framingDbPath);
+    }
   });
 
   m_window.SetVolumeScrollCallback([this](int delta) {
@@ -671,7 +680,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
   if (m_audioPlayer.Initialize()) {
     m_audioPlayer.SetVolume(m_config.GetDefaultVolume());
     std::wstring defPlaylist = m_config.GetDefaultPlaylistPath();
-    m_playlistManager.LoadFromFile(defPlaylist);
+    m_playlistManager.LoadFromFile(defPlaylist, &m_framingDb);
 
     if (!m_playlistManager.IsEmpty()) {
       size_t skipCount = 0;
@@ -712,7 +721,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         }
 
         float _ox=0.f, _oy=0.f, _scale=1.f;
-      m_playlistManager.GetArtFraming(currentTrack, _ox, _oy, _scale);
+      m_framingDb.GetFraming(currentTrack, _ox, _oy, _scale);
       m_renderer.SetBackgroundFraming(_ox, _oy, _scale);
       if (m_audioPlayer.Play(currentTrack)) {
           UpdateTrackMetadataIfNeeded(currentTrack);
@@ -911,7 +920,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
         }
 
         float _ox=0.f, _oy=0.f, _scale=1.f;
-      m_playlistManager.GetArtFraming(currentTrack, _ox, _oy, _scale);
+      m_framingDb.GetFraming(currentTrack, _ox, _oy, _scale);
       m_renderer.SetBackgroundFraming(_ox, _oy, _scale);
       if (m_audioPlayer.Play(currentTrack)) {
           UpdateTrackMetadataIfNeeded(currentTrack);
@@ -1013,7 +1022,7 @@ void Application::Run() {
           }
 
           float _ox=0.f, _oy=0.f, _scale=1.f;
-      m_playlistManager.GetArtFraming(track, _ox, _oy, _scale);
+      m_framingDb.GetFraming(track, _ox, _oy, _scale);
       m_renderer.SetBackgroundFraming(_ox, _oy, _scale);
       if (m_audioPlayer.Play(track)) {
             UpdateTrackMetadataIfNeeded(track);
@@ -1405,7 +1414,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
       }
 
       float _ox=0.f, _oy=0.f, _scale=1.f;
-      m_playlistManager.GetArtFraming(currentTrack, _ox, _oy, _scale);
+      m_framingDb.GetFraming(currentTrack, _ox, _oy, _scale);
       m_renderer.SetBackgroundFraming(_ox, _oy, _scale);
       if (m_audioPlayer.Play(currentTrack)) {
         UpdateTrackMetadataIfNeeded(currentTrack);
@@ -1566,3 +1575,4 @@ void Application::UpdatePlaylistSummaries() {
   }
   m_playlistSummaries = summaries;
 }
+

@@ -15,6 +15,7 @@
 #include "PlaylistManager.h"
 #include "TrackAnalyzer.h"
 #include "TrackDatabase.h"
+#include "ArtFramingDatabase.h"
 
 /**
  * @brief アプリケーション全体のライフサイクルとメインループを管理するクラス
@@ -116,6 +117,8 @@ private:
     // バックグラウンド解析データ
     TrackAnalyzer m_trackAnalyzer;
     TrackDatabase m_trackDatabase;
+    ArtFramingDatabase m_framingDb;
+    std::wstring m_framingDbPath;
 
     bool m_isPlaylistListViewMode = false;
     ULONGLONG m_lastConfigCheckTime = 0;
