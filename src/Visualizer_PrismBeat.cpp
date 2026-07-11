@@ -8,9 +8,6 @@
 namespace {
     constexpr float NEON_GLOW_THICKNESS = 3.0f; // 外側の発光（グロー）の太さ
     constexpr float NEON_CORE_THICKNESS = 1.0f; // 内側の芯（ライン）の太さ
-    constexpr float AMPLITUDE_MULTIPLIER = 4.0f; // 波形の高さの全体倍率
-    constexpr float AMPLITUDE_MAX_RATIO = 0.6f; // 波形の最大高さ
-    constexpr float HIGH_FREQ_BOOST = 8.0f;      // 高音域の強調度
 }
 
 VisualizerPrismBeat::VisualizerPrismBeat() : m_initialized(false) {}
@@ -81,18 +78,16 @@ void VisualizerPrismBeat::Draw(ID2D1DeviceContext* context, const std::vector<fl
         float minHz;
         float maxHz;
         int colorIndex;
-        float ratio;
-        float threshold;
     };
 
     const BandConfig BANDS[] = {
-        {20.0f,    60.0f,   0, 1.00f, 0.0f},
-        {60.0f,    250.0f,  1, 1.00f, 0.0f},
-        {250.0f,   500.0f,  2, 1.00f, 0.0f},
-        {500.0f,   2000.0f, 3, 1.00f, 0.0f},
-        {2000.0f,  4000.0f, 4, 1.20f, 0.0f},
-        {4000.0f,  6000.0f, 5, 1.40f, 0.0f},
-        {6000.0f,  10000.0f,6, 1.60f, 0.0f}
+        {20.0f,    60.0f,   0},
+        {60.0f,    250.0f,  1},
+        {250.0f,   500.0f,  2},
+        {500.0f,   2000.0f, 3},
+        {2000.0f,  4000.0f, 4},
+        {4000.0f,  6000.0f, 5},
+        {6000.0f,  10000.0f,6}
     };
 
     struct ColorSegment {
@@ -139,7 +134,7 @@ void VisualizerPrismBeat::Draw(ID2D1DeviceContext* context, const std::vector<fl
         float frac = floatIndex - idx1;
         float val = spectrum[idx1] + frac * (spectrum[idx2] - spectrum[idx1]);
         
-        float raw_amp = std::sqrt(val) / 60.0f;
+        float raw_amp = val;
         
         // アタック＆ディケイ処理（落下減衰）
         if (raw_amp > m_smoothedAmplitudes[x_index]) {
@@ -149,15 +144,8 @@ void VisualizerPrismBeat::Draw(ID2D1DeviceContext* context, const std::vector<fl
         }
         
         float normalized = m_smoothedAmplitudes[x_index];
-        if (normalized <= band->threshold) {
-            normalized = 0.0f;
-        } else {
-            normalized *= band->ratio;
-        }
         
-        float boost = 1.0f + clamped_ct * HIGH_FREQ_BOOST;
-        float amplitude = normalized * boost * (height * 0.3f) * AMPLITUDE_MULTIPLIER;
-        amplitude = (std::min)(amplitude, height * AMPLITUDE_MAX_RATIO);
+        float amplitude = normalized * (height * 0.5f);
         
         // 減衰係数（フェードアウト）の計算
         float fade = 1.0f;

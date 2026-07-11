@@ -2,6 +2,7 @@
 #include "Visualizer_PrismBeat.h"
 #include "Visualizer_HaloDust.h"
 #include "ConfigManager.h"
+#include <cmath>
 
 Visualizer::Visualizer() : m_initialized(false) {
     m_prismBeat = std::make_unique<VisualizerPrismBeat>();
@@ -58,21 +59,21 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
     for (size_t i = 0; i < validSize; ++i) {
         float val = spectrum[i] * normalizeFactor;
 
-        float pos = static_cast<float>(i) / static_cast<float>(validSize > 1 ? validSize - 1 : 1);
+        float ratio = static_cast<float>(i) / static_cast<float>(validSize > 1 ? validSize - 1 : 1);
         float eqMultiplier = 1.0f;
         
-        if (pos < 0.25f) {
-            float t = pos / 0.25f;
-            eqMultiplier = b0 + t * (b25 - b0);
-        } else if (pos < 0.5f) {
-            float t = (pos - 0.25f) / 0.25f;
-            eqMultiplier = b25 + t * (b50 - b25);
-        } else if (pos < 0.75f) {
-            float t = (pos - 0.5f) / 0.25f;
-            eqMultiplier = b50 + t * (b75 - b50);
+        if (ratio <= 0.25f) {
+            float localRatio = ratio / 0.25f;
+            eqMultiplier = std::lerp(b0, b25, localRatio);
+        } else if (ratio <= 0.50f) {
+            float localRatio = (ratio - 0.25f) / 0.25f;
+            eqMultiplier = std::lerp(b25, b50, localRatio);
+        } else if (ratio <= 0.75f) {
+            float localRatio = (ratio - 0.50f) / 0.25f;
+            eqMultiplier = std::lerp(b50, b75, localRatio);
         } else {
-            float t = (pos - 0.75f) / 0.25f;
-            eqMultiplier = b75 + t * (b100 - b75);
+            float localRatio = (ratio - 0.75f) / 0.25f;
+            eqMultiplier = std::lerp(b75, b100, localRatio);
         }
 
         processedSpectrum[i] = val * eqMultiplier;

@@ -7,9 +7,6 @@
 // ==========================================
 namespace {
     constexpr float CIRCLE_BASE_RADIUS_RATIO = 0.30f; // 円の基本半径（画面の短辺に対する割合）
-    constexpr float CIRCLE_AMPLITUDE_MULTIPLIER = 06.0f; // 波形の高さの全体倍率
-    constexpr float CIRCLE_BASS_ATTENUATION = 0.6f;  // 低音域の減衰率
-    constexpr float CIRCLE_TREBLE_BOOST = 12.0f;      // 高音域の強調度
     constexpr float CIRCLE_NEON_GLOW_THICKNESS = 5.0f; // ネオングローの太さ
     constexpr float CIRCLE_GLOW_OPACITY = 0.3f;      // ネオングローの透明度
     constexpr float CIRCLE_FILL_OPACITY = 0.2f;      // ポリゴン内部の塗りつぶし透明度
@@ -118,9 +115,7 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
         float frac = floatIndex - idx1;
         float val = spectrum[idx1] + frac * (spectrum[idx2] - spectrum[idx1]);
         
-        // Low-freq attenuation and High-freq boost
-        float boost = CIRCLE_BASS_ATTENUATION + ct * CIRCLE_TREBLE_BOOST;
-        float raw_amp = (std::sqrt(val) * CIRCLE_AMPLITUDE_MULTIPLIER) * boost;
+        float raw_amp = val;
         
         float prevAmp = m_circleAmplitudes[i];
         if (raw_amp > m_circleAmplitudes[i]) {
@@ -129,8 +124,12 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
             m_circleAmplitudes[i] -= m_circleAmplitudes[i] * 0.15f;
         }
         
+        float maxAmpPx = (std::min)(width, height) * 0.5f - baseRadius;
+        float ampPx = m_circleAmplitudes[i] * maxAmpPx;
+        float prevAmpPx = prevAmp * maxAmpPx;
+        
         // Spawn particle if amplitude dropped from peak
-        if (prevAmp > 20.0f && m_circleAmplitudes[i] < prevAmp - 2.0f) {
+        if (prevAmp > 0.4f && m_circleAmplitudes[i] < prevAmp - 0.05f) {
             std::uniform_real_distribution<float> randDist(-1.0f, 1.0f);
             
             // Randomly spawn laser (Reduced rate to 50%)
@@ -152,7 +151,7 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
                 std::uniform_real_distribution<float> radDist(0.0f, 2.0f * 3.14159265f);
                 Particle p;
                 float pAngle = radDist(rng);
-                float rDist = baseRadius + prevAmp;
+                float rDist = baseRadius + prevAmpPx;
                 float pSpeed = (1.0f + std::abs(randDist(rng))*2.0f) * CIRCLE_PARTICLE_SPEED_MULTIPLIER * scaleFactor;
                 p.x = centerX + std::cos(pAngle) * rDist;
                 p.y = centerY + std::sin(pAngle) * rDist;
@@ -168,17 +167,12 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
             }
         }
 
-        float amp = m_circleAmplitudes[i];
-        if (amp > baseRadius / 2.0f) {
-            amp = baseRadius / 2.0f; // Limit amplitude to half of baseRadius
-        }
-        
         context->SetTransform(D2D1::Matrix3x2F::Rotation(i * angleStep, D2D1::Point2F(centerX, centerY)) * originalTransform);
         
         // Symmetrical trapezoid bar
         float halfAngleRad = (angleStep / 2.0f) * (3.14159265f / 180.0f);
-        float innerR = baseRadius - amp;
-        float outerR = baseRadius + amp;
+        float innerR = baseRadius - ampPx;
+        float outerR = baseRadius + ampPx;
         
         float sinH = std::sin(halfAngleRad);
         float cosH = std::cos(halfAngleRad);
