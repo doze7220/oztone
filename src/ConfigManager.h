@@ -64,6 +64,45 @@ public:
     float GetHaloDustGraphLengthRatio() const { return m_haloDustGraphLengthRatio; }
     void SetHaloDustGraphLengthRatio(float ratio);
 
+    float GetHaloLaserBaseOpacity() const { return m_haloLaserBaseOpacity; }
+    void SetHaloLaserBaseOpacity(float opacity);
+
+    float GetHaloLaserLengthRatio() const { return m_haloLaserLengthRatio; }
+    void SetHaloLaserLengthRatio(float ratio);
+
+    float GetHaloLaserThickness() const { return m_haloLaserThickness; }
+    void SetHaloLaserThickness(float thickness);
+
+    float GetHaloLaserSpeed() const { return m_haloLaserSpeed; }
+    void SetHaloLaserSpeed(float speed);
+
+    float GetHaloLaserSpawnRate() const { return m_haloLaserSpawnRate; }
+    void SetHaloLaserSpawnRate(float rate);
+
+    float GetHaloLaserLifeTime() const { return m_haloLaserLifeTime; }
+    void SetHaloLaserLifeTime(float time);
+
+    float GetHaloParticleBaseOpacity() const { return m_haloParticleBaseOpacity; }
+    void SetHaloParticleBaseOpacity(float opacity);
+
+    float GetHaloParticleSizeRatio() const { return m_haloParticleSizeRatio; }
+    void SetHaloParticleSizeRatio(float ratio);
+
+    float GetHaloParticleSpeed() const { return m_haloParticleSpeed; }
+    void SetHaloParticleSpeed(float speed);
+
+    float GetHaloParticleSpawnRate() const { return m_haloParticleSpawnRate; }
+    void SetHaloParticleSpawnRate(float rate);
+
+    float GetHaloParticleLifeTime() const { return m_haloParticleLifeTime; }
+    void SetHaloParticleLifeTime(float time);
+
+    float GetHaloGlowOpacity() const { return m_haloGlowOpacity; }
+    void SetHaloGlowOpacity(float opacity);
+
+    float GetHaloGlowThickness() const { return m_haloGlowThickness; }
+    void SetHaloGlowThickness(float thickness);
+
     int GetWindowX() const { return m_windowX; }
     int GetWindowY() const { return m_windowY; }
     int GetWindowWidth() const { return m_windowWidth; }
@@ -434,6 +473,19 @@ private:
     float m_prismBeatMaxHeightRatio;
     float m_haloDustBaseRadiusRatio;
     float m_haloDustGraphLengthRatio;
+    float m_haloLaserBaseOpacity;
+    float m_haloLaserLengthRatio;
+    float m_haloLaserThickness;
+    float m_haloLaserSpeed;
+    float m_haloLaserSpawnRate;
+    float m_haloLaserLifeTime;
+    float m_haloParticleBaseOpacity;
+    float m_haloParticleSizeRatio;
+    float m_haloParticleSpeed;
+    float m_haloParticleSpawnRate;
+    float m_haloParticleLifeTime;
+    float m_haloGlowOpacity;
+    float m_haloGlowThickness;
 
     int m_logoX;
     int m_logoY;

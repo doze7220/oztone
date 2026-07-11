@@ -190,6 +190,19 @@ MaxHeightRatio=0.8
 [Visualizer_HaloDust]
 BaseRadiusRatio=0.35
 GraphLengthRatio=0.25
+HaloGlowOpacity=0.3
+HaloGlowThickness=2.0
+HaloLaserBaseOpacity=0.15
+HaloLaserLengthRatio=0.2
+HaloLaserThickness=1.0
+HaloLaserSpeed=0.02
+HaloLaserSpawnRate=0.15
+HaloLaserLifeTime=400.0
+HaloParticleBaseOpacity=0.3
+HaloParticleSizeRatio=0.02
+HaloParticleSpeed=0.015
+HaloParticleSpawnRate=0.025
+HaloParticleLifeTime=400.0
 
 [Layout_Playlist]
 PlaylistPosition=1
@@ -493,6 +506,19 @@ void ConfigManager::ResetToDefaults() {
   m_prismBeatMaxHeightRatio = 0.8f;
   m_haloDustBaseRadiusRatio = 0.25f;
   m_haloDustGraphLengthRatio = 0.30f;
+  m_haloLaserBaseOpacity = 0.3f;
+  m_haloLaserLengthRatio = 0.2f;
+  m_haloLaserThickness = 2.0f;
+  m_haloLaserSpeed = 1.0f;
+  m_haloLaserSpawnRate = 0.1f;
+  m_haloLaserLifeTime = 30.0f;
+  m_haloParticleBaseOpacity = 0.5f;
+  m_haloParticleSizeRatio = 0.05f;
+  m_haloParticleSpeed = 1.0f;
+  m_haloParticleSpawnRate = 0.2f;
+  m_haloParticleLifeTime = 60.0f;
+  m_haloGlowOpacity = 0.6f;
+  m_haloGlowThickness = 12.0f;
 
   m_playlistPosition = 1;
   m_isPlaylistPinned = false;
@@ -912,6 +938,45 @@ void ConfigManager::LoadSettings() {
 
   GetPrivateProfileStringW(L"Visualizer_HaloDust", L"GraphLengthRatio", L"0.30", buf, 32, m_iniFilePath.c_str());
   try { m_haloDustGraphLengthRatio = std::stof(buf); } catch (...) { m_haloDustGraphLengthRatio = 0.30f; }
+
+  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserBaseOpacity", L"0.30", buf, 32, m_iniFilePath.c_str());
+  try { m_haloLaserBaseOpacity = std::stof(buf); } catch (...) { m_haloLaserBaseOpacity = 0.3f; }
+
+  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserLengthRatio", L"0.20", buf, 32, m_iniFilePath.c_str());
+  try { m_haloLaserLengthRatio = std::stof(buf); } catch (...) { m_haloLaserLengthRatio = 0.2f; }
+
+  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserThickness", L"2.0", buf, 32, m_iniFilePath.c_str());
+  try { m_haloLaserThickness = std::stof(buf); } catch (...) { m_haloLaserThickness = 2.0f; }
+
+  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserSpeed", L"1.0", buf, 32, m_iniFilePath.c_str());
+  try { m_haloLaserSpeed = std::stof(buf); } catch (...) { m_haloLaserSpeed = 1.0f; }
+
+  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserSpawnRate", L"0.1", buf, 32, m_iniFilePath.c_str());
+  try { m_haloLaserSpawnRate = std::stof(buf); } catch (...) { m_haloLaserSpawnRate = 0.1f; }
+
+  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserLifeTime", L"30.0", buf, 32, m_iniFilePath.c_str());
+  try { m_haloLaserLifeTime = std::stof(buf); } catch (...) { m_haloLaserLifeTime = 30.0f; }
+
+  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloParticleBaseOpacity", L"0.50", buf, 32, m_iniFilePath.c_str());
+  try { m_haloParticleBaseOpacity = std::stof(buf); } catch (...) { m_haloParticleBaseOpacity = 0.5f; }
+
+  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloParticleSizeRatio", L"0.05", buf, 32, m_iniFilePath.c_str());
+  try { m_haloParticleSizeRatio = std::stof(buf); } catch (...) { m_haloParticleSizeRatio = 0.05f; }
+
+  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloParticleSpeed", L"1.0", buf, 32, m_iniFilePath.c_str());
+  try { m_haloParticleSpeed = std::stof(buf); } catch (...) { m_haloParticleSpeed = 1.0f; }
+
+  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloParticleSpawnRate", L"0.2", buf, 32, m_iniFilePath.c_str());
+  try { m_haloParticleSpawnRate = std::stof(buf); } catch (...) { m_haloParticleSpawnRate = 0.2f; }
+
+  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloParticleLifeTime", L"60.0", buf, 32, m_iniFilePath.c_str());
+  try { m_haloParticleLifeTime = std::stof(buf); } catch (...) { m_haloParticleLifeTime = 60.0f; }
+
+  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloGlowOpacity", L"0.60", buf, 32, m_iniFilePath.c_str());
+  try { m_haloGlowOpacity = std::stof(buf); } catch (...) { m_haloGlowOpacity = 0.6f; }
+
+  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloGlowThickness", L"12.0", buf, 32, m_iniFilePath.c_str());
+  try { m_haloGlowThickness = std::stof(buf); } catch (...) { m_haloGlowThickness = 12.0f; }
 
   m_showAppLogo = GetPrivateProfileIntW(L"Visibility", L"ShowAppLogo", 1,
                                         m_iniFilePath.c_str()) != 0;
@@ -2152,4 +2217,95 @@ void ConfigManager::SetHaloDustGraphLengthRatio(float ratio) {
   wchar_t buf[32];
   swprintf_s(buf, L"%.2f", ratio);
   WritePrivateProfileStringW(L"Visualizer_HaloDust", L"GraphLengthRatio", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloLaserBaseOpacity(float opacity) {
+  m_haloLaserBaseOpacity = opacity;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", opacity);
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserBaseOpacity", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloLaserLengthRatio(float ratio) {
+  m_haloLaserLengthRatio = ratio;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", ratio);
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserLengthRatio", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloLaserThickness(float thickness) {
+  m_haloLaserThickness = thickness;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", thickness);
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserThickness", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloLaserSpeed(float speed) {
+  m_haloLaserSpeed = speed;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", speed);
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserSpeed", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloLaserSpawnRate(float rate) {
+  m_haloLaserSpawnRate = rate;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", rate);
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserSpawnRate", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloLaserLifeTime(float time) {
+  m_haloLaserLifeTime = time;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", time);
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserLifeTime", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloParticleBaseOpacity(float opacity) {
+  m_haloParticleBaseOpacity = opacity;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", opacity);
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"HaloParticleBaseOpacity", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloParticleSizeRatio(float ratio) {
+  m_haloParticleSizeRatio = ratio;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", ratio);
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"HaloParticleSizeRatio", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloParticleSpeed(float speed) {
+  m_haloParticleSpeed = speed;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", speed);
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"HaloParticleSpeed", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloParticleSpawnRate(float rate) {
+  m_haloParticleSpawnRate = rate;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", rate);
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"HaloParticleSpawnRate", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloParticleLifeTime(float time) {
+  m_haloParticleLifeTime = time;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", time);
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"HaloParticleLifeTime", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloGlowOpacity(float opacity) {
+  m_haloGlowOpacity = opacity;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", opacity);
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"HaloGlowOpacity", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloGlowThickness(float thickness) {
+  m_haloGlowThickness = thickness;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", thickness);
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"HaloGlowThickness", buf, m_iniFilePath.c_str());
 }

@@ -20,22 +20,25 @@ private:
     struct Particle {
         float x, y;
         float vx, vy;
-        float life, maxLife;
+        float lifeTime, maxLifeTime;
         float size;
         D2D1_VECTOR_3F axis;
         float angle;
         float angularVelocity;
+        float acceleration;
     };
 
     struct LaserRay {
         float angle;
-        float life;
-        float maxLife;
+        float lifeTime;
+        float maxLifeTime;
         float distance;
         float length;
         float speed;
         float startRadius;
+        float acceleration;
     };
+
 
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_coreBrush;
     std::vector<float> m_circleAmplitudes;

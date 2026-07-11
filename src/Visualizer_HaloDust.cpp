@@ -70,18 +70,27 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
     else { r = c; g = 0; b = x_val; }
     
     // Additive synthesis with #888888 (0.533f) base for realistic neon glow
-    float finalR = (std::min)(1.0f, r + m + 0.533f);
-    float finalG = (std::min)(1.0f, g + m + 0.533f);
-    float finalB = (std::min)(1.0f, b + m + 0.533f);
+    float baseR = r + m + 0.533f;
+    float baseG = g + m + 0.533f;
+    float baseB = b + m + 0.533f;
+
+    // RGB桁ずらし (青・緑系サイバーカラーへのシフト)
+    float finalR = (std::min)(1.0f, baseB);
+    float finalG = (std::min)(1.0f, baseR);
+    float finalB = (std::min)(1.0f, baseG);
+
+    float glowOpacity = m_config ? m_config->GetHaloGlowOpacity() : CIRCLE_GLOW_OPACITY;
+    float glowThickness = m_config ? m_config->GetHaloGlowThickness() : CIRCLE_NEON_GLOW_THICKNESS;
 
     D2D1_COLOR_F themeColorFill = D2D1::ColorF(finalR, finalG, finalB, CIRCLE_FILL_OPACITY);
-    D2D1_COLOR_F themeColorGlow = D2D1::ColorF(finalR, finalG, finalB, CIRCLE_GLOW_OPACITY);
+    D2D1_COLOR_F themeColorGlow = D2D1::ColorF(finalR, finalG, finalB, glowOpacity);
 
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> fillBrush;
     context->CreateSolidColorBrush(themeColorFill, &fillBrush);
     
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> glowBrush;
     context->CreateSolidColorBrush(themeColorGlow, &glowBrush);
+
 
     // Get current transform
     D2D1_MATRIX_3X2_F originalTransform;
@@ -136,39 +145,47 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
         if (prevAmp > 0.4f && m_circleAmplitudes[i] < prevAmp - 0.05f) {
             std::uniform_real_distribution<float> randDist(-1.0f, 1.0f);
             
-            // Randomly spawn laser (Reduced rate to 50%)
-            if (std::abs(randDist(rng)) > 0.9f) {
-                std::uniform_real_distribution<float> speedDist(2.5f * CIRCLE_LASER_SPEED_MULTIPLIER, 7.5f * CIRCLE_LASER_SPEED_MULTIPLIER);
-                std::uniform_real_distribution<float> lenDist(20.0f, 60.0f);
+            float laserSpawnRate = m_config ? m_config->GetHaloLaserSpawnRate() : 0.1f;
+            if (std::abs(randDist(rng)) < laserSpawnRate) {
                 std::uniform_real_distribution<float> angleDist(0.0f, 360.0f);
+                float lSpeed = m_config ? m_config->GetHaloLaserSpeed() : 1.0f;
+                float lLife = m_config ? m_config->GetHaloLaserLifeTime() : 30.0f;
+
                 LaserRay ray;
                 ray.angle = angleDist(rng);
-                ray.life = ray.maxLife = (60.0f + std::abs(randDist(rng)) * 40.0f) * CIRCLE_LASER_LIFE_MULTIPLIER; // Doubled life
+                ray.maxLifeTime = lLife * (1.0f + std::abs(randDist(rng))*0.5f);
+                ray.lifeTime = 0.0f;
                 ray.distance = 0.0f;
-                ray.length = lenDist(rng) * scaleFactor; // Fixed length of the beam
-                ray.speed = speedDist(rng) * scaleFactor;
+                float baseLenRatio = m_config ? m_config->GetHaloLaserLengthRatio() : 0.2f;
+                ray.length = baseLenRatio * refSize * (0.5f + std::abs(randDist(rng))*0.5f);
+                ray.speed = 0.0f;
                 ray.startRadius = baseRadius + prevAmpPx;
+                ray.acceleration = lSpeed * (0.2f + std::abs(randDist(rng))*0.3f) * scaleFactor;
                 m_laserRays.push_back(ray);
             }
             
-            if (m_particleCooldown <= 0) {
-                std::uniform_real_distribution<float> sizeDist(8.0f, 16.0f);
+            float particleSpawnRate = m_config ? m_config->GetHaloParticleSpawnRate() : 0.2f;
+            if (std::abs(randDist(rng)) < particleSpawnRate) {
                 std::uniform_real_distribution<float> radDist(0.0f, 2.0f * 3.14159265f);
+                float pSpeed = m_config ? m_config->GetHaloParticleSpeed() : 1.0f;
+                float pLife = m_config ? m_config->GetHaloParticleLifeTime() : 60.0f;
+
                 Particle p;
                 float pAngle = radDist(rng);
                 float rDist = baseRadius + prevAmpPx;
-                float pSpeed = (1.0f + std::abs(randDist(rng))*2.0f) * CIRCLE_PARTICLE_SPEED_MULTIPLIER * scaleFactor;
                 p.x = centerX + std::cos(pAngle) * rDist;
                 p.y = centerY + std::sin(pAngle) * rDist;
-                p.vx = std::cos(pAngle) * pSpeed;
-                p.vy = std::sin(pAngle) * pSpeed;
-                p.life = p.maxLife = (60.0f + std::abs(randDist(rng)) * 30.0f) * CIRCLE_PARTICLE_LIFE_MULTIPLIER;
-                p.size = sizeDist(rng) * scaleFactor;
+                p.vx = 0.0f;
+                p.vy = 0.0f;
+                p.maxLifeTime = pLife * (1.0f + std::abs(randDist(rng))*0.5f);
+                p.lifeTime = 0.0f;
+                float baseSizeRatio = m_config ? m_config->GetHaloParticleSizeRatio() : 0.05f;
+                p.size = baseSizeRatio * refSize * (0.5f + std::abs(randDist(rng))*0.5f);
                 p.axis = D2D1::Vector3F(randDist(rng), randDist(rng), randDist(rng));
                 p.angle = 0.0f;
                 p.angularVelocity = randDist(rng) * 5.0f;
+                p.acceleration = pSpeed * (0.2f + std::abs(randDist(rng))*0.3f) * scaleFactor;
                 m_particles.push_back(p);
-                m_particleCooldown = 15; // 4 particles per second
             }
         }
 
@@ -200,7 +217,7 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
             sink->EndFigure(D2D1_FIGURE_END_CLOSED);
             sink->Close();
             context->FillGeometry(path.Get(), fillBrush.Get());
-            context->DrawGeometry(path.Get(), glowBrush.Get(), CIRCLE_NEON_GLOW_THICKNESS);
+            context->DrawGeometry(path.Get(), glowBrush.Get(), glowThickness);
             context->DrawGeometry(path.Get(), m_coreBrush.Get(), 1.0f); // White core line
         }
     }
@@ -210,23 +227,42 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
     
     // Update and draw Laser Rays
     for (auto it = m_laserRays.begin(); it != m_laserRays.end(); ) {
-        it->life -= 1.0f;
-        it->distance += it->speed;
+        it->lifeTime += 1.0f;
         
-        if (it->life <= 0) {
+        if (it->lifeTime >= it->maxLifeTime) {
             it = m_laserRays.erase(it);
             continue;
         }
         
+        float progress = it->lifeTime / it->maxLifeTime;
+        
+        it->speed += it->acceleration;
+        if (progress > 0.5f) {
+             it->speed -= it->acceleration * 2.0f;
+        }
+        it->distance += it->speed;
+
         context->SetTransform(D2D1::Matrix3x2F::Rotation(it->angle, D2D1::Point2F(centerX, centerY)) * originalTransform);
         
-        float fade = it->life / it->maxLife;
-        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> currentRayBrush;
-        context->CreateSolidColorBrush(D2D1::ColorF(finalR, finalG, finalB, CIRCLE_LASER_OPACITY * fade), &currentRayBrush);
+        float fade = std::sin(progress * 3.14159265f);
+        float laserBaseOpacity = m_config ? m_config->GetHaloLaserBaseOpacity() : 0.3f;
+        float finalFade = fade * laserBaseOpacity;
         
-        D2D1_RECT_F rayRect = D2D1::RectF(centerX - 1.0f, centerY - it->startRadius - it->distance - it->length, centerX + 1.0f, centerY - it->startRadius - it->distance);
-        if (currentRayBrush) {
-            context->FillRectangle(&rayRect, currentRayBrush.Get());
+        float currentLength = (std::max)(0.0f, it->length * fade);
+        
+        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> rayGlowBrush;
+        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> rayCoreBrush;
+        context->CreateSolidColorBrush(D2D1::ColorF(finalR, finalG, finalB, glowOpacity * finalFade), &rayGlowBrush);
+        context->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, finalFade), &rayCoreBrush);
+        
+        D2D1_POINT_2F p0 = D2D1::Point2F(centerX, centerY - it->startRadius - it->distance);
+        D2D1_POINT_2F p1 = D2D1::Point2F(centerX, centerY - it->startRadius - it->distance - currentLength);
+        
+        float laserThickness = m_config ? m_config->GetHaloLaserThickness() : 2.0f;
+        
+        if (rayGlowBrush && rayCoreBrush) {
+            context->DrawLine(p0, p1, rayGlowBrush.Get(), glowThickness);
+            context->DrawLine(p0, p1, rayCoreBrush.Get(), laserThickness);
         }
         
         ++it;
@@ -239,15 +275,31 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
     context->GetFactory(&factory);
 
     for (auto it = m_particles.begin(); it != m_particles.end(); ) {
-        it->x += it->vx;
-        it->y += it->vy;
-        it->angle += it->angularVelocity;
-        it->life -= 1.0f;
+        it->lifeTime += 1.0f;
         
-        if (it->life <= 0) {
+        if (it->lifeTime >= it->maxLifeTime) {
             it = m_particles.erase(it);
             continue;
         }
+
+        float progress = it->lifeTime / it->maxLifeTime;
+        
+        float currentAccel = it->acceleration;
+        if (progress > 0.5f) {
+            currentAccel = -it->acceleration;
+        }
+        
+        float dx = it->x - centerX;
+        float dy = it->y - centerY;
+        float dist = std::sqrt(dx*dx + dy*dy);
+        if (dist > 0.001f) {
+            it->vx += (dx / dist) * currentAccel;
+            it->vy += (dy / dist) * currentAccel;
+        }
+
+        it->x += it->vx;
+        it->y += it->vy;
+        it->angle += it->angularVelocity;
 
         // Normalize axis
         float len = std::sqrt(it->axis.x * it->axis.x + it->axis.y * it->axis.y + it->axis.z * it->axis.z);
@@ -262,51 +314,43 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
         float cosA = std::cos(rad);
         float sinA = std::sin(rad);
 
-        // Rodrigues' rotation formula for 4 points of a quad
-        float s = it->size;
+        float fade = std::sin(progress * 3.14159265f);
+        float particleBaseOpacity = m_config ? m_config->GetHaloParticleBaseOpacity() : 0.5f;
+        float finalFade = fade * particleBaseOpacity;
+        float s = it->size; // サイズ固定化
         D2D1_VECTOR_3F pts[4] = {
             {-s, -s, 0}, { s, -s, 0}, { s,  s, 0}, {-s,  s, 0}
         };
         
-        D2D1_POINT_2F projPts[4];
-        for (int k = 0; k < 4; ++k) {
-            D2D1_VECTOR_3F v = pts[k];
-            float dot = v.x * it->axis.x + v.y * it->axis.y + v.z * it->axis.z;
-            D2D1_VECTOR_3F cross = {
-                it->axis.y * v.z - it->axis.z * v.y,
-                it->axis.z * v.x - it->axis.x * v.z,
-                it->axis.x * v.y - it->axis.y * v.x
-            };
-            
-            float rx = v.x * cosA + cross.x * sinA + it->axis.x * dot * (1 - cosA);
-            float ry = v.y * cosA + cross.y * sinA + it->axis.y * dot * (1 - cosA);
-            
-            projPts[k].x = it->x + rx;
-            projPts[k].y = it->y + ry;
+        for (int j=0; j<4; ++j) {
+            float x1 = pts[j].x*cosA + (it->axis.y*pts[j].z - it->axis.z*pts[j].y)*sinA + it->axis.x*(it->axis.x*pts[j].x + it->axis.y*pts[j].y + it->axis.z*pts[j].z)*(1-cosA);
+            float y1 = pts[j].y*cosA + (it->axis.z*pts[j].x - it->axis.x*pts[j].z)*sinA + it->axis.y*(it->axis.x*pts[j].x + it->axis.y*pts[j].y + it->axis.z*pts[j].z)*(1-cosA);
+            pts[j].x = x1;
+            pts[j].y = y1;
         }
 
         Microsoft::WRL::ComPtr<ID2D1PathGeometry> path;
         factory->CreatePathGeometry(&path);
         Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
         if (SUCCEEDED(path->Open(&sink))) {
-            sink->BeginFigure(projPts[0], D2D1_FIGURE_BEGIN_FILLED);
-            for (int k = 1; k < 4; ++k) {
-                sink->AddLine(projPts[k]);
-            }
+            sink->BeginFigure(D2D1::Point2F(it->x + pts[0].x, it->y + pts[0].y), D2D1_FIGURE_BEGIN_FILLED);
+            sink->AddLine(D2D1::Point2F(it->x + pts[1].x, it->y + pts[1].y));
+            sink->AddLine(D2D1::Point2F(it->x + pts[2].x, it->y + pts[2].y));
+            sink->AddLine(D2D1::Point2F(it->x + pts[3].x, it->y + pts[3].y));
             sink->EndFigure(D2D1_FIGURE_END_CLOSED);
             sink->Close();
 
             Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> pFillBrush;
             Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> pGlowBrush;
             Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> pCoreBrush;
-            float lifeFade = it->life / it->maxLife;
+            float lifeFade = finalFade;
             context->CreateSolidColorBrush(D2D1::ColorF(finalR, finalG, finalB, lifeFade * CIRCLE_FILL_OPACITY), &pFillBrush);
-            context->CreateSolidColorBrush(D2D1::ColorF(finalR, finalG, finalB, lifeFade * CIRCLE_GLOW_OPACITY), &pGlowBrush);
+            context->CreateSolidColorBrush(D2D1::ColorF(finalR, finalG, finalB, lifeFade * glowOpacity), &pGlowBrush);
             context->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, lifeFade), &pCoreBrush);
             
             if (pFillBrush && pGlowBrush && pCoreBrush) {
                 context->FillGeometry(path.Get(), pFillBrush.Get());
-                context->DrawGeometry(path.Get(), pGlowBrush.Get(), CIRCLE_NEON_GLOW_THICKNESS);
+                context->DrawGeometry(path.Get(), pGlowBrush.Get(), glowThickness);
                 context->DrawGeometry(path.Get(), pCoreBrush.Get(), 1.0f);
             }
         }
