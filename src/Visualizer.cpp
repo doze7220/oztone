@@ -46,8 +46,6 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
     }
 
     std::vector<float> processedSpectrum(validSize);
-    float normalizeFactor = (peakAmplitude > 0.0f) ? (1.0f / peakAmplitude) : 1.0f;
-
     float b0 = 1.0f, b25 = 1.0f, b50 = 1.0f, b75 = 1.0f, b100 = 1.0f;
     if (m_config) {
         b0 = m_config->GetBandGain0();
@@ -58,8 +56,6 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
     }
 
     for (size_t i = 0; i < validSize; ++i) {
-        float val = spectrum[i] * normalizeFactor;
-
         // ゼロ除算および log10(0) の -inf を回避するため 1.0f を加算する
         float logI = std::log10(static_cast<float>(i) + 1.0f);
         float logMax = std::log10(static_cast<float>(maxFrequency) + 1.0f);
@@ -67,6 +63,11 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
         // 対数スケール上での進行割合 (0.0f 〜 1.0f)
         float ratio = (logMax > 0.0f) ? (logI / logMax) : 0.0f;
         ratio = std::clamp(ratio, 0.0f, 1.0f);
+
+        // ピンクノイズ補正とノーマライズ
+        float pinkNoiseWeight = 1.0f + (ratio * 15.0f);
+        float normalized = (peakAmplitude > 0.001f) ? ((spectrum[i] * pinkNoiseWeight) / peakAmplitude) : 0.0f;
+        normalized = std::clamp(normalized, 0.0f, 1.0f);
 
         float eqMultiplier = 1.0f;
         
@@ -84,7 +85,7 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
             eqMultiplier = std::lerp(b75, b100, localRatio);
         }
 
-        processedSpectrum[i] = std::clamp(val * eqMultiplier, 0.0f, 1.0f);
+        processedSpectrum[i] = std::clamp(normalized * eqMultiplier, 0.0f, 1.0f);
     }
 
     // mode: 0 = OFF, 1 = PrismBeat, 2 = HaloDust
