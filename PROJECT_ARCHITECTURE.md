@@ -216,25 +216,23 @@ UI要素ごとの独立した描画・状態管理を担うコンポーネント
 *   **描画と計算の分離**: `Renderer` が担当していた複雑な座標計算やテキスト領域の制約算出ロジックをこのクラスへ外部化したことで、`Renderer` の各メソッドは「渡されたレイアウト構造体に従ってピクセルを打つだけ」のクリーンな処理に保たれている。DPIスケーリング前の論理ピクセルでの計算を維持している。
 
 #### `Visualizer` クラス (src/Visualizer.h, cpp)
-スペクトルデータを元に、「7色ネオンの心電図風」または「円形パーティクル」のビジュアライザを描画するモジュール。
-*   **`bool Initialize(ID2D1DeviceContext* context)`**
-    *   7色のネオン用半透明ブラシ（赤、オレンジ、黄、緑、水色、青、紫）および芯用の白色ブラシを初期化する。
+ビジュアライザを統括するファサード（管理）クラス。描画ロジック自体は持たず、将来的なプラグイン化を見据えたアーキテクチャとなっている。
+*   内部に `IVisualizerStyle` インターフェースを実装した各スタイルのインスタンス（`VisualizerPrismBeat`、`VisualizerHaloDust`）を保持する。
+*   **`bool Initialize(ID2D1DeviceContext* context)`**, **`void ReleaseResources()`**
+    *   保持している全スタイルの初期化およびリソース解放を伝播・実行する。
 *   **`void Draw(ID2D1DeviceContext* context, const std::vector<float>& spectrum, D2D1_RECT_F drawRect, const std::wstring& trackTitle, const std::wstring& trackArtist)`**
-    *   設定 (`ConfigManager::GetVisualizerMode()`) の値（1: PrismBeat, 2: Halo Dust）に応じて、内部で `DrawPrismBeat` または `DrawCircleParticle` に描画処理を委譲する。
-    *   起動直後の「No Track」状態など、引数のスペクトルデータが空あるいは要素数が少ない場合（`spectrum.size() < 2`）は、配列外アクセスやアサーションエラーによるクラッシュを防ぐために各描画関数の先頭で即座にリターン（描画スキップ）する安全対策が施されている。
-*   **`void DrawPrismBeat(ID2D1DeviceContext* context, const std::vector<float>& spectrum, D2D1_RECT_F drawRect)`**
-    *   8192サイズの高解像度スペクトルデータを、人間の耳の特性に合わせた対数スケール（上限10000Hz）でマッピングする直線型のオシロスコープ表現。
+    *   設定 (`ConfigManager::GetVisualizerMode()`) の値（1: PrismBeat, 2: Halo Dust）に応じて、対応するスタイルの `Draw` メソッドに処理をルーティングする。
+
+#### `IVisualizerStyle` インターフェースと各種スタイル (src/IVisualizerStyle.h, src/Visualizer_*.cpp)
+ビジュアライザの具体的な描画アルゴリズムをカプセル化したクラス群。
+*   起動直後の「No Track」状態など、引数のスペクトルデータが空あるいは要素数が少ない場合（`spectrum.size() < 2`）は、配列外アクセスやアサーションエラーによるクラッシュを防ぐために各スタイルの `Draw` 関数の先頭で即座にリターン（描画スキップ）する安全対策が施されている。
+*   **`VisualizerPrismBeat` (直線型の心電図表現)**
+    *   8192サイズの高解像度スペクトルデータを、人間の耳の特性に合わせた対数スケール（上限10000Hz）でマッピングするオシロスコープ表現。
     *   `m_smoothedAmplitudes` を用いて「アタック（即時跳ね上がり）とディケイ（15%減衰）」による重力スムージングを行い、音楽的なビート感と余韻を表現する。
-    *   `WAVE_STEP_X` でX座標を間引きながら、隣接する頂点のY座標を交互に反転(上・下)させて心電図の脈打ちを作る。
-    *   色の割り当ては周波数ではなく「画面X座標の均等7分割」で行い、低音域から高音域まで美しいカラーバランスを維持。
-    *   左右5%のマージン領域に対しても連続して波形計算を行い、画面端に向かって振幅とアナログノイズを滑らかにフェードアウト（`fade * fade`）させ、一直線へ自然に収束させるダミー表現を組み込む。
-    *   `ID2D1PathGeometry` を用いて一筆書き(`D2D1_FIGURE_BEGIN_HOLLOW` / `D2D1_FIGURE_END_OPEN`)でパスを構築し、太い線(グロー)と細い線(芯)の二重描画でネオンのような発光効果を実現する。
-*   **`void DrawCircleParticle(ID2D1DeviceContext* context, const std::vector<float>& spectrum, D2D1_RECT_F drawRect, const std::wstring& trackTitle, const std::wstring& trackArtist)`**
-    *   中央に配置される円形ビジュアライザ表現（名称：Halo Dust）。曲名とアーティスト名の文字列ハッシュから固有のテーマカラー（HSVベース）を生成し、ベースカラー（#888888）と加算合成（クランプ）することで、白く眩しく発光する「真のネオン質感」を実現している。
-    *   全64バンドの周波数帯に対してバーを放射状に描画。低音域の減衰や高音域の強調補正を行い、`ID2D1PathGeometry` で台形を描画して2パス（半透明のグローと白のコア）で縁取る。
-    *   ビート（振幅の瞬間的な跳ね上がり）を検知すると、中心から放射状に飛散するレーザー(`LaserRay`)や3D回転する破片パーティクル(`Particle`)を全方位(360度)のランダムな角度に向けて放出する。
-    *   パーティクルはCPU上でロドリゲスの回転公式を用いて各頂点の3D座標計算を行い、2Dに投影して描画している。
-    *   `Visualizer.cpp` の先頭に専用の「ビジュアル設定」ブロックを設け、波形の振幅や円のサイズ、レーザー/パーティクルの速度・寿命、透明度などのパラメータを定数として集約し、容易に調整可能な構造としている。
+    *   色の割り当ては周波数ではなく「画面X座標の均等7分割」で行い、低音域から高音域まで美しいカラーバランスを維持。左右5%のマージン領域に対してフェードアウトさせ、一直線へ自然に収束させるダミー表現を組み込む。
+*   **`VisualizerHaloDust` (円形パーティクル表現)**
+    *   曲名とアーティスト名の文字列ハッシュから固有のテーマカラー（HSVベース）を生成し、ベースカラーと加算合成（クランプ）することで「真のネオン質感」を実現。
+    *   全64バンドの周波数帯に対して放射状のバーを描画し、ビート検知時にレーザー(`LaserRay`)や3D回転する破片パーティクル(`Particle`)を全方位へ放出する。パーティクルはCPU上でロドリゲスの回転公式を用いて計算される。
 
 #### `AudioPlayer` クラス (src/AudioPlayer.h, cpp)
 音声処理ライブラリ `miniaudio` をラップし、バックグラウンドでのMP3再生を管理するクラス。

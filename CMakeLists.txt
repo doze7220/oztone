@@ -28,6 +28,8 @@ set(SOURCES
     src/Renderer.cpp
     src/LayoutCalculator.cpp
     src/Visualizer.cpp
+    src/Visualizer_PrismBeat.cpp
+    src/Visualizer_HaloDust.cpp
     src/Widgets.cpp
     src/PlaylistWidget.cpp
     src/PlaybackControlsWidget.cpp
@@ -47,6 +49,9 @@ set(HEADERS
     src/Renderer.h
     src/LayoutCalculator.h
     src/Visualizer.h
+    src/IVisualizerStyle.h
+    src/Visualizer_PrismBeat.h
+    src/Visualizer_HaloDust.h
     src/WidgetContext.h
     src/Widget.h
     src/Widgets.h

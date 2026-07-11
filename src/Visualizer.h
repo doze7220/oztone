@@ -6,29 +6,14 @@
 #include <vector>
 #include <string>
 
+#pragma once
+#include "IVisualizerStyle.h"
+#include <memory>
+
 class ConfigManager;
 
-struct Particle {
-    float x, y;
-    float vx, vy;
-    float life, maxLife;
-    float size;
-    D2D1_VECTOR_3F axis;
-    float angle;
-    float angularVelocity;
-};
-
-struct LaserRay {
-    float angle;
-    float life;
-    float maxLife;
-    float distance;
-    float length;
-    float speed;
-};
-
 /**
- * @brief 7色ネオンの心電図風ビジュアライザ
+ * @brief ビジュアライザを統括するファサード（管理）クラス
  */
 class Visualizer {
 public:
@@ -36,9 +21,14 @@ public:
     ~Visualizer();
 
     /**
-     * @brief 初期化処理。描画用ブラシを作成する
+     * @brief 初期化処理
      */
     bool Initialize(ID2D1DeviceContext* context);
+
+    /**
+     * @brief リソースの解放処理
+     */
+    void ReleaseResources();
 
     /**
      * @brief ConfigManagerへのポインタを設定する
@@ -46,7 +36,7 @@ public:
     void SetConfig(const ConfigManager* config) { m_config = config; }
 
     /**
-     * @brief ビジュアライザを描画する
+     * @brief 選択されているモードに応じてビジュアライザを描画する
      * @param context D2D描画コンテキスト
      * @param spectrum スペクトルデータ
      * @param drawRect 描画領域の矩形
@@ -56,16 +46,8 @@ public:
     void Draw(ID2D1DeviceContext* context, const std::vector<float>& spectrum, D2D1_RECT_F drawRect, const std::wstring& trackTitle, const std::wstring& trackArtist);
 
 private:
-    void DrawPrismBeat(ID2D1DeviceContext* context, const std::vector<float>& spectrum, D2D1_RECT_F drawRect);
-    void DrawCircleParticle(ID2D1DeviceContext* context, const std::vector<float>& spectrum, D2D1_RECT_F drawRect, const std::wstring& trackTitle, const std::wstring& trackArtist);
-
     const ConfigManager* m_config = nullptr;
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_neonBrushes[7];
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_coreBrush;
-    std::vector<float> m_smoothedAmplitudes;
-    std::vector<float> m_circleAmplitudes;
-    std::vector<Particle> m_particles;
-    std::vector<LaserRay> m_laserRays;
-    int m_particleCooldown = 0;
+    std::unique_ptr<IVisualizerStyle> m_prismBeat;
+    std::unique_ptr<IVisualizerStyle> m_haloDust;
     bool m_initialized;
 };
