@@ -305,14 +305,25 @@ bool PlaylistManager::IsEmpty() const {
     return m_playlist.empty();
 }
 
-void PlaylistManager::UpdateMetadata(const std::wstring& filepath, const std::wstring& title, const std::wstring& artist, const std::wstring& timeString) {
+void PlaylistManager::UpdateMetadata(const TrackMetadata& meta) {
     std::lock_guard<std::mutex> lock(m_mutex);
     for (auto& item : m_playlist) {
-        if (item.filepath == filepath) {
-            item.title = title;
-            item.artist = artist;
-            item.timeString = timeString;
+        if (item.filepath == meta.filepath) {
+            // スキャン結果とフレーミング結果を保護（裏スレッド等で更新された値を上書きしないようにする）
+            float savedPeak = item.peakAmplitude;
+            float savedFreq = item.maxFrequency;
+            float savedOx = item.artOffsetX;
+            float savedOy = item.artOffsetY;
+            float savedScale = item.artScale;
+
+            item = meta;
             item.isLoaded = true;
+
+            item.peakAmplitude = savedPeak;
+            item.maxFrequency = savedFreq;
+            item.artOffsetX = savedOx;
+            item.artOffsetY = savedOy;
+            item.artScale = savedScale;
             break;
         }
     }

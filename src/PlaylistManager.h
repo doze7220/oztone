@@ -91,12 +91,9 @@ public:
 
     /**
      * @brief 特定のファイルパスのメタデータを更新し、解析済み(isLoaded = true)にする
-     * @param filepath 更新対象のファイルパス
-     * @param title タイトル
-     * @param artist アーティスト
-     * @param timeString 再生時間文字列
+     * @param meta 更新対象のメタデータ（内部でpeakAmplitude等のスキャン結果は保護される）
      */
-    void UpdateMetadata(const std::wstring& filepath, const std::wstring& title, const std::wstring& artist, const std::wstring& timeString);
+    void UpdateMetadata(const TrackMetadata& meta);
 
     /**
      * @brief 特定のファイルパスの波形スキャン結果を更新する

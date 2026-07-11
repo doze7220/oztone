@@ -64,11 +64,6 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
         float ratio = (logMax > 0.0f) ? (logI / logMax) : 0.0f;
         ratio = std::clamp(ratio, 0.0f, 1.0f);
 
-        // ピンクノイズ補正とノーマライズ
-        float pinkNoiseWeight = 1.0f + (ratio * 15.0f);
-        float normalized = (peakAmplitude > 0.001f) ? ((spectrum[i] * pinkNoiseWeight) / peakAmplitude) : 0.0f;
-        normalized = std::clamp(normalized, 0.0f, 1.0f);
-
         float eqMultiplier = 1.0f;
         
         if (ratio <= 0.25f) {
@@ -85,7 +80,9 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
             eqMultiplier = std::lerp(b75, b100, localRatio);
         }
 
-        processedSpectrum[i] = std::clamp(normalized * eqMultiplier, 0.0f, 1.0f);
+        float rawValue = spectrum[i];
+        float processed = rawValue * eqMultiplier;
+        processedSpectrum[i] = std::clamp(processed, 0.0f, 1.0f);
     }
 
     // mode: 0 = OFF, 1 = PrismBeat, 2 = HaloDust

@@ -1267,8 +1267,10 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
       }
 
       if (needsUpdate) {
-        m_playlistManager.UpdateMetadata(filepath, title, artist,
-                                         localTagManager.GetTimeString());
+        currentMeta.title = title;
+        currentMeta.artist = artist;
+        currentMeta.timeString = localTagManager.GetTimeString();
+        m_playlistManager.UpdateMetadata(currentMeta);
         std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
         m_playlistManager.SaveToFile(defaultPath);
         UpdatePlaylistSummaries();
@@ -1505,7 +1507,10 @@ void Application::ParseThreadFunc() {
         try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
         artist = L"---";
       }
-      m_playlistManager.UpdateMetadata(targetPath, title, artist, timeString);
+      currentMeta.title = title;
+      currentMeta.artist = artist;
+      currentMeta.timeString = timeString;
+      m_playlistManager.UpdateMetadata(currentMeta);
       updated = true;
     }
 
