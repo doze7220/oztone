@@ -60,7 +60,14 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
     for (size_t i = 0; i < validSize; ++i) {
         float val = spectrum[i] * normalizeFactor;
 
-        float ratio = static_cast<float>(i) / static_cast<float>(validSize > 1 ? validSize - 1 : 1);
+        // ゼロ除算および log10(0) の -inf を回避するため 1.0f を加算する
+        float logI = std::log10(static_cast<float>(i) + 1.0f);
+        float logMax = std::log10(static_cast<float>(maxFrequency) + 1.0f);
+        
+        // 対数スケール上での進行割合 (0.0f 〜 1.0f)
+        float ratio = (logMax > 0.0f) ? (logI / logMax) : 0.0f;
+        ratio = std::clamp(ratio, 0.0f, 1.0f);
+
         float eqMultiplier = 1.0f;
         
         if (ratio <= 0.25f) {
