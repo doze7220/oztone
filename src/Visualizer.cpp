@@ -45,7 +45,8 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
         if (validSize > spectrum.size()) validSize = spectrum.size();
     }
 
-    std::vector<float> processedSpectrum(validSize, 0.0f);
+    std::vector<float> processedSpectrum(validSize);
+    float normalizeFactor = (peakAmplitude > 0.0f) ? (1.0f / peakAmplitude) : 1.0f;
 
     float b0 = 1.0f, b25 = 1.0f, b50 = 1.0f, b75 = 1.0f, b100 = 1.0f;
     if (m_config) {
@@ -57,17 +58,9 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
     }
 
     for (size_t i = 0; i < validSize; ++i) {
-        float normalized = (peakAmplitude > 0.001f) ? (spectrum[i] / peakAmplitude) : 0.0f;
-        normalized = std::clamp(normalized, 0.0f, 1.0f);
+        float val = spectrum[i] * normalizeFactor;
 
-        // ゼロ除算および log10(0) の -inf を回避するため 1.0f を加算する
-        float currentMaxFreq = (maxFrequency > 0.0f) ? maxFrequency : static_cast<float>(validSize > 1 ? validSize - 1 : 1);
-        float logI = std::log10(static_cast<float>(i) + 1.0f);
-        float logMax = std::log10(currentMaxFreq + 1.0f);
-        
-        // 対数スケール上での進行割合 (0.0f 〜 1.0f)
-        float ratio = (logMax > 0.0f) ? (logI / logMax) : 0.0f;
-        ratio = std::clamp(ratio, 0.0f, 1.0f);
+        float ratio = static_cast<float>(i) / static_cast<float>(validSize > 1 ? validSize - 1 : 1);
         float eqMultiplier = 1.0f;
         
         if (ratio <= 0.25f) {
@@ -84,8 +77,7 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
             eqMultiplier = std::lerp(b75, b100, localRatio);
         }
 
-        // 4. クランプ (0.0f 〜 1.0f) して、5バンドEQの Lerp を掛け合わせる
-        processedSpectrum[i] = std::clamp(normalized * eqMultiplier, 0.0f, 1.0f);
+        processedSpectrum[i] = std::clamp(val * eqMultiplier, 0.0f, 1.0f);
     }
 
     // mode: 0 = OFF, 1 = PrismBeat, 2 = HaloDust

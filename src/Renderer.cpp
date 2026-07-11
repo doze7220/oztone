@@ -461,7 +461,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isVolumeHovere
     DrawBackground();
 
     const TrackMetadata* currentMeta = nullptr;
-    if (currentTrackIndex < totalTracks && currentTrackIndex < shuffleMetadataList.size()) {
+    if (currentTrackIndex < shuffleMetadataList.size()) {
         currentMeta = &shuffleMetadataList[currentTrackIndex];
     }
     DrawVisualizer(spectrum, currentMeta);
