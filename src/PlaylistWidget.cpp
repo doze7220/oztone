@@ -620,7 +620,7 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
           std::wstring artist;
           std::wstring timeStr;
 
-          if (meta.isLoaded) {
+          if (meta.isMetaLoaded) {
             title = meta.title;
             artist = meta.artist;
             timeStr = meta.timeString;

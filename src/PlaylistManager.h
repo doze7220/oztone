@@ -10,7 +10,8 @@ struct TrackMetadata {
     std::wstring title;
     std::wstring artist;
     std::wstring timeString; // 例: "03:45"
-    bool isLoaded = false;   // 解析済みかどうか
+    bool isMetaLoaded = false; // 解析済みかどうか（メタデータ）
+    bool isFFTLoaded = false;  // 解析済みかどうか（FFT波形）
     float artOffsetX = 0.0f; // フレーミング: Xオフセット
     float artOffsetY = 0.0f; // フレーミング: Yオフセット
     float artScale = 1.0f;   // フレーミング: スケール
@@ -90,7 +91,7 @@ public:
     void LoadFromFile(const std::wstring& inPath);
 
     /**
-     * @brief 特定のファイルパスのメタデータを更新し、解析済み(isLoaded = true)にする
+     * @brief 特定のファイルパスのメタデータを更新し、解析済み(isMetaLoaded = true)にする
      * @param meta 更新対象のメタデータ（内部でpeakAmplitude等のスキャン結果は保護される）
      */
     void UpdateMetadata(const TrackMetadata& meta);
@@ -134,7 +135,7 @@ public:
 
 
     /**
-     * @brief 未解析(isLoaded == false)のファイルパス一覧を取得する
+     * @brief 未解析(isFFTLoaded == false)のファイルパス一覧を取得する
      * @return ファイルパスの配列
      */
     std::vector<std::wstring> GetUnparsedTracks() const;

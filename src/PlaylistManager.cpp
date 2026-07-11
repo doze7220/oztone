@@ -206,7 +206,7 @@ void PlaylistManager::SaveToFile(const std::wstring& outPath) const {
         if (item.filepath.empty()) continue;
 
         std::wstring wline;
-        if (item.isLoaded) {
+        if (item.isMetaLoaded) {
             wline = item.filepath + L"\t" + item.title + L"\t" + item.artist + L"\t" + item.timeString + L"\t" +
                     std::to_wstring(item.artOffsetX) + L"\t" + std::to_wstring(item.artOffsetY) + L"\t" + std::to_wstring(item.artScale) + L"\t" +
                     std::to_wstring(item.peakAmplitude) + L"\t" + std::to_wstring(item.maxFrequency);
@@ -257,7 +257,7 @@ void PlaylistManager::LoadFromFile(const std::wstring& inPath) {
                                     it->title = tokens[1];
                                     it->artist = tokens[2];
                                     it->timeString = tokens[3];
-                                    it->isLoaded = true;
+                                    it->isMetaLoaded = true;
                                     if (tokens.size() >= 7) {
                                         try {
                                             it->artOffsetX = std::stof(tokens[4]);
@@ -273,6 +273,9 @@ void PlaylistManager::LoadFromFile(const std::wstring& inPath) {
                                         try {
                                             it->peakAmplitude = std::stof(tokens[7]);
                                             it->maxFrequency = std::stof(tokens[8]);
+                                            if (it->peakAmplitude > 0.0f) {
+                                                it->isFFTLoaded = true;
+                                            }
                                         } catch (...) {
                                             it->peakAmplitude = 0.0f;
                                             it->maxFrequency = 0.0f;
@@ -315,9 +318,11 @@ void PlaylistManager::UpdateMetadata(const TrackMetadata& meta) {
             float savedOx = item.artOffsetX;
             float savedOy = item.artOffsetY;
             float savedScale = item.artScale;
+            bool savedFFTLoaded = item.isFFTLoaded;
 
             item = meta;
-            item.isLoaded = true;
+            item.isMetaLoaded = true;
+            item.isFFTLoaded = savedFFTLoaded;
 
             item.peakAmplitude = savedPeak;
             item.maxFrequency = savedFreq;
@@ -335,6 +340,8 @@ void PlaylistManager::UpdateScanData(const std::wstring& filepath, float peakAmp
         if (item.filepath == filepath) {
             item.peakAmplitude = peakAmplitude;
             item.maxFrequency = maxFrequency;
+            item.isFFTLoaded = true;
+            item.isMetaLoaded = true;
             break;
         }
     }
@@ -356,7 +363,7 @@ bool PlaylistManager::IsTrackLoaded(const std::wstring& filepath) const {
     std::lock_guard<std::mutex> lock(m_mutex);
     for (const auto& item : m_playlist) {
         if (item.filepath == filepath) {
-            return item.isLoaded;
+            return item.isMetaLoaded;
         }
     }
     return false;
@@ -377,7 +384,7 @@ std::vector<std::wstring> PlaylistManager::GetUnparsedTracks() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     std::vector<std::wstring> unparsed;
     for (const auto& item : m_playlist) {
-        if (!item.isLoaded || item.peakAmplitude == 0.0f) {
+        if (!item.isFFTLoaded || item.peakAmplitude == 0.0f) {
             unparsed.push_back(item.filepath);
         }
     }

@@ -1260,7 +1260,7 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
     TrackMetadata currentMeta;
     if (m_playlistManager.GetTrackMetadata(filepath, currentMeta)) {
       bool needsUpdate = false;
-      if (!currentMeta.isLoaded) {
+      if (!currentMeta.isMetaLoaded) {
         needsUpdate = true;
       } else if (currentMeta.title != title || currentMeta.artist != artist) {
         needsUpdate = true;
@@ -1484,16 +1484,17 @@ void Application::ParseThreadFunc() {
 
     TrackMetadata currentMeta;
     bool hasMeta = m_playlistManager.GetTrackMetadata(targetPath, currentMeta);
-    bool isLoaded = hasMeta && currentMeta.isLoaded;
+    bool isFFTLoaded = hasMeta && currentMeta.isFFTLoaded;
+    bool isMetaLoaded = hasMeta && currentMeta.isMetaLoaded;
     bool needsScan = hasMeta && (currentMeta.peakAmplitude <= 1.0f) && m_config.GetEnablePreScan();
 
-    if (isLoaded && !needsScan) {
+    if (isFFTLoaded && isMetaLoaded && !needsScan) {
       continue;
     }
 
     bool updated = false;
 
-    if (!isLoaded) {
+    if (!isMetaLoaded) {
       std::wstring title, artist, timeString;
       if (localTagManager.Load(targetPath)) {
         title = localTagManager.GetTitle();
@@ -1514,7 +1515,7 @@ void Application::ParseThreadFunc() {
       updated = true;
     }
 
-    if (needsScan || (!isLoaded && currentMeta.peakAmplitude <= 1.0f)) {
+    if (needsScan || (!isFFTLoaded && currentMeta.peakAmplitude <= 1.0f)) {
       if (m_config.GetEnablePreScan()) {
         float peakAmplitude = 0.0f;
         float maxFrequency = 0.0f;
