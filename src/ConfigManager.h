@@ -205,6 +205,11 @@ public:
      */
     void SaveDefaultSettings();
 
+    /**
+     * @brief 初期値にリセットする
+     */
+    void ResetToDefaults();
+
 
 
 

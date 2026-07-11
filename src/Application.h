@@ -69,7 +69,10 @@ public:
      */
     void HandleMediaCommand(int cmd);
 
-
+    /**
+     * @brief すべての設定を初期化する
+     */
+    void ResetAllSettings();
 private:
     /**
      * @brief 特定のファイルパスに対するメタデータの比較・更新・保存処理を行う

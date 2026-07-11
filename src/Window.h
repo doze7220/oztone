@@ -264,6 +264,13 @@ public:
     }
 
     /**
+     * @brief 全リセットコールバック
+     */
+    void SetResetAllCallback(std::function<void()> cb) {
+        m_onResetAllCallback = cb;
+    }
+
+    /**
      * @brief 背景フレーミングの保存コールバック
      */
     void SetArtFramingSaveCallback(std::function<void()> cb) {
@@ -331,6 +338,8 @@ public:
     bool ConsumeLogoClicked() { bool b = m_isLogoClicked; m_isLogoClicked = false; return b; }
     int ConsumeLogoMenuClickedIndex() { int i = m_logoMenuClickedIndex; m_logoMenuClickedIndex = -1; return i; }
     int ConsumePlaybackClickedIndex() { int i = m_playbackClickedIndex; m_playbackClickedIndex = -1; return i; }
+    
+    HWND GetHWND() const { return m_hwnd; }
 
 private:
 
@@ -364,6 +373,7 @@ private:
     std::function<void(float)> m_onArtFramingScroll;
     std::function<void(float, float)> m_onArtFramingMove;
     std::function<void()> m_onArtFramingReset;
+    std::function<void()> m_onResetAllCallback;
     std::function<void()> m_onArtFramingSave;
     std::function<void(bool)> m_onPlaylistPinnedToggle;
     std::function<void()> m_onBackgroundClickCallback;

@@ -242,6 +242,7 @@ OsdShadowOffsetY=2.0
 OsdShadowOpacity=0.8
 OsdFadeWait=1.5
 OsdFadeSpeed=1.5
+EnableOSD=1
 
 [GlobalHotkeys]
 ShowHotkeys=0
@@ -309,135 +310,246 @@ VK_ExitApp=46
 
 )";
 
-ConfigManager::ConfigManager()
-    : m_showTitleBar(false), m_showWindowFrame(false), m_showTaskbar(false),
-      m_showAppLogo(true), m_showNowPlaying(true), m_showNextTrack(true),
-      m_enableNextTrack(false), m_showSeekBar(true),
-      m_showPlaybackControls(true), m_showVolumeControl(true), m_zOrder(0),
-      m_savePositionOnExit(true), m_enableResize(false),
-      m_lockWindowPosition(false), m_shuffleMode(true),
-      m_isPlaylistPinned(false), m_windowX(CW_USEDEFAULT),
-      m_windowY(CW_USEDEFAULT), m_windowWidth(1024), m_windowHeight(512),
-      m_enableShadow(true), m_shadowOffsetX(2.0f), m_shadowOffsetY(2.0f),
-      m_shadowOpacity(0.7f), m_bgDarkenOpacity(0.3f), m_bgOpacity(0.8f),
-      m_backgroundArtMode(0), m_visualizerMode(0), m_logoX(16), m_logoY(16),
-      m_logoWidth(64), m_logoHeight(64), m_logoMenuIconSize(24.0f),
-      m_logoMenuIconSpacing(40), m_logoMenuIconOffsetX(0),
-      m_logoMenuIconOffsetY(0), m_logoMenuScrollDuration(0.5f),
-      m_menuLeaveDelay(3.0f), m_logoMenuFontFamily(L"Segoe UI Emoji"),
-      m_logoMenuTextColor(L"#FFFFFF"), m_logoMenuTypingFontFamily(L"Consolas"),
-      m_logoMenuTypingFontSize(14.0f), m_logoMenuTextOffsetX(0),
-      m_logoMenuTextOffsetY(60), m_logoMenuTypingLetterSpacing(0.0f),
-      m_baseX(30), m_baseBottomOffset(162), m_artOffsetX(0), m_artOffsetY(0),
-      m_artSize(120), m_fallbackArtOpacity(0.5f), m_hoverIconColor(L"#88CCFF"),
-      m_hoverFadeOutSpeed(3.0f), m_playingItemColor(L"#FFA500"),
-      m_hoverItemColor(L"#FFFF99"),
+ConfigManager::ConfigManager() {
+  ResetToDefaults();
+}
 
-      m_logoMenuVisualizerFontSize(12.0f), m_logoMenuVisualizerIconOffsetX(12),
-      m_logoMenuVisualizerIconOffsetY(7), m_logoMenuLockIconFontSize(14.0f),
-      m_logoMenuLockIconOffsetX(12), m_logoMenuLockIconOffsetY(8),
-      m_logoMenuDescShadowOffsetX(2.0f), m_logoMenuDescShadowOffsetY(2.0f),
+void ConfigManager::ResetToDefaults() {
+  m_defaultPlaylistPath = L"playlist.ozl";
+  m_showTitleBar = false;
+  m_showWindowFrame = false;
+  m_showTaskbar = false;
+  m_zOrder = 0;
+  m_savePositionOnExit = true;
+  m_enableResize = false;
+  m_lockWindowPosition = false;
+  m_windowX = -2147483648; // CW_USEDEFAULT or specifically INT_MIN
+  m_windowY = -2147483648;
+  m_windowWidth = 1024;
+  m_windowHeight = 512;
 
-      m_titleOffsetX(140), m_titleOffsetY(10), m_titleFontSize(32.0f),
-      m_titleFontFamily(L"Meiryo"), m_artistOffsetX(140), m_artistOffsetY(55),
-      m_artistFontSize(18.0f), m_artistFontFamily(L"Meiryo"),
-      m_seekBarMargin(20.0f), m_seekBarHeight(3), m_seekBarBottomOffset(50),
-      m_seekBarBgOpacity(0.3f), m_seekBarTimeFontFamily(L"Consolas"),
-      m_seekBarTimeFontSize(12.0f), m_seekBarTimeAreaWidth(100),
-      m_seekBarTimeLetterSpacing(0.0f), m_nextBaseRightOffset(250),
-      m_nextBaseBottomOffset(80), m_nextArtOffsetX(0), m_nextArtOffsetY(0),
-      m_nextArtSize(40), m_nextBgOpacity(0.3f), m_nextFallbackArtOpacity(0.5f),
-      m_nextLabelOffsetX(0), m_nextLabelOffsetY(-20),
-      m_nextLabelFontSize(12.0f), m_nextLabelFontFamily(L"Meiryo"),
+  m_showAppLogo = true;
+  m_showNowPlaying = true;
+  m_showNextTrack = true;
+  m_showSeekBar = true;
+  m_showPlaybackControls = true;
+  m_showVolumeControl = true;
 
-      m_nextTitleOffsetX(50), m_nextTitleOffsetY(0), m_nextTitleFontSize(14.0f),
-      m_nextTitleFontFamily(L"Meiryo"), m_nextArtistOffsetX(50),
-      m_nextArtistOffsetY(20), m_nextArtistFontSize(12.0f),
-      m_nextArtistFontFamily(L"Meiryo"), m_playbackBaseBottomOffset(40),
-      m_playbackCenterOffsetX(0), m_playbackButtonSpacing(40),
-      m_playbackButtonSize(20) {
-  m_defaultVolume = 1.0f;
+  m_enableShadow = true;
+  m_shadowOffsetX = 2.0f;
+  m_shadowOffsetY = 2.0f;
+  m_shadowOpacity = 0.7f;
+  m_bgOpacity = 0.8f;
+  m_bgDarkenOpacity = 0.4f;
+  m_backgroundArtMode = 0;
   m_controlHoverHeight = 50.0f;
+  m_hoverIconColor = L"#ffa500";
+  m_hoverFadeOutSpeed = 2.0f;
   m_controlLeaveDelay = 3.0f;
+
+  m_logoX = 16;
+  m_logoY = 16;
+  m_logoWidth = 64;
+  m_logoHeight = 64;
+
+  m_logoMenuTypingFontSize = 14.0f;
+  m_logoMenuTypingFontFamily = L"Meiryo";
+  m_logoMenuTextColor = L"#FFFFFF";
+  m_logoMenuTextOffsetX = 8;
+  m_logoMenuTextOffsetY = -18;
+  m_logoMenuTypingLetterSpacing = -1.0f;
+  m_logoMenuIconSize = 44.0f;
+  m_logoMenuIconSpacing = 54;
+  m_logoMenuIconOffsetX = -24;
+  m_logoMenuIconOffsetY = 38;
+  m_logoMenuScrollDuration = 0.5f;
+  m_logoMenuFontFamily = L"Segoe UI Emoji";
+  m_logoMenuVisualizerFontSize = 24.0f;
+  m_logoMenuVisualizerIconOffsetX = 6;
+  m_logoMenuVisualizerIconOffsetY = 0;
+  m_logoMenuLockIconFontSize = 20.0f;
+  m_logoMenuLockIconOffsetX = -2;
+  m_logoMenuLockIconOffsetY = -2;
+  m_logoMenuDescShadowOffsetX = 2.0f;
+  m_logoMenuDescShadowOffsetY = 1.0f;
+  m_logoMenuDescShadowOpacity = 0.8f;
+  m_menuLeaveDelay = 2.0f;
+
+  m_baseX = 20;
+  m_baseBottomOffset = 162;
+  m_artOffsetX = 0;
+  m_artOffsetY = 0;
+  m_artSize = 120;
+  m_fallbackArtOpacity = 0.5f;
+  m_titleOffsetX = 128;
+  m_titleOffsetY = 81;
+  m_titleFontSize = 36.0f;
+  m_titleFontFamily = L"Meiryo";
+  m_artistOffsetX = 130;
+  m_artistOffsetY = 60;
+  m_artistFontSize = 18.0f;
+  m_artistFontFamily = L"Meiryo";
+  m_trackCountOffsetX = -82;
+  m_trackCountOffsetY = -18;
+  m_trackCountFontFamily = L"Courier New";
+  m_trackCountFontSize = 18.0f;
+  m_trackCountLetterSpacing = -3.0f;
+  m_trackCountShadowOffsetX = 1.0f;
+  m_trackCountShadowOffsetY = 1.0f;
+  m_trackCountShadowOpacity = 1.0f;
+  m_trackCountTextAlignment = 1;
+
+  m_seekBarMargin = 20.0f;
+  m_seekBarHeight = 5;
+  m_seekBarBottomOffset = 25;
+  m_seekBarBgOpacity = 0.3f;
+  m_seekBarTimeFontFamily = L"Courier New";
+  m_seekBarTimeFontSize = 18.0f;
+  m_seekBarTimeAreaWidth = 100;
+  m_seekBarTimeLetterSpacing = -3.0f;
+
+  m_enableNextTrack = false;
+  m_nextBaseRightOffset = 300;
+  m_nextBaseBottomOffset = 80;
+  m_nextArtOffsetX = 0;
+  m_nextArtOffsetY = 0;
+  m_nextArtSize = 40;
+  m_nextBgOpacity = 0.3f;
+  m_nextFallbackArtOpacity = 0.5f;
+  m_nextLabelOffsetX = 0;
+  m_nextLabelOffsetY = -20;
+  m_nextLabelFontSize = 12.0f;
+  m_nextLabelFontFamily = L"Meiryo";
+  m_nextTitleOffsetX = 45;
+  m_nextTitleOffsetY = 18;
+  m_nextTitleFontSize = 20.0f;
+  m_nextTitleFontFamily = L"Meiryo";
+  m_nextArtistOffsetX = 47;
+  m_nextArtistOffsetY = 4;
+  m_nextArtistFontSize = 12.0f;
+  m_nextArtistFontFamily = L"Meiryo";
+
+  m_playbackBaseBottomOffset = 22;
+  m_playbackCenterOffsetX = 0;
+  m_playbackButtonSpacing = 55;
+  m_playbackButtonSize = 30;
+  m_skipIconPoints = L"0.1,-0.5,0.65,-0.5,-0.15,0.0,0.65,0.5,0.1,0.5,-0.65,0.0";
+  m_skipTextFontSize = 15.0f;
+  m_skipTextOffsetX = 0.04f;
+  m_skipTextOffsetY = -0.05f;
+  m_skipTextShadowColor = L"#444444";
+  m_skipTextShadowOpacity = 0.40f;
+  m_skipTextShadowShift = 1.00f;
+
   m_volBaseLeftOffset = 30;
   m_volBaseBottomOffset = 22;
-  m_volIconSize = 16;
-  m_volTextOffsetX = 31;
+  m_volIconSize = 30;
+  m_volTextOffsetX = 40;
   m_volTextOffsetY = -12;
-  m_volTextLetterSpacing = 0.0f;
-  m_volFontSize = 14.0f;
-  m_volFontFamily = L"Meiryo";
+  m_volFontSize = 24.0f;
+  m_volTextLetterSpacing = -3.0f;
+  m_volFontFamily = L"Courier New";
   m_volEnableShadow = true;
   m_volShadowOffsetX = 2.0f;
   m_volShadowOffsetY = 2.0f;
   m_volShadowOpacity = 0.7f;
-
-  m_volTooltipText = L"\U0001F5B1\uFE0F\u2195";
-  m_volTooltipFontSize = 14.0f;
+  m_volTooltipText = L"🖱️↕";
+  m_volTooltipFontSize = 20.0f;
   m_volTooltipFontFamily = L"Segoe UI Emoji";
-  m_volTooltipOffsetY = 10.0f;
-  m_volTooltipBgColor = L"#80000000";
+  m_volTooltipOffsetY = -5.0f;
+  m_volTooltipWidth = 65.0f;
+  m_volTooltipHeight = 40.0f;
+  m_volTooltipBgColor = L"#A0000000";
   m_volTooltipBgOpacity = 1.0f;
   m_volTooltipTextColor = L"#FFFFFF";
-  m_volTooltipWidth = 50.0f;
-  m_volTooltipHeight = 26.0f;
 
+  m_defaultVolume = 1.0f;
+  m_shuffleMode = true;
   m_skipSeconds = 10.0f;
 
-  m_trackCountFontFamily = L"Courier New";
-  m_trackCountFontSize = 14.0f;
-  m_trackCountOffsetX = 20;
-  m_trackCountOffsetY = 100;
-  m_trackCountTextAlignment = 0;
-  m_trackCountLetterSpacing = -1.0f;
-  m_trackCountShadowOffsetX = 2.0f;
-  m_trackCountShadowOffsetY = 2.0f;
-  m_trackCountShadowOpacity = 0.7f;
-  m_playlistHoverWidth = 30;
-  m_playlistWidth = 400;
-  m_playlistItemOffsetY = 45;
-  m_playlistTitleFontSize = 16.0f;
-  m_playlistLeaveDelay = 3.0f;
-  m_playlistArtistFontSize = 12.0f;
-  m_playlistTimeFontSize = 12.0f;
+  m_visualizerMode = 2;
 
+  m_playlistPosition = 1;
+  m_isPlaylistPinned = false;
+  m_playlistHoverWidth = 120;
+  m_playlistWidth = 250;
+  m_playlistItemOffsetY = 45;
+  m_playingItemColor = L"#FFA500";
+  m_hoverItemColor = L"#a3a362";
+  m_playlistTitleFontSize = 16.0f;
+  m_playlistTitleFontFamily = L"Meiryo";
+  m_playlistTitleOffsetX = 20;
+  m_playlistTitleOffsetY = 4;
+  m_playlistArtistFontSize = 12.0f;
+  m_playlistArtistColor = L"#888888";
+  m_playlistArtistFontFamily = L"Meiryo";
+  m_playlistArtistOffsetX = 20;
+  m_playlistArtistOffsetY = 25;
+  m_playlistTimeFontSize = 12.0f;
+  m_playlistTimeColor = L"#888888";
+  m_playlistTimeFontFamily = L"Meiryo";
+  m_playlistTimeOffsetX = 10;
+  m_playlistTimeOffsetY = 25;
+  m_playlistTimeLetterSpacing = 0.0f;
+  m_playlistBgOpacity = 0.8f;
+  m_playlistGripOffset = 5.0f;
+  m_playlistGripLineWidth = 1.0f;
+  m_playlistGripLineColor = L"#AAAAAA";
+  m_playlistGripArrowHeight = 35.0f;
+  m_playlistGripArrowWidth = 15.0f;
+  m_playlistGripArrowColor = L"#AAAAAA";
+  m_playlistGripShadowOffsetX = 2.0f;
+  m_playlistGripShadowOffsetY = 2.0f;
+  m_playlistGripShadowOpacity = 0.7f;
   m_playlistToolbarHeight = 60.0f;
   m_playlistToolbarIconSize = 18.0f;
   m_playlistToolbarIconSpacing = 10.0f;
   m_playlistToolbarTextOffsetY = 30.0f;
   m_playlistToolbarTextFontSize = 12.0f;
-
   m_pinSubIconOffsetX = 6;
   m_pinSubIconOffsetY = 6;
   m_pinSubIconFontSize = 10.0f;
+  m_playlistLeaveDelay = 0.5f;
 
-  m_playlistPosition = 1;
-  m_playlistGripOffset = 10.0f;
-  m_playlistGripLineWidth = 2.0f;
-  m_playlistGripLineColor = L"#FFFFFF";
-  m_playlistGripArrowHeight = 10.0f;
-  m_playlistGripArrowWidth = 5.0f;
-  m_playlistGripArrowColor = L"#FFFFFF";
-  m_playlistGripShadowOffsetX = 2.0f;
-  m_playlistGripShadowOffsetY = 2.0f;
-  m_playlistGripShadowOpacity = 0.7f;
+  m_ghFontFamily = L"MS Gothic";
+  m_ghFontSize = 15.0f;
+  m_ghLineSpacing = 20.0f;
+  m_ghCoreColor = L"#FFFFFF";
+  m_ghGlowColor = L"#00FFFF";
+  m_ghGlowOpacity = 0.10f;
+  m_ghKeyColumnOffset = 360.0f;
+  m_ghActionColumnOffset = 140.0f;
+  m_ghShadowColor = L"#000000";
+  m_ghShadowOpacity = 0.2f;
+
+  m_osdFontFamily = L"Meiryo";
+  m_osdFontSize = 48.0f;
+  m_osdTextColor = L"#FFFFFF";
+  m_osdShadowColor = L"#000000";
+  m_osdShadowOffsetX = 2.0f;
+  m_osdShadowOffsetY = 2.0f;
+  m_osdShadowOpacity = 0.8f;
+  m_osdFadeWait = 1.5f;
+  m_osdFadeSpeed = 1.5f;
+  m_enableOSD = true;
+
   m_showHotkeys = false;
-  m_modNextTrack = 10;
+  m_modNextTrack = 11;
   m_vkNextTrack = 39;
-  m_modPrevTrack = 10;
+  m_modPrevTrack = 11;
   m_vkPrevTrack = 37;
-  m_modPlayPause = 10;
+  m_modPlayPause = 11;
   m_vkPlayPause = 38;
-  m_modStop = 10;
+  m_modStop = 11;
   m_vkStop = 40;
-  m_modVolUp5 = 13;
-  m_vkVolUp5 = 39;
-  m_modVolDown5 = 13;
-  m_vkVolDown5 = 37;
-  m_modVolUp25 = 13;
-  m_vkVolUp25 = 38;
-  m_modVolDown25 = 13;
-  m_vkVolDown25 = 40;
+  m_modVolUp5 = 11;
+  m_vkVolUp5 = 36;
+  m_modVolDown5 = 11;
+  m_vkVolDown5 = 35;
+  m_modVolUp25 = 11;
+  m_vkVolUp25 = 33;
+  m_modVolDown25 = 11;
+  m_vkVolDown25 = 34;
   m_modPrevPlaylist = 10;
   m_vkPrevPlaylist = 33;
   m_modNextPlaylist = 10;
@@ -448,25 +560,6 @@ ConfigManager::ConfigManager()
   m_vkActiveBottom = 35;
   m_modExitApp = 10;
   m_vkExitApp = 46;
-
-  m_ghFontFamily = L"Meiryo";
-  m_ghFontSize = 14.0f;
-  m_ghLineSpacing = 20.0f;
-  m_ghCoreColor = L"#FFFFFF";
-  m_ghGlowColor = L"#00FFFF";
-  m_ghGlowOpacity = 0.8f;
-  m_ghShadowColor = L"#000000";
-  m_ghShadowOpacity = 0.8f;
-  m_ghShadowOpacity = 0.8f;
-  m_ghKeyColumnOffset = 400.0f;
-  m_ghActionColumnOffset = 150.0f;
-
-  m_osdFontFamily = L"Meiryo";
-  m_osdFontSize = 48.0f;
-  m_osdTextColor = L"#FFFFFF";
-  m_osdShadowColor = L"#000000";
-  m_osdShadowOpacity = 0.8f;
-  m_osdFadeSpeed = 2.0f;
 }
 
 ConfigManager::~ConfigManager() {}
