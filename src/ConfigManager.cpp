@@ -1617,9 +1617,9 @@ void ConfigManager::LoadSettings() {
     std::wstring exePath = GetExecutablePath();
     size_t pos = exePath.find_last_of(L"\\/");
     if (pos != std::wstring::npos) {
-      m_defaultPlaylistPath = exePath.substr(0, pos) + L"\\oztone_playlist.lst";
+      m_defaultPlaylistPath = exePath.substr(0, pos) + L"\\playlist.ozl";
     } else {
-      m_defaultPlaylistPath = L"oztone_playlist.lst";
+      m_defaultPlaylistPath = L"playlist.ozl";
     }
     WritePrivateProfileStringW(L"Playlist", L"DefaultPlaylistPath",
                                m_defaultPlaylistPath.c_str(),
@@ -1822,9 +1822,9 @@ void ConfigManager::SaveDefaultSettings() {
   std::wstring defPlaylistPath;
   size_t pos = exePath.find_last_of(L"\\/");
   if (pos != std::wstring::npos) {
-    defPlaylistPath = exePath.substr(0, pos) + L"\\oztone_playlist.lst";
+    defPlaylistPath = exePath.substr(0, pos) + L"\\playlist.ozl";
   } else {
-    defPlaylistPath = L"oztone_playlist.lst";
+    defPlaylistPath = L"playlist.ozl";
   }
   WritePrivateProfileStringW(L"Playlist", L"DefaultPlaylistPath",
                              defPlaylistPath.c_str(), m_iniFilePath.c_str());

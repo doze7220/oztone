@@ -5,19 +5,7 @@
 #include <random>
 #include <mutex>
 
-struct TrackMetadata {
-    std::wstring filepath;
-    std::wstring title;
-    std::wstring artist;
-    std::wstring timeString; // 例: "03:45"
-    bool isMetaLoaded = false; // 解析済みかどうか（メタデータ）
-    bool isFFTLoaded = false;  // 解析済みかどうか（FFT波形）
-    float artOffsetX = 0.0f; // フレーミング: Xオフセット
-    float artOffsetY = 0.0f; // フレーミング: Yオフセット
-    float artScale = 1.0f;   // フレーミング: スケール
-    float peakAmplitude = 0.0f; // 解析: ピーク振幅
-    float maxFrequency = 0.0f;  // 解析: 最大周波数
-};
+#include "TrackDatabase.h"
 
 /**
  * @brief 再生待ちキュー（プレイリスト）を管理するクラス

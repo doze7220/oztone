@@ -13,6 +13,7 @@
 #include "AudioPlayer.h"
 #include "TagManager.h"
 #include "PlaylistManager.h"
+#include "TrackAnalyzer.h"
 
 /**
  * @brief アプリケーション全体のライフサイクルとメインループを管理するクラス
@@ -96,11 +97,6 @@ private:
      */
     void OnFilesDropped(const std::vector<std::wstring>& paths);
 
-    /**
-     * @brief バックグラウンドでメタデータを解析するスレッドの関数
-     */
-    void ParseThreadFunc();
-
     ConfigManager m_config;
     Window m_window;
     Renderer m_renderer;
@@ -117,11 +113,7 @@ private:
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_prefetchedAlbumArt;
 
     // バックグラウンド解析データ
-    std::thread m_parseThread;
-    std::mutex m_parseMutex;
-    std::condition_variable m_parseCV;
-    std::queue<std::wstring> m_parseQueue;
-    std::atomic<bool> m_parseThreadRunning{false};
+    TrackAnalyzer m_trackAnalyzer;
 
     bool m_isPlaylistListViewMode = false;
     ULONGLONG m_lastConfigCheckTime = 0;

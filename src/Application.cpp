@@ -10,11 +10,7 @@
 Application::Application() {}
 
 Application::~Application() {
-  m_parseThreadRunning.store(false);
-  m_parseCV.notify_all();
-  if (m_parseThread.joinable()) {
-    m_parseThread.join();
-  }
+  m_trackAnalyzer.Uninitialize();
 
   if (m_prefetchThread.joinable()) {
     m_prefetchThread.join();
@@ -731,18 +727,13 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     }
   }
 
-  m_parseThreadRunning.store(true);
-  m_parseThread = std::thread(&Application::ParseThreadFunc, this);
+  m_trackAnalyzer.Initialize(&m_playlistManager, &m_config);
 
   auto unparsed = m_playlistManager.GetUnparsedTracks();
   if (!unparsed.empty()) {
-    {
-      std::lock_guard<std::mutex> lock(m_parseMutex);
-      for (const auto &path : unparsed) {
-        m_parseQueue.push(path);
-      }
+    for (const auto &path : unparsed) {
+      m_trackAnalyzer.AddTrackToQueue(path);
     }
-    m_parseCV.notify_one();
   }
 
   UpdatePlaylistSummaries();
@@ -864,13 +855,9 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
 
     auto unparsed = m_playlistManager.GetUnparsedTracks();
     if (!unparsed.empty()) {
-      {
-        std::lock_guard<std::mutex> lock(m_parseMutex);
-        for (const auto &path : unparsed) {
-          m_parseQueue.push(path);
-        }
+      for (const auto &path : unparsed) {
+        m_trackAnalyzer.AddTrackToQueue(path);
       }
-      m_parseCV.notify_one();
     }
 
     if (!isShiftPressed || (wasEmpty && !m_audioPlayer.IsPlaying())) {
@@ -1295,11 +1282,7 @@ void Application::ClearPlaylist() {
   m_focusedPlaylistIndex.reset();
   m_playlistManager.Clear();
 
-  {
-    std::lock_guard<std::mutex> lock(m_parseMutex);
-    std::queue<std::wstring> empty;
-    std::swap(m_parseQueue, empty);
-  }
+  m_trackAnalyzer.ClearQueue();
 
   std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
   m_playlistManager.SaveToFile(defaultPath);
@@ -1339,11 +1322,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
   // 既存の再生やキューをクリアする（ClearPlaylist()
   // はファイルを空にしてしまうので呼ばない）
   m_audioPlayer.Stop();
-  {
-    std::lock_guard<std::mutex> lock(m_parseMutex);
-    std::queue<std::wstring> empty;
-    std::swap(m_parseQueue, empty);
-  }
+  m_trackAnalyzer.ClearQueue();
   m_isPrefetchReady.store(false);
   m_renderer.SetTrackInfo(L"NO TRACK", L"---");
   m_renderer.SetAlbumArt(nullptr);
@@ -1410,13 +1389,9 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
 
   auto unparsed = m_playlistManager.GetUnparsedTracks();
   if (!unparsed.empty()) {
-    {
-      std::lock_guard<std::mutex> lock(m_parseMutex);
-      for (const auto &path : unparsed) {
-        m_parseQueue.push(path);
-      }
+    for (const auto &path : unparsed) {
+      m_trackAnalyzer.AddTrackToQueue(path);
     }
-    m_parseCV.notify_one();
   }
 }
 
@@ -1463,95 +1438,7 @@ void Application::CreateNewPlaylist() {
   ClearPlaylist();
 }
 
-void Application::ParseThreadFunc() {
-  HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-  TagManager localTagManager;
 
-  while (m_parseThreadRunning.load()) {
-    std::wstring targetPath;
-    {
-      std::unique_lock<std::mutex> lock(m_parseMutex);
-      m_parseCV.wait(lock, [this]() {
-        return !m_parseQueue.empty() || !m_parseThreadRunning.load();
-      });
-
-      if (!m_parseThreadRunning.load())
-        break;
-
-      targetPath = m_parseQueue.front();
-      m_parseQueue.pop();
-    }
-
-    TrackMetadata currentMeta;
-    bool hasMeta = m_playlistManager.GetTrackMetadata(targetPath, currentMeta);
-    bool isFFTLoaded = hasMeta && currentMeta.isFFTLoaded;
-    bool isMetaLoaded = hasMeta && currentMeta.isMetaLoaded;
-    bool needsScan = hasMeta && (currentMeta.peakAmplitude <= 1.0f) && m_config.GetEnablePreScan();
-
-    if (isFFTLoaded && isMetaLoaded && !needsScan) {
-      continue;
-    }
-
-    bool updated = false;
-
-    if (!isMetaLoaded) {
-      std::wstring title, artist, timeString;
-      try {
-        if (localTagManager.Load(targetPath)) {
-          title = localTagManager.GetTitle();
-          artist = localTagManager.GetArtist();
-          timeString = localTagManager.GetTimeString();
-          if (title.empty()) {
-            try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
-          }
-          if (artist.empty()) artist = L"---";
-        } else {
-          try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
-          artist = L"---";
-        }
-      } catch (...) {
-        try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
-        artist = L"---";
-      }
-      currentMeta.title = title;
-      currentMeta.artist = artist;
-      currentMeta.timeString = timeString;
-      currentMeta.isMetaLoaded = true;
-      m_playlistManager.UpdateMetadata(currentMeta);
-      updated = true;
-    }
-
-    if (!isFFTLoaded || needsScan) {
-      if (m_config.GetEnablePreScan()) {
-        float peakAmplitude = 0.0f;
-        float maxFrequency = 0.0f;
-        float noiseThreshold = m_config.GetHighFreqNoiseThreshold();
-        if (AudioPlayer::ScanAudioData(targetPath, noiseThreshold, peakAmplitude, maxFrequency)) {
-          m_playlistManager.UpdateScanData(targetPath, peakAmplitude, maxFrequency);
-        } else {
-          m_playlistManager.UpdateScanData(targetPath, 1.0f, static_cast<float>(2048 - 1));
-        }
-        currentMeta.isFFTLoaded = true;
-        updated = true;
-      }
-    }
-
-    bool shouldSave = false;
-    {
-      std::lock_guard<std::mutex> lock(m_parseMutex);
-      if (m_parseQueue.empty()) {
-        shouldSave = true;
-      }
-    }
-    if (shouldSave && updated) {
-      m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
-    }
-  }
-
-  if (SUCCEEDED(hr)) {
-    CoUninitialize();
-  }
-}
 
 void Application::UpdatePlaylistSummaries() {
   std::vector<std::wstring> available = m_config.GetAvailablePlaylists();

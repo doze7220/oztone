@@ -38,6 +38,8 @@ set(SOURCES
     src/OsdWidget.cpp
     src/AudioPlayer.cpp
     src/TagManager.cpp
+    src/TrackDatabase.cpp
+    src/TrackAnalyzer.cpp
     src/PlaylistManager.cpp
     src/OZtone.rc
 )
@@ -62,6 +64,8 @@ set(HEADERS
     src/OsdWidget.h
     src/AudioPlayer.h
     src/TagManager.h
+    src/TrackDatabase.h
+    src/TrackAnalyzer.h
     src/PlaylistManager.h
 )
 
