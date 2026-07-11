@@ -459,7 +459,12 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isVolumeHovere
     }
     
     DrawBackground();
-    DrawVisualizer(spectrum);
+
+    const TrackMetadata* currentMeta = nullptr;
+    if (currentTrackIndex < shuffleMetadataList.size()) {
+        currentMeta = &shuffleMetadataList[currentTrackIndex];
+    }
+    DrawVisualizer(spectrum, currentMeta);
 
     WidgetContext ctx = {};
     ctx.logoMenuItems = logoMenuItems;
@@ -573,14 +578,17 @@ void Renderer::DrawBackground() {
     }
 }
 
-void Renderer::DrawVisualizer(const std::vector<float>& spectrum) {
+void Renderer::DrawVisualizer(const std::vector<float>& spectrum, const TrackMetadata* currentMeta) {
     if (m_config && m_config->GetVisualizerMode() != 0 && !spectrum.empty()) {
         D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
         float logicWidth = renderTargetSize.width / m_dpiScale;
         float logicHeight = renderTargetSize.height / m_dpiScale;
         
+        float peakAmplitude = currentMeta ? currentMeta->peakAmplitude : 0.0f;
+        float maxFrequency = currentMeta ? currentMeta->maxFrequency : 0.0f;
+
         VisualizerLayout layout = LayoutCalculator::CalculateVisualizerLayout(logicWidth, logicHeight);
-        m_visualizer.Draw(m_d2dContext.Get(), spectrum, layout.drawRect, m_trackTitle, m_trackArtist);
+        m_visualizer.Draw(m_d2dContext.Get(), spectrum, layout.drawRect, m_trackTitle, m_trackArtist, peakAmplitude, maxFrequency);
     }
 }
 

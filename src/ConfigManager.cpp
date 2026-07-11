@@ -178,11 +178,11 @@ SkipSeconds=10.0
 VisualizerMode=2
 EnablePreScan=1
 HighFreqNoiseThreshold=0.001
-BandGain0=1.0
-BandGain25=1.0
-BandGain50=1.0
+BandGain0=0.1
+BandGain25=0.5
+BandGain50=0.7
 BandGain75=1.0
-BandGain100=1.0
+BandGain100=1.5
 
 [Layout_Playlist]
 PlaylistPosition=1

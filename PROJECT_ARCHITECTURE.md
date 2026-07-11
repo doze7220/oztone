@@ -216,12 +216,13 @@ UI要素ごとの独立した描画・状態管理を担うコンポーネント
 *   **描画と計算の分離**: `Renderer` が担当していた複雑な座標計算やテキスト領域の制約算出ロジックをこのクラスへ外部化したことで、`Renderer` の各メソッドは「渡されたレイアウト構造体に従ってピクセルを打つだけ」のクリーンな処理に保たれている。DPIスケーリング前の論理ピクセルでの計算を維持している。
 
 #### `Visualizer` クラス (src/Visualizer.h, cpp)
-ビジュアライザを統括するファサード（管理）クラス。描画ロジック自体は持たず、将来的なプラグイン化を見据えたアーキテクチャとなっている。
+ビジュアライザを統括するファサード（管理）および「波形前処理頭脳」クラス。描画ロジック自体は持たず、将来的なプラグイン化を見据えたアーキテクチャとなっている。
 *   内部に `IVisualizerStyle` インターフェースを実装した各スタイルのインスタンス（`VisualizerPrismBeat`、`VisualizerHaloDust`）を保持する。
 *   **`bool Initialize(ID2D1DeviceContext* context)`**, **`void ReleaseResources()`**
     *   保持している全スタイルの初期化およびリソース解放を伝播・実行する。
-*   **`void Draw(ID2D1DeviceContext* context, const std::vector<float>& spectrum, D2D1_RECT_F drawRect, const std::wstring& trackTitle, const std::wstring& trackArtist)`**
+*   **`void Draw(ID2D1DeviceContext* context, const std::vector<float>& spectrum, D2D1_RECT_F drawRect, const std::wstring& trackTitle, const std::wstring& trackArtist, float peakAmplitude = 0.0f, float maxFrequency = 0.0f)`**
     *   設定 (`ConfigManager::GetVisualizerMode()`) の値（1: PrismBeat, 2: Halo Dust）に応じて、対応するスタイルの `Draw` メソッドに処理をルーティングする。
+    *   ルーティングの直前に、「最強の前処理頭脳」として生スペクトルに対する前処理を行う。`peakAmplitude` を用いた100%ノーマライズ（固定スケール倍率の適用）、`maxFrequency` を用いた高音域無音部分のクリッピング、および設定から取得した5バンドEQゲインによる補間EQカーブの適用を実施し、描画側へ前処理済みの波形データを透過的に渡す責務を担う。
 
 #### `IVisualizerStyle` インターフェースと各種スタイル (src/IVisualizerStyle.h, src/Visualizer_*.cpp)
 ビジュアライザの具体的な描画アルゴリズムをカプセル化したクラス群。

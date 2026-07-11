@@ -33,10 +33,10 @@
   - `Application::ParseThreadFunc` のスキャン処理を `EnablePreScan` が有効な場合のみ実行するよう条件化。
   - `AudioPlayer` クラスに再生中の波形データ（振幅・高音）を自己学習する仕組み（`m_learningPeakAmplitude`, `m_learningMaxFrequency`）を実装。
   - 再生終了後（`IsAtEnd()` 時）に自己学習データでTSVを自動更新するロジックを `Application::Run` へ追加し、バックグラウンドスキャンがOFFでも再生するだけで学習が完了する機構を実現。
-- [ ] タスク4: Visualizerでの波形前処理の実装
+- [x] タスク4: Visualizerでの波形前処理の実装
   - `Visualizer::Draw` メソッド内にて、渡された生スペクトルに対するノーマライズ、クリッピング、5バンドEQ（Lerp補間）の処理を追加。
   - 各描画プラグインへの前処理済みデータの受け渡し。
-- [ ] タスク5: 作業レポートおよびアーキテクチャドキュメントの更新
+- [x] タスク5: 作業レポートおよびアーキテクチャドキュメントの更新
   - 本RESファイルの詳細作業内容の追記。
   - `PROJECT_ARCHITECTURE.md` への変更内容の反映。
 
@@ -64,10 +64,13 @@
 - `Application::Run` における曲の再生終了検知（`IsAtEnd()` 発生時）に、自己学習データが有効な場合は既存の `TrackMetadata` の値と比較し、未解析か自己学習値が既存値を超えている場合に `PlaylistManager::UpdateScanData` を用いてTSVファイルを更新する処理を追加した。これにより、事前スキャンがOFFであっても1周再生するだけで自動的に完全なデータが学習されるハイブリッド解析システムが完成した。
 
 ### タスク4: Visualizerでの波形前処理の実装
-- 
+- `Renderer::DrawVisualizer` および `Visualizer::Draw` のシグネチャを変更し、現在の曲のメタデータ（`peakAmplitude`, `maxFrequency`）を渡すよう改修した。
+- `Visualizer::Draw` 内部にて、渡された `maxFrequency` を用いた高音域クリッピング、`peakAmplitude` を用いたノーマライズ、および `ConfigManager` から取得した5バンドEQゲインを線形補間（Lerp）して各周波数帯域へ適用するロジックを実装し、前処理済み波形を生成した。
+- `IVisualizerStyle` (PrismBeat / HaloDust) には、前処理済みのデータを透過的に渡すよう変更し、描画ロジックと波形加工ロジックの分離を維持した。
 
 ### タスク5: 作業レポートおよびアーキテクチャドキュメントの更新
-- 
+- 本RESファイルにタスク4までの詳細作業内容を追記した。
+- `PROJECT_ARCHITECTURE.md` の「Visualizer クラス」に関する記述を更新し、波形前処理（ノーマライズ、高音域クリッピング、5バンドEQ）の責務を負うアーキテクチャへ進化した旨を追記した。
 
 ## 5. HOTFIX
 (発生時に追記)

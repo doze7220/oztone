@@ -43,7 +43,7 @@ public:
      * @param trackTitle 曲名
      * @param trackArtist アーティスト名
      */
-    void Draw(ID2D1DeviceContext* context, const std::vector<float>& spectrum, D2D1_RECT_F drawRect, const std::wstring& trackTitle, const std::wstring& trackArtist);
+    void Draw(ID2D1DeviceContext* context, const std::vector<float>& spectrum, D2D1_RECT_F drawRect, const std::wstring& trackTitle, const std::wstring& trackArtist, float peakAmplitude = 0.0f, float maxFrequency = 0.0f);
 
 private:
     const ConfigManager* m_config = nullptr;

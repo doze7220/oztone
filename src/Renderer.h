@@ -193,7 +193,7 @@ private:
     std::vector<std::unique_ptr<IWidget>> m_widgets;
 
     void DrawBackground();
-    void DrawVisualizer(const std::vector<float>& spectrum);
+    void DrawVisualizer(const std::vector<float>& spectrum, const TrackMetadata* currentMeta);
 
     /**
      * @brief 画像をファイルまたはリソースからロードする
