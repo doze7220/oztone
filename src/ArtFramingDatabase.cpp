@@ -17,6 +17,10 @@ bool ArtFramingDatabase::GetFraming(const std::wstring& filepath, float& outX, f
         outScale = it->second.scale;
         return true;
     }
+    
+    outX = 0.0f;
+    outY = 0.0f;
+    outScale = 1.0f;
     return false;
 }
 
