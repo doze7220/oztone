@@ -1483,7 +1483,7 @@ void Application::ParseThreadFunc() {
     TrackMetadata currentMeta;
     bool hasMeta = m_playlistManager.GetTrackMetadata(targetPath, currentMeta);
     bool isLoaded = hasMeta && currentMeta.isLoaded;
-    bool needsScan = hasMeta && (currentMeta.peakAmplitude == 0.0f);
+    bool needsScan = hasMeta && (currentMeta.peakAmplitude <= 1.0f) && m_config.GetEnablePreScan();
 
     if (isLoaded && !needsScan) {
       continue;
@@ -1509,7 +1509,7 @@ void Application::ParseThreadFunc() {
       updated = true;
     }
 
-    if (needsScan || (!isLoaded && currentMeta.peakAmplitude == 0.0f)) {
+    if (needsScan || (!isLoaded && currentMeta.peakAmplitude <= 1.0f)) {
       if (m_config.GetEnablePreScan()) {
         float peakAmplitude = 0.0f;
         float maxFrequency = 0.0f;

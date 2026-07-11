@@ -3,6 +3,7 @@
 #include "Visualizer_HaloDust.h"
 #include "ConfigManager.h"
 #include <cmath>
+#include <algorithm>
 
 Visualizer::Visualizer() : m_initialized(false) {
     m_prismBeat = std::make_unique<VisualizerPrismBeat>();
@@ -76,7 +77,7 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
             eqMultiplier = std::lerp(b75, b100, localRatio);
         }
 
-        processedSpectrum[i] = val * eqMultiplier;
+        processedSpectrum[i] = std::clamp(val * eqMultiplier, 0.0f, 1.0f);
     }
 
     // mode: 0 = OFF, 1 = PrismBeat, 2 = HaloDust

@@ -218,12 +218,6 @@ void AudioPlayer::ProcessAudioFrames(const float* pFrames, ma_uint64 frameCount,
         }
         monoSample /= static_cast<float>(channels);
         
-        if (m_isLearningValid) {
-            float absSample = std::abs(monoSample);
-            if (absSample > m_learningPeakAmplitude) {
-                m_learningPeakAmplitude = absSample;
-            }
-        }
 
         if (volFactor > 0.0f) {
             monoSample *= volFactor;
@@ -248,8 +242,13 @@ void AudioPlayer::ProcessAudioFrames(const float* pFrames, ma_uint64 frameCount,
         float localMaxFreqIdx = 0.0f;
         for (size_t i = 0; i < FFT_SIZE / 2; ++i) {
             spectrum[i] = std::abs(fftData[i]);
-            if (m_isLearningValid && spectrum[i] > 0.001f) {
-                localMaxFreqIdx = static_cast<float>(i);
+            if (m_isLearningValid) {
+                if (spectrum[i] > m_learningPeakAmplitude) {
+                    m_learningPeakAmplitude = spectrum[i];
+                }
+                if (spectrum[i] > 0.001f) {
+                    localMaxFreqIdx = static_cast<float>(i);
+                }
             }
         }
         
@@ -302,10 +301,6 @@ bool AudioPlayer::ScanAudioData(const std::wstring& filepath, float noiseThresho
             }
             monoSample /= static_cast<float>(channels);
             
-            float absSample = std::abs(monoSample);
-            if (absSample > peakAmplitude) {
-                peakAmplitude = absSample;
-            }
 
             audioWindow[windowIdx++] = monoSample;
             
@@ -320,6 +315,9 @@ bool AudioPlayer::ScanAudioData(const std::wstring& filepath, float noiseThresho
                 
                 for (size_t j = 0; j < FFT_SIZE / 2; ++j) {
                     float mag = std::abs(fftData[j]);
+                    if (mag > peakAmplitude) {
+                        peakAmplitude = mag;
+                    }
                     if (mag > maxSpectrum[j]) {
                         maxSpectrum[j] = mag;
                     }

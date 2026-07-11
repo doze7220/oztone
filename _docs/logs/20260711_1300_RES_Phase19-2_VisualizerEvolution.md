@@ -95,3 +95,13 @@
   - `ConfigManager` における HaloDust の設定を `BaseRadiusRatio` (無音時基準円) と `GraphLengthRatio` (波形全体の長さ) に変更。
   - `Visualizer_HaloDust` の描画にて、振幅を基準円から内側・外側に等分して伸ばす計算（`baseRadius ± (graphLength / 2.0f) * spectrum[i]`）に修正。
   - パーティクルおよびレーザーの発生起点を外側の頂点（`baseRadius + ampPx`）に適合させた。
+
+- FFTスケール不整合の修正とクランプ安全装置の追加 (Phase 19-2 Hotfix)
+  - 原因: `peakAmplitude` にPCMサンプルのピーク値（最大1.0付近）を記録しており、それを用いてスケールの異なるFFT出力スペクトル（数十〜数百）をノーマライズしていたため、描画プラグインに1.0fを大きく超過する異常値が渡され、画面が破綻していた。
+  - 対応:
+    - `AudioPlayer.cpp` における自己学習（`AudioPlayerOnProcess`）および事前スキャン（`ScanAudioData`）にて、ピーク振幅の算出対象をPCMサンプルから、FFT計算後のスペクトル配列の最大値へ変更し、正しいスケールの値をTSVに記録するよう修正した。
+    - `Visualizer.cpp` の `Visualizer::Draw` にて、ノーマライズおよび5バンドEQ等のすべての前処理を終えた直後（プラグインへ渡す直前）に、配列の全要素に対して `std::clamp(val, 0.0f, 1.0f)` を適用する物理的な安全装置（クリップ処理）を追加し、1.0fを超える値による描画の破綻を完全に防いだ。
+
+- ドロップ直後の1曲目波形スキャン漏れの修正 (Phase 19-2 Hotfix)
+  - 原因: 新規プレイリストにファイルをドロップした際、1曲目が即座に自動再生されることによって自己修復ロジック（`UpdateTrackMetadataIfNeeded`）が働き、タグ解析済みフラグ（`isLoaded = true`）が立ってしまう。その結果、バックグラウンドスレッド（`ParseThreadFunc`）が1曲目を「解析済み」と誤認し、波形の事前スキャン（`ScanAudioData`）ごとスキップしてしまうバグが発生していた。
+  - 対応: `Application::ParseThreadFunc` 内の未解析トラックを処理するループにおいて、`isLoaded == true` であっても、波形スキャンデータが未取得（`peakAmplitude <= 1.0f` などフォールバック状態）であり、かつ `EnablePreScan` が有効な場合には、タグ解析はスキップしつつ波形の事前スキャンのみを実行しメタデータを更新するよう条件式を修正した。これにより、自動再生された1曲目であっても裏で高速に波形スキャンが完了し、正しいFFTピーク値が適用されるようになった。
