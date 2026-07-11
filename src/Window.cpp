@@ -662,7 +662,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   }
   case WM_MOUSEMOVE: {
     if (m_config) {
-      if (m_isArtFramingDragging) {
+      if (m_isArtFramingDragging && (wParam & MK_RBUTTON)) {
         int xPos = GET_X_LPARAM(lParam);
         int yPos = GET_Y_LPARAM(lParam);
         float deltaX = static_cast<float>(xPos - m_artFramingDragStartPt.x);
@@ -677,6 +677,9 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         m_artFramingDragStartPt.x = xPos;
         m_artFramingDragStartPt.y = yPos;
         return 0;
+      } else if (m_isArtFramingDragging) {
+        m_isArtFramingDragging = false;
+        ReleaseCapture();
       }
 
       int xPos = GET_X_LPARAM(lParam);
@@ -755,13 +758,7 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     int yPos = GET_Y_LPARAM(lParam);
 
     if (!m_isPlaylistHovered && !m_isLogoMenuHovered && !m_isControlHovered && !m_isVolumeHovered && !IsInLogoRegion(xPos, yPos)) {
-        if (GetAsyncKeyState(VK_SHIFT) & 0x8000) {
-            m_isArtFramingDragging = true;
-            m_artFramingDragStartPt.x = xPos;
-            m_artFramingDragStartPt.y = yPos;
-            SetCapture(hwnd);
-            return 0;
-        }
+        // Shift+Left Drag for framing has been removed.
     }
 
     if (m_isPlaylistHovered) {
@@ -894,6 +891,26 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     return 0;
   }
   case WM_LBUTTONUP: {
+    break;
+  }
+  case WM_RBUTTONDOWN: {
+    if (m_isArtFramingDragging) {
+      m_isArtFramingDragging = false;
+      ReleaseCapture();
+    }
+    int xPos = GET_X_LPARAM(lParam);
+    int yPos = GET_Y_LPARAM(lParam);
+
+    if (!m_isPlaylistHovered && !m_isLogoMenuHovered && !m_isControlHovered && !m_isVolumeHovered && !IsInLogoRegion(xPos, yPos)) {
+        m_isArtFramingDragging = true;
+        m_artFramingDragStartPt.x = xPos;
+        m_artFramingDragStartPt.y = yPos;
+        SetCapture(hwnd);
+        return 0;
+    }
+    break;
+  }
+  case WM_RBUTTONUP: {
     if (m_isArtFramingDragging) {
       m_isArtFramingDragging = false;
       ReleaseCapture();
