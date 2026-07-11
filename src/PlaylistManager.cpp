@@ -95,9 +95,9 @@ bool PlaylistManager::Add(const std::wstring& filepath) {
     if (m_playlistSet.find(filepath) != m_playlistSet.end()) {
         return false;
     }
-    TrackMetadata meta;
-    meta.filepath = filepath;
-    m_playlist.push_back(meta);
+    PlaylistItem item;
+    item.filepath = filepath;
+    m_playlist.push_back(item);
     m_playlistSet.insert(filepath);
     
     size_t newIndex = m_playlist.size() - 1;
@@ -194,7 +194,7 @@ std::wstring PlaylistManager::GetNextTrack() const {
 }
 
 void PlaylistManager::SaveToFile(const std::wstring& outPath) const {
-    std::vector<TrackMetadata> playlistCopy;
+    std::vector<PlaylistItem> playlistCopy;
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         playlistCopy = m_playlist;
@@ -205,14 +205,10 @@ void PlaylistManager::SaveToFile(const std::wstring& outPath) const {
     for (const auto& item : playlistCopy) {
         if (item.filepath.empty()) continue;
 
-        std::wstring wline;
-        if (item.isMetaLoaded) {
-            wline = item.filepath + L"\t" + item.title + L"\t" + item.artist + L"\t" + item.timeString + L"\t" +
-                    std::to_wstring(item.artOffsetX) + L"\t" + std::to_wstring(item.artOffsetY) + L"\t" + std::to_wstring(item.artScale) + L"\t" +
-                    std::to_wstring(item.peakAmplitude) + L"\t" + std::to_wstring(item.maxFrequency);
-        } else {
-            wline = item.filepath;
-        }
+        std::wstring wline = item.filepath + L"\t" + 
+                std::to_wstring(item.artOffsetX) + L"\t" + 
+                std::to_wstring(item.artOffsetY) + L"\t" + 
+                std::to_wstring(item.artScale);
 
         int size_needed = WideCharToMultiByte(CP_UTF8, 0, wline.c_str(), (int)wline.length(), NULL, 0, NULL, NULL);
         if (size_needed > 0) {
@@ -254,32 +250,14 @@ void PlaylistManager::LoadFromFile(const std::wstring& inPath) {
                             std::lock_guard<std::mutex> lock(m_mutex);
                             for (auto it = m_playlist.rbegin(); it != m_playlist.rend(); ++it) {
                                 if (it->filepath == filepath) {
-                                    it->title = tokens[1];
-                                    it->artist = tokens[2];
-                                    it->timeString = tokens[3];
-                                    it->isMetaLoaded = true;
-                                    if (tokens.size() >= 7) {
-                                        try {
-                                            it->artOffsetX = std::stof(tokens[4]);
-                                            it->artOffsetY = std::stof(tokens[5]);
-                                            it->artScale = std::stof(tokens[6]);
-                                        } catch (...) {
-                                            it->artOffsetX = 0.0f;
-                                            it->artOffsetY = 0.0f;
-                                            it->artScale = 1.0f;
-                                        }
-                                    }
-                                    if (tokens.size() >= 9) {
-                                        try {
-                                            it->peakAmplitude = std::stof(tokens[7]);
-                                            it->maxFrequency = std::stof(tokens[8]);
-                                            if (it->peakAmplitude > 0.0f) {
-                                                it->isFFTLoaded = true;
-                                            }
-                                        } catch (...) {
-                                            it->peakAmplitude = 0.0f;
-                                            it->maxFrequency = 0.0f;
-                                        }
+                                    try {
+                                        it->artOffsetX = std::stof(tokens[1]);
+                                        it->artOffsetY = std::stof(tokens[2]);
+                                        it->artScale = std::stof(tokens[3]);
+                                    } catch (...) {
+                                        it->artOffsetX = 0.0f;
+                                        it->artOffsetY = 0.0f;
+                                        it->artScale = 1.0f;
                                     }
                                     break;
                                 }
@@ -308,44 +286,7 @@ bool PlaylistManager::IsEmpty() const {
     return m_playlist.empty();
 }
 
-void PlaylistManager::UpdateMetadata(const TrackMetadata& meta) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    for (auto& item : m_playlist) {
-        if (item.filepath == meta.filepath) {
-            // スキャン結果とフレーミング結果を保護（裏スレッド等で更新された値を上書きしないようにする）
-            float savedPeak = item.peakAmplitude;
-            float savedFreq = item.maxFrequency;
-            float savedOx = item.artOffsetX;
-            float savedOy = item.artOffsetY;
-            float savedScale = item.artScale;
-            bool savedFFTLoaded = item.isFFTLoaded;
 
-            item = meta;
-            item.isMetaLoaded = true;
-            item.isFFTLoaded = savedFFTLoaded;
-
-            item.peakAmplitude = savedPeak;
-            item.maxFrequency = savedFreq;
-            item.artOffsetX = savedOx;
-            item.artOffsetY = savedOy;
-            item.artScale = savedScale;
-            break;
-        }
-    }
-}
-
-void PlaylistManager::UpdateScanData(const std::wstring& filepath, float peakAmplitude, float maxFrequency) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    for (auto& item : m_playlist) {
-        if (item.filepath == filepath) {
-            item.peakAmplitude = peakAmplitude;
-            item.maxFrequency = maxFrequency;
-            item.isFFTLoaded = true;
-            item.isMetaLoaded = true;
-            break;
-        }
-    }
-}
 
 void PlaylistManager::UpdateArtFraming(const std::wstring& filepath, float offsetX, float offsetY, float scale) {
     std::lock_guard<std::mutex> lock(m_mutex);
@@ -359,37 +300,7 @@ void PlaylistManager::UpdateArtFraming(const std::wstring& filepath, float offse
     }
 }
 
-bool PlaylistManager::IsTrackLoaded(const std::wstring& filepath) const {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    for (const auto& item : m_playlist) {
-        if (item.filepath == filepath) {
-            return item.isMetaLoaded;
-        }
-    }
-    return false;
-}
 
-bool PlaylistManager::GetTrackMetadata(const std::wstring& filepath, TrackMetadata& outMeta) const {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    for (const auto& item : m_playlist) {
-        if (item.filepath == filepath) {
-            outMeta = item;
-            return true;
-        }
-    }
-    return false;
-}
-
-std::vector<std::wstring> PlaylistManager::GetUnparsedTracks() const {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    std::vector<std::wstring> unparsed;
-    for (const auto& item : m_playlist) {
-        if (!item.isFFTLoaded || item.peakAmplitude == 0.0f) {
-            unparsed.push_back(item.filepath);
-        }
-    }
-    return unparsed;
-}
 size_t PlaylistManager::GetCount() const {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_playlist.size();
@@ -420,16 +331,5 @@ std::vector<std::wstring> PlaylistManager::GetShuffleList() const {
     return list;
 }
 
-std::vector<TrackMetadata> PlaylistManager::GetShuffleMetadataList() const {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    std::vector<TrackMetadata> list;
-    if (m_playlist.empty() || m_shuffleIndices.empty()) {
-        return list;
-    }
-    list.reserve(m_shuffleIndices.size());
-    for (size_t idx : m_shuffleIndices) {
-        list.push_back(m_playlist[idx]);
-    }
-    return list;
-}
+
 

@@ -20,6 +20,11 @@ Application::~Application() {
   if (!m_playlistManager.IsEmpty()) {
     m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
   }
+
+  wchar_t exePath[MAX_PATH];
+  GetModuleFileNameW(NULL, exePath, MAX_PATH);
+  std::wstring dbPath = std::filesystem::path(exePath).parent_path().wstring() + L"\\oztone_track.odb";
+  m_trackDatabase.SaveToFile(dbPath);
 }
 
 void Application::ResetAllSettings() {
@@ -137,6 +142,11 @@ void Application::HandleMediaCommand(int cmd) {
 }
 
 bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
+  wchar_t exePath[MAX_PATH];
+  GetModuleFileNameW(NULL, exePath, MAX_PATH);
+  std::wstring dbPath = std::filesystem::path(exePath).parent_path().wstring() + L"\\oztone_track.odb";
+  m_trackDatabase.LoadFromFile(dbPath);
+
   if (!m_config.Initialize()) {
     return false;
   }
@@ -727,9 +737,9 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     }
   }
 
-  m_trackAnalyzer.Initialize(&m_playlistManager, &m_config);
+  m_trackAnalyzer.Initialize(&m_trackDatabase, &m_config);
 
-  auto unparsed = m_playlistManager.GetUnparsedTracks();
+  std::vector<std::wstring> unparsed = m_playlistManager.GetShuffleList();
   if (!unparsed.empty()) {
     for (const auto &path : unparsed) {
       m_trackAnalyzer.AddTrackToQueue(path);
@@ -853,7 +863,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
       m_playlistManager.ShuffleNextLoop();
     }
 
-    auto unparsed = m_playlistManager.GetUnparsedTracks();
+    std::vector<std::wstring> unparsed = m_playlistManager.GetShuffleList();
     if (!unparsed.empty()) {
       for (const auto &path : unparsed) {
         m_trackAnalyzer.AddTrackToQueue(path);
@@ -942,9 +952,12 @@ void Application::Run() {
           float learnedPeak = m_audioPlayer.GetLearningPeakAmplitude();
           float learnedFreq = m_audioPlayer.GetLearningMaxFrequency();
           TrackMetadata meta;
-          if (m_playlistManager.GetTrackMetadata(currentTrack, meta)) {
+          if (m_trackDatabase.GetMetadata(currentTrack, meta)) {
             if (learnedPeak > meta.peakAmplitude || meta.peakAmplitude == 0.0f) {
-              m_playlistManager.UpdateScanData(currentTrack, learnedPeak, learnedFreq);
+              meta.peakAmplitude = learnedPeak;
+              meta.maxFrequency = learnedFreq;
+              meta.isFFTLoaded = true;
+              m_trackDatabase.UpdateMetadata(currentTrack, meta);
             }
           }
         }
@@ -1151,6 +1164,19 @@ void Application::ForceRender() {
   m_renderer.UpdateTextLayouts(timeString, m_audioPlayer.GetVolume(),
                                m_playlistManager.GetCurrentIndex(),
                                m_playlistManager.GetCount());
+  std::vector<std::wstring> shuffleList = m_playlistManager.GetShuffleList();
+  std::vector<TrackMetadata> metadataList;
+  metadataList.reserve(shuffleList.size());
+  for (const auto& path : shuffleList) {
+      TrackMetadata meta;
+      if (!m_trackDatabase.GetMetadata(path, meta)) {
+          meta.filepath = path;
+          try { meta.title = std::filesystem::path(path).filename().wstring(); } catch(...) { meta.title = L"UNKNOWN"; }
+          meta.artist = L"---";
+      }
+      metadataList.push_back(meta);
+  }
+
   m_renderer.Render(
       m_window.IsHovered(), m_window.IsControlHovered(),
       m_window.IsVolumeHovered(), m_window.IsPlaylistHovered(),
@@ -1158,7 +1184,7 @@ void Application::ForceRender() {
       &m_window.GetLogoMenuItems(), m_isPlaylistListViewMode,
       m_audioPlayer.IsPlaying(), progress, spectrum, m_audioPlayer.GetVolume(),
       m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount(),
-      m_playlistManager.GetShuffleMetadataList(),
+      metadataList,
       m_window.GetPlaylistToolbarHoveredIndex(), &m_playlistSummaries);
 }
 
@@ -1245,7 +1271,7 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
     }
 
     TrackMetadata currentMeta;
-    if (m_playlistManager.GetTrackMetadata(filepath, currentMeta)) {
+    if (m_trackDatabase.GetMetadata(filepath, currentMeta)) {
       bool needsUpdate = false;
       if (!currentMeta.isMetaLoaded) {
         needsUpdate = true;
@@ -1257,11 +1283,22 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
         currentMeta.title = title;
         currentMeta.artist = artist;
         currentMeta.timeString = localTagManager.GetTimeString();
-        m_playlistManager.UpdateMetadata(currentMeta);
+        currentMeta.isMetaLoaded = true;
+        m_trackDatabase.UpdateMetadata(filepath, currentMeta);
         std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
         m_playlistManager.SaveToFile(defaultPath);
         UpdatePlaylistSummaries();
       }
+    } else {
+        currentMeta.filepath = filepath;
+        currentMeta.title = title;
+        currentMeta.artist = artist;
+        currentMeta.timeString = localTagManager.GetTimeString();
+        currentMeta.isMetaLoaded = true;
+        m_trackDatabase.UpdateMetadata(filepath, currentMeta);
+        std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
+        m_playlistManager.SaveToFile(defaultPath);
+        UpdatePlaylistSummaries();
     }
   }
 }
@@ -1387,7 +1424,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
     }
   }
 
-  auto unparsed = m_playlistManager.GetUnparsedTracks();
+  std::vector<std::wstring> unparsed = m_playlistManager.GetShuffleList();
   if (!unparsed.empty()) {
     for (const auto &path : unparsed) {
       m_trackAnalyzer.AddTrackToQueue(path);
@@ -1487,28 +1524,25 @@ void Application::UpdatePlaylistSummaries() {
           line.pop_back();
         count++;
 
-        if (!hasUnparsed) {
-          int size_needed = MultiByteToWideChar(CP_UTF8, 0, line.c_str(),
-                                                (int)line.length(), NULL, 0);
-          if (size_needed > 0) {
-            std::wstring wline(size_needed, 0);
-            MultiByteToWideChar(CP_UTF8, 0, line.c_str(), (int)line.length(),
-                                &wline[0], size_needed);
+        int size_needed = MultiByteToWideChar(CP_UTF8, 0, line.c_str(),
+                                              (int)line.length(), NULL, 0);
+        if (size_needed > 0) {
+          std::wstring wline(size_needed, 0);
+          MultiByteToWideChar(CP_UTF8, 0, line.c_str(), (int)line.length(),
+                              &wline[0], size_needed);
 
-            std::wstringstream wss(wline);
-            std::wstring token;
-            std::vector<std::wstring> tokens;
-            while (std::getline(wss, token, L'\t')) {
-              tokens.push_back(token);
-            }
-            if (tokens.size() >= 4) {
-              totalSeconds += parseTime(tokens[3]);
-            } else {
-              hasUnparsed = true;
-            }
+          std::wstringstream wss(wline);
+          std::wstring token;
+          std::getline(wss, token, L'\t'); // token is filepath
+
+          TrackMetadata meta;
+          if (m_trackDatabase.GetMetadata(token, meta) && meta.isMetaLoaded) {
+            totalSeconds += parseTime(meta.timeString);
           } else {
             hasUnparsed = true;
           }
+        } else {
+          hasUnparsed = true;
         }
       }
     }

@@ -5,7 +5,15 @@
 #include <random>
 #include <mutex>
 
-#include "TrackDatabase.h"
+/**
+ * @brief プレイリストの1要素を表す構造体（純粋な曲順とフレーミング情報のみ）
+ */
+struct PlaylistItem {
+    std::wstring filepath;
+    float artOffsetX = 0.0f;
+    float artOffsetY = 0.0f;
+    float artScale = 1.0f;
+};
 
 /**
  * @brief 再生待ちキュー（プレイリスト）を管理するクラス
@@ -79,20 +87,6 @@ public:
     void LoadFromFile(const std::wstring& inPath);
 
     /**
-     * @brief 特定のファイルパスのメタデータを更新し、解析済み(isMetaLoaded = true)にする
-     * @param meta 更新対象のメタデータ（内部でpeakAmplitude等のスキャン結果は保護される）
-     */
-    void UpdateMetadata(const TrackMetadata& meta);
-
-    /**
-     * @brief 特定のファイルパスの波形スキャン結果を更新する
-     * @param filepath 更新対象のファイルパス
-     * @param peakAmplitude 最大振幅
-     * @param maxFrequency 有効最高高音周波数
-     */
-    void UpdateScanData(const std::wstring& filepath, float peakAmplitude, float maxFrequency);
-
-    /**
      * @brief 特定のファイルパスの背景アートフレーミング情報を更新する
      * @param filepath 更新対象のファイルパス
      * @param offsetX Xオフセット
@@ -105,28 +99,6 @@ public:
      * @brief 特定のファイルパスの背景アートフレーミング情報を取得する
      */
     void GetArtFraming(const std::wstring& filepath, float& offsetX, float& offsetY, float& scale) const;
-
-    /**
-     * @brief 特定のファイルパスが解析済みかどうかを確認する
-     * @param filepath 確認対象のファイルパス
-     * @return 解析済みならtrue、未解析または存在しない場合はfalse
-     */
-    bool IsTrackLoaded(const std::wstring& filepath) const;
-
-    /**
-     * @brief 特定のファイルパスのメタデータを取得する
-     * @param filepath 取得対象のファイルパス
-     * @param outMeta 取得結果を格納する構造体
-     * @return 存在すればtrue、しなければfalse
-     */
-    bool GetTrackMetadata(const std::wstring& filepath, TrackMetadata& outMeta) const;
-
-
-    /**
-     * @brief 未解析(isFFTLoaded == false)のファイルパス一覧を取得する
-     * @return ファイルパスの配列
-     */
-    std::vector<std::wstring> GetUnparsedTracks() const;
 
     bool IsEmpty() const;
 
@@ -154,12 +126,6 @@ public:
      */
     std::vector<std::wstring> GetShuffleList() const;
 
-    /**
-     * @brief 現在のシャッフルリスト全体（次に再生される順番）のメタデータ一覧を取得する
-     * @return メタデータの配列
-     */
-    std::vector<TrackMetadata> GetShuffleMetadataList() const;
-
 
     /**
      * @brief 現在および次周のシャッフルリストを初期化・生成する
@@ -174,7 +140,7 @@ public:
 private:
     void GenerateShuffleList(std::vector<size_t>& targetList);
 
-    std::vector<TrackMetadata> m_playlist;
+    std::vector<PlaylistItem> m_playlist;
     std::set<std::wstring> m_playlistSet;
     
     std::vector<size_t> m_shuffleIndices;

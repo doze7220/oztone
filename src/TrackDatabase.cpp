@@ -40,21 +40,21 @@ void TrackDatabase::LoadFromFile(const std::wstring& dbPath) {
                         meta.timeString = tokens[3];
                         meta.isMetaLoaded = true;
                     }
-                    if (tokens.size() >= 7) {
-                        try {
-                            meta.artOffsetX = std::stof(tokens[4]);
-                            meta.artOffsetY = std::stof(tokens[5]);
-                            meta.artScale = std::stof(tokens[6]);
-                        } catch (...) {
-                            meta.artOffsetX = 0.0f;
-                            meta.artOffsetY = 0.0f;
-                            meta.artScale = 1.0f;
-                        }
-                    }
                     if (tokens.size() >= 9) {
                         try {
                             meta.peakAmplitude = std::stof(tokens[7]);
                             meta.maxFrequency = std::stof(tokens[8]);
+                            if (meta.peakAmplitude > 0.0f) {
+                                meta.isFFTLoaded = true;
+                            }
+                        } catch (...) {
+                            meta.peakAmplitude = 0.0f;
+                            meta.maxFrequency = 0.0f;
+                        }
+                    } else if (tokens.size() >= 6) {
+                        try {
+                            meta.peakAmplitude = std::stof(tokens[4]);
+                            meta.maxFrequency = std::stof(tokens[5]);
                             if (meta.peakAmplitude > 0.0f) {
                                 meta.isFFTLoaded = true;
                             }
@@ -91,7 +91,6 @@ void TrackDatabase::SaveToFile(const std::wstring& dbPath) const {
         std::wstring wline;
         if (item.isMetaLoaded) {
             wline = item.filepath + L"\t" + item.title + L"\t" + item.artist + L"\t" + item.timeString + L"\t" +
-                    std::to_wstring(item.artOffsetX) + L"\t" + std::to_wstring(item.artOffsetY) + L"\t" + std::to_wstring(item.artScale) + L"\t" +
                     std::to_wstring(item.peakAmplitude) + L"\t" + std::to_wstring(item.maxFrequency);
         } else {
             wline = item.filepath;
@@ -119,4 +118,24 @@ bool TrackDatabase::GetMetadata(const std::wstring& filepath, TrackMetadata& out
 void TrackDatabase::SetMetadata(const std::wstring& filepath, const TrackMetadata& meta) {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_database[filepath] = meta;
+}
+
+void TrackDatabase::UpdateMetadata(const std::wstring& filepath, const TrackMetadata& newData) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    auto it = m_database.find(filepath);
+    if (it != m_database.end()) {
+        if (newData.isMetaLoaded) {
+            it->second.title = newData.title;
+            it->second.artist = newData.artist;
+            it->second.timeString = newData.timeString;
+            it->second.isMetaLoaded = true;
+        }
+        if (newData.isFFTLoaded) {
+            it->second.peakAmplitude = newData.peakAmplitude;
+            it->second.maxFrequency = newData.maxFrequency;
+            it->second.isFFTLoaded = true;
+        }
+    } else {
+        m_database[filepath] = newData;
+    }
 }

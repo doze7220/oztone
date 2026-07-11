@@ -6,6 +6,7 @@
 #include <optional>
 
 #include "PlaylistManager.h"
+#include "TrackDatabase.h"
 #include "Window.h"
 
 class ConfigManager;

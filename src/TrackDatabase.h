@@ -11,9 +11,6 @@ struct TrackMetadata {
     std::wstring timeString; // 例: "03:45"
     bool isMetaLoaded = false; // 解析済みかどうか（メタデータ）
     bool isFFTLoaded = false;  // 解析済みかどうか（FFT波形）
-    float artOffsetX = 0.0f; // フレーミング: Xオフセット
-    float artOffsetY = 0.0f; // フレーミング: Yオフセット
-    float artScale = 1.0f;   // フレーミング: スケール
     float peakAmplitude = 0.0f; // 解析: ピーク振幅
     float maxFrequency = 0.0f;  // 解析: 最大周波数
 };
@@ -28,6 +25,7 @@ public:
 
     bool GetMetadata(const std::wstring& filepath, TrackMetadata& outMeta) const;
     void SetMetadata(const std::wstring& filepath, const TrackMetadata& meta);
+    void UpdateMetadata(const std::wstring& filepath, const TrackMetadata& newData);
 
 private:
     std::unordered_map<std::wstring, TrackMetadata> m_database;

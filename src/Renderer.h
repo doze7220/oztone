@@ -13,6 +13,7 @@
 #include <memory>
 #include <optional>
 #include "PlaylistManager.h"
+#include "TrackDatabase.h"
 #include "Visualizer.h"
 #include "Widgets.h"
 #include "Window.h"

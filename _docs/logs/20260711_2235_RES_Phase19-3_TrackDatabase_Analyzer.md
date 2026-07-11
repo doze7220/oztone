@@ -22,9 +22,9 @@ PlaylistManagerとApplicationクラスが抱え込んでいるメタデータ管
     - TrackDatabaseクラスの新設とデータ構造の定義。ファイルI/O（`oztone_track.odb`）の実装。
 [x] タスク2: TrackAnalyzerの独立
     - TrackAnalyzerクラスの新設。Applicationからバックグラウンド解析スレッドやキュー処理を分離・移植。
-[ ] タスク3: PlaylistManagerの純化
+[x] タスク3: PlaylistManagerの純化
     - PlaylistManagerからメタデータ・FFT解析データの管理を削除し、純粋なリスト・フレーミング管理クラスへリファクタリング。
-[ ] タスク4: Applicationの連携
+[x] タスク4: Applicationの連携
     - ApplicationからTrackDatabaseとTrackAnalyzerを初期化・連携させるフローを構築。UIやAudioPlayerへのデータ受け渡しの修正、全体ビルド確認。
 
 ## 4. 詳細作業内容
@@ -41,7 +41,21 @@ PlaylistManagerとApplicationクラスが抱え込んでいるメタデータ管
     - `CMakeLists.txt` にビルド対象として `TrackAnalyzer.cpp` / `.h` を追加。
 
 ### タスク3: PlaylistManagerの純化
-    - 未着手
+    - `PlaylistManager.h` に構造体 `PlaylistItem` を新設し、メタデータ管理を排除。内部キューを `std::vector<PlaylistItem>` へ移行。
+    - `PlaylistManager.cpp` のファイルI/Oをスリム化し、曲パスとフレーミング情報（X, Y, スケール）のみを読み書きするよう変更。
+    - `Application.cpp` および `TrackAnalyzer.cpp` で発生した、一時的な連携不足によるコンパイルエラーに対し、一時的にモック値を渡す・コメントアウトする等の応急処置を行い、ビルドが通る状態に修正した。
 
 ### タスク4: Applicationの連携
-    - 未着手
+    - `Application` のメンバに `TrackDatabase m_trackDatabase` を追加。
+    - `Application::Initialize` およびデストラクタにて、実行ファイルと同階層の `oztone_track.odb` に対してセーブ・ロードを行うように実装。
+    - `TrackAnalyzer` の初期化引数を `TrackDatabase` へのポインタに変更し、解析スレッドから直接 DB へメタデータ・波形スキャン結果を書き込むよう実装を変更。
+    - タスク3で応急処置としていた `Renderer` や再生処理へのデータ供給部分を修正。 `TrackDatabase::GetMetadata` 経由で取得したメタデータ (`peakAmplitude`, `maxFrequency` 含む) を渡すパイプラインを確立。
+    - プレイリストファイル (`.ozl`) のロード・解析 (`UpdatePlaylistSummaries`) 時に、総再生時間を `TrackDatabase` から参照するようロジックを修正。
+
+### HOTFIX: TrackDatabaseの冗長データパージ
+    - `TrackDatabase` が管理する `TrackMetadata` 構造体および `oztone_track.odb` 保存フォーマットから、`PlaylistManager` 側の責務であるフレーミング情報 (`artOffsetX`, `artOffsetY`, `artScale`) を削除し、データ層の純化を行った。
+    - `.odb` ファイル読込時は後方互換性を持たせ、旧フォーマット（9要素）からフレーミング情報を読み飛ばしつつピーク情報を復元できるように修正した。
+
+### HOTFIX: TrackDatabaseの安全なマージ更新ロジック実装
+    - `TrackDatabase::UpdateMetadata` を新設し、タグ解析データ（`isMetaLoaded`）とFFT解析データ（`isFFTLoaded`）の安全なマージ更新を可能にした。
+    - `TrackAnalyzer` および `Application` で `SetMetadata` を呼び出していた箇所を `UpdateMetadata` に置換し、非同期スレッドが互いの完了済みデータを上書きして破壊する競合問題を解決した。

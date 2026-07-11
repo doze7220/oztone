@@ -8,13 +8,14 @@
 
 class PlaylistManager;
 class ConfigManager;
+#include "TrackDatabase.h"
 
 class TrackAnalyzer {
 public:
     TrackAnalyzer();
     ~TrackAnalyzer();
 
-    void Initialize(PlaylistManager* playlistManager, ConfigManager* configManager);
+    void Initialize(TrackDatabase* trackDatabase, ConfigManager* configManager);
     void Uninitialize();
 
     void AddTrackToQueue(const std::wstring& filepath);
@@ -23,7 +24,7 @@ public:
 private:
     void ParseThreadFunc();
 
-    PlaylistManager* m_playlistManager = nullptr;
+    TrackDatabase* m_trackDatabase = nullptr;
     ConfigManager* m_configManager = nullptr;
 
     std::thread m_parseThread;

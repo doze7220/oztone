@@ -12,8 +12,8 @@ TrackAnalyzer::~TrackAnalyzer() {
     Uninitialize();
 }
 
-void TrackAnalyzer::Initialize(PlaylistManager* playlistManager, ConfigManager* configManager) {
-    m_playlistManager = playlistManager;
+void TrackAnalyzer::Initialize(TrackDatabase* trackDatabase, ConfigManager* configManager) {
+    m_trackDatabase = trackDatabase;
     m_configManager = configManager;
     
     m_parseThreadRunning.store(true);
@@ -61,10 +61,13 @@ void TrackAnalyzer::ParseThreadFunc() {
             m_parseQueue.pop();
         }
 
-        if (!m_playlistManager || !m_configManager) continue;
+        if (!m_trackDatabase || !m_configManager) continue;
 
         TrackMetadata currentMeta;
-        bool hasMeta = m_playlistManager->GetTrackMetadata(targetPath, currentMeta);
+        bool hasMeta = m_trackDatabase->GetMetadata(targetPath, currentMeta);
+        if (!hasMeta) {
+            currentMeta.filepath = targetPath;
+        }
         bool isFFTLoaded = hasMeta && currentMeta.isFFTLoaded;
         bool isMetaLoaded = hasMeta && currentMeta.isMetaLoaded;
         bool needsScan = hasMeta && (currentMeta.peakAmplitude <= 1.0f) && m_configManager->GetEnablePreScan();
@@ -98,7 +101,7 @@ void TrackAnalyzer::ParseThreadFunc() {
             currentMeta.artist = artist;
             currentMeta.timeString = timeString;
             currentMeta.isMetaLoaded = true;
-            m_playlistManager->UpdateMetadata(currentMeta);
+            m_trackDatabase->UpdateMetadata(targetPath, currentMeta);
             updated = true;
         }
 
@@ -108,11 +111,14 @@ void TrackAnalyzer::ParseThreadFunc() {
                 float maxFrequency = 0.0f;
                 float noiseThreshold = m_configManager->GetHighFreqNoiseThreshold();
                 if (AudioPlayer::ScanAudioData(targetPath, noiseThreshold, peakAmplitude, maxFrequency)) {
-                    m_playlistManager->UpdateScanData(targetPath, peakAmplitude, maxFrequency);
+                    currentMeta.peakAmplitude = peakAmplitude;
+                    currentMeta.maxFrequency = maxFrequency;
                 } else {
-                    m_playlistManager->UpdateScanData(targetPath, 1.0f, static_cast<float>(2048 - 1));
+                    currentMeta.peakAmplitude = 1.0f;
+                    currentMeta.maxFrequency = static_cast<float>(2048 - 1);
                 }
                 currentMeta.isFFTLoaded = true;
+                m_trackDatabase->UpdateMetadata(targetPath, currentMeta);
                 updated = true;
             }
         }
@@ -125,7 +131,10 @@ void TrackAnalyzer::ParseThreadFunc() {
             }
         }
         if (shouldSave && updated) {
-            m_playlistManager->SaveToFile(m_configManager->GetDefaultPlaylistPath());
+            wchar_t exePath[MAX_PATH];
+            GetModuleFileNameW(NULL, exePath, MAX_PATH);
+            std::wstring dbPath = std::filesystem::path(exePath).parent_path().wstring() + L"\\oztone_track.odb";
+            m_trackDatabase->SaveToFile(dbPath);
         }
     }
 

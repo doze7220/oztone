@@ -14,6 +14,7 @@
 #include "TagManager.h"
 #include "PlaylistManager.h"
 #include "TrackAnalyzer.h"
+#include "TrackDatabase.h"
 
 /**
  * @brief アプリケーション全体のライフサイクルとメインループを管理するクラス
@@ -114,6 +115,7 @@ private:
 
     // バックグラウンド解析データ
     TrackAnalyzer m_trackAnalyzer;
+    TrackDatabase m_trackDatabase;
 
     bool m_isPlaylistListViewMode = false;
     ULONGLONG m_lastConfigCheckTime = 0;
