@@ -179,9 +179,17 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow,
   RECT rect = {0, 0, scaledWidth, scaledHeight};
   AdjustWindowRectExForDpi(&rect, dwStyle, FALSE, dwExStyle, dpi);
 
+  int finalWidth = rect.right - rect.left;
+  int finalHeight = rect.bottom - rect.top;
+
+  if (x == CW_USEDEFAULT || y == CW_USEDEFAULT) {
+    scaledX = (GetSystemMetrics(SM_CXSCREEN) - finalWidth) / 2;
+    scaledY = (GetSystemMetrics(SM_CYSCREEN) - finalHeight) / 2;
+  }
+
   m_hwnd =
       CreateWindowExW(dwExStyle, m_className, L"OZtone", dwStyle, scaledX,
-                      scaledY, rect.right - rect.left, rect.bottom - rect.top,
+                      scaledY, finalWidth, finalHeight,
                       nullptr, nullptr, m_hInstance, this);
 
   if (!m_hwnd) {
