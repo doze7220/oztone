@@ -242,6 +242,86 @@
 --------------------------------------------------------------------------------
 
 
+##### 作業指示書 REQ: Phase 20-4 Task 7 & 8: ConfigManager分割の完遂 (実装実行)
+以下のプロジェクトルールと開発資料、実装計画兼実装レポートを熟読すること。
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260712_1524_RES_Phase20-4_ConfigManagerFileSplit.md
+
+###### 【作業手順（厳守事項）】
+1. 本プロンプトはリファクタリング（ファイル分割）の「実装実行」である。直ちに以下の【実装要件】に従ってコードとドキュメントの修正を実行すること。
+2. 作業完了後、既存の作業レポート（D:\ozlab\oztone\_docs\logs\20260712_1524_RES_Phase20-4_ConfigManagerFileSplit.md）の「タスク7」「タスク8」のチェックボックスを完了 `[x]` にし、詳細作業内容を追記すること。
+3. チャットにて「ConfigManager のファイル分割(Phase 20-4)がすべて完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+---
+
+###### 【実装要件】
+*   **1. `CMakeLists.txt` の更新と `ConfigManager.cpp` の整理 (タスク7)**
+    *   `CMakeLists.txt` の `SOURCES` に、新設した以下の6ファイルを追加する。
+        *   `src/ConfigManager_Window.cpp`
+        *   `src/ConfigManager_Playlist.cpp`
+        *   `src/ConfigManager_Playback.cpp`
+        *   `src/ConfigManager_LogoMenu.cpp`
+        *   `src/ConfigManager_Visualizer.cpp`
+        *   `src/ConfigManager_System.cpp`
+    *   `ConfigManager.cpp` から、これまでのタスクで移行した Getter/Setter の切り取り跡（不要なインクルード文、空行、コメントの残骸など）を綺麗に削除しクリーンアップする。
+    *   **※重大な注意**: `Initialize`, `LoadSettings`, `ResetToDefaults` 等の巨大な処理は、次のフェーズで分割するため、今回は絶対に削除せず `ConfigManager.cpp` 内にそのまま残しておくこと。
+
+*   **2. `PROJECT_ARCHITECTURE.md` の更新 (タスク8)**
+    *   `PROJECT_ARCHITECTURE.md` の `ConfigManager` クラスの解説セクションに、AI-IDEのコンテキスト節約を目的として、実装対象（UI等）別に以下の7ファイルに物理分割されている旨を追記する。
+        1. `ConfigManager.cpp`: デフォルト設定文字列（人間の編集用）とファイルI/Oコア処理
+        2. `ConfigManager_Window.cpp`: ウィンドウ設定、Z-Order、可視性、背景アート
+        3. `ConfigManager_Playlist.cpp`: プレイリストUI全般
+        4. `ConfigManager_Playback.cpp`: シークバー、再生・音量コントロール
+        5. `ConfigManager_LogoMenu.cpp`: アプリアイコン、ロゴ拡張メニュー
+        6. `ConfigManager_Visualizer.cpp`: ビジュアライザ全般
+        7. `ConfigManager_System.cpp`: グローバルホットキー、OSDなど
+
+###### 【絶対遵守ルール (Constraints)】
+*   **機能変更の禁止**: 既存の機能や動作は絶対に壊さないこと。タスク7の完了時点で必ずビルドが通る状態にすること。
+
+
+--------------------------------------------------------------------------------
+
+
+##### 作業指示書 REQ: Hotfix ConfigManager_System の Setter 復元 (実装実行)
+以下のプロジェクトルールと開発資料、実装計画兼実装レポートを熟読すること。
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260712_1524_RES_Phase20-4_ConfigManagerFileSplit.md
+
+###### 【作業手順（厳守事項）】
+1. 本プロンプトはHotfixの「実装実行」である。事前のレポート作成や計画立案は不要なので、直ちに以下の【実装要件】に従ってコードの修正を実行すること。
+2. コード修正が完全に終わった後、既存の作業レポート（D:\ozlab\oztone\_docs\logs\20260712_1524_RES_Phase20-4_ConfigManagerFileSplit.md）の末尾に「HOTFIX」の項目を追加し、原因（AIの移行漏れと削除）と対応内容を追記すること。
+3. チャットにて「Hotfixの実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+---
+
+###### 【実装要件】
+タスク分割の過程で誤って削除されてしまった System 系および OSD 系の Setter メソッドを `src/ConfigManager_System.cpp` に復元する。
+
+*   **`src/ConfigManager_System.cpp` の修正**
+    *   ファイル内に、以下の2つのメソッドの実装を記述すること。
+    *   ※内部のフラグ変数名（`m_showHotkeys`, `m_enableOSD`）やパス変数名（`m_iniFilePath` 等）は、`ConfigManager.h` の定義に合わせて適切に合わせること。
+
+
+#include "ConfigManager.h"
+#include <windows.h>
+#include <string>
+
+// [GlobalHotkeys] セクションの設定
+void ConfigManager::SetShowHotkeys(bool show) {
+    m_showHotkeys = show;
+    std::wstring value = show ? L"1" : L"0";
+    WritePrivateProfileStringW(L"GlobalHotkeys", L"ShowHotkeys", value.c_str(), m_iniFilePath.c_str());
+}
+
+// [Layout_OSD] セクションの設定
+void ConfigManager::SetEnableOSD(bool enable) {
+    m_enableOSD = enable;
+    std::wstring value = enable ? L"1" : L"0";
+    WritePrivateProfileStringW(L"Layout_OSD", L"EnableOSD", value.c_str(), m_iniFilePath.c_str());
+}
 
 
 --------------------------------------------------------------------------------

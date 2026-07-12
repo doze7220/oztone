@@ -30,6 +30,12 @@ set(SOURCES
     src/Application_Render.cpp
     src/Window.cpp
     src/ConfigManager.cpp
+    src/ConfigManager_Window.cpp
+    src/ConfigManager_Playlist.cpp
+    src/ConfigManager_Playback.cpp
+    src/ConfigManager_LogoMenu.cpp
+    src/ConfigManager_Visualizer.cpp
+    src/ConfigManager_System.cpp
     src/Renderer.cpp
     src/LayoutCalculator.cpp
     src/Visualizer.cpp

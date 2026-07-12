@@ -23,9 +23,9 @@
     - ビジュアライザ全般に関する実装を移行する。
 [x] タスク6: ConfigManager_System.cpp の作成
     - グローバルホットキー、OSDなどシステム連携に関する実装を移行する。
-[ ] タスク7: CMakeLists.txt の更新と ConfigManager.cpp の整理
+[x] タスク7: CMakeLists.txt の更新と ConfigManager.cpp の整理
     - 分割した6ファイルを `CMakeLists.txt` に追加し、元の `ConfigManager.cpp` には `DEFAULT_INI_CONTENT` とコアのファイルI/O処理のみを残してクリーンアップする。
-[ ] タスク8: PROJECT_ARCHITECTURE.md の更新
+[x] タスク8: PROJECT_ARCHITECTURE.md の更新
     - ConfigManager が実装対象別に7ファイルへ物理分割された旨と各ファイルの役割を追記する。
 
 ## 4. 詳細作業内容
@@ -74,14 +74,15 @@
     - ※ `CMakeLists.txt` への追加はタスク7で実施するため、本タスクでのビルド検証は保留。
 
 ### タスク7: CMakeLists.txt の更新と ConfigManager.cpp の整理
-    - （未実施）
+    - `CMakeLists.txt` の `SOURCES` に新設した6ファイル（`ConfigManager_Window.cpp`, `ConfigManager_Playlist.cpp`, `ConfigManager_Playback.cpp`, `ConfigManager_LogoMenu.cpp`, `ConfigManager_Visualizer.cpp`, `ConfigManager_System.cpp`）を追加した。
+    - `ConfigManager.cpp` から不要になったインクルード（`<algorithm>`）を削除し、クリーンアップを行った。`Initialize` 等の巨大な処理は指示通りそのまま残している。
 
 ### タスク8: PROJECT_ARCHITECTURE.md の更新
-    - （未実施）
+    - `PROJECT_ARCHITECTURE.md` の `ConfigManager` クラスの解説セクションに、AI-IDEの開発効率とコンテキスト節約を目的として実装対象別に7ファイルへ物理分割されている旨と、各ファイルの役割を追記した。
 
 ## 5. HOTFIX1
-### 原因・理由: 該当なし
-    - 
+### 原因・理由: AIの移行漏れと削除
+    - タスク分割の過程で誤って System 系および OSD 系の Setter メソッドが削除されてしまったため。
 
-### 対応: 該当なし
-    - 
+### 対応:
+    - `src/ConfigManager_System.cpp` に `SetShowHotkeys` および `SetEnableOSD` の実装を復元した。

@@ -1,5 +1,4 @@
 #include "ConfigManager.h"
-#include <algorithm>
 #include <ctime>
 #include <filesystem>
 #include <fstream>
