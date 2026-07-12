@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 constexpr const char *DEFAULT_INI_CONTENT = R"(; OZtone Default Configuration
 
@@ -152,20 +152,12 @@ EnableShadow=1
 ShadowOffsetX=2.0
 ShadowOffsetY=2.0
 ShadowOpacity=0.7
-TooltipText="🖱️↕"
-TooltipFontSize=20.0
-TooltipFontFamily="Segoe UI Emoji"
-TooltipOffsetY=-5.0
-TooltipWidth=65.0
-TooltipHeight=40.0
-TooltipBgColor=#A0000000
-TooltipBgOpacity=1.0
-TooltipTextColor=#FFFFFF
-
-[Audio]
-DefaultVolume=1.0
-ShuffleMode=1
-SkipSeconds=10.0
+TooltipIconSize=60
+TooltipOffsetY=-5
+TooltipBgColor=#000000
+TooltipBgOpacity=0.8
+TooltipWidth=64
+TooltipHeight=50
 
 [Visualizer]
 VisualizerMode=2

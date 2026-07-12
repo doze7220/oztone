@@ -24,22 +24,8 @@ void VolumeControlWidget::CreateResources(ID2D1DeviceContext *context,
     }
 
     context->CreateSolidColorBrush(ParseHexColor(config->GetVolumeTooltipBgColor()), &m_tooltipBgBrush);
-    context->CreateSolidColorBrush(ParseHexColor(config->GetVolumeTooltipTextColor()), &m_tooltipTextBrush);
-
-    dwriteFactory->CreateTextFormat(
-        config->GetVolumeTooltipFontFamily().c_str(), nullptr,
-        DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL, config->GetVolumeTooltipFontSize(), L"ja-jp",
-        &m_tooltipTextFormat);
-    if (m_tooltipTextFormat) {
-      m_tooltipTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-      m_tooltipTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-
-      std::wstring text = config->GetVolumeTooltipText();
-      dwriteFactory->CreateTextLayout(
-          text.c_str(), static_cast<UINT32>(text.length()), m_tooltipTextFormat.Get(),
-          config->GetVolumeTooltipWidth(), config->GetVolumeTooltipHeight(), &m_tooltipTextLayout);
-    }
+    context->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_tooltipIconBrush);
+    context->CreateSolidColorBrush(D2D1::ColorF(1.0f, 0.3f, 0.3f, 1.0f), &m_tooltipWheelBrush);
   }
 
   context->GetFactory(&m_d2dFactory);
@@ -60,6 +46,81 @@ void VolumeControlWidget::CreateResources(ID2D1DeviceContext *context,
       sink->AddLine(D2D1::Point2F(0.8f, 0.5f));
       sink->AddLine(D2D1::Point2F(0.4f, 0.2f));
       sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+      sink->Close();
+    }
+
+    m_d2dFactory->CreatePathGeometry(&m_tooltipStrokeGeometry);
+    if (m_tooltipStrokeGeometry) {
+      Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+      m_tooltipStrokeGeometry->Open(&sink);
+      
+      float mx = -0.13f; // Mouse center offset for centering the whole group
+      float rx = 0.15f, ry = 0.25f, r = 0.1f;
+      
+      // Mouse outline (rounded rect approximation)
+      sink->BeginFigure(D2D1::Point2F(mx-rx+r, -ry), D2D1_FIGURE_BEGIN_FILLED);
+      sink->AddLine(D2D1::Point2F(mx+rx-r, -ry));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(mx+rx, -ry+r), D2D1::SizeF(r, r), 0, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      sink->AddLine(D2D1::Point2F(mx+rx, ry-r));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(mx+rx-r, ry), D2D1::SizeF(r, r), 0, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      sink->AddLine(D2D1::Point2F(mx-rx+r, ry));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(mx-rx, ry-r), D2D1::SizeF(r, r), 0, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      sink->AddLine(D2D1::Point2F(mx-rx, -ry+r));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(mx-rx+r, -ry), D2D1::SizeF(r, r), 0, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+
+      // ┴ shape button divider
+      sink->BeginFigure(D2D1::Point2F(mx-rx, -0.05f), D2D1_FIGURE_BEGIN_HOLLOW);
+      sink->AddLine(D2D1::Point2F(mx+rx, -0.05f));
+      sink->EndFigure(D2D1_FIGURE_END_OPEN);
+      
+      sink->BeginFigure(D2D1::Point2F(mx, -ry), D2D1_FIGURE_BEGIN_HOLLOW);
+      sink->AddLine(D2D1::Point2F(mx, -0.05f));
+      sink->EndFigure(D2D1_FIGURE_END_OPEN);
+
+      sink->Close();
+    }
+
+    m_d2dFactory->CreatePathGeometry(&m_tooltipFillGeometry);
+    if (m_tooltipFillGeometry) {
+      Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+      m_tooltipFillGeometry->Open(&sink);
+      sink->SetFillMode(D2D1_FILL_MODE_WINDING);
+      
+      float ax = 0.20f; // Arrow center X
+      float aw = 0.08f; // Arrow half width
+
+      // Up arrow
+      sink->BeginFigure(D2D1::Point2F(ax-aw, -0.05f), D2D1_FIGURE_BEGIN_FILLED);
+      sink->AddLine(D2D1::Point2F(ax, -0.25f));
+      sink->AddLine(D2D1::Point2F(ax+aw, -0.05f));
+      sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+      
+      // Down arrow
+      sink->BeginFigure(D2D1::Point2F(ax-aw, 0.05f), D2D1_FIGURE_BEGIN_FILLED);
+      sink->AddLine(D2D1::Point2F(ax, 0.25f));
+      sink->AddLine(D2D1::Point2F(ax+aw, 0.05f));
+      sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+      
+      sink->Close();
+    }
+
+    m_d2dFactory->CreatePathGeometry(&m_tooltipWheelGeometry);
+    if (m_tooltipWheelGeometry) {
+      Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+      m_tooltipWheelGeometry->Open(&sink);
+      sink->SetFillMode(D2D1_FILL_MODE_WINDING);
+      
+      float mx = -0.13f; // Mouse center X
+      float wx = 0.03f;  // Wheel half width
+
+      // Wheel (Red rect)
+      sink->BeginFigure(D2D1::Point2F(mx-wx, -0.20f), D2D1_FIGURE_BEGIN_FILLED);
+      sink->AddLine(D2D1::Point2F(mx+wx, -0.20f));
+      sink->AddLine(D2D1::Point2F(mx+wx, -0.08f));
+      sink->AddLine(D2D1::Point2F(mx-wx, -0.08f));
+      sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+      
       sink->Close();
     }
 
@@ -103,9 +164,11 @@ void VolumeControlWidget::ReleaseResources() {
   m_dwriteFactory.Reset();
 
   m_tooltipBgBrush.Reset();
-  m_tooltipTextBrush.Reset();
-  m_tooltipTextFormat.Reset();
-  m_tooltipTextLayout.Reset();
+  m_tooltipIconBrush.Reset();
+  m_tooltipWheelBrush.Reset();
+  m_tooltipStrokeGeometry.Reset();
+  m_tooltipFillGeometry.Reset();
+  m_tooltipWheelGeometry.Reset();
   m_tooltipGeometry.Reset();
   m_d2dFactory.Reset();
 }
@@ -231,17 +294,29 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
                               m_volTextLayout.Get(), m_controlBrush.Get());
     }
 
-    if (m_tooltipAlpha > 0.0f && m_tooltipGeometry && m_tooltipTextLayout) {
+    if (m_tooltipAlpha > 0.0f && m_tooltipGeometry && m_tooltipStrokeGeometry) {
       float tooltipAlphaFinal = m_tooltipAlpha * finalAlpha;
       if (m_tooltipBgBrush) {
         m_tooltipBgBrush->SetOpacity(tooltipAlphaFinal * config->GetVolumeTooltipBgOpacity());
         context->SetTransform(D2D1::Matrix3x2F::Translation(layout.tooltipBoxX, layout.tooltipBoxY) * oldTransform);
         context->FillGeometry(m_tooltipGeometry.Get(), m_tooltipBgBrush.Get());
       }
-      if (m_tooltipTextBrush) {
-        m_tooltipTextBrush->SetOpacity(tooltipAlphaFinal);
-        context->SetTransform(oldTransform);
-        context->DrawTextLayout(D2D1::Point2F(layout.tooltipTextX, layout.tooltipTextY), m_tooltipTextLayout.Get(), m_tooltipTextBrush.Get());
+      
+      float iconSize = config->GetVolumeTooltipIconSize();
+      float cx = layout.tooltipBoxX + layout.tooltipBoxW / 2.0f;
+      float cy = layout.tooltipBoxY + layout.tooltipBoxH / 2.0f;
+      context->SetTransform(D2D1::Matrix3x2F::Scale(iconSize, iconSize) * D2D1::Matrix3x2F::Translation(cx, cy) * oldTransform);
+
+      if (m_tooltipIconBrush) {
+        m_tooltipIconBrush->SetOpacity(tooltipAlphaFinal);
+        context->DrawGeometry(m_tooltipStrokeGeometry.Get(), m_tooltipIconBrush.Get(), 1.5f / iconSize);
+        if (m_tooltipFillGeometry) {
+          context->FillGeometry(m_tooltipFillGeometry.Get(), m_tooltipIconBrush.Get());
+        }
+      }
+      if (m_tooltipWheelBrush && m_tooltipWheelGeometry) {
+        m_tooltipWheelBrush->SetOpacity(tooltipAlphaFinal);
+        context->FillGeometry(m_tooltipWheelGeometry.Get(), m_tooltipWheelBrush.Get());
       }
     }
   }

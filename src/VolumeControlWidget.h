@@ -25,9 +25,11 @@ private:
     Microsoft::WRL::ComPtr<ID2D1Factory> m_d2dFactory;
 
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_tooltipBgBrush;
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_tooltipTextBrush;
-    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_tooltipTextFormat;
-    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_tooltipTextLayout;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_tooltipIconBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_tooltipWheelBrush;
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_tooltipStrokeGeometry;
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_tooltipFillGeometry;
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_tooltipWheelGeometry;
     Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_tooltipGeometry;
     float m_tooltipAlpha = 0.0f;
 };

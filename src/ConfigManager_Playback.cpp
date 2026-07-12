@@ -49,13 +49,10 @@ void ConfigManager::LoadPlaybackSettings() {
   m_volShadowOffsetX = LoadOrWriteFloat(L"Layout_VolumeControl", L"ShadowOffsetX", 2.0f);
   m_volShadowOffsetY = LoadOrWriteFloat(L"Layout_VolumeControl", L"ShadowOffsetY", 2.0f);
   m_volShadowOpacity = LoadOrWriteFloat(L"Layout_VolumeControl", L"ShadowOpacity", 0.7f);
-  m_volTooltipText = LoadOrWriteString(L"Layout_VolumeControl", L"TooltipText", L"🖱️↕");
-  m_volTooltipFontSize = LoadOrWriteFloat(L"Layout_VolumeControl", L"TooltipFontSize", 20.0f);
-  m_volTooltipFontFamily = LoadOrWriteString(L"Layout_VolumeControl", L"TooltipFontFamily", L"Segoe UI Emoji");
+  m_volTooltipIconSize = LoadOrWriteFloat(L"Layout_VolumeControl", L"TooltipIconSize", 24.0f);
   m_volTooltipOffsetY = LoadOrWriteFloat(L"Layout_VolumeControl", L"TooltipOffsetY", -5.0f);
   m_volTooltipBgColor = LoadOrWriteString(L"Layout_VolumeControl", L"TooltipBgColor", L"#A0000000");
   m_volTooltipBgOpacity = LoadOrWriteFloat(L"Layout_VolumeControl", L"TooltipBgOpacity", 1.0f);
-  m_volTooltipTextColor = LoadOrWriteString(L"Layout_VolumeControl", L"TooltipTextColor", L"#FFFFFF");
   m_volTooltipWidth = LoadOrWriteFloat(L"Layout_VolumeControl", L"TooltipWidth", 65.0f);
   m_volTooltipHeight = LoadOrWriteFloat(L"Layout_VolumeControl", L"TooltipHeight", 40.0f);
 
