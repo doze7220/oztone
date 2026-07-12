@@ -23,6 +23,7 @@ FetchContent_MakeAvailable(taglib)
 set(SOURCES
     src/main.cpp
     src/Application.cpp
+    src/Application_Initialize.cpp
     src/Window.cpp
     src/ConfigManager.cpp
     src/Renderer.cpp
