@@ -105,6 +105,10 @@ private:
      */
     void OnFilesDropped(const std::vector<std::wstring>& paths);
 
+    void OnPlaylistClicked(int x, int y);
+    void OnPlaylistDoubleClicked(int x, int y);
+    void OnPlaylistToolbarClicked(int btnIndex);
+
     ConfigManager m_config;
     Window m_window;
     Renderer m_renderer;

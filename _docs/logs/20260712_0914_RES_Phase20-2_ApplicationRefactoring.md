@@ -21,7 +21,7 @@
     - `Application.h` に `bool PlayCurrentTrack();` を宣言する。
     - `Application.cpp` に `PlayCurrentTrack` の実装を追加し、各所（`Initialize`, `OnFilesDropped`, `HandleMediaCommand`, `Run`, `SwitchPlaylist`等）の重複処理をこのメソッド呼び出しに置き換える。
 
-[ ] タスク2: 巨大ラムダ式のメンバ関数化
+[x] タスク2: 巨大ラムダ式のメンバ関数化
     - `Application.h` に `OnPlaylistClicked`, `OnPlaylistToolbarClicked` などの必要なコールバック用メンバ関数を宣言する。
     - コールバック処理の実体をメンバ関数として実装し、元のラムダ式内から呼び出すように修正する。
 
@@ -42,7 +42,9 @@
     - `Application.cpp` 内で `HandleMediaCommand`, `Initialize` (2箇所), `OnFilesDropped`, `Run`, `SwitchPlaylist` の計6箇所に点在していた再生開始ブロックを `if (PlayCurrentTrack())` の判定に置き換え、元のスキップ制御（フェイルセーフ機構）を維持しつつ重複を排除。
 
 ### タスク2: 巨大ラムダ式のメンバ関数化
-    - (未実施)
+    - `Application.h` の private セクションに `OnPlaylistClicked`, `OnPlaylistDoubleClicked`, `OnPlaylistToolbarClicked` の3つのメンバ関数を追加。
+    - `Application.cpp` の `Initialize` 内にベタ書きされていた巨大なラムダ式（`SetPlaylistClickCallback`, `SetPlaylistDoubleClickCallback`, `SetPlaylistToolbarClickCallback` に渡されていたもの）の中身を抽出し、先ほど追加したメンバ関数内に実装を移動。
+    - 元のコールバック登録箇所は `[this](int x, int y) { this->OnPlaylistClicked(x, y); }` のように、抽出した関数を呼び出すだけのシンプルなラムダ式に置き換え、`Initialize` の見通しを改善した。
 
 ### タスク3: `SetupCallbacks` の新設と `Initialize` の分割
     - (未実施)

@@ -345,267 +345,15 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
   });
 
   m_window.SetPlaylistToolbarClickCallback([this](int btnIndex) {
-    if (m_isPlaylistListViewMode) {
-      if (btnIndex == 1) { // ➕ (新規作成)
-        m_renderer.TriggerFlyText(L"NEW PLAYLIST CREATED");
-        this->CreateNewPlaylist();
-        m_isPlaylistListViewMode = false;
-      } else if (btnIndex == 2) { // 🗑️ (リスト削除)
-        m_renderer.TriggerFlyText(L"PLAYLIST DELETED");
-        if (m_focusedPlaylistIndex.has_value()) {
-          std::vector<std::wstring> available =
-              m_config.GetAvailablePlaylists();
-          if (m_focusedPlaylistIndex.value() < available.size()) {
-            std::wstring targetPath = available[m_focusedPlaylistIndex.value()];
-            if (std::filesystem::exists(targetPath)) {
-              std::error_code ec;
-              std::filesystem::remove(targetPath, ec);
-            }
-
-            UpdatePlaylistSummaries();
-
-            if (targetPath == m_config.GetDefaultPlaylistPath()) {
-              std::vector<std::wstring> newAvailable =
-                  m_config.GetAvailablePlaylists();
-              if (!newAvailable.empty()) {
-                this->SwitchPlaylist(newAvailable[0]);
-              } else {
-                this->CreateNewPlaylist();
-              }
-              m_isPlaylistListViewMode = false;
-            }
-          }
-        }
-      }
-    } else {
-      if (btnIndex == 0) { // 📁 (上の階層へ)
-        m_isPlaylistListViewMode = true;
-      } else if (btnIndex == 1) { // ➖ (曲削除)
-        m_renderer.TriggerFlyText(L"TRACK REMOVED");
-        if (!m_playlistManager.IsEmpty()) {
-          m_playlistManager.RemoveCurrentTrack();
-          m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
-          UpdatePlaylistSummaries();
-
-          m_audioPlayer.Stop();
-          if (!m_playlistManager.IsEmpty()) {
-            std::wstring track = m_playlistManager.GetCurrentTrack();
-            if (m_tagManager.Load(track)) {
-              std::wstring title = m_tagManager.GetTitle();
-              std::wstring artist = m_tagManager.GetArtist();
-              if (title.empty())
-                title = std::filesystem::path(track).filename().wstring();
-              if (artist.empty())
-                artist = L"---";
-              m_renderer.SetTrackInfo(title, artist);
-
-              const auto &artBytes = m_tagManager.GetAlbumArtBytes();
-              if (!artBytes.empty()) {
-                Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-                if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
-                  m_renderer.SetAlbumArt(artBitmap.Get());
-                } else {
-                  m_renderer.SetAlbumArt(nullptr);
-                }
-              } else {
-                m_renderer.SetAlbumArt(nullptr);
-              }
-            } else {
-              std::wstring title;
-              try {
-                title = std::filesystem::path(track).filename().wstring();
-              } catch (...) {
-                title = L"UNKNOWN";
-              }
-              m_renderer.SetTrackInfo(title, L"---");
-              m_renderer.SetAlbumArt(nullptr);
-            }
-
-            float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
-      m_framingDb.GetFraming(track, artX, artY, artScale);
-      m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      PlayCurrentTrack();
-          } else {
-            m_renderer.SetTrackInfo(L"NO TRACK", L"---");
-            m_renderer.SetAlbumArt(nullptr);
-            m_isPrefetchReady.store(false);
-          }
-        }
-      } else if (btnIndex == 2) { // 🗑️ (全曲削除)
-        m_renderer.TriggerFlyText(L"PLAYLIST CLEARED");
-        this->ClearPlaylist();
-      }
-    }
+    this->OnPlaylistToolbarClicked(btnIndex);
   });
 
   m_window.SetPlaylistClickCallback([this](int x, int y) {
-    HWND hwnd = m_window.GetHandle();
-    UINT dpi = GetDpiForWindow(hwnd);
-    float logicalY = static_cast<float>(y) / (static_cast<float>(dpi) / 96.0f);
-
-    RECT rect;
-    GetClientRect(hwnd, &rect);
-    float logicalWidth = static_cast<float>(rect.right - rect.left) /
-                         (static_cast<float>(dpi) / 96.0f);
-    float logicalHeight = static_cast<float>(rect.bottom - rect.top) /
-                          (static_cast<float>(dpi) / 96.0f);
-
-    float toolbarHeight = m_config.GetPlaylistToolbarHeight();
-    if (logicalY < toolbarHeight) {
-      // ツールバー領域へのクリックはWindow.cpp(WM_LBUTTONDOWN)から
-      // SetPlaylistToolbarClickCallbackを通じて飛んでくるためここでは無視する。
-      return;
-    }
-
-    if (m_isPlaylistListViewMode) {
-      std::vector<std::wstring> playlists = m_config.GetAvailablePlaylists();
-      int totalPlaylists = static_cast<int>(playlists.size());
-      if (totalPlaylists == 0)
-        return;
-
-      std::wstring currentPlaylist = m_config.GetDefaultPlaylistPath();
-      int currentIndex = 0;
-      for (int i = 0; i < totalPlaylists; ++i) {
-        if (playlists[i] == currentPlaylist) {
-          currentIndex = i;
-          break;
-        }
-      }
-
-      PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
-          logicalWidth, logicalHeight, &m_config, 0.0f,
-          m_renderer.GetPlaylistManualScrollY(), currentIndex, totalPlaylists);
-      int index = LayoutCalculator::GetPlaylistItemIndexAt(logicalY, layout,
-                                                           totalPlaylists);
-
-      if (index >= 0) {
-        m_focusedPlaylistIndex = index;
-      }
-      return;
-    }
-
-    int totalTracks = static_cast<int>(m_playlistManager.GetCount());
-    if (totalTracks == 0)
-      return;
-
-    int currentTrackIndex =
-        static_cast<int>(m_playlistManager.GetCurrentIndex());
-
-    PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
-        logicalWidth, logicalHeight, &m_config, 0.0f,
-        m_renderer.GetPlaylistManualScrollY(), currentTrackIndex, totalTracks);
-    int index =
-        LayoutCalculator::GetPlaylistItemIndexAt(logicalY, layout, totalTracks);
-
-    if (index >= 0) {
-      m_focusedPlaylistIndex = index;
-
-      if (!m_playlistManager.IsEmpty()) {
-        m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
-        if (!m_framingDbPath.empty()) {
-          m_framingDb.SaveToFile(m_framingDbPath);
-        }
-      }
-      int oldIndex = static_cast<int>(m_playlistManager.GetCurrentIndex());
-      m_playlistManager.JumpToIndex(index);
-
-      float itemHeight = static_cast<float>(m_config.GetPlaylistItemOffsetY());
-      float offsetCorrection =
-          static_cast<float>(index - oldIndex) * itemHeight;
-      m_renderer.AddPlaylistScroll(offsetCorrection);
-
-      m_audioPlayer.Stop();
-
-      auto list = m_playlistManager.GetShuffleList();
-      if (index < list.size()) {
-        std::wstring track = list[index];
-
-        if (m_tagManager.Load(track)) {
-          std::wstring title = m_tagManager.GetTitle();
-          std::wstring artist = m_tagManager.GetArtist();
-          if (title.empty())
-            title = std::filesystem::path(track).filename().wstring();
-          if (artist.empty())
-            artist = L"---";
-          m_renderer.SetTrackInfo(title, artist);
-
-          const auto &artBytes = m_tagManager.GetAlbumArtBytes();
-          if (!artBytes.empty()) {
-            Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-            if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
-              m_renderer.SetAlbumArt(artBitmap.Get());
-            } else {
-              m_renderer.SetAlbumArt(nullptr);
-            }
-          } else {
-            m_renderer.SetAlbumArt(nullptr);
-          }
-        } else {
-          std::wstring title;
-          try {
-            title = std::filesystem::path(track).filename().wstring();
-          } catch (...) {
-            title = L"UNKNOWN";
-          }
-          m_renderer.SetTrackInfo(title, L"---");
-          m_renderer.SetAlbumArt(nullptr);
-        }
-
-        float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
-      m_framingDb.GetFraming(track, artX, artY, artScale);
-      m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (!PlayCurrentTrack()) {
-          m_renderer.SetTrackInfo(L"NO TRACK", L"---");
-          m_renderer.SetAlbumArt(nullptr);
-        }
-      }
-    }
+    this->OnPlaylistClicked(x, y);
   });
 
   m_window.SetPlaylistDoubleClickCallback([this](int x, int y) {
-    HWND hwnd = m_window.GetHandle();
-    UINT dpi = GetDpiForWindow(hwnd);
-    float logicalY = static_cast<float>(y) / (static_cast<float>(dpi) / 96.0f);
-
-    RECT rect;
-    GetClientRect(hwnd, &rect);
-    float logicalWidth = static_cast<float>(rect.right - rect.left) /
-                         (static_cast<float>(dpi) / 96.0f);
-    float logicalHeight = static_cast<float>(rect.bottom - rect.top) /
-                          (static_cast<float>(dpi) / 96.0f);
-
-    float toolbarHeight = m_config.GetPlaylistToolbarHeight();
-    if (logicalY < toolbarHeight) {
-      return;
-    }
-
-    if (m_isPlaylistListViewMode) {
-      std::vector<std::wstring> playlists = m_config.GetAvailablePlaylists();
-      int totalPlaylists = static_cast<int>(playlists.size());
-      if (totalPlaylists == 0)
-        return;
-
-      std::wstring currentPlaylist = m_config.GetDefaultPlaylistPath();
-      int currentIndex = 0;
-      for (int i = 0; i < totalPlaylists; ++i) {
-        if (playlists[i] == currentPlaylist) {
-          currentIndex = i;
-          break;
-        }
-      }
-
-      PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
-          logicalWidth, logicalHeight, &m_config, 0.0f,
-          m_renderer.GetPlaylistManualScrollY(), currentIndex, totalPlaylists);
-      int index = LayoutCalculator::GetPlaylistItemIndexAt(logicalY, layout,
-                                                           totalPlaylists);
-
-      if (index >= 0) {
-        this->SwitchPlaylist(playlists[index]);
-        m_isPlaylistListViewMode = false;
-      }
-      return;
-    }
+    this->OnPlaylistDoubleClicked(x, y);
   });
 
   if (!m_renderer.Initialize(m_window.GetHandle(), m_config)) {
@@ -748,6 +496,270 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
   UpdatePlaylistSummaries();
 
   return true;
+}
+
+void Application::OnPlaylistToolbarClicked(int btnIndex) {
+  if (m_isPlaylistListViewMode) {
+    if (btnIndex == 1) { // ➕ (新規作成)
+      m_renderer.TriggerFlyText(L"NEW PLAYLIST CREATED");
+      this->CreateNewPlaylist();
+      m_isPlaylistListViewMode = false;
+    } else if (btnIndex == 2) { // 🗑️ (リスト削除)
+      m_renderer.TriggerFlyText(L"PLAYLIST DELETED");
+      if (m_focusedPlaylistIndex.has_value()) {
+        std::vector<std::wstring> available =
+            m_config.GetAvailablePlaylists();
+        if (m_focusedPlaylistIndex.value() < available.size()) {
+          std::wstring targetPath = available[m_focusedPlaylistIndex.value()];
+          if (std::filesystem::exists(targetPath)) {
+            std::error_code ec;
+            std::filesystem::remove(targetPath, ec);
+          }
+
+          UpdatePlaylistSummaries();
+
+          if (targetPath == m_config.GetDefaultPlaylistPath()) {
+            std::vector<std::wstring> newAvailable =
+                m_config.GetAvailablePlaylists();
+            if (!newAvailable.empty()) {
+              this->SwitchPlaylist(newAvailable[0]);
+            } else {
+              this->CreateNewPlaylist();
+            }
+            m_isPlaylistListViewMode = false;
+          }
+        }
+      }
+    }
+  } else {
+    if (btnIndex == 0) { // 📁 (上の階層へ)
+      m_isPlaylistListViewMode = true;
+    } else if (btnIndex == 1) { // ➖ (曲削除)
+      m_renderer.TriggerFlyText(L"TRACK REMOVED");
+      if (!m_playlistManager.IsEmpty()) {
+        m_playlistManager.RemoveCurrentTrack();
+        m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
+        UpdatePlaylistSummaries();
+
+        m_audioPlayer.Stop();
+        if (!m_playlistManager.IsEmpty()) {
+          std::wstring track = m_playlistManager.GetCurrentTrack();
+          if (m_tagManager.Load(track)) {
+            std::wstring title = m_tagManager.GetTitle();
+            std::wstring artist = m_tagManager.GetArtist();
+            if (title.empty())
+              title = std::filesystem::path(track).filename().wstring();
+            if (artist.empty())
+              artist = L"---";
+            m_renderer.SetTrackInfo(title, artist);
+
+            const auto &artBytes = m_tagManager.GetAlbumArtBytes();
+            if (!artBytes.empty()) {
+              Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+              if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
+                m_renderer.SetAlbumArt(artBitmap.Get());
+              } else {
+                m_renderer.SetAlbumArt(nullptr);
+              }
+            } else {
+              m_renderer.SetAlbumArt(nullptr);
+            }
+          } else {
+            std::wstring title;
+            try {
+              title = std::filesystem::path(track).filename().wstring();
+            } catch (...) {
+              title = L"UNKNOWN";
+            }
+            m_renderer.SetTrackInfo(title, L"---");
+            m_renderer.SetAlbumArt(nullptr);
+          }
+
+          float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
+          m_framingDb.GetFraming(track, artX, artY, artScale);
+          m_renderer.SetBackgroundFraming(artX, artY, artScale);
+          PlayCurrentTrack();
+        } else {
+          m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+          m_renderer.SetAlbumArt(nullptr);
+          m_isPrefetchReady.store(false);
+        }
+      }
+    } else if (btnIndex == 2) { // 🗑️ (全曲削除)
+      m_renderer.TriggerFlyText(L"PLAYLIST CLEARED");
+      this->ClearPlaylist();
+    }
+  }
+}
+
+void Application::OnPlaylistClicked(int x, int y) {
+  HWND hwnd = m_window.GetHandle();
+  UINT dpi = GetDpiForWindow(hwnd);
+  float logicalY = static_cast<float>(y) / (static_cast<float>(dpi) / 96.0f);
+
+  RECT rect;
+  GetClientRect(hwnd, &rect);
+  float logicalWidth = static_cast<float>(rect.right - rect.left) /
+                       (static_cast<float>(dpi) / 96.0f);
+  float logicalHeight = static_cast<float>(rect.bottom - rect.top) /
+                        (static_cast<float>(dpi) / 96.0f);
+
+  float toolbarHeight = m_config.GetPlaylistToolbarHeight();
+  if (logicalY < toolbarHeight) {
+    // ツールバー領域へのクリックはWindow.cpp(WM_LBUTTONDOWN)から
+    // SetPlaylistToolbarClickCallbackを通じて飛んでくるためここでは無視する。
+    return;
+  }
+
+  if (m_isPlaylistListViewMode) {
+    std::vector<std::wstring> playlists = m_config.GetAvailablePlaylists();
+    int totalPlaylists = static_cast<int>(playlists.size());
+    if (totalPlaylists == 0)
+      return;
+
+    std::wstring currentPlaylist = m_config.GetDefaultPlaylistPath();
+    int currentIndex = 0;
+    for (int i = 0; i < totalPlaylists; ++i) {
+      if (playlists[i] == currentPlaylist) {
+        currentIndex = i;
+        break;
+      }
+    }
+
+    PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
+        logicalWidth, logicalHeight, &m_config, 0.0f,
+        m_renderer.GetPlaylistManualScrollY(), currentIndex, totalPlaylists);
+    int index = LayoutCalculator::GetPlaylistItemIndexAt(logicalY, layout,
+                                                         totalPlaylists);
+
+    if (index >= 0) {
+      m_focusedPlaylistIndex = index;
+    }
+    return;
+  }
+
+  int totalTracks = static_cast<int>(m_playlistManager.GetCount());
+  if (totalTracks == 0)
+    return;
+
+  int currentTrackIndex =
+      static_cast<int>(m_playlistManager.GetCurrentIndex());
+
+  PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
+      logicalWidth, logicalHeight, &m_config, 0.0f,
+      m_renderer.GetPlaylistManualScrollY(), currentTrackIndex, totalTracks);
+  int index =
+      LayoutCalculator::GetPlaylistItemIndexAt(logicalY, layout, totalTracks);
+
+  if (index >= 0) {
+    m_focusedPlaylistIndex = index;
+
+    if (!m_playlistManager.IsEmpty()) {
+      m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
+      if (!m_framingDbPath.empty()) {
+        m_framingDb.SaveToFile(m_framingDbPath);
+      }
+    }
+    int oldIndex = static_cast<int>(m_playlistManager.GetCurrentIndex());
+    m_playlistManager.JumpToIndex(index);
+
+    float itemHeight = static_cast<float>(m_config.GetPlaylistItemOffsetY());
+    float offsetCorrection =
+        static_cast<float>(index - oldIndex) * itemHeight;
+    m_renderer.AddPlaylistScroll(offsetCorrection);
+
+    m_audioPlayer.Stop();
+
+    auto list = m_playlistManager.GetShuffleList();
+    if (index < list.size()) {
+      std::wstring track = list[index];
+
+      if (m_tagManager.Load(track)) {
+        std::wstring title = m_tagManager.GetTitle();
+        std::wstring artist = m_tagManager.GetArtist();
+        if (title.empty())
+          title = std::filesystem::path(track).filename().wstring();
+        if (artist.empty())
+          artist = L"---";
+        m_renderer.SetTrackInfo(title, artist);
+
+        const auto &artBytes = m_tagManager.GetAlbumArtBytes();
+        if (!artBytes.empty()) {
+          Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+          if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
+            m_renderer.SetAlbumArt(artBitmap.Get());
+          } else {
+            m_renderer.SetAlbumArt(nullptr);
+          }
+        } else {
+          m_renderer.SetAlbumArt(nullptr);
+        }
+      } else {
+        std::wstring title;
+        try {
+          title = std::filesystem::path(track).filename().wstring();
+        } catch (...) {
+          title = L"UNKNOWN";
+        }
+        m_renderer.SetTrackInfo(title, L"---");
+        m_renderer.SetAlbumArt(nullptr);
+      }
+
+      float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
+      m_framingDb.GetFraming(track, artX, artY, artScale);
+      m_renderer.SetBackgroundFraming(artX, artY, artScale);
+      if (!PlayCurrentTrack()) {
+        m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+        m_renderer.SetAlbumArt(nullptr);
+      }
+    }
+  }
+}
+
+void Application::OnPlaylistDoubleClicked(int x, int y) {
+  HWND hwnd = m_window.GetHandle();
+  UINT dpi = GetDpiForWindow(hwnd);
+  float logicalY = static_cast<float>(y) / (static_cast<float>(dpi) / 96.0f);
+
+  RECT rect;
+  GetClientRect(hwnd, &rect);
+  float logicalWidth = static_cast<float>(rect.right - rect.left) /
+                       (static_cast<float>(dpi) / 96.0f);
+  float logicalHeight = static_cast<float>(rect.bottom - rect.top) /
+                        (static_cast<float>(dpi) / 96.0f);
+
+  float toolbarHeight = m_config.GetPlaylistToolbarHeight();
+  if (logicalY < toolbarHeight) {
+    return;
+  }
+
+  if (m_isPlaylistListViewMode) {
+    std::vector<std::wstring> playlists = m_config.GetAvailablePlaylists();
+    int totalPlaylists = static_cast<int>(playlists.size());
+    if (totalPlaylists == 0)
+      return;
+
+    std::wstring currentPlaylist = m_config.GetDefaultPlaylistPath();
+    int currentIndex = 0;
+    for (int i = 0; i < totalPlaylists; ++i) {
+      if (playlists[i] == currentPlaylist) {
+        currentIndex = i;
+        break;
+      }
+    }
+
+    PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(
+        logicalWidth, logicalHeight, &m_config, 0.0f,
+        m_renderer.GetPlaylistManualScrollY(), currentIndex, totalPlaylists);
+    int index = LayoutCalculator::GetPlaylistItemIndexAt(logicalY, layout,
+                                                         totalPlaylists);
+
+    if (index >= 0) {
+      this->SwitchPlaylist(playlists[index]);
+      m_isPlaylistListViewMode = false;
+    }
+    return;
+  }
 }
 
 void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {

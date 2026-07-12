@@ -76,3 +76,72 @@
 引き続き、純粋なリファクタリングとしてタスク1の実装をよろしくお願いいたします！
 
 -----------------------------------------------------------------------------
+
+##### 作業指示書 REQ: Phase 20-2 Task 2: 巨大ラムダ式のメンバ関数化 (実装実行)
+以下のプロジェクトルールと開発資料、実装計画兼実装レポートを熟読すること。
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\order\20260712_0913_REQ_Phase20-2_ApplicationRefactoring.md
+
+###### 【作業手順（厳守事項）】
+1. 本プロンプトはリファクタリングの「実装実行」である。直ちに以下の【実装要件】に従ってコードの修正を実行すること。
+2. 作業完了後、既存の作業レポート（D:\ozlab\oztone\_docs\logs\20260712_0914_RES_Phase20-2_ApplicationRefactoring.md）の「タスク2」のチェックボックスを完了 `[x]` にし、詳細作業内容を追記すること。
+3. チャットにて「タスク2の実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+---
+
+###### 【実装要件】
+`Application::Initialize` などの中でベタ書きされている巨大なラムダ式（コールバック処理）を、独立したメンバ関数へと抽出して `Application.cpp` の可読性を高める。
+※純粋なリファクタリングであるため、機能変更は絶対に行わないこと。
+
+*   **1. `Application.h` の修正**
+    *   private セクションに以下のコールバック用メンバ関数を宣言する。（引数は既存のラムダ式が受け取っているものと一致させること）
+        *   `void OnPlaylistClicked(int logicalY);` （引数名や型は現状の実装に合わせる）
+        *   `void OnPlaylistDoubleClicked(int logicalY);` （ダブルクリック用）
+        *   `void OnPlaylistToolbarClicked(int buttonIndex);`
+*   **2. `Application.cpp` の修正 (メンバ関数の実装と置き換え)**
+    *   `Application::Initialize` の中で `m_window.SetPlaylistClickCallback`, `m_window.SetPlaylistDoubleClickCallback`, `m_window.SetPlaylistToolbarClickCallback` に渡している巨大なラムダ式の中身を、それぞれ新設したメンバ関数内に移動して実装する。
+    *   元のコールバック登録箇所は、抽出した関数を呼び出すだけの極めてシンプルなラムダ式へと置き換える。
+        *   例: `m_window.SetPlaylistToolbarClickCallback([this](int index) { this->OnPlaylistToolbarClicked(index); });`
+
+
+-----------------------------------------------------------------------------
+
+
+##### 作業指示書 REQ: Phase 20-2 Task 3: Initializeメソッドの分割 (実装実行)
+以下のプロジェクトルールと開発資料、実装計画兼実装レポートを熟読すること。
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\order\20260712_0913_REQ_Phase20-2_ApplicationRefactoring.md
+
+###### 【作業手順（厳守事項）】
+1. 本プロンプトはリファクタリングの「実装実行」である。直ちに以下の【実装要件】に従ってコードの修正を実行すること。
+2. 作業完了後、既存の作業レポート（D:\ozlab\oztone\_docs\logs\20260712_0914_RES_Phase20-2_ApplicationRefactoring.md）の「タスク3」のチェックボックスを完了 `[x]` にし、詳細作業内容を追記すること。
+3. チャットにて「タスク3の実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+---
+
+###### 【実装要件】
+現在、`Application::Initialize` の中に大量に記述されている「各種コールバックの登録処理」を専用のメソッドへ抽出し、`Initialize` の見通しを劇的に改善する。
+※純粋なリファクタリングであるため、機能変更や登録順序の変更は絶対に行わないこと。
+
+*   **1. `Application.h` の修正**
+    *   private セクションに `void SetupCallbacks();` を追加する。
+*   **2. `Application.cpp` の修正 (`SetupCallbacks` の実装と置き換え)**
+    *   `Application::SetupCallbacks()` を実装し、現在 `Initialize` 内に記述されている以下の登録処理（およびそれらに付随するラムダ式）をすべて移動する。
+        *   `m_window.SetMediaCommandCallback`
+        *   `m_window.SetGlobalHotkeyCallback`
+        *   `m_window.SetVolumeScrollCallback` / `SetVolumeSetCallback`
+        *   `m_window.SetPlaylistScrollCallback` / `SetPlaylistClickCallback` / `SetPlaylistDoubleClickCallback` / `SetPlaylistToolbarClickCallback`
+        *   `m_window.SetCopyDataCallback`
+        *   `m_window.SetOnResizeCallback`
+        *   `m_window.SetFramingMoveCallback` / `SetFramingResetCallback`
+        *   `m_window.SetBackgroundClickCallback`
+        *   `m_window.SetResetAllCallback`
+        *   その他、`m_window` に対してコールバックを登録しているすべての処理。
+    *   `Initialize` メソッド内において、上記を切り取った跡地に `SetupCallbacks();` の呼び出しを1行だけ追加する。
+
+
+-----------------------------------------------------------------------------
+
+
