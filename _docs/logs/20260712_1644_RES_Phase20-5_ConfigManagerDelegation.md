@@ -20,7 +20,7 @@ Phase 20-4 で物理分割した6つのファイル（Window, Playlist, Playback
     - オートフィルヘルパー関数群の実装と、サブメソッドのプロトタイプ宣言。
 [x] タスク2: Window設定の委譲
     - `ConfigManager_Window.cpp` に `LoadWindowSettings` を実装し、大元から処理を移行・リファクタリングする。
-[ ] タスク3: Playlist設定の委譲
+[x] タスク3: Playlist設定の委譲
     - `ConfigManager_Playlist.cpp` に `LoadPlaylistSettings` を実装し、大元から処理を移行・リファクタリングする。
 [ ] タスク4: Playback設定の委譲
     - `ConfigManager_Playback.cpp` に `LoadPlaybackSettings` を実装し、大元から処理を移行・リファクタリングする。
@@ -41,7 +41,9 @@ Phase 20-4 で物理分割した6つのファイル（Window, Playlist, Playback
     - `ConfigManager_Window.cpp` に `ConfigManager::LoadWindowSettings()` を実装。
     - `ConfigManager.cpp` の `LoadSettings()` と `ResetToDefaults()` から Window 関連のロジックを削除・移行し、ヘルパー関数を用いたオートフィル化を適用。
 ### タスク3: Playlist設定の委譲
-    - (未実施)
+    - `ConfigManager_Playlist.cpp` に `ConfigManager::LoadPlaylistSettings()` を実装。
+    - `ConfigManager.cpp` の `LoadSettings()` から Playlist設定の読み込みを削除し、`LoadPlaylistSettings()` に委譲。オートフィルを適用。
+    - `ResetToDefaults()` から Playlist 関連の変数の初期化を削除。
 ### タスク4: Playback設定の委譲
     - (未実施)
 ### タスク5: LogoMenu設定の委譲
