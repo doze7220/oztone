@@ -71,6 +71,13 @@ oztone/
 
 #### `Application` クラス (src/Application.h, cpp)
 アプリケーション全体のライフサイクルとメインループを統括するマネージャ。
+**※AI-IDEでの開発効率とトークン節約のため、クラス設計（.h）はそのままに、実装（.cpp）が責務ごとに以下の6つのファイルに物理分割されている。**
+*   `Application.cpp`: コンストラクタ、デストラクタなどエントリポイント
+*   `Application_Initialize.cpp`: Initialize, SetupCallbacks 等の初期化処理
+*   `Application_Playback.cpp`: PlayCurrentTrack, HandleMediaCommand 等の再生制御
+*   `Application_Playlist.cpp`: SwitchPlaylist, ClearPlaylist, プレイリストUIのクリックコールバック等
+*   `Application_FileDrop.cpp`: OnFilesDropped 等のファイル入力処理
+*   `Application_Render.cpp`: Run, ForceRender 等のメインループおよび描画連携処理
 *   **`bool Initialize(HINSTANCE hInstance, int nCmdShow)`**
     *   各サブシステム (`Window`, `Renderer`, `AudioPlayer`) の初期化を行う。また、`SetupCallbacks` を呼び出して各種コールバックを登録する。
     *   起動時、`ConfigManager` からプレイリストのパスを取得し `PlaylistManager::LoadFromFile` でリストを復元。曲があれば自動で最初の曲の再生と次曲の先読みを開始し、無ければUIを空状態(`No Track`)で初期化する。再生に失敗した場合は即座に次の曲へと自動スキップし、全曲エラー時は安全に空状態で待機する。

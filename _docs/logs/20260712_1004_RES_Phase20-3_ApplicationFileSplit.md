@@ -23,15 +23,15 @@
     - `Application.cpp` から `PlayCurrentTrack`, `HandleMediaCommand`, `PrefetchNextTrack`, `UpdateTrackMetadataIfNeeded` を抽出し、`Application_Playback.cpp` へ移行する。
 [x] タスク3: `Application_Playlist.cpp` の作成
     - `Application.cpp` から `SwitchPlaylist`, `ClearPlaylist`, `CreateNewPlaylist`, `OnPlaylistClicked`, `OnPlaylistDoubleClicked`, `OnPlaylistToolbarClicked` を抽出し、`Application_Playlist.cpp` へ移行する。
-[ ] タスク4: `Application_FileDrop.cpp` の作成
+[x] タスク4: `Application_FileDrop.cpp` の作成
     - `Application.cpp` から `OnFilesDropped`, `ProcessCommandLineArgs` を抽出し、`Application_FileDrop.cpp` へ移行する。
-[ ] タスク5: `Application_Render.cpp` の作成
+[x] タスク5: `Application_Render.cpp` の作成
     - `Application.cpp` から `Run`, `ForceRender`, `UpdatePlaylistSummaries` を抽出し、`Application_Render.cpp` へ移行する。
-[ ] タスク6: `Application.cpp` の整理
+[x] タスク6: `Application.cpp` の整理
     - コンストラクタ、デストラクタなど全体管理やエントリポイントに関する処理のみを残す。
 [x] タスク7: `CMakeLists.txt` の更新
     - 新設した `Application_*.cpp` (Initialize, Playback, Playlist, FileDrop, Render) をソースリストに追加し、ビルドが通るように構成する。
-[ ] タスク8: レポートの更新およびドキュメント確認
+[x] タスク8: レポートの更新およびドキュメント確認
     - 本ファイル（RES）の各タスクを完了状態にし、詳細作業内容を追記する。
     - `PROJECT_ARCHITECTURE.md` を確認し、ファイル分割に関する追記が必要であれば修正を行う。
 
@@ -44,16 +44,16 @@
 ### タスク3: Application_Playlist.cpp の作成
     - `src/Application_Playlist.cpp` を作成し、`SwitchPlaylist`, `ClearPlaylist`, `CreateNewPlaylist`, `OnPlaylistClicked`, `OnPlaylistDoubleClicked`, `OnPlaylistToolbarClicked` の実装を移行した。
 ### タスク4: Application_FileDrop.cpp の作成
-    - (未実施)
+    - `src/Application_FileDrop.cpp` を作成し、`Application.cpp` から `OnFilesDropped`, `ProcessCommandLineArgs` を移行した。
 ### タスク5: Application_Render.cpp の作成
-    - (未実施)
+    - `src/Application_Render.cpp` を作成し、`Application.cpp` から `Run`, `ForceRender`, `UpdatePlaylistSummaries` を移行した。
 ### タスク6: Application.cpp の整理
-    - (未実施)
+    - `Application.cpp` から切り出した関数の跡（空行や不要なインクルード）を削除し、コンストラクタ、デストラクタ、`ResetAllSettings` のみを残し整理した。
 ### タスク7: CMakeLists.txt の更新
-    - `CMakeLists.txt` の `SOURCES` に `src/Application_Playback.cpp` と `src/Application_Playlist.cpp` を追加した。
+    - `CMakeLists.txt` の `SOURCES` に `src/Application_Playback.cpp`, `src/Application_Playlist.cpp`, `src/Application_FileDrop.cpp`, `src/Application_Render.cpp` を追加し、ビルドを通るようにした。
 ### タスク8: レポートの更新およびドキュメント確認
-    - (未実施)
-
+    - 本ファイル（RES）の各タスクを完了状態にし、詳細な作業内容を追記した。
+    - `PROJECT_ARCHITECTURE.md` の「Application クラス」セクションを更新し、AI-IDEでの開発効率向上のための物理ファイル分割の経緯と各ファイルの役割を明記した。
 ## 5. HOTFIX
 ### 原因・理由:
     - (なし)

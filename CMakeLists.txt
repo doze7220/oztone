@@ -26,6 +26,8 @@ set(SOURCES
     src/Application_Initialize.cpp
     src/Application_Playback.cpp
     src/Application_Playlist.cpp
+    src/Application_FileDrop.cpp
+    src/Application_Render.cpp
     src/Window.cpp
     src/ConfigManager.cpp
     src/Renderer.cpp

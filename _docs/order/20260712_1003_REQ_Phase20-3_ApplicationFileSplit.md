@@ -99,3 +99,65 @@
 *   **機能変更の禁止**: コピー＆ペーストによる安全な移行を心がけ、既存の動作を絶対に壊さないこと。
 
 -----------------------------------------------------------------------------
+
+
+##### 作業指示書 REQ: Phase 20-3 Task 4, 5, 6, 7: ファイル分割の完遂 (実装実行)
+以下のプロジェクトルールと開発資料、実装計画兼実装レポートを熟読すること。
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260712_0134_RES_Phase20-1_FramingDataSeparation.md
+
+###### 【作業手順（厳守事項）】
+1. 本プロンプトはリファクタリング（ファイル分割）の「実装実行」である。直ちに以下の【実装要件】に従ってコードの分割・移行を実行すること。
+2. 作業完了後、既存の作業レポート（D:\ozlab\oztone\_docs\logs\20260712_1004_RES_Phase20-3_ApplicationFileSplit.md）の「タスク4〜8」のチェックボックスを完了 `[x]` にし、詳細作業内容を追記すること。
+3. チャットにて「Application.cpp のファイル分割がすべて完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+---
+
+###### 【実装要件】
+`Application.cpp` の残りの実装を分割し、最終的なクリーンアップを行う。
+
+*   **1. `Application_FileDrop.cpp` の作成と移行 (タスク4)**
+    *   新規ファイル `src/Application_FileDrop.cpp` を作成する。
+    *   先頭に `#include "Application.h"` および必要なインクルード文を配置。
+    *   `Application.cpp` から `OnFilesDropped`, `ProcessCommandLineArgs` を切り取り、移行する。
+*   **2. `Application_Render.cpp` の作成と移行 (タスク5)**
+    *   新規ファイル `src/Application_Render.cpp` を作成する。
+    *   先頭に `#include "Application.h"` および必要なインクルード文を配置。
+    *   `Application.cpp` から `Run`, `ForceRender`, `UpdatePlaylistSummaries` を切り取り、移行する。
+*   **3. `Application.cpp` の最終整理 (タスク6)**
+    *   ここまでのタスクで抽出された関数の切り取り跡（空行など）を綺麗に削除する。
+    *   `Application.cpp` には、コンストラクタ (`Application::Application()`)、デストラクタ (`Application::~Application()`) など、全体管理に関わる必要最小限の記述のみを残す。不要になった `#include` も整理する。
+*   **4. `CMakeLists.txt` の更新 (タスク7)**
+    *   `CMakeLists.txt` の `SOURCES` に、新設した `src/Application_FileDrop.cpp` と `src/Application_Render.cpp` を追加する。
+
+
+
+-----------------------------------------------------------------------------
+
+
+##### 作業指示書 REQ: Phase 20-3 Task 8: PROJECT_ARCHITECTURE.md の更新 (実装実行)
+以下のプロジェクトルールと開発資料を熟読すること。
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260712_0134_RES_Phase20-1_FramingDataSeparation.md
+
+###### 【作業手順（厳守事項）】
+1. 本プロンプトはドキュメント更新の「実装実行」である。直ちに以下の【実装要件】に従って PROJECT_ARCHITECTURE.md の修正を実行すること。
+2. 作業完了後、既存の作業レポート（D:\ozlab\oztone\_docs\logs\20260712_1004_RES_Phase20-3_ApplicationFileSplit.md）の「タスク8」のチェックボックスを確実に完了 `[x]` にし、詳細作業内容を追記すること。
+3. チャットにて「PROJECT_ARCHITECTURE.md の更新が完了し、Phase 20-3 の全タスクが完了しました」と報告すること。
+
+---
+
+###### 【実装要件】
+Phase 20-3 にて `Application.cpp` の物理ファイル分割を行ったことに伴い、`PROJECT_ARCHITECTURE.md` の「Application クラス (src/Application.h, cpp)」の解説セクションを更新する。
+
+*   **1. `PROJECT_ARCHITECTURE.md` の修正**
+    *   `Application` クラスのヘッダ部分（または適切な位置）に、**「AI-IDEでの開発効率とトークン節約のため、クラス設計（.h）はそのままに、実装（.cpp）が責務ごとに以下の6つのファイルに物理分割されている」**という旨を明記すること。
+    *   分割された以下の6ファイルとその役割を箇条書き等で追記すること。
+        1. `Application.cpp`: コンストラクタ、デストラクタなどエントリポイント
+        2. `Application_Initialize.cpp`: Initialize, SetupCallbacks 等の初期化処理
+        3. `Application_Playback.cpp`: PlayCurrentTrack, HandleMediaCommand 等の再生制御
+        4. `Application_Playlist.cpp`: SwitchPlaylist, ClearPlaylist, プレイリストUIのクリックコールバック等
+        5. `Application_FileDrop.cpp`: OnFilesDropped 等のファイル入力処理
+        6. `Application_Render.cpp`: Run, ForceRender 等のメインループおよび描画連携処理
