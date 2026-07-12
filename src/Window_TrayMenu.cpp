@@ -82,6 +82,9 @@ void Window::HandleTrayIcon(HWND hwnd, LPARAM lParam) {
           if (m_config->GetSavePositionOnExit()) {
             CheckMenuItem(hAdvMenu, ID_TRAY_SAVE_POS,
                           MF_BYCOMMAND | MF_CHECKED);
+          } else {
+            CheckMenuItem(hAdvMenu, ID_TRAY_SAVE_POS,
+                          MF_BYCOMMAND | MF_UNCHECKED);
           }
           if (m_config->GetShowHotkeys()) {
             CheckMenuItem(hAdvMenu, ID_TRAY_SHOW_HOTKEYS,
@@ -164,6 +167,12 @@ void Window::HandleCommand(HWND hwnd, WPARAM wParam) {
   case ID_TRAY_SHOW_HOTKEYS:
     if (m_config) {
       m_config->SetShowHotkeys(!m_config->GetShowHotkeys());
+    }
+    break;
+  case ID_TRAY_SAVE_POS:
+    if (m_config) {
+      bool currentState = m_config->GetSavePositionOnExit();
+      m_config->SetSavePositionOnExit(!currentState);
     }
     break;
   case ID_TRAY_SHOW_OSD:

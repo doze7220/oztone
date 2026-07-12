@@ -11,6 +11,8 @@ Application::~Application() {
   }
   m_audioPlayer.Uninitialize();
 
+  m_config.SetDefaultPlaylistPath(m_config.GetDefaultPlaylistPath());
+
   if (!m_playlistManager.IsEmpty()) {
     m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
   }
