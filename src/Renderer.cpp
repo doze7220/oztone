@@ -14,7 +14,13 @@
 #include "PlaybackControlsWidget.h"
 #include "VolumeControlWidget.h"
 #include "LogoMenuWidget.h"
-#include "OsdWidget.h"
+#include "Widget_Osd.h"
+#include "Widget_AppLogo.h"
+#include "Widget_TrackInfo.h"
+#include "Widget_NextTrack.h"
+#include "Widget_SeekBar.h"
+#include "Widget_GlobalHotkeys.h"
+#include "Widget_ResizeGrip.h"
 
 Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_controlAlpha(0.0f), m_osdVolumeAlpha(0.0f), m_flyTextAlpha(0.0f) {}
 

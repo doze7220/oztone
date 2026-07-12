@@ -47,12 +47,18 @@ set(SOURCES
     src/Visualizer_PrismBeat.cpp
     src/Visualizer_HaloDust.cpp
     src/Widgets.cpp
+    src/Widget_AppLogo.cpp
+    src/Widget_TrackInfo.cpp
+    src/Widget_NextTrack.cpp
+    src/Widget_SeekBar.cpp
+    src/Widget_GlobalHotkeys.cpp
+    src/Widget_ResizeGrip.cpp
     src/WidgetCommon.cpp
     src/PlaylistWidget.cpp
     src/PlaybackControlsWidget.cpp
     src/VolumeControlWidget.cpp
     src/LogoMenuWidget.cpp
-    src/OsdWidget.cpp
+    src/Widget_Osd.cpp
     src/AudioPlayer.cpp
     src/TagManager.cpp
     src/TrackDatabase.cpp
@@ -75,12 +81,17 @@ set(HEADERS
     src/WidgetContext.h
     src/Widget.h
     src/Widgets.h
+    src/Widget_AppLogo.h
+    src/Widget_TrackInfo.h
+    src/Widget_NextTrack.h
+    src/Widget_SeekBar.h
+    src/Widget_GlobalHotkeys.h
     src/WidgetCommon.h
     src/PlaylistWidget.h
     src/PlaybackControlsWidget.h
     src/VolumeControlWidget.h
     src/LogoMenuWidget.h
-    src/OsdWidget.h
+    src/Widget_Osd.h
     src/AudioPlayer.h
     src/TagManager.h
     src/TrackDatabase.h
