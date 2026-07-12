@@ -120,6 +120,13 @@ oztone/
 
 #### `Window` クラス (src/Window.h, cpp)
 Win32 APIのウィンドウ生成・破棄、メッセージディスパッチ処理を隠蔽・カプセル化するクラス。
+**※AI-IDEでの開発効率とコンテキスト節約のため、クラス設計（.h）はそのままに、実装（.cpp）が責務ごとに以下の6つのファイルに物理分割されている。**
+*   `Window_Proc.cpp`: メッセージディスパッチの基盤（薄い司令塔）
+*   `Window_Mouse.cpp`: 座標判定（ヒットテスト）とマウス入力イベント処理
+*   `Window_TrayMenu.cpp`: トレイアイコンおよびコンテキストメニューの生成・コマンド処理
+*   `Window_DropTarget.cpp`: OLE Drag and Drop によるファイルドロップ処理
+*   `Window_System.cpp`: 低レベルフック、グローバルホットキー、多重起動防止などのシステム連携処理
+*   `Window_Initialize.cpp`: ウィンドウの登録・生成・初期化および破棄処理
 *   **`bool Initialize(HINSTANCE hInstance, int nCmdShow)`**
     *   ウィンドウクラス (`WNDCLASSEXW`) の登録と、`CreateWindowExW` によるウィンドウ生成。`hIcon` および `hIconSm` に `IDI_APP_ICON` を指定し、EXEとタスクバーのアイコンを設定。
     *   **DirectComposition と レイヤードウィンドウの挙動対策**: `WS_EX_LAYERED` が指定されている場合、ウィンドウ生成直後に `SetLayeredWindowAttributes(m_hwnd, 0, 255, LWA_ALPHA)` を呼び出している。これは、DComp使用時にOSがウィンドウの入力判定領域（Hit-test region）を初期サイズのまま自動更新しなくなるOSの既知の挙動を回避し、リサイズ後も右下グリップや下部UI等の領域で正常にマウスイベントを受け取るためのワークアラウンドである。

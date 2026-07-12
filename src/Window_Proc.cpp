@@ -7,7 +7,6 @@
 
 HWND Window::s_hwnd = nullptr;
 
-
 bool Window::ProcessMessages() {
   MSG msg = {};
   while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -19,8 +18,6 @@ bool Window::ProcessMessages() {
   }
   return true;
 }
-
-
 
 LRESULT CALLBACK Window::WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam,
                                           LPARAM lParam) {
@@ -107,4 +104,3 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   }
   return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }
-

@@ -28,7 +28,7 @@ set(SOURCES
     src/Application_Playlist.cpp
     src/Application_FileDrop.cpp
     src/Application_Render.cpp
-    src/Window.cpp
+    src/Window_Proc.cpp
     src/Window_Initialize.cpp
     src/Window_Mouse.cpp
     src/Window_TrayMenu.cpp

@@ -74,10 +74,10 @@
     - `Window_System.cpp` を新規作成し、グローバルホットキー、低レベルキーボードフック、WM_COPYDATA（多重起動防止）などのシステム連携処理を移行する。
 [x] タスク6: `Window_Initialize.cpp` の分離
     - `Window_Initialize.cpp` を新規作成し、ウィンドウの登録や生成（Initializeなど）、破棄（HandleDestroyなど）を移行する。
-[ ] タスク7: `Window_Proc.cpp` の作成と最終クリーンアップ
+[x] タスク7: `Window_Proc.cpp` の作成と最終クリーンアップ
     - 大元に残った薄いディスパッチャ（WindowProc）を `Window_Proc.cpp` へ移行する。
     - `CMakeLists.txt` に新設した6つのファイルを追加し、古い `Window.cpp` を物理削除してビルドを通す。
-[ ] タスク8: ビルドと動作確認
+[x] タスク8: ビルドと動作確認
     - プロジェクトが正常にコンパイル・リンクできることを確認する。
     - ウィンドウ生成、マウス操作、トレイメニュー表示、ホットキー等の機能が分割前と完全に一致して動作することを確認する。
 
@@ -102,6 +102,9 @@
     - `src/Window_Initialize.cpp` を新規作成し、`Window.cpp` からウィンドウ生成、初期化処理（`Initialize`）、および破棄のイベントハンドラ（`HandleDestroy`）、コンストラクタ・デストラクタを完全に移行しました。
     - `CMakeLists.txt` に新設した `src/Window_Initialize.cpp` をコンパイル対象として追加しました。
 ### タスク7: `Window_Proc.cpp` の作成と最終クリーンアップ
-    - (未実施)
+    - `src/Window_Proc.cpp` を新規作成し、`Window.cpp` に残存していた純粋なディスパッチャ（`WindowProcStatic`, `WindowProc`など）を完全に移行しました。
+    - `src/Window.cpp` をファイルシステムから物理的に削除し、`CMakeLists.txt` を更新して `src/Window.cpp` の代わりに `src/Window_Proc.cpp` を登録しました。これにより `Window.cpp` の完全解体が完了しました。
 ### タスク8: ビルドと動作確認
-    - (未実施)
+    - ユーザー様にビルドと動作確認（ウィンドウ生成、マウス操作、トレイメニュー表示、ホットキー等の機能が分割前と完全に一致して動作すること）を依頼しました。
+    - ユーザー様によるビルドと動作確認が完了したことを確認しました。
+    - アーキテクチャ資料 (`PROJECT_ARCHITECTURE.md`) へ Window クラスの分割情報を追記し、Phase 20-7 の全タスクを完了としました。
