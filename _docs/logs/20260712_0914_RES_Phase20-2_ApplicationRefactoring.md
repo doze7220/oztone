@@ -29,7 +29,7 @@
     - `Application.h` に `void SetupCallbacks();` を宣言する。
     - `Application.cpp` 内でコールバック登録処理を `SetupCallbacks` に移動し、`Initialize` から呼び出すようにする。
 
-[ ] タスク4: `ForceRender` メソッドの整理
+[x] タスク4: `ForceRender` メソッドの整理
     - 処理ブロックごとに適切なコメントを追加し、ローカル変数のスコープを整理するなどして可読性を高める。
 
 [ ] タスク5: PROJECT_ARCHITECTURE.md の更新確認と修正
@@ -52,7 +52,8 @@
     - `Initialize` の先頭付近に `SetupCallbacks();` の呼び出しを1行追加し、メソッドの肥大化を解消、見通しを劇的に改善した。
 
 ### タスク4: `ForceRender` メソッドの整理
-    - (未実施)
+    - `Application::ForceRender` 内の処理を「1. 時間と進行度の計算」「2. スペクトルデータの取得」「3. アニメーションと状態の更新」「4. レイアウトキャッシュの更新」「5. 描画の実行」の5つの意味的なブロックに分割し、それぞれにコメントを付与。
+    - ローカル変数（`shuffleList`, `metadataList`など）の宣言位置を、最初に使用される行の直前へ移動し、変数のスコープを最小化した。
 
 ### タスク5: PROJECT_ARCHITECTURE.md の更新確認と修正
     - (未実施)

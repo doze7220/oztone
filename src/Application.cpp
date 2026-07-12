@@ -1056,6 +1056,7 @@ void Application::Run() {
 void Application::ForceRender() {
   m_renderer.SetFocusedPlaylistIndex(m_focusedPlaylistIndex);
 
+  // 1. 時間と進行度の計算
   float posSec = m_audioPlayer.GetPositionSeconds();
   float lenSec = m_audioPlayer.GetLengthSeconds();
 
@@ -1077,6 +1078,7 @@ void Application::ForceRender() {
       progress = 0.0f;
   }
 
+  // 2. スペクトルデータの取得
   m_renderer.SetNextTrackInfo(m_isPrefetchReady.load(),
                               m_prefetchedAlbumArt.Get(), m_prefetchedTitle,
                               m_prefetchedArtist);
@@ -1084,6 +1086,7 @@ void Application::ForceRender() {
   std::vector<float> spectrum;
   m_audioPlayer.GetSpectrumData(spectrum);
 
+  // 3. アニメーションと状態の更新
   int playlistHoveredItemIndex = -1;
   if (m_window.IsPlaylistHovered()) {
     POINT pt;
@@ -1130,39 +1133,39 @@ void Application::ForceRender() {
   }
   m_window.SetPlaylistHoveredItemIndex(playlistHoveredItemIndex);
 
-  bool isPlaylistExpanded = false;
-  bool isLogoMenuExpanded = false;
-
   bool logoClicked = m_window.ConsumeLogoClicked();
   int logoMenuClicked = m_window.ConsumeLogoMenuClickedIndex();
   int playbackClicked = m_window.ConsumePlaybackClickedIndex();
 
   if (logoMenuClicked >= 0) {
-      const auto& items = m_window.GetLogoMenuItems();
-      if (logoMenuClicked < items.size()) {
-          int cmdId = items[logoMenuClicked].commandId;
-          if (cmdId == Window::ID_LOGO_VISUALIZER) {
-              int mode = m_config.GetVisualizerMode();
-              if (mode == 1) m_renderer.TriggerFlyText(L"VISUALIZER: PRISM BEAT");
-              else if (mode == 2) m_renderer.TriggerFlyText(L"VISUALIZER: HALO DUST");
-              else m_renderer.TriggerFlyText(L"VISUALIZER: OFF");
-          } else if (cmdId == Window::ID_LOGO_BG_MODE) {
-              int mode = m_config.GetBackgroundArtMode();
-              if (mode == 0) m_renderer.TriggerFlyText(L"BACKGROUND: NOW PLAYING");
-              else if (mode == 1) m_renderer.TriggerFlyText(L"BACKGROUND: HIDDEN");
-              else m_renderer.TriggerFlyText(L"BACKGROUND: DEFAULT");
-          } else if (cmdId == Window::ID_LOGO_RESIZE_MODE) {
-              bool on = m_config.GetEnableResize();
-              m_renderer.TriggerFlyText(on ? L"RESIZE MODE: ON" : L"RESIZE MODE: OFF");
-          } else if (cmdId == Window::ID_LOGO_LOCK_POS) {
-              bool on = m_config.GetLockWindowPosition();
-              m_renderer.TriggerFlyText(on ? L"WINDOW LOCK: ON" : L"WINDOW LOCK: OFF");
-          } else if (cmdId == Window::ID_LOGO_PLAYLIST_POS) {
-              int pos = m_config.GetPlaylistPosition();
-              m_renderer.TriggerFlyText(pos == 0 ? L"PLAYLIST POS: LEFT" : L"PLAYLIST POS: RIGHT");
-          }
+    const auto& items = m_window.GetLogoMenuItems();
+    if (logoMenuClicked < items.size()) {
+      int cmdId = items[logoMenuClicked].commandId;
+      if (cmdId == Window::ID_LOGO_VISUALIZER) {
+        int mode = m_config.GetVisualizerMode();
+        if (mode == 1) m_renderer.TriggerFlyText(L"VISUALIZER: PRISM BEAT");
+        else if (mode == 2) m_renderer.TriggerFlyText(L"VISUALIZER: HALO DUST");
+        else m_renderer.TriggerFlyText(L"VISUALIZER: OFF");
+      } else if (cmdId == Window::ID_LOGO_BG_MODE) {
+        int mode = m_config.GetBackgroundArtMode();
+        if (mode == 0) m_renderer.TriggerFlyText(L"BACKGROUND: NOW PLAYING");
+        else if (mode == 1) m_renderer.TriggerFlyText(L"BACKGROUND: HIDDEN");
+        else m_renderer.TriggerFlyText(L"BACKGROUND: DEFAULT");
+      } else if (cmdId == Window::ID_LOGO_RESIZE_MODE) {
+        bool on = m_config.GetEnableResize();
+        m_renderer.TriggerFlyText(on ? L"RESIZE MODE: ON" : L"RESIZE MODE: OFF");
+      } else if (cmdId == Window::ID_LOGO_LOCK_POS) {
+        bool on = m_config.GetLockWindowPosition();
+        m_renderer.TriggerFlyText(on ? L"WINDOW LOCK: ON" : L"WINDOW LOCK: OFF");
+      } else if (cmdId == Window::ID_LOGO_PLAYLIST_POS) {
+        int pos = m_config.GetPlaylistPosition();
+        m_renderer.TriggerFlyText(pos == 0 ? L"PLAYLIST POS: LEFT" : L"PLAYLIST POS: RIGHT");
       }
+    }
   }
+
+  bool isPlaylistExpanded = false;
+  bool isLogoMenuExpanded = false;
 
   m_renderer.UpdateAnimation(
       0.016f, m_window.IsControlHovered(), m_window.IsVolumeHovered(),
@@ -1176,20 +1179,27 @@ void Application::ForceRender() {
   m_window.SetPlaylistExpanded(isPlaylistExpanded);
   m_window.SetLogoMenuExpanded(isLogoMenuExpanded);
 
+  // 4. レイアウトキャッシュの更新
   m_renderer.UpdateTextLayouts(timeString, m_audioPlayer.GetVolume(),
                                m_playlistManager.GetCurrentIndex(),
                                m_playlistManager.GetCount());
+
+  // 5. 描画の実行
   std::vector<std::wstring> shuffleList = m_playlistManager.GetShuffleList();
   std::vector<TrackMetadata> metadataList;
   metadataList.reserve(shuffleList.size());
   for (const auto& path : shuffleList) {
-      TrackMetadata meta;
-      if (!m_trackDatabase.GetMetadata(path, meta)) {
-          meta.filepath = path;
-          try { meta.title = std::filesystem::path(path).filename().wstring(); } catch(...) { meta.title = L"UNKNOWN"; }
-          meta.artist = L"---";
+    TrackMetadata meta;
+    if (!m_trackDatabase.GetMetadata(path, meta)) {
+      meta.filepath = path;
+      try {
+        meta.title = std::filesystem::path(path).filename().wstring();
+      } catch (...) {
+        meta.title = L"UNKNOWN";
       }
-      metadataList.push_back(meta);
+      meta.artist = L"---";
+    }
+    metadataList.push_back(meta);
   }
 
   m_renderer.Render(
