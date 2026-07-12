@@ -11,6 +11,7 @@ D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
 
 次に、この指示書を確認してほしい。
 
+
 以下のプロジェクトルールと開発資料、実装計画兼実装レポートを熟読すること。
 *  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
 *  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md

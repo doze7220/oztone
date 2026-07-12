@@ -78,6 +78,12 @@ public:
     void ResetAllSettings();
 private:
     /**
+     * @brief 現在のトラックのメタデータを自己修復し、再生を開始し、次曲を先読みする
+     * @return 再生に成功した場合はtrue、失敗した場合はfalse
+     */
+    bool PlayCurrentTrack();
+
+    /**
      * @brief 特定のファイルパスに対するメタデータの比較・更新・保存処理を行う
      * @param filepath 対象ファイルのパス
      */

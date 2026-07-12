@@ -125,9 +125,7 @@ void Application::HandleMediaCommand(int cmd) {
       float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(track, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (m_audioPlayer.Play(track)) {
-        UpdateTrackMetadataIfNeeded(track);
-        PrefetchNextTrack();
+      if (PlayCurrentTrack()) {
         played = true;
         break;
       }
@@ -426,10 +424,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
             float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(track, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (m_audioPlayer.Play(track)) {
-              UpdateTrackMetadataIfNeeded(track);
-              PrefetchNextTrack();
-            }
+      PlayCurrentTrack();
           } else {
             m_renderer.SetTrackInfo(L"NO TRACK", L"---");
             m_renderer.SetAlbumArt(nullptr);
@@ -559,10 +554,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(track, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (m_audioPlayer.Play(track)) {
-          UpdateTrackMetadataIfNeeded(track);
-          PrefetchNextTrack();
-        } else {
+      if (!PlayCurrentTrack()) {
           m_renderer.SetTrackInfo(L"NO TRACK", L"---");
           m_renderer.SetAlbumArt(nullptr);
         }
@@ -723,9 +715,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
         float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(currentTrack, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (m_audioPlayer.Play(currentTrack)) {
-          UpdateTrackMetadataIfNeeded(currentTrack);
-          PrefetchNextTrack();
+      if (PlayCurrentTrack()) {
           played = true;
           break;
         }
@@ -922,9 +912,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
         float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(currentTrack, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (m_audioPlayer.Play(currentTrack)) {
-          UpdateTrackMetadataIfNeeded(currentTrack);
-          PrefetchNextTrack();
+      if (PlayCurrentTrack()) {
           played = true;
           break;
         }
@@ -1027,9 +1015,7 @@ void Application::Run() {
           float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(track, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (m_audioPlayer.Play(track)) {
-            UpdateTrackMetadataIfNeeded(track);
-            PrefetchNextTrack();
+      if (PlayCurrentTrack()) {
             played = true;
             break;
           }
@@ -1266,6 +1252,16 @@ void Application::PrefetchNextTrack() {
   });
 }
 
+bool Application::PlayCurrentTrack() {
+  std::wstring track = m_playlistManager.GetCurrentTrack();
+  if (m_audioPlayer.Play(track)) {
+    UpdateTrackMetadataIfNeeded(track);
+    PrefetchNextTrack();
+    return true;
+  }
+  return false;
+}
+
 void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
   TagManager localTagManager;
   if (localTagManager.Load(filepath)) {
@@ -1425,9 +1421,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
       float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(currentTrack, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (m_audioPlayer.Play(currentTrack)) {
-        UpdateTrackMetadataIfNeeded(currentTrack);
-        PrefetchNextTrack();
+      if (PlayCurrentTrack()) {
         played = true;
         break;
       }
