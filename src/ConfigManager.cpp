@@ -347,17 +347,6 @@ ConfigManager::ConfigManager() {
 
 void ConfigManager::ResetToDefaults() {
   m_defaultPlaylistPath = L"playlist.ozl";
-  m_showTitleBar = false;
-  m_showWindowFrame = false;
-  m_showTaskbar = false;
-  m_zOrder = 0;
-  m_savePositionOnExit = true;
-  m_enableResize = false;
-  m_lockWindowPosition = false;
-  m_windowX = -2147483648; // CW_USEDEFAULT or specifically INT_MIN
-  m_windowY = -2147483648;
-  m_windowWidth = 1024;
-  m_windowHeight = 512;
 
   m_showAppLogo = true;
   m_showNowPlaying = true;
@@ -365,18 +354,6 @@ void ConfigManager::ResetToDefaults() {
   m_showSeekBar = true;
   m_showPlaybackControls = true;
   m_showVolumeControl = true;
-
-  m_enableShadow = true;
-  m_shadowOffsetX = 2.0f;
-  m_shadowOffsetY = 2.0f;
-  m_shadowOpacity = 0.7f;
-  m_bgOpacity = 0.8f;
-  m_bgDarkenOpacity = 0.4f;
-  m_backgroundArtMode = 0;
-  m_controlHoverHeight = 50.0f;
-  m_hoverIconColor = L"#ffa500";
-  m_hoverFadeOutSpeed = 2.0f;
-  m_controlLeaveDelay = 3.0f;
 
   m_logoX = 16;
   m_logoY = 16;
@@ -719,104 +696,14 @@ std::wstring ConfigManager::LoadOrWriteString(const std::wstring& section, const
 }
 
 void ConfigManager::LoadSettings() {
-  m_showTitleBar = GetPrivateProfileIntW(L"Window", L"ShowTitleBar", 0,
-                                         m_iniFilePath.c_str()) != 0;
-  m_showWindowFrame = GetPrivateProfileIntW(L"Window", L"ShowWindowFrame", 0,
-                                            m_iniFilePath.c_str()) != 0;
-  m_showTaskbar = GetPrivateProfileIntW(L"Window", L"ShowTaskbar", 0,
-                                        m_iniFilePath.c_str()) != 0;
-
-  m_zOrder =
-      GetPrivateProfileIntW(L"Window", L"ZOrder", 0, m_iniFilePath.c_str());
-  m_savePositionOnExit = GetPrivateProfileIntW(L"Window", L"SavePositionOnExit",
-                                               1, m_iniFilePath.c_str()) != 0;
-  m_enableResize = GetPrivateProfileIntW(L"Window", L"EnableResize", 0,
-                                         m_iniFilePath.c_str()) != 0;
-  m_lockWindowPosition = GetPrivateProfileIntW(L"Window", L"LockWindowPosition",
-                                               0, m_iniFilePath.c_str()) != 0;
+  LoadWindowSettings();
 
   m_isPlaylistPinned =
       GetPrivateProfileIntW(L"Layout_Playlist", L"IsPlaylistPinned", 0,
                             m_iniFilePath.c_str()) != 0;
 
-  m_windowX = GetPrivateProfileIntW(L"Window", L"WindowX", CW_USEDEFAULT,
-                                    m_iniFilePath.c_str());
-  m_windowY = GetPrivateProfileIntW(L"Window", L"WindowY", CW_USEDEFAULT,
-                                    m_iniFilePath.c_str());
-  m_windowWidth = GetPrivateProfileIntW(L"Window", L"WindowWidth", 1024,
-                                        m_iniFilePath.c_str());
-  m_windowHeight = GetPrivateProfileIntW(L"Window", L"WindowHeight", 512,
-                                         m_iniFilePath.c_str());
-
-  m_enableShadow = GetPrivateProfileIntW(L"Layout_Window", L"EnableShadow", 1,
-                                         m_iniFilePath.c_str()) != 0;
-
   wchar_t buf[32];
-  GetPrivateProfileStringW(L"Layout_Window", L"ShadowOffsetX", L"2.0", buf, 32,
-                           m_iniFilePath.c_str());
-  try {
-    m_shadowOffsetX = std::stof(buf);
-  } catch (...) {
-    m_shadowOffsetX = 2.0f;
-  }
-  GetPrivateProfileStringW(L"Layout_Window", L"ShadowOffsetY", L"2.0", buf, 32,
-                           m_iniFilePath.c_str());
-  try {
-    m_shadowOffsetY = std::stof(buf);
-  } catch (...) {
-    m_shadowOffsetY = 2.0f;
-  }
-  GetPrivateProfileStringW(L"Layout_Window", L"ShadowOpacity", L"0.7", buf, 32,
-                           m_iniFilePath.c_str());
-  try {
-    m_shadowOpacity = std::stof(buf);
-  } catch (...) {
-    m_shadowOpacity = 0.7f;
-  }
-  GetPrivateProfileStringW(L"Layout_Window", L"BgDarkenOpacity", L"0.3", buf,
-                           32, m_iniFilePath.c_str());
-  try {
-    m_bgDarkenOpacity = std::stof(buf);
-  } catch (...) {
-    m_bgDarkenOpacity = 0.3f;
-  }
-  GetPrivateProfileStringW(L"Layout_Window", L"BgOpacity", L"0.8", buf, 32,
-                           m_iniFilePath.c_str());
-  try {
-    m_bgOpacity = std::stof(buf);
-  } catch (...) {
-    m_bgOpacity = 0.8f;
-  }
-  m_backgroundArtMode = GetPrivateProfileIntW(
-      L"Layout_Window", L"BackgroundArtMode", 0, m_iniFilePath.c_str());
-  GetPrivateProfileStringW(L"Layout_Window", L"ControlHoverHeight", L"50.0",
-                           buf, 32, m_iniFilePath.c_str());
-  try {
-    m_controlHoverHeight = std::stof(buf);
-  } catch (...) {
-    m_controlHoverHeight = 50.0f;
-  }
-
-  GetPrivateProfileStringW(L"Layout_Window", L"ControlLeaveDelay", L"3.0", buf,
-                           32, m_iniFilePath.c_str());
-  try {
-    m_controlLeaveDelay = std::stof(buf);
-  } catch (...) {
-    m_controlLeaveDelay = 3.0f;
-  }
-
   wchar_t colorBuf[256];
-  GetPrivateProfileStringW(L"Layout_Window", L"HoverIconColor", L"#88CCFF",
-                           colorBuf, 256, m_iniFilePath.c_str());
-  m_hoverIconColor = colorBuf;
-
-  GetPrivateProfileStringW(L"Layout_Window", L"HoverFadeOutSpeed", L"3.0", buf,
-                           32, m_iniFilePath.c_str());
-  try {
-    m_hoverFadeOutSpeed = std::stof(buf);
-  } catch (...) {
-    m_hoverFadeOutSpeed = 3.0f;
-  }
 
   GetPrivateProfileStringW(L"Audio", L"DefaultVolume", L"1.0", buf, 32,
                            m_iniFilePath.c_str());

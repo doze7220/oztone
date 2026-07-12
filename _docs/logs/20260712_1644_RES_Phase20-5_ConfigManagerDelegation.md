@@ -18,7 +18,7 @@ Phase 20-4 で物理分割した6つのファイル（Window, Playlist, Playback
 ## 3. 実装タスクリスト
 [x] タスク1: ConfigManager の基盤改修
     - オートフィルヘルパー関数群の実装と、サブメソッドのプロトタイプ宣言。
-[ ] タスク2: Window設定の委譲
+[x] タスク2: Window設定の委譲
     - `ConfigManager_Window.cpp` に `LoadWindowSettings` を実装し、大元から処理を移行・リファクタリングする。
 [ ] タスク3: Playlist設定の委譲
     - `ConfigManager_Playlist.cpp` に `LoadPlaylistSettings` を実装し、大元から処理を移行・リファクタリングする。
@@ -38,7 +38,8 @@ Phase 20-4 で物理分割した6つのファイル（Window, Playlist, Playback
     - ConfigManager.h にオートフィル用のヘルパーメソッド (`LoadOrWriteInt`, `LoadOrWriteFloat`, `LoadOrWriteString`) と、各UI設定を委譲するためのサブメソッド群 (`LoadWindowSettings` 等) を定義。
     - ConfigManager.cpp にヘルパーメソッドの実装を追加。`GetPrivateProfileStringW` でキーが存在しない場合は `WritePrivateProfileStringW` でデフォルト値を自動追記する処理（自己修復機能）を構築。
 ### タスク2: Window設定の委譲
-    - (未実施)
+    - `ConfigManager_Window.cpp` に `ConfigManager::LoadWindowSettings()` を実装。
+    - `ConfigManager.cpp` の `LoadSettings()` と `ResetToDefaults()` から Window 関連のロジックを削除・移行し、ヘルパー関数を用いたオートフィル化を適用。
 ### タスク3: Playlist設定の委譲
     - (未実施)
 ### タスク4: Playback設定の委譲
