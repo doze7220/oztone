@@ -78,6 +78,11 @@ public:
     void ResetAllSettings();
 private:
     /**
+     * @brief Windowからの各種コールバック登録を行う
+     */
+    void SetupCallbacks();
+
+    /**
      * @brief 現在のトラックのメタデータを自己修復し、再生を開始し、次曲を先読みする
      * @return 再生に成功した場合はtrue、失敗した場合はfalse
      */

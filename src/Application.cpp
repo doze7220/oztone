@@ -145,23 +145,7 @@ void Application::HandleMediaCommand(int cmd) {
   }
 }
 
-bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
-  wchar_t exePath[MAX_PATH];
-  GetModuleFileNameW(NULL, exePath, MAX_PATH);
-  std::wstring dbPath = std::filesystem::path(exePath).parent_path().wstring() + L"\\oztone_track.odb";
-  m_trackDatabase.LoadFromFile(dbPath);
-
-  m_framingDbPath = std::filesystem::path(exePath).parent_path().wstring() + L"\\oztone_framing.odb";
-  m_framingDb.LoadFromFile(m_framingDbPath);
-
-  if (!m_config.Initialize()) {
-    return false;
-  }
-
-  if (!m_window.Initialize(hInstance, nCmdShow, m_config)) {
-    return false;
-  }
-
+void Application::SetupCallbacks() {
   m_window.SetOnFilesDroppedCallback(
       [this](const std::vector<std::wstring> &files) {
         this->OnFilesDropped(files);
@@ -188,12 +172,6 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
   });
   m_window.SetPlaylistSwitchCallback(
       [this](const std::wstring &filepath) { this->SwitchPlaylist(filepath); });
-
-  for (auto &item : m_window.GetLogoMenuItemsMutable()) {
-    if (item.commandId == Window::ID_LOGO_SHUFFLE) {
-      item.toggleState = m_config.GetShuffleMode();
-    }
-  }
 
   m_window.SetShuffleCallback([this]() {
     bool newMode = !m_config.GetShuffleMode();
@@ -356,10 +334,6 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     this->OnPlaylistDoubleClicked(x, y);
   });
 
-  if (!m_renderer.Initialize(m_window.GetHandle(), m_config)) {
-    return false;
-  }
-
   m_window.SetArtFramingMoveCallback([this](float dx, float dy) {
     if (m_playlistManager.IsEmpty()) return;
     std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
@@ -416,6 +390,37 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
           L"%");
     }
   });
+
+}
+
+bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
+  wchar_t exePath[MAX_PATH];
+  GetModuleFileNameW(NULL, exePath, MAX_PATH);
+  std::wstring dbPath = std::filesystem::path(exePath).parent_path().wstring() + L"\\oztone_track.odb";
+  m_trackDatabase.LoadFromFile(dbPath);
+
+  m_framingDbPath = std::filesystem::path(exePath).parent_path().wstring() + L"\\oztone_framing.odb";
+  m_framingDb.LoadFromFile(m_framingDbPath);
+
+  if (!m_config.Initialize()) {
+    return false;
+  }
+
+  if (!m_window.Initialize(hInstance, nCmdShow, m_config)) {
+    return false;
+  }
+
+  SetupCallbacks();
+
+  for (auto &item : m_window.GetLogoMenuItemsMutable()) {
+    if (item.commandId == Window::ID_LOGO_SHUFFLE) {
+      item.toggleState = m_config.GetShuffleMode();
+    }
+  }
+
+  if (!m_renderer.Initialize(m_window.GetHandle(), m_config)) {
+    return false;
+  }
 
   if (m_audioPlayer.Initialize()) {
     m_audioPlayer.SetVolume(m_config.GetDefaultVolume());

@@ -25,7 +25,7 @@
     - `Application.h` に `OnPlaylistClicked`, `OnPlaylistToolbarClicked` などの必要なコールバック用メンバ関数を宣言する。
     - コールバック処理の実体をメンバ関数として実装し、元のラムダ式内から呼び出すように修正する。
 
-[ ] タスク3: `SetupCallbacks` の新設と `Initialize` の分割
+[x] タスク3: `SetupCallbacks` の新設と `Initialize` の分割
     - `Application.h` に `void SetupCallbacks();` を宣言する。
     - `Application.cpp` 内でコールバック登録処理を `SetupCallbacks` に移動し、`Initialize` から呼び出すようにする。
 
@@ -47,7 +47,9 @@
     - 元のコールバック登録箇所は `[this](int x, int y) { this->OnPlaylistClicked(x, y); }` のように、抽出した関数を呼び出すだけのシンプルなラムダ式に置き換え、`Initialize` の見通しを改善した。
 
 ### タスク3: `SetupCallbacks` の新設と `Initialize` の分割
-    - (未実施)
+    - `Application.h` の private セクションに `void SetupCallbacks();` を追加した。
+    - `Application.cpp` に `SetupCallbacks` の実装を追加し、`Initialize` 内で行われていた各種コールバック（Windowの操作、プレイリスト操作、ボリューム変更など）の登録処理をすべて `SetupCallbacks` に移動した。
+    - `Initialize` の先頭付近に `SetupCallbacks();` の呼び出しを1行追加し、メソッドの肥大化を解消、見通しを劇的に改善した。
 
 ### タスク4: `ForceRender` メソッドの整理
     - (未実施)
