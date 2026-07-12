@@ -349,9 +349,6 @@ void ConfigManager::ResetToDefaults() {
   m_showAppLogo = true;
   m_showNowPlaying = true;
   m_showNextTrack = true;
-  m_showSeekBar = true;
-  m_showPlaybackControls = true;
-  m_showVolumeControl = true;
 
   m_logoX = 16;
   m_logoY = 16;
@@ -405,14 +402,6 @@ void ConfigManager::ResetToDefaults() {
   m_trackCountShadowOpacity = 1.0f;
   m_trackCountTextAlignment = 1;
 
-  m_seekBarMargin = 20.0f;
-  m_seekBarHeight = 5;
-  m_seekBarBottomOffset = 25;
-  m_seekBarBgOpacity = 0.3f;
-  m_seekBarTimeFontFamily = L"Courier New";
-  m_seekBarTimeFontSize = 18.0f;
-  m_seekBarTimeAreaWidth = 100;
-  m_seekBarTimeLetterSpacing = -3.0f;
 
   m_enableNextTrack = false;
   m_nextBaseRightOffset = 300;
@@ -435,43 +424,6 @@ void ConfigManager::ResetToDefaults() {
   m_nextArtistFontSize = 12.0f;
   m_nextArtistFontFamily = L"Meiryo";
 
-  m_playbackBaseBottomOffset = 22;
-  m_playbackCenterOffsetX = 0;
-  m_playbackButtonSpacing = 55;
-  m_playbackButtonSize = 30;
-  m_skipIconPoints = L"0.1,-0.5,0.65,-0.5,-0.15,0.0,0.65,0.5,0.1,0.5,-0.65,0.0";
-  m_skipTextFontSize = 15.0f;
-  m_skipTextOffsetX = 0.04f;
-  m_skipTextOffsetY = -0.05f;
-  m_skipTextShadowColor = L"#444444";
-  m_skipTextShadowOpacity = 0.40f;
-  m_skipTextShadowShift = 1.00f;
-
-  m_volBaseLeftOffset = 30;
-  m_volBaseBottomOffset = 22;
-  m_volIconSize = 30;
-  m_volTextOffsetX = 40;
-  m_volTextOffsetY = -12;
-  m_volFontSize = 24.0f;
-  m_volTextLetterSpacing = -3.0f;
-  m_volFontFamily = L"Courier New";
-  m_volEnableShadow = true;
-  m_volShadowOffsetX = 2.0f;
-  m_volShadowOffsetY = 2.0f;
-  m_volShadowOpacity = 0.7f;
-  m_volTooltipText = L"🖱️↕";
-  m_volTooltipFontSize = 20.0f;
-  m_volTooltipFontFamily = L"Segoe UI Emoji";
-  m_volTooltipOffsetY = -5.0f;
-  m_volTooltipWidth = 65.0f;
-  m_volTooltipHeight = 40.0f;
-  m_volTooltipBgColor = L"#A0000000";
-  m_volTooltipBgOpacity = 1.0f;
-  m_volTooltipTextColor = L"#FFFFFF";
-
-  m_defaultVolume = 1.0f;
-  m_shuffleMode = true;
-  m_skipSeconds = 10.0f;
 
   m_visualizerMode = 2;
   m_enablePreScan = true;
@@ -655,146 +607,11 @@ void ConfigManager::LoadSettings() {
   LoadWindowSettings();
 
   LoadPlaylistSettings();
+  LoadPlaybackSettings();
 
   wchar_t buf[32];
   wchar_t colorBuf[256];
 
-  GetPrivateProfileStringW(L"Audio", L"DefaultVolume", L"1.0", buf, 32,
-                           m_iniFilePath.c_str());
-  try {
-    m_defaultVolume = std::stof(buf);
-  } catch (...) {
-    m_defaultVolume = 1.0f;
-  }
-
-  m_shuffleMode = GetPrivateProfileIntW(L"Audio", L"ShuffleMode", 1,
-                                        m_iniFilePath.c_str()) != 0;
-
-  GetPrivateProfileStringW(L"Audio", L"SkipSeconds", L"10.0", buf, 32,
-                           m_iniFilePath.c_str());
-  try {
-    m_skipSeconds = std::stof(buf);
-  } catch (...) {
-    m_skipSeconds = 10.0f;
-  }
-
-  m_volBaseLeftOffset = GetPrivateProfileIntW(
-      L"Layout_VolumeControl", L"BaseLeftOffset", 30, m_iniFilePath.c_str());
-  m_volBaseBottomOffset = GetPrivateProfileIntW(
-      L"Layout_VolumeControl", L"BaseBottomOffset", 22, m_iniFilePath.c_str());
-  m_volIconSize = GetPrivateProfileIntW(L"Layout_VolumeControl", L"IconSize",
-                                        16, m_iniFilePath.c_str());
-  m_volTextOffsetX = GetPrivateProfileIntW(
-      L"Layout_VolumeControl", L"TextOffsetX", 31, m_iniFilePath.c_str());
-  m_volTextOffsetY = GetPrivateProfileIntW(
-      L"Layout_VolumeControl", L"TextOffsetY", -12, m_iniFilePath.c_str());
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TextLetterSpacing",
-                           L"0.0", buf, 32, m_iniFilePath.c_str());
-  try {
-    m_volTextLetterSpacing = std::stof(buf);
-  } catch (...) {
-    m_volTextLetterSpacing = 0.0f;
-  }
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"FontSize", L"14.0", buf,
-                           32, m_iniFilePath.c_str());
-  try {
-    m_volFontSize = std::stof(buf);
-  } catch (...) {
-    m_volFontSize = 14.0f;
-  }
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"FontFamily", L"Meiryo",
-                           buf, 32, m_iniFilePath.c_str());
-  m_volFontFamily = buf;
-
-  m_volEnableShadow =
-      GetPrivateProfileIntW(L"Layout_VolumeControl", L"EnableShadow", 1,
-                            m_iniFilePath.c_str()) != 0;
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"ShadowOffsetX", L"2.0",
-                           buf, 32, m_iniFilePath.c_str());
-  try {
-    m_volShadowOffsetX = std::stof(buf);
-  } catch (...) {
-    m_volShadowOffsetX = 2.0f;
-  }
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"ShadowOffsetY", L"2.0",
-                           buf, 32, m_iniFilePath.c_str());
-  try {
-    m_volShadowOffsetY = std::stof(buf);
-  } catch (...) {
-    m_volShadowOffsetY = 2.0f;
-  }
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"ShadowOpacity", L"0.7",
-                           buf, 32, m_iniFilePath.c_str());
-  try {
-    m_volShadowOpacity = std::stof(buf);
-  } catch (...) {
-    m_volShadowOpacity = 0.7f;
-  }
-
-  wchar_t tooltipTextBuf[256];
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipText", L"",
-                           tooltipTextBuf, 256, m_iniFilePath.c_str());
-  m_volTooltipText = tooltipTextBuf;
-  if (m_volTooltipText.empty() ||
-      m_volTooltipText.find(L'?') != std::wstring::npos ||
-      m_volTooltipText.find(L"・") != std::wstring::npos) {
-    m_volTooltipText = L"\U0001F5B1\uFE0F\u2195";
-  }
-
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipFontSize", L"14.0",
-                           buf, 32, m_iniFilePath.c_str());
-  try {
-    m_volTooltipFontSize = std::stof(buf);
-  } catch (...) {
-    m_volTooltipFontSize = 14.0f;
-  }
-
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipFontFamily",
-                           L"Segoe UI Emoji", tooltipTextBuf, 256,
-                           m_iniFilePath.c_str());
-  m_volTooltipFontFamily = tooltipTextBuf;
-
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipOffsetY", L"10.0",
-                           buf, 32, m_iniFilePath.c_str());
-  try {
-    m_volTooltipOffsetY = std::stof(buf);
-  } catch (...) {
-    m_volTooltipOffsetY = 10.0f;
-  }
-
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipBgColor",
-                           L"#80000000", tooltipTextBuf, 256,
-                           m_iniFilePath.c_str());
-  m_volTooltipBgColor = tooltipTextBuf;
-
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipBgOpacity", L"1.0",
-                           buf, 32, m_iniFilePath.c_str());
-  try {
-    m_volTooltipBgOpacity = std::stof(buf);
-  } catch (...) {
-    m_volTooltipBgOpacity = 1.0f;
-  }
-
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipTextColor",
-                           L"#FFFFFF", tooltipTextBuf, 256,
-                           m_iniFilePath.c_str());
-  m_volTooltipTextColor = tooltipTextBuf;
-
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipWidth", L"50.0",
-                           buf, 32, m_iniFilePath.c_str());
-  try {
-    m_volTooltipWidth = std::stof(buf);
-  } catch (...) {
-    m_volTooltipWidth = 50.0f;
-  }
-
-  GetPrivateProfileStringW(L"Layout_VolumeControl", L"TooltipHeight", L"26.0",
-                           buf, 32, m_iniFilePath.c_str());
-  try {
-    m_volTooltipHeight = std::stof(buf);
-  } catch (...) {
-    m_volTooltipHeight = 26.0f;
-  }
 
   m_visualizerMode = GetPrivateProfileIntW(L"Visualizer", L"VisualizerMode", 0,
                                            m_iniFilePath.c_str());
@@ -889,14 +706,7 @@ void ConfigManager::LoadSettings() {
                                            m_iniFilePath.c_str()) != 0;
   m_showNextTrack = GetPrivateProfileIntW(L"Visibility", L"ShowNextTrack", 1,
                                           m_iniFilePath.c_str()) != 0;
-  m_showSeekBar = GetPrivateProfileIntW(L"Visibility", L"ShowSeekBar", 1,
-                                        m_iniFilePath.c_str()) != 0;
-  m_showPlaybackControls =
-      GetPrivateProfileIntW(L"Visibility", L"ShowPlaybackControls", 1,
-                            m_iniFilePath.c_str()) != 0;
-  m_showVolumeControl =
-      GetPrivateProfileIntW(L"Visibility", L"ShowVolumeControl", 1,
-                            m_iniFilePath.c_str()) != 0;
+
 
   m_logoX =
       GetPrivateProfileIntW(L"Layout_AppLogo", L"X", 16, m_iniFilePath.c_str());
@@ -1080,50 +890,7 @@ void ConfigManager::LoadSettings() {
                            buf, 32, m_iniFilePath.c_str());
   m_artistFontFamily = buf;
 
-  GetPrivateProfileStringW(L"Layout_SeekBar", L"SeekBarMargin", L"20.0", buf,
-                           32, m_iniFilePath.c_str());
 
-  try {
-    m_seekBarMargin = std::stof(buf);
-  } catch (...) {
-    m_seekBarMargin = 20.0f;
-  }
-
-  m_seekBarHeight = GetPrivateProfileIntW(L"Layout_SeekBar", L"Height", 3,
-                                          m_iniFilePath.c_str());
-  m_seekBarBottomOffset = GetPrivateProfileIntW(
-      L"Layout_SeekBar", L"BottomOffset", 50, m_iniFilePath.c_str());
-
-  GetPrivateProfileStringW(L"Layout_SeekBar", L"BgOpacity", L"0.3", buf, 32,
-                           m_iniFilePath.c_str());
-  try {
-    m_seekBarBgOpacity = std::stof(buf);
-  } catch (...) {
-    m_seekBarBgOpacity = 0.3f;
-  }
-
-  GetPrivateProfileStringW(L"Layout_SeekBar", L"TimeFontFamily", L"Consolas",
-                           buf, 32, m_iniFilePath.c_str());
-  m_seekBarTimeFontFamily = buf;
-
-  GetPrivateProfileStringW(L"Layout_SeekBar", L"TimeFontSize", L"12.0", buf, 32,
-                           m_iniFilePath.c_str());
-  try {
-    m_seekBarTimeFontSize = std::stof(buf);
-  } catch (...) {
-    m_seekBarTimeFontSize = 12.0f;
-  }
-
-  m_seekBarTimeAreaWidth = GetPrivateProfileIntW(
-      L"Layout_SeekBar", L"TimeAreaWidth", 100, m_iniFilePath.c_str());
-
-  GetPrivateProfileStringW(L"Layout_SeekBar", L"TimeLetterSpacing", L"0.0", buf,
-                           32, m_iniFilePath.c_str());
-  try {
-    m_seekBarTimeLetterSpacing = std::stof(buf);
-  } catch (...) {
-    m_seekBarTimeLetterSpacing = 0.0f;
-  }
 
   m_enableNextTrack =
       GetPrivateProfileIntW(L"Layout_NextTrack", L"EnableNextTrack", 0,
@@ -1200,83 +967,7 @@ void ConfigManager::LoadSettings() {
                            buf, 32, m_iniFilePath.c_str());
   m_nextArtistFontFamily = buf;
 
-  m_playbackBaseBottomOffset =
-      GetPrivateProfileIntW(L"Layout_PlaybackControls", L"BaseBottomOffset", 40,
-                            m_iniFilePath.c_str());
-  m_playbackCenterOffsetX = GetPrivateProfileIntW(
-      L"Layout_PlaybackControls", L"CenterOffsetX", 0, m_iniFilePath.c_str());
-  m_playbackButtonSpacing = GetPrivateProfileIntW(
-      L"Layout_PlaybackControls", L"ButtonSpacing", 40, m_iniFilePath.c_str());
-  m_playbackButtonSize = GetPrivateProfileIntW(
-      L"Layout_PlaybackControls", L"ButtonSize", 16, m_iniFilePath.c_str());
 
-  wchar_t iconBuf[256];
-  GetPrivateProfileStringW(
-      L"Layout_PlaybackControls", L"SkipIconPoints",
-      L"0.25,-0.5,0.5,-0.5,0.0,0.0,0.5,0.5,0.25,0.5,-0.25,0.0", iconBuf, 256,
-      m_iniFilePath.c_str());
-  m_skipIconPoints = iconBuf;
-  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextFontSize",
-                           L"10.0", buf, 32, m_iniFilePath.c_str());
-  try {
-    m_skipTextFontSize = std::stof(buf);
-  } catch (...) {
-    m_skipTextFontSize = 10.0f;
-  }
-  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetX",
-                           L"0.2", buf, 32, m_iniFilePath.c_str());
-  try {
-    m_skipTextOffsetX = std::stof(buf);
-  } catch (...) {
-    m_skipTextOffsetX = 0.2f;
-  }
-  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetY",
-                           L"0.1", buf, 32, m_iniFilePath.c_str());
-  try {
-    m_skipTextOffsetY = std::stof(buf);
-  } catch (...) {
-    m_skipTextOffsetY = 0.1f;
-  }
-  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowColor",
-                           L"#000000", buf, 32, m_iniFilePath.c_str());
-  m_skipTextShadowColor = buf;
-  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowOpacity",
-                           L"0.8", buf, 32, m_iniFilePath.c_str());
-  try {
-    m_skipTextShadowOpacity = std::stof(buf);
-  } catch (...) {
-    m_skipTextShadowOpacity = 0.8f;
-  }
-  GetPrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowShift",
-                           L"1.0", buf, 32, m_iniFilePath.c_str());
-  try {
-    m_skipTextShadowShift = std::stof(buf);
-  } catch (...) {
-    m_skipTextShadowShift = 1.0f;
-  }
-
-  // Hotfix: Force output to INI file so user can edit them
-  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipIconPoints",
-                             m_skipIconPoints.c_str(), m_iniFilePath.c_str());
-  swprintf_s(buf, L"%.1f", m_skipTextFontSize);
-  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextFontSize",
-                             buf, m_iniFilePath.c_str());
-  swprintf_s(buf, L"%.2f", m_skipTextOffsetX);
-  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetX",
-                             buf, m_iniFilePath.c_str());
-  swprintf_s(buf, L"%.2f", m_skipTextOffsetY);
-  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextOffsetY",
-                             buf, m_iniFilePath.c_str());
-  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowColor",
-                             m_skipTextShadowColor.c_str(),
-                             m_iniFilePath.c_str());
-  swprintf_s(buf, L"%.2f", m_skipTextShadowOpacity);
-  WritePrivateProfileStringW(L"Layout_PlaybackControls",
-                             L"SkipTextShadowOpacity", buf,
-                             m_iniFilePath.c_str());
-  swprintf_s(buf, L"%.2f", m_skipTextShadowShift);
-  WritePrivateProfileStringW(L"Layout_PlaybackControls", L"SkipTextShadowShift",
-                             buf, m_iniFilePath.c_str());
 
   GetPrivateProfileStringW(L"Layout_NowPlaying", L"TrackCountFontFamily",
                            L"Courier New", buf, 32, m_iniFilePath.c_str());

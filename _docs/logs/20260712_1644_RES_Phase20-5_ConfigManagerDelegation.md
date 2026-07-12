@@ -22,7 +22,7 @@ Phase 20-4 で物理分割した6つのファイル（Window, Playlist, Playback
     - `ConfigManager_Window.cpp` に `LoadWindowSettings` を実装し、大元から処理を移行・リファクタリングする。
 [x] タスク3: Playlist設定の委譲
     - `ConfigManager_Playlist.cpp` に `LoadPlaylistSettings` を実装し、大元から処理を移行・リファクタリングする。
-[ ] タスク4: Playback設定の委譲
+[x] タスク4: Playback設定の委譲
     - `ConfigManager_Playback.cpp` に `LoadPlaybackSettings` を実装し、大元から処理を移行・リファクタリングする。
 [ ] タスク5: LogoMenu設定の委譲
     - `ConfigManager_LogoMenu.cpp` に `LoadLogoMenuSettings` を実装し、大元から処理を移行・リファクタリングする。
@@ -45,7 +45,9 @@ Phase 20-4 で物理分割した6つのファイル（Window, Playlist, Playback
     - `ConfigManager.cpp` の `LoadSettings()` から Playlist設定の読み込みを削除し、`LoadPlaylistSettings()` に委譲。オートフィルを適用。
     - `ResetToDefaults()` から Playlist 関連の変数の初期化を削除。
 ### タスク4: Playback設定の委譲
-    - (未実施)
+    - `ConfigManager_Playback.cpp` に `ConfigManager::LoadPlaybackSettings()` を実装。
+    - `ConfigManager.cpp` の `LoadSettings()` と `ResetToDefaults()` から Playback, Volume, SeekBar 関連の読み込みや初期化処理を完全に削除し、`LoadPlaybackSettings()` の呼び出しへ置き換えた。
+    - 各変数に対して `LoadOrWriteInt` や `LoadOrWriteFloat`, `LoadOrWriteString` を使用するオートフィル機構を適用。
 ### タスク5: LogoMenu設定の委譲
     - (未実施)
 ### タスク6: Visualizer設定の委譲
