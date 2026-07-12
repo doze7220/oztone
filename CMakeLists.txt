@@ -29,6 +29,11 @@ set(SOURCES
     src/Application_FileDrop.cpp
     src/Application_Render.cpp
     src/Window.cpp
+    src/Window_Initialize.cpp
+    src/Window_Mouse.cpp
+    src/Window_TrayMenu.cpp
+    src/Window_DropTarget.cpp
+    src/Window_System.cpp
     src/ConfigManager.cpp
     src/ConfigManager_Window.cpp
     src/ConfigManager_Playlist.cpp

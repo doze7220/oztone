@@ -346,6 +346,27 @@ private:
     static LRESULT CALLBACK WindowProcStatic(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+    void HandleHotkey(WPARAM wParam, LPARAM lParam);
+    void HandleGetMinMaxInfo(HWND hwnd, LPARAM lParam);
+    void HandleSize(WPARAM wParam, LPARAM lParam);
+    LRESULT HandleNcHitTest(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    void HandleWindowPosChanging(LPARAM lParam);
+    bool HandleMouseActivate(LRESULT& outResult);
+    void HandleMouseMove(HWND hwnd, WPARAM wParam, LPARAM lParam);
+    void HandleMouseLeave();
+    void HandleLButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam);
+    void HandleLButtonUp(WPARAM wParam, LPARAM lParam);
+    bool HandleRButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam);
+    bool HandleRButtonUp(WPARAM wParam, LPARAM lParam);
+    void HandleLButtonDblClk(WPARAM wParam, LPARAM lParam);
+    bool HandleMouseWheel(HWND hwnd, WPARAM wParam, LPARAM lParam);
+    bool HandleKeyDown(WPARAM wParam, LPARAM lParam);
+    void HandleTrayIcon(HWND hwnd, LPARAM lParam);
+    void HandleCommand(HWND hwnd, WPARAM wParam);
+    void HandleAppMediaKey(WPARAM wParam);
+    void HandleCopyData(LPARAM lParam);
+    void HandleDestroy(HWND hwnd);
+
     HWND m_hwnd;
     HINSTANCE m_hInstance;
     const wchar_t* m_className = L"OZtoneWindowClass";
