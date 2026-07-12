@@ -19,9 +19,9 @@
 ## 3. 実装タスクリスト
 [x] タスク1: `Application_Initialize.cpp` の作成
     - `Application.cpp` から `Initialize`, `SetupCallbacks` を抽出し、`Application_Initialize.cpp` へ移行する。
-[ ] タスク2: `Application_Playback.cpp` の作成
+[x] タスク2: `Application_Playback.cpp` の作成
     - `Application.cpp` から `PlayCurrentTrack`, `HandleMediaCommand`, `PrefetchNextTrack`, `UpdateTrackMetadataIfNeeded` を抽出し、`Application_Playback.cpp` へ移行する。
-[ ] タスク3: `Application_Playlist.cpp` の作成
+[x] タスク3: `Application_Playlist.cpp` の作成
     - `Application.cpp` から `SwitchPlaylist`, `ClearPlaylist`, `CreateNewPlaylist`, `OnPlaylistClicked`, `OnPlaylistDoubleClicked`, `OnPlaylistToolbarClicked` を抽出し、`Application_Playlist.cpp` へ移行する。
 [ ] タスク4: `Application_FileDrop.cpp` の作成
     - `Application.cpp` から `OnFilesDropped`, `ProcessCommandLineArgs` を抽出し、`Application_FileDrop.cpp` へ移行する。
@@ -29,7 +29,7 @@
     - `Application.cpp` から `Run`, `ForceRender`, `UpdatePlaylistSummaries` を抽出し、`Application_Render.cpp` へ移行する。
 [ ] タスク6: `Application.cpp` の整理
     - コンストラクタ、デストラクタなど全体管理やエントリポイントに関する処理のみを残す。
-[ ] タスク7: `CMakeLists.txt` の更新
+[x] タスク7: `CMakeLists.txt` の更新
     - 新設した `Application_*.cpp` (Initialize, Playback, Playlist, FileDrop, Render) をソースリストに追加し、ビルドが通るように構成する。
 [ ] タスク8: レポートの更新およびドキュメント確認
     - 本ファイル（RES）の各タスクを完了状態にし、詳細作業内容を追記する。
@@ -40,9 +40,9 @@
     - `src/Application_Initialize.cpp` を作成し、`Application.cpp` から `Initialize` と `SetupCallbacks` の実装を移行した。
     - `CMakeLists.txt` の `SOURCES` に `src/Application_Initialize.cpp` を追加した。
 ### タスク2: Application_Playback.cpp の作成
-    - (未実施)
+    - `src/Application_Playback.cpp` を作成し、`PlayCurrentTrack`, `HandleMediaCommand`, `PrefetchNextTrack`, `UpdateTrackMetadataIfNeeded` の実装を移行した。
 ### タスク3: Application_Playlist.cpp の作成
-    - (未実施)
+    - `src/Application_Playlist.cpp` を作成し、`SwitchPlaylist`, `ClearPlaylist`, `CreateNewPlaylist`, `OnPlaylistClicked`, `OnPlaylistDoubleClicked`, `OnPlaylistToolbarClicked` の実装を移行した。
 ### タスク4: Application_FileDrop.cpp の作成
     - (未実施)
 ### タスク5: Application_Render.cpp の作成
@@ -50,7 +50,7 @@
 ### タスク6: Application.cpp の整理
     - (未実施)
 ### タスク7: CMakeLists.txt の更新
-    - (未実施)
+    - `CMakeLists.txt` の `SOURCES` に `src/Application_Playback.cpp` と `src/Application_Playlist.cpp` を追加した。
 ### タスク8: レポートの更新およびドキュメント確認
     - (未実施)
 
