@@ -72,4 +72,52 @@ void ConfigManager::LoadPlaybackSettings() {
   m_defaultVolume = LoadOrWriteFloat(L"Audio", L"DefaultVolume", 1.0f);
   m_shuffleMode = LoadOrWriteInt(L"Audio", L"ShuffleMode", 1) != 0;
   m_skipSeconds = LoadOrWriteFloat(L"Audio", L"SkipSeconds", 10.0f);
+
+  m_showNowPlaying = LoadOrWriteInt(L"Visibility", L"ShowNowPlaying", 1) != 0;
+  m_showNextTrack = LoadOrWriteInt(L"Visibility", L"ShowNextTrack", 1) != 0;
+
+  m_baseX = LoadOrWriteInt(L"Layout_NowPlaying", L"BaseX", 30);
+  m_baseBottomOffset = LoadOrWriteInt(L"Layout_NowPlaying", L"BaseBottomOffset", 162);
+  m_artOffsetX = LoadOrWriteInt(L"Layout_NowPlaying", L"ArtOffsetX", 0);
+  m_artOffsetY = LoadOrWriteInt(L"Layout_NowPlaying", L"ArtOffsetY", 0);
+  m_artSize = LoadOrWriteInt(L"Layout_NowPlaying", L"ArtSize", 120);
+  m_fallbackArtOpacity = LoadOrWriteFloat(L"Layout_NowPlaying", L"FallbackArtOpacity", 0.5f);
+  m_titleOffsetX = LoadOrWriteInt(L"Layout_NowPlaying", L"TitleOffsetX", 140);
+  m_titleOffsetY = LoadOrWriteInt(L"Layout_NowPlaying", L"TitleOffsetY", 10);
+  m_titleFontSize = LoadOrWriteFloat(L"Layout_NowPlaying", L"TitleFontSize", 32.0f);
+  m_titleFontFamily = LoadOrWriteString(L"Layout_NowPlaying", L"TitleFontFamily", L"Meiryo");
+  m_artistOffsetX = LoadOrWriteInt(L"Layout_NowPlaying", L"ArtistOffsetX", 140);
+  m_artistOffsetY = LoadOrWriteInt(L"Layout_NowPlaying", L"ArtistOffsetY", 55);
+  m_artistFontSize = LoadOrWriteFloat(L"Layout_NowPlaying", L"ArtistFontSize", 18.0f);
+  m_artistFontFamily = LoadOrWriteString(L"Layout_NowPlaying", L"ArtistFontFamily", L"Meiryo");
+  m_trackCountFontFamily = LoadOrWriteString(L"Layout_NowPlaying", L"TrackCountFontFamily", L"Courier New");
+  m_trackCountFontSize = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountFontSize", 14.0f);
+  m_trackCountOffsetX = LoadOrWriteInt(L"Layout_NowPlaying", L"TrackCountOffsetX", 20);
+  m_trackCountOffsetY = LoadOrWriteInt(L"Layout_NowPlaying", L"TrackCountOffsetY", 100);
+  m_trackCountTextAlignment = LoadOrWriteInt(L"Layout_NowPlaying", L"TrackCountTextAlignment", 0);
+  m_trackCountLetterSpacing = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountLetterSpacing", -1.0f);
+  m_trackCountShadowOffsetX = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountShadowOffsetX", 2.0f);
+  m_trackCountShadowOffsetY = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountShadowOffsetY", 2.0f);
+  m_trackCountShadowOpacity = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountShadowOpacity", 0.7f);
+
+  m_enableNextTrack = LoadOrWriteInt(L"Layout_NextTrack", L"EnableNextTrack", 0) != 0;
+  m_nextBaseRightOffset = LoadOrWriteInt(L"Layout_NextTrack", L"BaseRightOffset", 250);
+  m_nextBaseBottomOffset = LoadOrWriteInt(L"Layout_NextTrack", L"BaseBottomOffset", 80);
+  m_nextArtOffsetX = LoadOrWriteInt(L"Layout_NextTrack", L"ArtOffsetX", 0);
+  m_nextArtOffsetY = LoadOrWriteInt(L"Layout_NextTrack", L"ArtOffsetY", 0);
+  m_nextArtSize = LoadOrWriteInt(L"Layout_NextTrack", L"ArtSize", 40);
+  m_nextBgOpacity = LoadOrWriteFloat(L"Layout_NextTrack", L"BgOpacity", 0.3f);
+  m_nextFallbackArtOpacity = LoadOrWriteFloat(L"Layout_NextTrack", L"FallbackArtOpacity", 0.5f);
+  m_nextLabelOffsetX = LoadOrWriteInt(L"Layout_NextTrack", L"LabelOffsetX", 0);
+  m_nextLabelOffsetY = LoadOrWriteInt(L"Layout_NextTrack", L"LabelOffsetY", -20);
+  m_nextLabelFontSize = LoadOrWriteFloat(L"Layout_NextTrack", L"LabelFontSize", 12.0f);
+  m_nextLabelFontFamily = LoadOrWriteString(L"Layout_NextTrack", L"LabelFontFamily", L"Meiryo");
+  m_nextTitleOffsetX = LoadOrWriteInt(L"Layout_NextTrack", L"TitleOffsetX", 50);
+  m_nextTitleOffsetY = LoadOrWriteInt(L"Layout_NextTrack", L"TitleOffsetY", 0);
+  m_nextTitleFontSize = LoadOrWriteFloat(L"Layout_NextTrack", L"TitleFontSize", 14.0f);
+  m_nextTitleFontFamily = LoadOrWriteString(L"Layout_NextTrack", L"TitleFontFamily", L"Meiryo");
+  m_nextArtistOffsetX = LoadOrWriteInt(L"Layout_NextTrack", L"ArtistOffsetX", 50);
+  m_nextArtistOffsetY = LoadOrWriteInt(L"Layout_NextTrack", L"ArtistOffsetY", 20);
+  m_nextArtistFontSize = LoadOrWriteFloat(L"Layout_NextTrack", L"ArtistFontSize", 12.0f);
+  m_nextArtistFontFamily = LoadOrWriteString(L"Layout_NextTrack", L"ArtistFontFamily", L"Meiryo");
 }

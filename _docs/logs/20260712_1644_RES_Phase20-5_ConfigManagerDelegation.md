@@ -30,7 +30,7 @@ Phase 20-4 で物理分割した6つのファイル（Window, Playlist, Playback
     - `ConfigManager_Visualizer.cpp` に `LoadVisualizerSettings` を実装し、大元から処理を移行・リファクタリングする。
 [x] タスク7: System設定の委譲
     - `ConfigManager_System.cpp` に `LoadSystemSettings` を実装し、大元から処理を移行・リファクタリングする。
-[ ] タスク8: ConfigManager.cpp の最終整理とドキュメント更新
+[x] タスク8: ConfigManager.cpp の最終整理とドキュメント更新
     - 大元の `LoadSettings` 等を司令塔として純化させ、不要な旧ロジックを全削除してビルドを通す。その後 `PROJECT_ARCHITECTURE.md` と `task.md` を更新する。
 
 ## 4. 詳細作業内容
@@ -61,4 +61,7 @@ Phase 20-4 で物理分割した6つのファイル（Window, Playlist, Playback
     - `ConfigManager.cpp` の `LoadSettings()` と `ResetToDefaults()` から System（GlobalHotkeys, Layout_OSD）関連の読み込みや初期化処理を完全に削除し、`LoadSystemSettings()` の呼び出しへ置き換えた。
     - 各変数に対して `LoadOrWriteInt` や `LoadOrWriteFloat`, `LoadOrWriteString` を使用するオートフィル機構を適用。
 ### タスク8: ConfigManager.cpp の最終整理とドキュメント更新
-    - (未実施)
+    - `ConfigManager.cpp` から `NowPlaying` および `NextTrack` 関連の未委譲だった読み込み処理を `ConfigManager_Playback.cpp` へ委譲し、残存していた旧ロジックや未使用変数を全削除。
+    - `ResetToDefaults()` を空のメソッドとしてクリーンアップし、`LoadSettings()` がサブメソッド群を順次呼び出すだけの美しい司令塔へとリファクタリング完了。
+    - `PROJECT_ARCHITECTURE.md` の ConfigManager の解説セクションを更新し、委譲化とINIオートフィル機構の導入について追記。
+    - ビルドテストを実行し、正常にビルドが通ることを確認。
