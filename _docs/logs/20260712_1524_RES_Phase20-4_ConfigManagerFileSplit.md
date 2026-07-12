@@ -17,11 +17,11 @@
     - プレイリストUI全般に関する実装を移行する。
 [x] タスク3: ConfigManager_Playback.cpp の作成
     - シークバー、再生コントロール、音量コントロールに関する実装を移行する。
-[ ] タスク4: ConfigManager_LogoMenu.cpp の作成
+[x] タスク4: ConfigManager_LogoMenu.cpp の作成
     - アプリアイコン、ロゴ拡張メニューに関する実装を移行する。
-[ ] タスク5: ConfigManager_Visualizer.cpp の作成
+[x] タスク5: ConfigManager_Visualizer.cpp の作成
     - ビジュアライザ全般に関する実装を移行する。
-[ ] タスク6: ConfigManager_System.cpp の作成
+[x] タスク6: ConfigManager_System.cpp の作成
     - グローバルホットキー、OSDなどシステム連携に関する実装を移行する。
 [ ] タスク7: CMakeLists.txt の更新と ConfigManager.cpp の整理
     - 分割した6ファイルを `CMakeLists.txt` に追加し、元の `ConfigManager.cpp` には `DEFAULT_INI_CONTENT` とコアのファイルI/O処理のみを残してクリーンアップする。
@@ -56,13 +56,22 @@
     - ※ `CMakeLists.txt` への追加はタスク7で実施するため、本タスクでのビルド検証は保留。
 
 ### タスク4: ConfigManager_LogoMenu.cpp の作成
-    - （未実施）
+    - `src/ConfigManager_LogoMenu.cpp` を新規作成し、`#include "ConfigManager.h"` を追加した。
+    - ※ アプリアイコン (AppLogo) および ロゴ拡張メニュー (LogoMenu) に関する設定メソッドは、すべてヘッダファイル内でインラインの Getter として定義されており、`.cpp` 側に実装が分離されているメソッドが一つも存在しなかったため、実装の移行処理は発生していない。
+    - ※ `CMakeLists.txt` への追加はタスク7で実施するため、本タスクでのビルド検証は保留。
 
 ### タスク5: ConfigManager_Visualizer.cpp の作成
-    - （未実施）
+    - `src/ConfigManager_Visualizer.cpp` を新規作成し、`#include "ConfigManager.h"` と `<string>` を追加した。
+    - `ConfigManager.cpp` から以下のビジュアライザ関連の Setter メソッドの実装を移行した。
+        - `SetVisualizerMode`, `SetHighFreqNoiseThreshold`, `SetBandGains`
+        - PrismBeat 関連: `SetPrismBeatMaxHeightRatio`
+        - HaloDust 関連: `SetHaloDustBaseRadiusRatio` 等の多数のパラメータ
+    - ※ `CMakeLists.txt` への追加はタスク7で実施するため、本タスクでのビルド検証は保留。
 
 ### タスク6: ConfigManager_System.cpp の作成
-    - （未実施）
+    - `src/ConfigManager_System.cpp` を新規作成し、`#include "ConfigManager.h"` を記述した。
+    - ※ グローバルホットキーおよびOSDに関するメソッド（`SetShowHotkeys`, `SetEnableOSD`, `SetNextTrackHotkey` 等）は、ヘッダに宣言のみで実装が存在しないか、インライン定義のGetterのみであったため、`.cpp` 側に移行すべき実装は一つも存在しなかった。そのため実装の移行処理は発生していない。
+    - ※ `CMakeLists.txt` への追加はタスク7で実施するため、本タスクでのビルド検証は保留。
 
 ### タスク7: CMakeLists.txt の更新と ConfigManager.cpp の整理
     - （未実施）

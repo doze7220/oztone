@@ -172,3 +172,76 @@
 
 
 --------------------------------------------------------------------------------
+
+
+##### 作業指示書 REQ: Phase 20-4 Task 5: ConfigManager_Visualizer.cpp の作成 (実装実行)
+以下のプロジェクトルールと開発資料、実装計画兼実装レポートを熟読すること。
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260712_1524_RES_Phase20-4_ConfigManagerFileSplit.md
+
+###### 【作業手順（厳守事項）】
+1. 本プロンプトはリファクタリング（ファイル分割）の「実装実行」である。直ちに以下の【実装要件】に従ってコードの分割・移行を実行すること。
+2. 作業完了後、既存の作業レポート（D:\ozlab\oztone\_docs\logs\20260712_1524_RES_Phase20-4_ConfigManagerFileSplit.md）の「タスク5」のチェックボックスを完了 `[x]` にし、詳細作業内容を追記すること。
+3. チャットにて「タスク5（ConfigManager_Visualizer.cpp の作成）の実装が完了しました。」と報告すること。
+
+---
+
+###### 【実装要件】
+`ConfigManager.h` のクラス定義や既存の機能・ロジックは一切変更せず、`ConfigManager.cpp` の実装の一部を新規ファイルに物理分割する。今回はタスク5のみを実行する。
+
+*   **1. `ConfigManager_Visualizer.cpp` の作成と移行**
+    *   新規ファイル `src/ConfigManager_Visualizer.cpp` を作成する。
+    *   ファイルの先頭に `#include "ConfigManager.h"` と、その実装に必要なインクルード文を記述する。
+    *   `ConfigManager.cpp` から、以下の機能に関するメソッド（`.cpp`に実装が存在するもの）を切り取り、`ConfigManager_Visualizer.cpp` へ完全に移行（ペースト）する。
+        *   **ビジュアライザモード** 関連の設定 (`SetVisualizerMode` 等)
+        *   **事前スキャンとノイズ閾値** 関連の設定 (`SetEnablePreScan`, `SetHighFreqNoiseThreshold` 等)
+        *   **5バンドEQ** 関連の設定 (`SetBandGains` 等)
+        *   その他、PrismBeat や HaloDust 固有のパラメータで Setter 実装が存在するもの
+    *   ※ 注意: これまでと同様、ヘッダファイル（`.h`）内でインライン定義されているだけの Getter 等は移行の対象外である。
+    *   ※ 注意: `CMakeLists.txt` への追加はタスク7で行うため、本タスクでのビルド検証は保留とする。
+
+###### 【絶対遵守ルール (Constraints)】
+*   **クラス設計の維持**: 本タスクは「物理ファイルの分割」のみである。新たなクラスの作成や論理構造の変更は絶対に行わないこと。
+*   **機能変更の禁止**: コピー＆ペーストによる安全な移行を心がけ、既存の動作を絶対に壊さないこと。
+
+
+--------------------------------------------------------------------------------
+
+
+#### 作業指示書 REQ: Phase 20-4 Task 6: ConfigManager_System.cpp の作成 (実装実行)
+以下のプロジェクトルールと開発資料、実装計画兼実装レポートを熟読すること。
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260712_1524_RES_Phase20-4_ConfigManagerFileSplit.md
+
+###### 【作業手順（厳守事項）】
+1. 本プロンプトはリファクタリング（ファイル分割）の「実装実行」である。直ちに以下の【実装要件】に従ってコードの分割・移行を実行すること。
+2. 作業完了後、既存の作業レポート（D:\ozlab\oztone\_docs\logs\20260712_1524_RES_Phase20-4_ConfigManagerFileSplit.md）の「タスク6」のチェックボックスを完了 `[x]` にし、詳細作業内容を追記すること。
+3. チャットにて「タスク6（ConfigManager_System.cpp の作成）の実装が完了しました。」と報告すること。
+
+---
+
+###### 【実装要件】
+`ConfigManager.h` のクラス定義や既存の機能・ロジックは一切変更せず、`ConfigManager.cpp` の実装の一部を新規ファイルに物理分割する。今回はタスク6のみを実行する。
+
+*   **1. `ConfigManager_System.cpp` の作成と移行**
+    *   新規ファイル `src/ConfigManager_System.cpp` を作成する。
+    *   ファイルの先頭に `#include "ConfigManager.h"` と、その実装に必要なインクルード文を記述する。
+    *   `ConfigManager.cpp` から、以下の機能に関するメソッド（`.cpp`に実装が存在するもの）を切り取り、`ConfigManager_System.cpp` へ完全に移行（ペースト）する。
+        *   **グローバルホットキー (GlobalHotkeys)** 関連の設定 (ホットキーのバインドやチートシートのカスタマイズ設定等)
+        *   **OSD (On-Screen Display)** 関連の設定 (`SetEnableOSD` や表示パラメータ等)
+    *   ※ 注意: これまでと同様、ヘッダファイル（`.h`）内でインライン定義されているだけの Getter 等は移行の対象外である。もし該当セクションの実装がすべてインラインであり、`.cpp`側に移行すべきものが一つも無い場合は、その旨をレポートに記載して `#include "ConfigManager.h"` のみ記述したファイルとするか、報告のみでタスク完了としてよい。
+    *   ※ 注意: `CMakeLists.txt` への追加はタスク7で行うため、本タスクでのビルド検証は保留とする。
+
+###### 【絶対遵守ルール (Constraints)】
+*   **クラス設計の維持**: 本タスクは「物理ファイルの分割」のみである。新たなクラスの作成や論理構造の変更は絶対に行わないこと。
+*   **機能変更の禁止**: コピー＆ペーストによる安全な移行を心がけ、既存の動作を絶対に壊さないこと。
+
+
+--------------------------------------------------------------------------------
+
+
+
+
+--------------------------------------------------------------------------------
