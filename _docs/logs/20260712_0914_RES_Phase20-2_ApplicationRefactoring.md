@@ -32,7 +32,7 @@
 [x] タスク4: `ForceRender` メソッドの整理
     - 処理ブロックごとに適切なコメントを追加し、ローカル変数のスコープを整理するなどして可読性を高める。
 
-[ ] タスク5: PROJECT_ARCHITECTURE.md の更新確認と修正
+[x] タスク5: PROJECT_ARCHITECTURE.md の更新確認と修正
     - 本リファクタリングにより影響を受ける記述（`Initialize`やその他のメソッドの説明）が `PROJECT_ARCHITECTURE.md` にあれば修正する。
 
 ## 4. 詳細作業内容
@@ -56,7 +56,10 @@
     - ローカル変数（`shuffleList`, `metadataList`など）の宣言位置を、最初に使用される行の直前へ移動し、変数のスコープを最小化した。
 
 ### タスク5: PROJECT_ARCHITECTURE.md の更新確認と修正
-    - (未実施)
+    - `PROJECT_ARCHITECTURE.md` 内の `Application` クラスの解説セクションを更新した。
+    - `Initialize` の説明文を変更し、内部でコールバックの登録を行っていた記述を「`SetupCallbacks` を呼び出して各種コールバックを登録する」という内容へ修正。
+    - 新設された `SetupCallbacks` および `PlayCurrentTrack` のメソッド説明をリファレンスへ追記。
+    - プレイリスト連携の説明部分において、巨大だったコールバックラムダ式が `OnPlaylistClicked`、`OnPlaylistDoubleClicked`、`OnPlaylistToolbarClicked` 等の独立したメンバ関数へ分離・整理された旨を明記。
 
 ## 5. HOTFIX1
 ### 原因・理由:
