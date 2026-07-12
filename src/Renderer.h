@@ -15,7 +15,7 @@
 #include "PlaylistManager.h"
 #include "TrackDatabase.h"
 #include "Visualizer.h"
-#include "Widgets.h"
+#include "Widget.h"
 #include "Window.h"
 
 class ConfigManager;

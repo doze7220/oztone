@@ -46,7 +46,6 @@ set(SOURCES
     src/Visualizer.cpp
     src/Visualizer_PrismBeat.cpp
     src/Visualizer_HaloDust.cpp
-    src/Widgets.cpp
     src/Widget_AppLogo.cpp
     src/Widget_TrackInfo.cpp
     src/Widget_NextTrack.cpp
@@ -80,7 +79,6 @@ set(HEADERS
     src/Visualizer_HaloDust.h
     src/WidgetContext.h
     src/Widget.h
-    src/Widgets.h
     src/Widget_AppLogo.h
     src/Widget_TrackInfo.h
     src/Widget_NextTrack.h
