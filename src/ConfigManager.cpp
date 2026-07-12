@@ -346,37 +346,8 @@ ConfigManager::ConfigManager() {
 }
 
 void ConfigManager::ResetToDefaults() {
-  m_showAppLogo = true;
   m_showNowPlaying = true;
   m_showNextTrack = true;
-
-  m_logoX = 16;
-  m_logoY = 16;
-  m_logoWidth = 64;
-  m_logoHeight = 64;
-
-  m_logoMenuTypingFontSize = 14.0f;
-  m_logoMenuTypingFontFamily = L"Meiryo";
-  m_logoMenuTextColor = L"#FFFFFF";
-  m_logoMenuTextOffsetX = 8;
-  m_logoMenuTextOffsetY = -18;
-  m_logoMenuTypingLetterSpacing = -1.0f;
-  m_logoMenuIconSize = 44.0f;
-  m_logoMenuIconSpacing = 54;
-  m_logoMenuIconOffsetX = -24;
-  m_logoMenuIconOffsetY = 38;
-  m_logoMenuScrollDuration = 0.5f;
-  m_logoMenuFontFamily = L"Segoe UI Emoji";
-  m_logoMenuVisualizerFontSize = 24.0f;
-  m_logoMenuVisualizerIconOffsetX = 6;
-  m_logoMenuVisualizerIconOffsetY = 0;
-  m_logoMenuLockIconFontSize = 20.0f;
-  m_logoMenuLockIconOffsetX = -2;
-  m_logoMenuLockIconOffsetY = -2;
-  m_logoMenuDescShadowOffsetX = 2.0f;
-  m_logoMenuDescShadowOffsetY = 1.0f;
-  m_logoMenuDescShadowOpacity = 0.8f;
-  m_menuLeaveDelay = 2.0f;
 
   m_baseX = 20;
   m_baseBottomOffset = 162;
@@ -605,6 +576,7 @@ std::wstring ConfigManager::LoadOrWriteString(const std::wstring& section, const
 
 void ConfigManager::LoadSettings() {
   LoadWindowSettings();
+  LoadLogoMenuSettings();
 
   LoadPlaylistSettings();
   LoadPlaybackSettings();
@@ -700,145 +672,11 @@ void ConfigManager::LoadSettings() {
   GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloGlowThickness", L"12.0", buf, 32, m_iniFilePath.c_str());
   try { m_haloGlowThickness = std::stof(buf); } catch (...) { m_haloGlowThickness = 12.0f; }
 
-  m_showAppLogo = GetPrivateProfileIntW(L"Visibility", L"ShowAppLogo", 1,
-                                        m_iniFilePath.c_str()) != 0;
   m_showNowPlaying = GetPrivateProfileIntW(L"Visibility", L"ShowNowPlaying", 1,
                                            m_iniFilePath.c_str()) != 0;
   m_showNextTrack = GetPrivateProfileIntW(L"Visibility", L"ShowNextTrack", 1,
                                           m_iniFilePath.c_str()) != 0;
 
-
-  m_logoX =
-      GetPrivateProfileIntW(L"Layout_AppLogo", L"X", 16, m_iniFilePath.c_str());
-
-  m_logoY =
-      GetPrivateProfileIntW(L"Layout_AppLogo", L"Y", 16, m_iniFilePath.c_str());
-  m_logoWidth = GetPrivateProfileIntW(L"Layout_AppLogo", L"Width", 64,
-                                      m_iniFilePath.c_str());
-  m_logoHeight = GetPrivateProfileIntW(L"Layout_AppLogo", L"Height", 64,
-                                       m_iniFilePath.c_str());
-
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuIconSize", L"24.0", buf,
-                           32, m_iniFilePath.c_str());
-  try {
-    m_logoMenuIconSize = std::stof(buf);
-  } catch (...) {
-    m_logoMenuIconSize = 24.0f;
-  }
-
-  m_logoMenuIconSpacing = GetPrivateProfileIntW(
-      L"Layout_LogoMenu", L"MenuIconSpacing", 40, m_iniFilePath.c_str());
-
-  m_logoMenuIconOffsetX = GetPrivateProfileIntW(
-      L"Layout_LogoMenu", L"MenuIconOffsetX", 0, m_iniFilePath.c_str());
-
-  m_logoMenuIconOffsetY = GetPrivateProfileIntW(
-      L"Layout_LogoMenu", L"MenuIconOffsetY", 0, m_iniFilePath.c_str());
-
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuScrollDuration", L"0.5",
-                           buf, 32, m_iniFilePath.c_str());
-  try {
-    m_logoMenuScrollDuration = std::stof(buf);
-  } catch (...) {
-    m_logoMenuScrollDuration = 0.5f;
-  }
-
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuLeaveDelay", L"3.0", buf,
-                           32, m_iniFilePath.c_str());
-  try {
-    m_menuLeaveDelay = std::stof(buf);
-  } catch (...) {
-    m_menuLeaveDelay = 3.0f;
-  }
-
-  wchar_t logoFontBuf[256];
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuFontFamily",
-                           L"Segoe UI Emoji", logoFontBuf, 256,
-                           m_iniFilePath.c_str());
-  m_logoMenuFontFamily = logoFontBuf;
-
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuTextColor", L"#FFFFFF",
-                           logoFontBuf, 256, m_iniFilePath.c_str());
-  m_logoMenuTextColor = logoFontBuf;
-
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuTypingFontFamily",
-                           L"Consolas", logoFontBuf, 256,
-                           m_iniFilePath.c_str());
-  m_logoMenuTypingFontFamily = logoFontBuf;
-
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuTypingFontSize", L"14.0",
-                           buf, 32, m_iniFilePath.c_str());
-  try {
-    m_logoMenuTypingFontSize = std::stof(buf);
-  } catch (...) {
-    m_logoMenuTypingFontSize = 14.0f;
-  }
-
-  m_logoMenuTextOffsetX = GetPrivateProfileIntW(
-      L"Layout_LogoMenu", L"MenuTextOffsetX", 0, m_iniFilePath.c_str());
-
-  m_logoMenuTextOffsetY = GetPrivateProfileIntW(
-      L"Layout_LogoMenu", L"MenuTextOffsetY", 60, m_iniFilePath.c_str());
-
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"MenuTypingLetterSpacing",
-                           L"0.0", buf, 32, m_iniFilePath.c_str());
-  try {
-    m_logoMenuTypingLetterSpacing = std::stof(buf);
-  } catch (...) {
-    m_logoMenuTypingLetterSpacing = 0.0f;
-  }
-
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"VisualizerIconFontSize",
-                           L"12.0", buf, 32, m_iniFilePath.c_str());
-  try {
-    m_logoMenuVisualizerFontSize = std::stof(buf);
-  } catch (...) {
-    m_logoMenuVisualizerFontSize = 12.0f;
-  }
-
-  m_logoMenuVisualizerIconOffsetX = GetPrivateProfileIntW(
-      L"Layout_LogoMenu", L"VisualizerIconOffsetX", 12, m_iniFilePath.c_str());
-
-  m_logoMenuVisualizerIconOffsetY = GetPrivateProfileIntW(
-      L"Layout_LogoMenu", L"VisualizerIconOffsetY", 7, m_iniFilePath.c_str());
-
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"LockIconFontSize", L"14.0",
-                           buf, 32, m_iniFilePath.c_str());
-  try {
-    m_logoMenuLockIconFontSize = std::stof(buf);
-  } catch (...) {
-    m_logoMenuLockIconFontSize = 14.0f;
-  }
-
-  m_logoMenuLockIconOffsetX = GetPrivateProfileIntW(
-      L"Layout_LogoMenu", L"LockIconOffsetX", 12, m_iniFilePath.c_str());
-
-  m_logoMenuLockIconOffsetY = GetPrivateProfileIntW(
-      L"Layout_LogoMenu", L"LockIconOffsetY", 8, m_iniFilePath.c_str());
-
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"DescShadowOffsetX", L"2.0",
-                           buf, 32, m_iniFilePath.c_str());
-  try {
-    m_logoMenuDescShadowOffsetX = std::stof(buf);
-  } catch (...) {
-    m_logoMenuDescShadowOffsetX = 2.0f;
-  }
-
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"DescShadowOffsetY", L"2.0",
-                           buf, 32, m_iniFilePath.c_str());
-  try {
-    m_logoMenuDescShadowOffsetY = std::stof(buf);
-  } catch (...) {
-    m_logoMenuDescShadowOffsetY = 2.0f;
-  }
-
-  GetPrivateProfileStringW(L"Layout_LogoMenu", L"DescShadowOpacity", L"0.7",
-                           buf, 32, m_iniFilePath.c_str());
-  try {
-    m_logoMenuDescShadowOpacity = std::stof(buf);
-  } catch (...) {
-    m_logoMenuDescShadowOpacity = 0.7f;
-  }
 
   m_baseX = GetPrivateProfileIntW(L"Layout_NowPlaying", L"BaseX", 30,
                                   m_iniFilePath.c_str());
