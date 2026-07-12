@@ -26,7 +26,7 @@ Phase 20-4 で物理分割した6つのファイル（Window, Playlist, Playback
     - `ConfigManager_Playback.cpp` に `LoadPlaybackSettings` を実装し、大元から処理を移行・リファクタリングする。
 [x] タスク5: LogoMenu設定の委譲
     - `ConfigManager_LogoMenu.cpp` に `LoadLogoMenuSettings` を実装し、大元から処理を移行・リファクタリングする。
-[ ] タスク6: Visualizer設定の委譲
+[x] タスク6: Visualizer設定の委譲
     - `ConfigManager_Visualizer.cpp` に `LoadVisualizerSettings` を実装し、大元から処理を移行・リファクタリングする。
 [ ] タスク7: System設定の委譲
     - `ConfigManager_System.cpp` に `LoadSystemSettings` を実装し、大元から処理を移行・リファクタリングする。
@@ -53,7 +53,9 @@ Phase 20-4 で物理分割した6つのファイル（Window, Playlist, Playback
     - `ConfigManager.cpp` の `LoadSettings()` と `ResetToDefaults()` から AppLogo および LogoMenu 関連の読み込みや初期化処理を完全に削除し、`LoadLogoMenuSettings()` の呼び出しへ置き換えた。
     - 各変数に対して `LoadOrWriteInt` や `LoadOrWriteFloat`, `LoadOrWriteString` を使用するオートフィル機構を適用。
 ### タスク6: Visualizer設定の委譲
-    - (未実施)
+    - `ConfigManager_Visualizer.cpp` に `ConfigManager::LoadVisualizerSettings()` を実装。
+    - `ConfigManager.cpp` の `LoadSettings()` と `ResetToDefaults()` から Visualizer, PrismBeat, HaloDust 関連の読み込みや初期化処理を完全に削除し、`LoadVisualizerSettings()` の呼び出しへ置き換えた。
+    - 各変数に対して `LoadOrWriteFloat` や `LoadOrWriteInt` を使用するオートフィル機構を適用。
 ### タスク7: System設定の委譲
     - (未実施)
 ### タスク8: ConfigManager.cpp の最終整理とドキュメント更新

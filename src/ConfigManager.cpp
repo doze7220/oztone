@@ -396,37 +396,6 @@ void ConfigManager::ResetToDefaults() {
   m_nextArtistFontFamily = L"Meiryo";
 
 
-  m_visualizerMode = 2;
-  m_enablePreScan = true;
-  m_highFreqNoiseThreshold = 0.001f;
-  m_bandGain0 = 1.0f;
-  m_bandGain25 = 1.0f;
-  m_bandGain50 = 1.0f;
-  m_bandGain75 = 1.0f;
-  m_bandGain100 = 1.0f;
-
-  m_prismBeatMaxHeightRatio = 0.8f;
-  m_prismLineThickness = 1.0f;
-  m_prismGlow1Thickness = 6.0f;
-  m_prismGlow1Opacity = 0.6f;
-  m_prismGlow2Thickness = 16.0f;
-  m_prismGlow2Opacity = 0.2f;
-  m_haloDustBaseRadiusRatio = 0.25f;
-  m_haloDustGraphLengthRatio = 0.30f;
-  m_haloLaserBaseOpacity = 0.3f;
-  m_haloLaserLengthRatio = 0.2f;
-  m_haloLaserThickness = 2.0f;
-  m_haloLaserSpeed = 1.0f;
-  m_haloLaserSpawnRate = 0.1f;
-  m_haloLaserLifeTime = 30.0f;
-  m_haloParticleBaseOpacity = 0.5f;
-  m_haloParticleSizeRatio = 0.05f;
-  m_haloParticleSpeed = 1.0f;
-  m_haloParticleSpawnRate = 0.2f;
-  m_haloParticleLifeTime = 60.0f;
-  m_haloGlowOpacity = 0.6f;
-  m_haloGlowThickness = 12.0f;
-
   m_ghFontFamily = L"MS Gothic";
   m_ghFontSize = 15.0f;
   m_ghLineSpacing = 20.0f;
@@ -580,97 +549,10 @@ void ConfigManager::LoadSettings() {
 
   LoadPlaylistSettings();
   LoadPlaybackSettings();
+  LoadVisualizerSettings();
 
   wchar_t buf[32];
   wchar_t colorBuf[256];
-
-
-  m_visualizerMode = GetPrivateProfileIntW(L"Visualizer", L"VisualizerMode", 0,
-                                           m_iniFilePath.c_str());
-
-  m_enablePreScan = GetPrivateProfileIntW(L"Visualizer", L"EnablePreScan", 0,
-                                          m_iniFilePath.c_str()) != 0;
-
-  GetPrivateProfileStringW(L"Visualizer", L"HighFreqNoiseThreshold", L"0.001", buf, 32, m_iniFilePath.c_str());
-  try { m_highFreqNoiseThreshold = std::stof(buf); } catch (...) { m_highFreqNoiseThreshold = 0.001f; }
-
-  GetPrivateProfileStringW(L"Visualizer", L"BandGain0", L"1.0", buf, 32, m_iniFilePath.c_str());
-  try { m_bandGain0 = std::stof(buf); } catch (...) { m_bandGain0 = 1.0f; }
-
-  GetPrivateProfileStringW(L"Visualizer", L"BandGain25", L"1.0", buf, 32, m_iniFilePath.c_str());
-  try { m_bandGain25 = std::stof(buf); } catch (...) { m_bandGain25 = 1.0f; }
-
-  GetPrivateProfileStringW(L"Visualizer", L"BandGain50", L"1.0", buf, 32, m_iniFilePath.c_str());
-  try { m_bandGain50 = std::stof(buf); } catch (...) { m_bandGain50 = 1.0f; }
-
-  GetPrivateProfileStringW(L"Visualizer", L"BandGain75", L"1.0", buf, 32, m_iniFilePath.c_str());
-  try { m_bandGain75 = std::stof(buf); } catch (...) { m_bandGain75 = 1.0f; }
-
-  GetPrivateProfileStringW(L"Visualizer", L"BandGain100", L"1.0", buf, 32, m_iniFilePath.c_str());
-  try { m_bandGain100 = std::stof(buf); } catch (...) { m_bandGain100 = 1.0f; }
-
-  GetPrivateProfileStringW(L"Visualizer_PrismBeat", L"MaxHeightRatio", L"0.80", buf, 32, m_iniFilePath.c_str());
-  try { m_prismBeatMaxHeightRatio = std::stof(buf); } catch (...) { m_prismBeatMaxHeightRatio = 0.80f; }
-
-  GetPrivateProfileStringW(L"Visualizer_PrismBeat", L"PrismLineThickness", L"1.00", buf, 32, m_iniFilePath.c_str());
-  try { m_prismLineThickness = std::stof(buf); } catch (...) { m_prismLineThickness = 1.0f; }
-
-  GetPrivateProfileStringW(L"Visualizer_PrismBeat", L"PrismGlow1Thickness", L"6.00", buf, 32, m_iniFilePath.c_str());
-  try { m_prismGlow1Thickness = std::stof(buf); } catch (...) { m_prismGlow1Thickness = 6.0f; }
-
-  GetPrivateProfileStringW(L"Visualizer_PrismBeat", L"PrismGlow1Opacity", L"0.60", buf, 32, m_iniFilePath.c_str());
-  try { m_prismGlow1Opacity = std::stof(buf); } catch (...) { m_prismGlow1Opacity = 0.6f; }
-
-  GetPrivateProfileStringW(L"Visualizer_PrismBeat", L"PrismGlow2Thickness", L"16.00", buf, 32, m_iniFilePath.c_str());
-  try { m_prismGlow2Thickness = std::stof(buf); } catch (...) { m_prismGlow2Thickness = 16.0f; }
-
-  GetPrivateProfileStringW(L"Visualizer_PrismBeat", L"PrismGlow2Opacity", L"0.20", buf, 32, m_iniFilePath.c_str());
-  try { m_prismGlow2Opacity = std::stof(buf); } catch (...) { m_prismGlow2Opacity = 0.2f; }
-
-  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"BaseRadiusRatio", L"0.25", buf, 32, m_iniFilePath.c_str());
-  try { m_haloDustBaseRadiusRatio = std::stof(buf); } catch (...) { m_haloDustBaseRadiusRatio = 0.25f; }
-
-  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"GraphLengthRatio", L"0.30", buf, 32, m_iniFilePath.c_str());
-  try { m_haloDustGraphLengthRatio = std::stof(buf); } catch (...) { m_haloDustGraphLengthRatio = 0.30f; }
-
-  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserBaseOpacity", L"0.30", buf, 32, m_iniFilePath.c_str());
-  try { m_haloLaserBaseOpacity = std::stof(buf); } catch (...) { m_haloLaserBaseOpacity = 0.3f; }
-
-  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserLengthRatio", L"0.20", buf, 32, m_iniFilePath.c_str());
-  try { m_haloLaserLengthRatio = std::stof(buf); } catch (...) { m_haloLaserLengthRatio = 0.2f; }
-
-  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserThickness", L"2.0", buf, 32, m_iniFilePath.c_str());
-  try { m_haloLaserThickness = std::stof(buf); } catch (...) { m_haloLaserThickness = 2.0f; }
-
-  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserSpeed", L"1.0", buf, 32, m_iniFilePath.c_str());
-  try { m_haloLaserSpeed = std::stof(buf); } catch (...) { m_haloLaserSpeed = 1.0f; }
-
-  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserSpawnRate", L"0.1", buf, 32, m_iniFilePath.c_str());
-  try { m_haloLaserSpawnRate = std::stof(buf); } catch (...) { m_haloLaserSpawnRate = 0.1f; }
-
-  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloLaserLifeTime", L"30.0", buf, 32, m_iniFilePath.c_str());
-  try { m_haloLaserLifeTime = std::stof(buf); } catch (...) { m_haloLaserLifeTime = 30.0f; }
-
-  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloParticleBaseOpacity", L"0.50", buf, 32, m_iniFilePath.c_str());
-  try { m_haloParticleBaseOpacity = std::stof(buf); } catch (...) { m_haloParticleBaseOpacity = 0.5f; }
-
-  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloParticleSizeRatio", L"0.05", buf, 32, m_iniFilePath.c_str());
-  try { m_haloParticleSizeRatio = std::stof(buf); } catch (...) { m_haloParticleSizeRatio = 0.05f; }
-
-  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloParticleSpeed", L"1.0", buf, 32, m_iniFilePath.c_str());
-  try { m_haloParticleSpeed = std::stof(buf); } catch (...) { m_haloParticleSpeed = 1.0f; }
-
-  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloParticleSpawnRate", L"0.2", buf, 32, m_iniFilePath.c_str());
-  try { m_haloParticleSpawnRate = std::stof(buf); } catch (...) { m_haloParticleSpawnRate = 0.2f; }
-
-  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloParticleLifeTime", L"60.0", buf, 32, m_iniFilePath.c_str());
-  try { m_haloParticleLifeTime = std::stof(buf); } catch (...) { m_haloParticleLifeTime = 60.0f; }
-
-  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloGlowOpacity", L"0.60", buf, 32, m_iniFilePath.c_str());
-  try { m_haloGlowOpacity = std::stof(buf); } catch (...) { m_haloGlowOpacity = 0.6f; }
-
-  GetPrivateProfileStringW(L"Visualizer_HaloDust", L"HaloGlowThickness", L"12.0", buf, 32, m_iniFilePath.c_str());
-  try { m_haloGlowThickness = std::stof(buf); } catch (...) { m_haloGlowThickness = 12.0f; }
 
   m_showNowPlaying = GetPrivateProfileIntW(L"Visibility", L"ShowNowPlaying", 1,
                                            m_iniFilePath.c_str()) != 0;
