@@ -50,6 +50,32 @@
 *    **TODO (将来): Renderer更新メソッドの統合 (Renderer::Update の導入)**:
     現在 Application から個別に呼び出している UpdateAnimation や UpdateTextLayouts などの更新処理を、単一の Renderer::Update(float deltaTime, ...) メソッドへ統合・隠蔽する。これにより Application は Renderer 内部のリソース更新手順を知る必要がなくなり、依存関係をさらにクリーンにする。
 
+*  srcのフォルダ分割
+   将来的にWidgetが増えるなら、ファイル名だけでなくカテゴリごとに分けるとAIにも分かりやすい。
+   アーキテクチャ資料にはフォルダが何のためにあるか、だけを記載。
+   実際においてあるファイルは記載しない。
+   具体例：
+   Widgets/
+   ├── Common/
+   │   ├── WidgetCommon.cpp
+   │   └── WidgetCommon.h
+   ├── Header/
+   │   ├── AppLogoWidget.cpp
+   │   ├── TrackInfoWidget.cpp
+   │   └── NextTrackWidget.cpp
+   ├── Controls/
+   │   ├── SeekBarWidget.cpp
+   │   ├── PlaybackControlsWidget.cpp
+   │   └── VolumeControlWidget.cpp
+   ├── Playlist/
+   │   ├── PlaylistWidget.cpp
+   │   ├── PlaylistInput.cpp
+   │   ├── PlaylistDraw.cpp
+   │   └── PlaylistLayout.cpp
+   └── Utility/
+      ├── GlobalHotkeysWidget.cpp
+      └── ResizeGripWidget.cpp
+
 Window.cpp: 1236行
 Widgets.cpp: 980行
 Renderer.cpp: 638行

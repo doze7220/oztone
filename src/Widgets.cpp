@@ -1,4 +1,5 @@
 #include "Widgets.h"
+#include "WidgetCommon.h"
 #include "ConfigManager.h"
 #include "LayoutCalculator.h"
 #include "resource.h"
@@ -21,78 +22,6 @@ enum ActionID {
   ACTION_EXIT_APP
 };
 
-bool LoadBitmapResourceHelper(IWICImagingFactory *wicFactory,
-                              ID2D1DeviceContext *d2dContext,
-                              const std::wstring &filename, int resourceId,
-                              ID2D1Bitmap **ppBitmap) {
-  HRESULT hr = S_OK;
-  Microsoft::WRL::ComPtr<IWICBitmapDecoder> decoder;
-
-  hr = wicFactory->CreateDecoderFromFilename(
-      filename.c_str(), nullptr, GENERIC_READ, WICDecodeMetadataCacheOnLoad,
-      &decoder);
-
-  if (FAILED(hr)) {
-    HMODULE hModule = GetModuleHandle(nullptr);
-    HRSRC imageResHandle =
-        FindResource(hModule, MAKEINTRESOURCE(resourceId), RT_RCDATA);
-    if (!imageResHandle) {
-      return false;
-    }
-
-    HGLOBAL imageResDataHandle = LoadResource(hModule, imageResHandle);
-    if (!imageResDataHandle) {
-      return false;
-    }
-
-    void *pImageFile = LockResource(imageResDataHandle);
-    DWORD imageFileSize = SizeofResource(hModule, imageResHandle);
-    if (!pImageFile || imageFileSize == 0) {
-      return false;
-    }
-
-    Microsoft::WRL::ComPtr<IWICStream> stream;
-    hr = wicFactory->CreateStream(&stream);
-    if (FAILED(hr)) {
-      return false;
-    }
-
-    hr = stream->InitializeFromMemory(reinterpret_cast<BYTE *>(pImageFile),
-                                      imageFileSize);
-    if (FAILED(hr)) {
-      return false;
-    }
-
-    hr = wicFactory->CreateDecoderFromStream(
-        stream.Get(), nullptr, WICDecodeMetadataCacheOnLoad, &decoder);
-    if (FAILED(hr)) {
-      return false;
-    }
-  }
-
-  Microsoft::WRL::ComPtr<IWICBitmapFrameDecode> frame;
-  hr = decoder->GetFrame(0, &frame);
-  if (FAILED(hr)) {
-    return false;
-  }
-
-  Microsoft::WRL::ComPtr<IWICFormatConverter> converter;
-  hr = wicFactory->CreateFormatConverter(&converter);
-  if (FAILED(hr)) {
-    return false;
-  }
-
-  hr = converter->Initialize(frame.Get(), GUID_WICPixelFormat32bppPBGRA,
-                             WICBitmapDitherTypeNone, nullptr, 0.0f,
-                             WICBitmapPaletteTypeMedianCut);
-  if (FAILED(hr)) {
-    return false;
-  }
-
-  hr =
-      d2dContext->CreateBitmapFromWicBitmap(converter.Get(), nullptr, ppBitmap);
-  return SUCCEEDED(hr);
-}
 } // namespace
 
 // ==========================================
@@ -102,10 +31,10 @@ void AppLogoWidget::CreateResources(ID2D1DeviceContext *context,
                                     IWICImagingFactory *wicFactory,
                                     IDWriteFactory *dwriteFactory,
                                     const ConfigManager *config) {
-  LoadBitmapResourceHelper(wicFactory, context, L"app_logo.png", IDI_APP_LOGO,
-                           &m_appLogoBitmap);
-  LoadBitmapResourceHelper(wicFactory, context, L"app_logo_hover.png",
-                           IDI_APP_LOGO_HOVER, &m_appLogoHoverBitmap);
+  WidgetCommon::LoadBitmapResource(wicFactory, context, L"app_logo.png", IDI_APP_LOGO,
+                                   &m_appLogoBitmap);
+  WidgetCommon::LoadBitmapResource(wicFactory, context, L"app_logo_hover.png",
+                                   IDI_APP_LOGO_HOVER, &m_appLogoHoverBitmap);
 
   context->CreateEffect(CLSID_D2D1Shadow, &m_shadowEffect);
 }
@@ -191,20 +120,8 @@ void TrackInfoWidget::CreateResources(ID2D1DeviceContext *context,
       DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL,
       config->GetArtistFontSize(), L"ja-jp", &m_artistTextFormat);
 
-  auto ApplyTrimming = [&](Microsoft::WRL::ComPtr<IDWriteTextFormat> &format) {
-    if (!format)
-      return;
-    DWRITE_TRIMMING trimmingOptions = {DWRITE_TRIMMING_GRANULARITY_CHARACTER, 0,
-                                       0};
-    Microsoft::WRL::ComPtr<IDWriteInlineObject> ellipsis;
-    if (SUCCEEDED(dwriteFactory->CreateEllipsisTrimmingSign(format.Get(),
-                                                            &ellipsis))) {
-      format->SetTrimming(&trimmingOptions, ellipsis.Get());
-      format->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
-    }
-  };
-  ApplyTrimming(m_titleTextFormat);
-  ApplyTrimming(m_artistTextFormat);
+  WidgetCommon::ApplyTextTrimming(dwriteFactory, m_titleTextFormat.Get());
+  WidgetCommon::ApplyTextTrimming(dwriteFactory, m_artistTextFormat.Get());
 
   m_dwriteFactory = dwriteFactory;
   dwriteFactory->CreateTextFormat(
@@ -212,7 +129,7 @@ void TrackInfoWidget::CreateResources(ID2D1DeviceContext *context,
       DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
       DWRITE_FONT_STRETCH_NORMAL, config->GetTrackCountFontSize(), L"en-us",
       &m_trackCountTextFormat);
-  ApplyTrimming(m_trackCountTextFormat);
+  WidgetCommon::ApplyTextTrimming(dwriteFactory, m_trackCountTextFormat.Get());
 
   context->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f),
                                  &m_shadowBrush);
@@ -345,38 +262,25 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       m_artistTextLayout->SetMaxHeight(layout.artistRect.bottom -
                                        layout.artistRect.top);
 
-      if (m_shadowBrush && config->GetEnableShadow()) {
-        m_shadowBrush->SetOpacity(config->GetShadowOpacity());
-        context->DrawTextLayout(D2D1::Point2F(layout.titleShadowRect.left,
-                                              layout.titleShadowRect.top),
-                                m_titleTextLayout.Get(), m_shadowBrush.Get());
-      }
-
-      context->DrawTextLayout(
+      float shadowOpacity = config->GetEnableShadow() ? config->GetShadowOpacity() : 0.0f;
+      WidgetCommon::DrawShadowedTextLayout(
+          context, m_titleTextLayout.Get(), m_textBrush.Get(), m_shadowBrush.Get(),
           D2D1::Point2F(layout.titleRect.left, layout.titleRect.top),
-          m_titleTextLayout.Get(), m_textBrush.Get());
+          D2D1::Point2F(layout.titleShadowRect.left, layout.titleShadowRect.top),
+          shadowOpacity);
 
-      if (m_shadowBrush && config->GetEnableShadow()) {
-        m_shadowBrush->SetOpacity(config->GetShadowOpacity());
-        context->DrawTextLayout(D2D1::Point2F(layout.artistShadowRect.left,
-                                              layout.artistShadowRect.top),
-                                m_artistTextLayout.Get(), m_shadowBrush.Get());
-      }
-
-      context->DrawTextLayout(
+      WidgetCommon::DrawShadowedTextLayout(
+          context, m_artistTextLayout.Get(), m_textBrush.Get(), m_shadowBrush.Get(),
           D2D1::Point2F(layout.artistRect.left, layout.artistRect.top),
-          m_artistTextLayout.Get(), m_textBrush.Get());
+          D2D1::Point2F(layout.artistShadowRect.left, layout.artistShadowRect.top),
+          shadowOpacity);
     }
 
     if (m_trackCountTextLayout && m_textBrush) {
-      if (m_shadowBrush && config->GetEnableShadow()) {
-        m_shadowBrush->SetOpacity(config->GetTrackCountShadowOpacity());
-        context->DrawTextLayout(layout.trackCountShadowOrigin,
-                                m_trackCountTextLayout.Get(),
-                                m_shadowBrush.Get());
-      }
-      context->DrawTextLayout(layout.trackCountOrigin,
-                              m_trackCountTextLayout.Get(), m_textBrush.Get());
+      float tcShadowOpacity = config->GetEnableShadow() ? config->GetTrackCountShadowOpacity() : 0.0f;
+      WidgetCommon::DrawShadowedTextLayout(
+          context, m_trackCountTextLayout.Get(), m_textBrush.Get(), m_shadowBrush.Get(),
+          layout.trackCountOrigin, layout.trackCountShadowOrigin, tcShadowOpacity);
     }
   }
 }
@@ -404,21 +308,9 @@ void NextTrackWidget::CreateResources(ID2D1DeviceContext *context,
       DWRITE_FONT_STRETCH_NORMAL, config->GetNextArtistFontSize(), L"ja-jp",
       &m_nextArtistTextFormat);
 
-  auto ApplyTrimming = [&](Microsoft::WRL::ComPtr<IDWriteTextFormat> &format) {
-    if (!format)
-      return;
-    DWRITE_TRIMMING trimmingOptions = {DWRITE_TRIMMING_GRANULARITY_CHARACTER, 0,
-                                       0};
-    Microsoft::WRL::ComPtr<IDWriteInlineObject> ellipsis;
-    if (SUCCEEDED(dwriteFactory->CreateEllipsisTrimmingSign(format.Get(),
-                                                            &ellipsis))) {
-      format->SetTrimming(&trimmingOptions, ellipsis.Get());
-      format->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
-    }
-  };
-  ApplyTrimming(m_nextLabelTextFormat);
-  ApplyTrimming(m_nextTitleTextFormat);
-  ApplyTrimming(m_nextArtistTextFormat);
+  WidgetCommon::ApplyTextTrimming(dwriteFactory, m_nextLabelTextFormat.Get());
+  WidgetCommon::ApplyTextTrimming(dwriteFactory, m_nextTitleTextFormat.Get());
+  WidgetCommon::ApplyTextTrimming(dwriteFactory, m_nextArtistTextFormat.Get());
 
   context->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f),
                                  &m_shadowBrush);
@@ -457,17 +349,10 @@ void NextTrackWidget::Draw(ID2D1DeviceContext *context,
 
     if (m_nextLabelTextFormat) {
       std::wstring labelText = L"Next Track";
-      if (m_shadowBrush && config->GetEnableShadow()) {
-        m_shadowBrush->SetOpacity(config->GetShadowOpacity());
-        context->DrawText(labelText.c_str(),
-                          static_cast<UINT32>(labelText.length()),
-                          m_nextLabelTextFormat.Get(), &layout.labelShadowRect,
-                          m_shadowBrush.Get());
-      }
-
-      context->DrawText(
-          labelText.c_str(), static_cast<UINT32>(labelText.length()),
-          m_nextLabelTextFormat.Get(), &layout.labelRect, m_textBrush.Get());
+      float shadowOpacity = config->GetEnableShadow() ? config->GetShadowOpacity() : 0.0f;
+      WidgetCommon::DrawShadowedText(
+          context, labelText, m_nextLabelTextFormat.Get(), m_textBrush.Get(), m_shadowBrush.Get(),
+          layout.labelRect, layout.labelShadowRect, shadowOpacity);
     }
 
     if (!ctx.nextIsReady) {
@@ -479,17 +364,10 @@ void NextTrackWidget::Draw(ID2D1DeviceContext *context,
       }
 
       std::wstring loadingText = L"Loading...";
-      if (m_shadowBrush && config->GetEnableShadow()) {
-        m_shadowBrush->SetOpacity(config->GetShadowOpacity());
-        context->DrawText(loadingText.c_str(),
-                          static_cast<UINT32>(loadingText.length()),
-                          m_nextTitleTextFormat.Get(), &layout.titleShadowRect,
-                          m_shadowBrush.Get());
-      }
-
-      context->DrawText(
-          loadingText.c_str(), static_cast<UINT32>(loadingText.length()),
-          m_nextTitleTextFormat.Get(), &layout.titleRect, m_textBrush.Get());
+      float shadowOpacity = config->GetEnableShadow() ? config->GetShadowOpacity() : 0.0f;
+      WidgetCommon::DrawShadowedText(
+          context, loadingText, m_nextTitleTextFormat.Get(), m_textBrush.Get(), m_shadowBrush.Get(),
+          layout.titleRect, layout.titleShadowRect, shadowOpacity);
 
     } else {
       if (ctx.nextArtBitmap) {
@@ -509,30 +387,14 @@ void NextTrackWidget::Draw(ID2D1DeviceContext *context,
       }
 
       std::wstring nextText = ctx.nextTrackTitle;
-      if (m_shadowBrush && config->GetEnableShadow()) {
-        m_shadowBrush->SetOpacity(config->GetShadowOpacity());
-        context->DrawText(nextText.c_str(),
-                          static_cast<UINT32>(nextText.length()),
-                          m_nextTitleTextFormat.Get(), &layout.titleShadowRect,
-                          m_shadowBrush.Get());
-      }
+      float shadowOpacity = config->GetEnableShadow() ? config->GetShadowOpacity() : 0.0f;
+      WidgetCommon::DrawShadowedText(
+          context, nextText, m_nextTitleTextFormat.Get(), m_textBrush.Get(), m_shadowBrush.Get(),
+          layout.titleRect, layout.titleShadowRect, shadowOpacity);
 
-      context->DrawText(
-          nextText.c_str(), static_cast<UINT32>(nextText.length()),
-          m_nextTitleTextFormat.Get(), &layout.titleRect, m_textBrush.Get());
-
-      if (m_shadowBrush && config->GetEnableShadow()) {
-        m_shadowBrush->SetOpacity(config->GetShadowOpacity());
-        context->DrawText(ctx.nextTrackArtist.c_str(),
-                          static_cast<UINT32>(ctx.nextTrackArtist.length()),
-                          m_nextArtistTextFormat.Get(),
-                          &layout.artistShadowRect, m_shadowBrush.Get());
-      }
-
-      context->DrawText(ctx.nextTrackArtist.c_str(),
-                        static_cast<UINT32>(ctx.nextTrackArtist.length()),
-                        m_nextArtistTextFormat.Get(), &layout.artistRect,
-                        m_textBrush.Get());
+      WidgetCommon::DrawShadowedText(
+          context, ctx.nextTrackArtist, m_nextArtistTextFormat.Get(), m_textBrush.Get(), m_shadowBrush.Get(),
+          layout.artistRect, layout.artistShadowRect, shadowOpacity);
     }
   }
 }
@@ -653,24 +515,14 @@ void GlobalHotkeysWidget::CreateResources(ID2D1DeviceContext *context,
     m_textFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
   }
 
-  auto HexToColorF = [](const std::wstring &hex, float alpha) {
-    if (hex.length() >= 7 && hex[0] == L'#') {
-      int r, g, b;
-      if (swscanf_s(hex.c_str() + 1, L"%02x%02x%02x", &r, &g, &b) == 3) {
-        return D2D1::ColorF(r / 255.0f, g / 255.0f, b / 255.0f, alpha);
-      }
-    }
-    return D2D1::ColorF(1.0f, 1.0f, 1.0f, alpha);
-  };
-
   context->CreateSolidColorBrush(
-      HexToColorF(config->GetGlobalHotkeysCoreColor(), 0.9f), &m_coreBrush);
+      WidgetCommon::HexToColorF(config->GetGlobalHotkeysCoreColor(), 0.9f), &m_coreBrush);
   context->CreateSolidColorBrush(
-      HexToColorF(config->GetGlobalHotkeysGlowColor(),
-                  config->GetGlobalHotkeysGlowOpacity()),
+      WidgetCommon::HexToColorF(config->GetGlobalHotkeysGlowColor(),
+                                config->GetGlobalHotkeysGlowOpacity()),
       &m_glowBrush);
   context->CreateSolidColorBrush(
-      HexToColorF(config->GetGlobalHotkeysShadowColor(), 1.0f), &m_shadowBrush);
+      WidgetCommon::HexToColorF(config->GetGlobalHotkeysShadowColor(), 1.0f), &m_shadowBrush);
 }
 
 void GlobalHotkeysWidget::ReleaseResources() {
@@ -890,12 +742,9 @@ void GlobalHotkeysWidget::Draw(ID2D1DeviceContext *context,
 
   auto drawText = [&](Microsoft::WRL::ComPtr<IDWriteTextLayout> &textLayout,
                       D2D1_POINT_2F origin) {
-    // Draw Shadow
-    if (m_shadowBrush) {
-      m_shadowBrush->SetOpacity(config->GetGlobalHotkeysShadowOpacity());
-      context->DrawTextLayout(D2D1::Point2F(origin.x + 2.0f, origin.y + 2.0f),
-                              textLayout.Get(), m_shadowBrush.Get());
-    }
+    WidgetCommon::DrawShadowedTextLayout(
+        context, textLayout.Get(), nullptr, m_shadowBrush.Get(),
+        origin, D2D1::Point2F(origin.x + 2.0f, origin.y + 2.0f), config->GetGlobalHotkeysShadowOpacity());
 
     if (m_glowBrush) {
       float glowOffsets[] = {1.5f, 3.0f};

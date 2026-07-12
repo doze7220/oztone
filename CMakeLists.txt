@@ -47,6 +47,7 @@ set(SOURCES
     src/Visualizer_PrismBeat.cpp
     src/Visualizer_HaloDust.cpp
     src/Widgets.cpp
+    src/WidgetCommon.cpp
     src/PlaylistWidget.cpp
     src/PlaybackControlsWidget.cpp
     src/VolumeControlWidget.cpp
@@ -74,6 +75,7 @@ set(HEADERS
     src/WidgetContext.h
     src/Widget.h
     src/Widgets.h
+    src/WidgetCommon.h
     src/PlaylistWidget.h
     src/PlaybackControlsWidget.h
     src/VolumeControlWidget.h
