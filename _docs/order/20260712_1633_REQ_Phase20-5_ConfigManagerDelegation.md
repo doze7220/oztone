@@ -37,3 +37,38 @@ Phase 20-4 で物理分割した6つのファイル（Window, Playlist, Playback
 
 #### 【絶対遵守ルール (Constraints)】
 *   **機能変更の禁止**: 設定項目のキー名やINIファイルのセクション構造は絶対に変更しないこと。
+
+--------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 20-5 Task 1 : ConfigManagerの基盤改修
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260712_1644_RES_Phase20-5_ConfigManagerDelegation.md
+
+#### 【作業手順（厳守事項）】
+1. 本プロンプトはPhase 20-5の基盤となるヘルパー関数の「実装実行」である。直ちに以下の【実装要件】に従ってコードとドキュメントの修正を実行すること。
+2. 作業完了後、既存の作業レポート（logs\20260712_1644_RES_Phase20-5_ConfigManagerDelegation.md）の「タスク1」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+3. チャットにて「タスク1（ConfigManagerの基盤改修） (Phase 20-5)がすべて完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+ConfigManagerの大元（基盤）に、INIオートフィル機構（自己修復機能）のヘルパー関数と、各UI領域へ委譲するためのサブメソッドのプロトタイプを定義する。
+
+*   **要件1: オートフィルヘルパーの実装 (`src/ConfigManager.h`, `src/ConfigManager.cpp`)**
+    *   `ConfigManager.h` の `private` セクションに以下のヘルパーメソッドを宣言する。
+        *   `int LoadOrWriteInt(const std::wstring& section, const std::wstring& key, int defaultValue);`
+        *   `float LoadOrWriteFloat(const std::wstring& section, const std::wstring& key, float defaultValue);`
+        *   `std::wstring LoadOrWriteString(const std::wstring& section, const std::wstring& key, const std::wstring& defaultValue);`
+    *   `ConfigManager.cpp` にこれらの実装を追加する。`GetPrivateProfileStringW` で読み込みを行い、キーが存在しなかった場合は引数の `defaultValue` を `WritePrivateProfileStringW` でINIファイルへ自動追記（自己修復）してから返す構造とすること。
+
+*   **要件2: 委譲用サブメソッドのプロトタイプ宣言 (`src/ConfigManager.h`)**
+    *   `ConfigManager.h` の `private` セクションに、以下の委譲先メソッドを宣言する。
+        *   `void LoadWindowSettings();`
+        *   `void LoadPlaylistSettings();`
+        *   `void LoadPlaybackSettings();`
+        *   `void LoadLogoMenuSettings();`
+        *   `void LoadVisualizerSettings();`
+        *   `void LoadSystemSettings();`
+        *   （※必要に応じて `ResetWindowDefaults();` などのリセット用メソッドも宣言してよい）
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スコープの厳守**: 今回は「基盤となるメソッド群の追加」のみを行う。既存の `LoadSettings` や `ResetToDefaults` の中身を消したり、各サブメソッドの具体的な実装を書いたりは**絶対にしない**こと（後続のタスクで行うため）。

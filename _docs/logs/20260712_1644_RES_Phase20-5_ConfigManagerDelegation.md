@@ -16,7 +16,7 @@ Phase 20-4 で物理分割した6つのファイル（Window, Playlist, Playback
     - これに伴い、`ResetToDefaults()` や `LoadSettings()` に散らばっていた重複する初期値代入処理を完全に排除・一元化する。
 
 ## 3. 実装タスクリスト
-[ ] タスク1: ConfigManager の基盤改修
+[x] タスク1: ConfigManager の基盤改修
     - オートフィルヘルパー関数群の実装と、サブメソッドのプロトタイプ宣言。
 [ ] タスク2: Window設定の委譲
     - `ConfigManager_Window.cpp` に `LoadWindowSettings` を実装し、大元から処理を移行・リファクタリングする。
@@ -35,7 +35,8 @@ Phase 20-4 で物理分割した6つのファイル（Window, Playlist, Playback
 
 ## 4. 詳細作業内容
 ### タスク1: ConfigManager の基盤改修
-    - (未実施)
+    - ConfigManager.h にオートフィル用のヘルパーメソッド (`LoadOrWriteInt`, `LoadOrWriteFloat`, `LoadOrWriteString`) と、各UI設定を委譲するためのサブメソッド群 (`LoadWindowSettings` 等) を定義。
+    - ConfigManager.cpp にヘルパーメソッドの実装を追加。`GetPrivateProfileStringW` でキーが存在しない場合は `WritePrivateProfileStringW` でデフォルト値を自動追記する処理（自己修復機能）を構築。
 ### タスク2: Window設定の委譲
     - (未実施)
 ### タスク3: Playlist設定の委譲

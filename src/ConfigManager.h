@@ -441,6 +441,17 @@ public:
     void LoadSettings();
 
 private:
+    int LoadOrWriteInt(const std::wstring& section, const std::wstring& key, int defaultValue);
+    float LoadOrWriteFloat(const std::wstring& section, const std::wstring& key, float defaultValue);
+    std::wstring LoadOrWriteString(const std::wstring& section, const std::wstring& key, const std::wstring& defaultValue);
+
+    void LoadWindowSettings();
+    void LoadPlaylistSettings();
+    void LoadPlaybackSettings();
+    void LoadLogoMenuSettings();
+    void LoadVisualizerSettings();
+    void LoadSystemSettings();
+
     std::wstring m_iniFilePath;
     std::filesystem::file_time_type m_lastIniWriteTime;
 

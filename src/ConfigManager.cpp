@@ -678,6 +678,46 @@ std::wstring ConfigManager::GetExecutablePath() const {
   return std::wstring(buffer.data(), length);
 }
 
+int ConfigManager::LoadOrWriteInt(const std::wstring& section, const std::wstring& key, int defaultValue) {
+    wchar_t buf[32];
+    DWORD len = GetPrivateProfileStringW(section.c_str(), key.c_str(), L"__MISSING__", buf, 32, m_iniFilePath.c_str());
+    if (len > 0 && wcscmp(buf, L"__MISSING__") == 0) {
+        WritePrivateProfileStringW(section.c_str(), key.c_str(), std::to_wstring(defaultValue).c_str(), m_iniFilePath.c_str());
+        return defaultValue;
+    }
+    try {
+        return std::stoi(buf);
+    } catch (...) {
+        return defaultValue;
+    }
+}
+
+float ConfigManager::LoadOrWriteFloat(const std::wstring& section, const std::wstring& key, float defaultValue) {
+    wchar_t buf[32];
+    DWORD len = GetPrivateProfileStringW(section.c_str(), key.c_str(), L"__MISSING__", buf, 32, m_iniFilePath.c_str());
+    if (len > 0 && wcscmp(buf, L"__MISSING__") == 0) {
+        std::wstringstream wss;
+        wss << defaultValue;
+        WritePrivateProfileStringW(section.c_str(), key.c_str(), wss.str().c_str(), m_iniFilePath.c_str());
+        return defaultValue;
+    }
+    try {
+        return std::stof(buf);
+    } catch (...) {
+        return defaultValue;
+    }
+}
+
+std::wstring ConfigManager::LoadOrWriteString(const std::wstring& section, const std::wstring& key, const std::wstring& defaultValue) {
+    wchar_t buf[256];
+    DWORD len = GetPrivateProfileStringW(section.c_str(), key.c_str(), L"__MISSING__", buf, 256, m_iniFilePath.c_str());
+    if (len > 0 && wcscmp(buf, L"__MISSING__") == 0) {
+        WritePrivateProfileStringW(section.c_str(), key.c_str(), defaultValue.c_str(), m_iniFilePath.c_str());
+        return defaultValue;
+    }
+    return std::wstring(buf);
+}
+
 void ConfigManager::LoadSettings() {
   m_showTitleBar = GetPrivateProfileIntW(L"Window", L"ShowTitleBar", 0,
                                          m_iniFilePath.c_str()) != 0;
