@@ -50,6 +50,12 @@
 *    **TODO (将来): Renderer更新メソッドの統合 (Renderer::Update の導入)**:
     現在 Application から個別に呼び出している UpdateAnimation や UpdateTextLayouts などの更新処理を、単一の Renderer::Update(float deltaTime, ...) メソッドへ統合・隠蔽する。これにより Application は Renderer 内部のリソース更新手順を知る必要がなくなり、依存関係をさらにクリーンにする。
 
+Window.cpp: 1236行
+Widgets.cpp: 980行
+Renderer.cpp: 638行
+PlaylistWidget.cpp: 712行
+ConfigManager.cpp: 2337行 → 155行 COMPLEAT
+
 ## 対応済み
 ### 【UI新規実装】
 [x] プレイリストの配置左右オプション化
