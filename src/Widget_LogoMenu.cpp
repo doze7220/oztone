@@ -1,4 +1,4 @@
-#include "LogoMenuWidget.h"
+#include "Widget_LogoMenu.h"
 #include "ConfigManager.h"
 #include "LayoutCalculator.h"
 #include "resource.h"

@@ -10,10 +10,10 @@
 #pragma comment(lib, "dxguid.lib")
 #include <algorithm>
 #include <filesystem>
-#include "PlaylistWidget.h"
-#include "PlaybackControlsWidget.h"
-#include "VolumeControlWidget.h"
-#include "LogoMenuWidget.h"
+#include "Widget_Playlist.h"
+#include "Widget_PlaybackControls.h"
+#include "Widget_VolumeControl.h"
+#include "Widget_LogoMenu.h"
 #include "Widget_Osd.h"
 #include "Widget_AppLogo.h"
 #include "Widget_TrackInfo.h"

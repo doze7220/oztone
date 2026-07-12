@@ -1,4 +1,4 @@
-#include "PlaylistWidget.h"
+#include "Widget_Playlist.h"
 #include "ConfigManager.h"
 #include "LayoutCalculator.h"
 #include <filesystem>

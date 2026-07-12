@@ -1,4 +1,4 @@
-#include "PlaybackControlsWidget.h"
+#include "Widget_PlaybackControls.h"
 #include "ConfigManager.h"
 #include "LayoutCalculator.h"
 #include <sstream>

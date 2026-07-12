@@ -53,10 +53,10 @@ set(SOURCES
     src/Widget_GlobalHotkeys.cpp
     src/Widget_ResizeGrip.cpp
     src/WidgetCommon.cpp
-    src/PlaylistWidget.cpp
-    src/PlaybackControlsWidget.cpp
-    src/VolumeControlWidget.cpp
-    src/LogoMenuWidget.cpp
+    src/Widget_Playlist.cpp
+    src/Widget_PlaybackControls.cpp
+    src/Widget_VolumeControl.cpp
+    src/Widget_LogoMenu.cpp
     src/Widget_Osd.cpp
     src/AudioPlayer.cpp
     src/TagManager.cpp
@@ -85,10 +85,10 @@ set(HEADERS
     src/Widget_SeekBar.h
     src/Widget_GlobalHotkeys.h
     src/WidgetCommon.h
-    src/PlaylistWidget.h
-    src/PlaybackControlsWidget.h
-    src/VolumeControlWidget.h
-    src/LogoMenuWidget.h
+    src/Widget_Playlist.h
+    src/Widget_PlaybackControls.h
+    src/Widget_VolumeControl.h
+    src/Widget_LogoMenu.h
     src/Widget_Osd.h
     src/AudioPlayer.h
     src/TagManager.h
