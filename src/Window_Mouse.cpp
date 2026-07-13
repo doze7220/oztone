@@ -384,7 +384,7 @@ void Window::HandleLButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam) {
   int yPos = GET_Y_LPARAM(lParam);
 
   if (!m_isPlaylistHovered && !m_isLogoMenuHovered && !m_isControlHovered && !m_isVolumeHovered && !IsInLogoRegion(xPos, yPos)) {
-      // Shift+Left Drag for framing has been removed.
+    if (m_onBackgroundClickCallback) m_onBackgroundClickCallback();
   }
 
   if (m_isPlaylistHovered) {
@@ -511,7 +511,6 @@ void Window::HandleLButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam) {
   }
 
   if (!m_config || !m_config->GetLockWindowPosition()) {
-    if (m_onBackgroundClickCallback) m_onBackgroundClickCallback();
     ReleaseCapture();
     SendMessage(hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
   }
