@@ -59,6 +59,11 @@ set(SOURCES
     src/Widget_ResizeGrip.cpp
     src/WidgetCommon.cpp
     src/Widget_Playlist.cpp
+    src/Widget_Playlist_Resources.cpp
+    src/Widget_Playlist_Update.cpp
+    src/Widget_Playlist_Toolbar.cpp
+    src/Widget_Playlist_DrawItems.cpp
+    src/Widget_Playlist_Draw.cpp
     src/Widget_PlaybackControls.cpp
     src/Widget_VolumeControl.cpp
     src/Widget_LogoMenu.cpp
