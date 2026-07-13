@@ -42,6 +42,11 @@ set(SOURCES
     src/ConfigManager_Visualizer.cpp
     src/ConfigManager_System.cpp
     src/Renderer.cpp
+    src/Renderer_Initialize.cpp
+    src/Renderer_Image.cpp
+    src/Renderer_Update.cpp
+    src/Renderer_Draw.cpp
+    src/Renderer_Context.cpp
     src/LayoutCalculator.cpp
     src/Visualizer.cpp
     src/Visualizer_PrismBeat.cpp
