@@ -177,7 +177,7 @@ void LogoMenuWidget::UpdateAnimation(const WidgetContext &ctx) {
   }
 
   if (ctx.outIsLogoMenuExpanded) {
-      *ctx.outIsLogoMenuExpanded = (m_logoMenuLeaveTimer > 0.0f) || (m_menuProgress > 0.0f);
+      *ctx.outIsLogoMenuExpanded = ctx.isLogoMenuHovered || ctx.isHovered || (m_logoMenuLeaveTimer > 0.0f);
   }
 
   if (ctx.logoMenuItems && ctx.config) {

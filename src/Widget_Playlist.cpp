@@ -215,7 +215,7 @@ void PlaylistWidget::UpdateAnimation(const WidgetContext &ctx) {
   m_playlistSlideX += (targetSlideX - m_playlistSlideX) * 0.2f;
 
   if (ctx.outIsPlaylistExpanded) {
-      *ctx.outIsPlaylistExpanded = isExpanded || (m_playlistSlideX < configPlaylistWidth - 0.5f);
+      *ctx.outIsPlaylistExpanded = isExpanded;
   }
 
   if (!isExpanded) {
