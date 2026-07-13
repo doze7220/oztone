@@ -3,6 +3,9 @@
 #include <wrl/client.h>
 #include <d2d1effects.h>
 #include <unordered_map>
+#include <string>
+
+struct PlaylistLayout;
 
 class PlaylistWidget : public IWidget {
 public:
@@ -21,6 +24,17 @@ public:
     void ForceClearHoverDelay() override;
 
 private:
+    void DrawGrip(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config, const PlaylistLayout& layout);
+    void DrawBackground(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config, const PlaylistLayout& layout);
+    void DrawToolbar(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config, const PlaylistLayout& layout);
+    void DrawPlaylistItems(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config, const PlaylistLayout& layout);
+    
+    void DrawPlaylistList(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config, const PlaylistLayout& layout);
+    void DrawTrackList(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config, const PlaylistLayout& layout);
+    
+    void BuildToolbarText(const WidgetContext& ctx, const ConfigManager* config, std::wstring& outText);
+    void DrawPinButton(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config, const PlaylistLayout& layout);
+
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistTitleTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistArtistTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistTimeTextFormat;
