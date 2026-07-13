@@ -318,6 +318,8 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
         m_tooltipWheelBrush->SetOpacity(tooltipAlphaFinal);
         context->FillGeometry(m_tooltipWheelGeometry.Get(), m_tooltipWheelBrush.Get());
       }
+      
+      context->SetTransform(oldTransform);
     }
   }
 }
