@@ -5,6 +5,11 @@ constexpr const char *DEFAULT_INI_CONTENT = R"(; OZtone Default Configuration
 [Playlist]
 DefaultPlaylistPath=playlist.ozl
 
+[Audio]
+DefaultVolume=1.0
+ShuffleMode=1
+SkipSeconds=10.0
+
 [Window]
 ShowTitleBar=0
 ShowWindowFrame=0
@@ -197,7 +202,7 @@ HaloParticleLifeTime=400.0
 [Layout_Playlist]
 PlaylistPosition=1
 IsPlaylistPinned=0
-PlaylistHoverWidth=120
+PlaylistHoverWidth=80
 PlaylistWidth=250
 PlaylistItemOffsetY=45
 PlayingItemColor=#FFA500

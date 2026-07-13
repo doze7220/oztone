@@ -438,9 +438,10 @@ public:
     void LoadSettings();
 
 private:
-    int LoadOrWriteInt(const std::wstring& section, const std::wstring& key, int defaultValue);
-    float LoadOrWriteFloat(const std::wstring& section, const std::wstring& key, float defaultValue);
-    std::wstring LoadOrWriteString(const std::wstring& section, const std::wstring& key, const std::wstring& defaultValue);
+    int LoadOrWriteInt(const std::wstring& section, const std::wstring& key);
+    float LoadOrWriteFloat(const std::wstring& section, const std::wstring& key);
+    std::wstring LoadOrWriteString(const std::wstring& section, const std::wstring& key);
+    std::wstring GetDefaultIniValue(const std::wstring& section, const std::wstring& key) const;
 
     void LoadWindowSettings();
     void LoadPlaylistSettings();

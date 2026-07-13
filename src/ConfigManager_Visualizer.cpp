@@ -1,4 +1,4 @@
-#include "ConfigManager.h"
+﻿#include "ConfigManager.h"
 #include <string>
 
 void ConfigManager::SetVisualizerMode(int mode) {
@@ -147,35 +147,35 @@ void ConfigManager::SetHaloGlowThickness(float thickness) {
 }
 
 void ConfigManager::LoadVisualizerSettings() {
-  m_visualizerMode = LoadOrWriteInt(L"Visualizer", L"VisualizerMode", 0);
-  m_enablePreScan = LoadOrWriteInt(L"Visualizer", L"EnablePreScan", 0) != 0;
-  m_highFreqNoiseThreshold = LoadOrWriteFloat(L"Visualizer", L"HighFreqNoiseThreshold", 0.001f);
-  m_bandGain0 = LoadOrWriteFloat(L"Visualizer", L"BandGain0", 1.0f);
-  m_bandGain25 = LoadOrWriteFloat(L"Visualizer", L"BandGain25", 1.0f);
-  m_bandGain50 = LoadOrWriteFloat(L"Visualizer", L"BandGain50", 1.0f);
-  m_bandGain75 = LoadOrWriteFloat(L"Visualizer", L"BandGain75", 1.0f);
-  m_bandGain100 = LoadOrWriteFloat(L"Visualizer", L"BandGain100", 1.0f);
+  m_visualizerMode = LoadOrWriteInt(L"Visualizer", L"VisualizerMode");
+  m_enablePreScan = LoadOrWriteInt(L"Visualizer", L"EnablePreScan") != 0;
+  m_highFreqNoiseThreshold = LoadOrWriteFloat(L"Visualizer", L"HighFreqNoiseThreshold");
+  m_bandGain0 = LoadOrWriteFloat(L"Visualizer", L"BandGain0");
+  m_bandGain25 = LoadOrWriteFloat(L"Visualizer", L"BandGain25");
+  m_bandGain50 = LoadOrWriteFloat(L"Visualizer", L"BandGain50");
+  m_bandGain75 = LoadOrWriteFloat(L"Visualizer", L"BandGain75");
+  m_bandGain100 = LoadOrWriteFloat(L"Visualizer", L"BandGain100");
 
-  m_prismBeatMaxHeightRatio = LoadOrWriteFloat(L"Visualizer_PrismBeat", L"MaxHeightRatio", 0.80f);
-  m_prismLineThickness = LoadOrWriteFloat(L"Visualizer_PrismBeat", L"PrismLineThickness", 1.0f);
-  m_prismGlow1Thickness = LoadOrWriteFloat(L"Visualizer_PrismBeat", L"PrismGlow1Thickness", 6.0f);
-  m_prismGlow1Opacity = LoadOrWriteFloat(L"Visualizer_PrismBeat", L"PrismGlow1Opacity", 0.6f);
-  m_prismGlow2Thickness = LoadOrWriteFloat(L"Visualizer_PrismBeat", L"PrismGlow2Thickness", 16.0f);
-  m_prismGlow2Opacity = LoadOrWriteFloat(L"Visualizer_PrismBeat", L"PrismGlow2Opacity", 0.2f);
+  m_prismBeatMaxHeightRatio = LoadOrWriteFloat(L"Visualizer_PrismBeat", L"MaxHeightRatio");
+  m_prismLineThickness = LoadOrWriteFloat(L"Visualizer_PrismBeat", L"PrismLineThickness");
+  m_prismGlow1Thickness = LoadOrWriteFloat(L"Visualizer_PrismBeat", L"PrismGlow1Thickness");
+  m_prismGlow1Opacity = LoadOrWriteFloat(L"Visualizer_PrismBeat", L"PrismGlow1Opacity");
+  m_prismGlow2Thickness = LoadOrWriteFloat(L"Visualizer_PrismBeat", L"PrismGlow2Thickness");
+  m_prismGlow2Opacity = LoadOrWriteFloat(L"Visualizer_PrismBeat", L"PrismGlow2Opacity");
 
-  m_haloDustBaseRadiusRatio = LoadOrWriteFloat(L"Visualizer_HaloDust", L"BaseRadiusRatio", 0.25f);
-  m_haloDustGraphLengthRatio = LoadOrWriteFloat(L"Visualizer_HaloDust", L"GraphLengthRatio", 0.30f);
-  m_haloLaserBaseOpacity = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloLaserBaseOpacity", 0.3f);
-  m_haloLaserLengthRatio = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloLaserLengthRatio", 0.2f);
-  m_haloLaserThickness = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloLaserThickness", 2.0f);
-  m_haloLaserSpeed = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloLaserSpeed", 1.0f);
-  m_haloLaserSpawnRate = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloLaserSpawnRate", 0.1f);
-  m_haloLaserLifeTime = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloLaserLifeTime", 30.0f);
-  m_haloParticleBaseOpacity = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloParticleBaseOpacity", 0.5f);
-  m_haloParticleSizeRatio = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloParticleSizeRatio", 0.05f);
-  m_haloParticleSpeed = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloParticleSpeed", 1.0f);
-  m_haloParticleSpawnRate = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloParticleSpawnRate", 0.2f);
-  m_haloParticleLifeTime = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloParticleLifeTime", 60.0f);
-  m_haloGlowOpacity = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloGlowOpacity", 0.6f);
-  m_haloGlowThickness = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloGlowThickness", 12.0f);
+  m_haloDustBaseRadiusRatio = LoadOrWriteFloat(L"Visualizer_HaloDust", L"BaseRadiusRatio");
+  m_haloDustGraphLengthRatio = LoadOrWriteFloat(L"Visualizer_HaloDust", L"GraphLengthRatio");
+  m_haloLaserBaseOpacity = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloLaserBaseOpacity");
+  m_haloLaserLengthRatio = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloLaserLengthRatio");
+  m_haloLaserThickness = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloLaserThickness");
+  m_haloLaserSpeed = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloLaserSpeed");
+  m_haloLaserSpawnRate = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloLaserSpawnRate");
+  m_haloLaserLifeTime = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloLaserLifeTime");
+  m_haloParticleBaseOpacity = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloParticleBaseOpacity");
+  m_haloParticleSizeRatio = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloParticleSizeRatio");
+  m_haloParticleSpeed = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloParticleSpeed");
+  m_haloParticleSpawnRate = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloParticleSpawnRate");
+  m_haloParticleLifeTime = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloParticleLifeTime");
+  m_haloGlowOpacity = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloGlowOpacity");
+  m_haloGlowThickness = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloGlowThickness");
 }

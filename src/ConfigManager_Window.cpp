@@ -1,4 +1,4 @@
-#include "ConfigManager.h"
+﻿#include "ConfigManager.h"
 
 void ConfigManager::SaveWindowPosition(int x, int y, int width, int height) {
   m_windowX = x;
@@ -51,28 +51,28 @@ void ConfigManager::SetBackgroundArtMode(int mode) {
 }
 
 void ConfigManager::LoadWindowSettings() {
-  m_showTitleBar = LoadOrWriteInt(L"Window", L"ShowTitleBar", 0) != 0;
-  m_showWindowFrame = LoadOrWriteInt(L"Window", L"ShowWindowFrame", 0) != 0;
-  m_showTaskbar = LoadOrWriteInt(L"Window", L"ShowTaskbar", 0) != 0;
-  m_zOrder = LoadOrWriteInt(L"Window", L"ZOrder", 0);
-  m_savePositionOnExit = LoadOrWriteInt(L"Window", L"SavePositionOnExit", 1) != 0;
-  m_enableResize = LoadOrWriteInt(L"Window", L"EnableResize", 0) != 0;
-  m_lockWindowPosition = LoadOrWriteInt(L"Window", L"LockWindowPosition", 0) != 0;
+  m_showTitleBar = LoadOrWriteInt(L"Window", L"ShowTitleBar") != 0;
+  m_showWindowFrame = LoadOrWriteInt(L"Window", L"ShowWindowFrame") != 0;
+  m_showTaskbar = LoadOrWriteInt(L"Window", L"ShowTaskbar") != 0;
+  m_zOrder = LoadOrWriteInt(L"Window", L"ZOrder");
+  m_savePositionOnExit = LoadOrWriteInt(L"Window", L"SavePositionOnExit") != 0;
+  m_enableResize = LoadOrWriteInt(L"Window", L"EnableResize") != 0;
+  m_lockWindowPosition = LoadOrWriteInt(L"Window", L"LockWindowPosition") != 0;
   
-  m_windowX = LoadOrWriteInt(L"Window", L"WindowX", -2147483648);
-  m_windowY = LoadOrWriteInt(L"Window", L"WindowY", -2147483648);
-  m_windowWidth = LoadOrWriteInt(L"Window", L"WindowWidth", 1024);
-  m_windowHeight = LoadOrWriteInt(L"Window", L"WindowHeight", 512);
+  m_windowX = LoadOrWriteInt(L"Window", L"WindowX");
+  m_windowY = LoadOrWriteInt(L"Window", L"WindowY");
+  m_windowWidth = LoadOrWriteInt(L"Window", L"WindowWidth");
+  m_windowHeight = LoadOrWriteInt(L"Window", L"WindowHeight");
 
-  m_enableShadow = LoadOrWriteInt(L"Layout_Window", L"EnableShadow", 1) != 0;
-  m_shadowOffsetX = LoadOrWriteFloat(L"Layout_Window", L"ShadowOffsetX", 2.0f);
-  m_shadowOffsetY = LoadOrWriteFloat(L"Layout_Window", L"ShadowOffsetY", 2.0f);
-  m_shadowOpacity = LoadOrWriteFloat(L"Layout_Window", L"ShadowOpacity", 0.7f);
-  m_bgOpacity = LoadOrWriteFloat(L"Layout_Window", L"BgOpacity", 0.8f);
-  m_bgDarkenOpacity = LoadOrWriteFloat(L"Layout_Window", L"BgDarkenOpacity", 0.4f);
-  m_backgroundArtMode = LoadOrWriteInt(L"Layout_Window", L"BackgroundArtMode", 0);
-  m_controlHoverHeight = LoadOrWriteFloat(L"Layout_Window", L"ControlHoverHeight", 50.0f);
-  m_controlLeaveDelay = LoadOrWriteFloat(L"Layout_Window", L"ControlLeaveDelay", 3.0f);
-  m_hoverIconColor = LoadOrWriteString(L"Layout_Window", L"HoverIconColor", L"#ffa500");
-  m_hoverFadeOutSpeed = LoadOrWriteFloat(L"Layout_Window", L"HoverFadeOutSpeed", 2.0f);
+  m_enableShadow = LoadOrWriteInt(L"Layout_Window", L"EnableShadow") != 0;
+  m_shadowOffsetX = LoadOrWriteFloat(L"Layout_Window", L"ShadowOffsetX");
+  m_shadowOffsetY = LoadOrWriteFloat(L"Layout_Window", L"ShadowOffsetY");
+  m_shadowOpacity = LoadOrWriteFloat(L"Layout_Window", L"ShadowOpacity");
+  m_bgOpacity = LoadOrWriteFloat(L"Layout_Window", L"BgOpacity");
+  m_bgDarkenOpacity = LoadOrWriteFloat(L"Layout_Window", L"BgDarkenOpacity");
+  m_backgroundArtMode = LoadOrWriteInt(L"Layout_Window", L"BackgroundArtMode");
+  m_controlHoverHeight = LoadOrWriteFloat(L"Layout_Window", L"ControlHoverHeight");
+  m_controlLeaveDelay = LoadOrWriteFloat(L"Layout_Window", L"ControlLeaveDelay");
+  m_hoverIconColor = LoadOrWriteString(L"Layout_Window", L"HoverIconColor");
+  m_hoverFadeOutSpeed = LoadOrWriteFloat(L"Layout_Window", L"HoverFadeOutSpeed");
 }

@@ -1,4 +1,5 @@
-﻿#include "ConfigManager.h"
+#include "ConfigManager.h"
+#include <cassert>
 #include <ctime>
 #include <filesystem>
 #include <fstream>
@@ -71,11 +72,49 @@ std::wstring ConfigManager::GetExecutablePath() const {
   return std::wstring(buffer.data(), length);
 }
 
-int ConfigManager::LoadOrWriteInt(const std::wstring& section, const std::wstring& key, int defaultValue) {
+std::wstring ConfigManager::GetDefaultIniValue(const std::wstring& section, const std::wstring& key) const {
+    std::istringstream iss(DEFAULT_INI_CONTENT);
+    std::string line;
+    std::string targetSection = "[" + std::string(section.begin(), section.end()) + "]";
+    std::string targetKey = std::string(key.begin(), key.end()) + "=";
+    bool inSection = false;
+
+    while (std::getline(iss, line)) {
+        line.erase(0, line.find_first_not_of(" \t\r\n"));
+        line.erase(line.find_last_not_of(" \t\r\n") + 1);
+
+        if (line.empty() || line[0] == ';') continue;
+
+        if (line[0] == '[') {
+            inSection = (line == targetSection);
+            continue;
+        }
+
+        if (inSection && line.find(targetKey) == 0) {
+            std::string val = line.substr(targetKey.length());
+            if (val.size() >= 2 && val.front() == '"' && val.back() == '"') {
+                val = val.substr(1, val.size() - 2);
+            }
+            int size_needed = MultiByteToWideChar(CP_UTF8, 0, val.c_str(), (int)val.size(), NULL, 0);
+            std::wstring wstrTo(size_needed, 0);
+            MultiByteToWideChar(CP_UTF8, 0, val.c_str(), (int)val.size(), &wstrTo[0], size_needed);
+            return wstrTo;
+        }
+    }
+
+    assert(false && "Missing key in DEFAULT_INI_CONTENT");
+    return L"";
+}
+
+int ConfigManager::LoadOrWriteInt(const std::wstring& section, const std::wstring& key) {
+    std::wstring defStr = GetDefaultIniValue(section, key);
+    int defaultValue = 0;
+    try { defaultValue = std::stoi(defStr); } catch (...) {}
+
     wchar_t buf[32];
     DWORD len = GetPrivateProfileStringW(section.c_str(), key.c_str(), L"__MISSING__", buf, 32, m_iniFilePath.c_str());
     if (len > 0 && wcscmp(buf, L"__MISSING__") == 0) {
-        WritePrivateProfileStringW(section.c_str(), key.c_str(), std::to_wstring(defaultValue).c_str(), m_iniFilePath.c_str());
+        WritePrivateProfileStringW(section.c_str(), key.c_str(), defStr.c_str(), m_iniFilePath.c_str());
         return defaultValue;
     }
     try {
@@ -85,13 +124,15 @@ int ConfigManager::LoadOrWriteInt(const std::wstring& section, const std::wstrin
     }
 }
 
-float ConfigManager::LoadOrWriteFloat(const std::wstring& section, const std::wstring& key, float defaultValue) {
+float ConfigManager::LoadOrWriteFloat(const std::wstring& section, const std::wstring& key) {
+    std::wstring defStr = GetDefaultIniValue(section, key);
+    float defaultValue = 0.0f;
+    try { defaultValue = std::stof(defStr); } catch (...) {}
+
     wchar_t buf[32];
     DWORD len = GetPrivateProfileStringW(section.c_str(), key.c_str(), L"__MISSING__", buf, 32, m_iniFilePath.c_str());
     if (len > 0 && wcscmp(buf, L"__MISSING__") == 0) {
-        std::wstringstream wss;
-        wss << defaultValue;
-        WritePrivateProfileStringW(section.c_str(), key.c_str(), wss.str().c_str(), m_iniFilePath.c_str());
+        WritePrivateProfileStringW(section.c_str(), key.c_str(), defStr.c_str(), m_iniFilePath.c_str());
         return defaultValue;
     }
     try {
@@ -101,7 +142,9 @@ float ConfigManager::LoadOrWriteFloat(const std::wstring& section, const std::ws
     }
 }
 
-std::wstring ConfigManager::LoadOrWriteString(const std::wstring& section, const std::wstring& key, const std::wstring& defaultValue) {
+std::wstring ConfigManager::LoadOrWriteString(const std::wstring& section, const std::wstring& key) {
+    std::wstring defaultValue = GetDefaultIniValue(section, key);
+
     wchar_t buf[256];
     DWORD len = GetPrivateProfileStringW(section.c_str(), key.c_str(), L"__MISSING__", buf, 256, m_iniFilePath.c_str());
     if (len > 0 && wcscmp(buf, L"__MISSING__") == 0) {
