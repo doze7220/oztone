@@ -12,17 +12,6 @@ D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
 次に、この指示書を確認してほしい。
 
 
-以下のプロジェクトルールと開発資料、実装計画兼実装レポートを熟読すること。
-*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
-*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
-*  D:\ozlab\oztone\_docs\logs\20260712_0134_RES_Phase20-1_FramingDataSeparation.md
-
-###### 【作業手順（厳守事項）】
-1. 本プロンプトは「実装実行」である。直ちに以下の【実装要件】に従ってコードの作成・修正を実行すること。
-2. コード修正が完全に終わった後、既存の作業レポート（20260712_0134_RES_Phase20-1_FramingDataSeparation.md）の「タスク2」のチェックボックスを完了 `[x]` にし、詳細作業内容を追記すること。
-3. チャットにて「タスク2の実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
-
-
 作業ありがとう。これで完了とする。
 最後に、作業レポートを元に、アーキテクチャ資料 PROJECT_ARCHITECTURE.md に反映。
 特に**UI/ビジュアル仕様方針、全体ルーチン、実装済みクラス・関数リファレンス**に関わるところは確実に**実装を反映**させるように。記載が不要であれば、スルーして構わない。
