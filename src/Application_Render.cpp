@@ -139,9 +139,7 @@ void Application::ForceRender() {
   }
 
   // 2. スペクトルデータの取得
-  m_renderer.SetNextTrackInfo(m_isPrefetchReady.load(),
-                              m_prefetchedAlbumArt.Get(), m_prefetchedTitle,
-                              m_prefetchedArtist);
+
 
   std::vector<float> spectrum;
   m_audioPlayer.GetSpectrumData(spectrum);

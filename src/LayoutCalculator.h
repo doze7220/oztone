@@ -89,20 +89,6 @@ struct VolumeControlLayout {
     float tooltipRadius;
 };
 
-struct NextTrackLayout {
-    D2D1_RECT_F labelRect;
-    D2D1_RECT_F labelShadowRect;
-
-    D2D1_RECT_F fallbackArtRect;
-    D2D1_RECT_F artDestRect;
-    D2D1_RECT_F artShadowRect;
-
-    D2D1_RECT_F titleRect;
-    D2D1_RECT_F titleShadowRect;
-
-    D2D1_RECT_F artistRect;
-    D2D1_RECT_F artistShadowRect;
-};
 
 struct GlobalHotkeysLayout {
     D2D1_RECT_F keyColumnRect;
@@ -184,7 +170,6 @@ public:
     static AppLogoLayout CalculateAppLogoLayout(float logicalWidth, const ConfigManager* config);
     static LogoMenuLayout CalculateLogoMenuLayout(float logicalWidth, const ConfigManager* config, float progress, size_t itemCount);
     static TrackInfoLayout CalculateTrackInfoLayout(float logicalWidth, float logicalHeight, const ConfigManager* config, D2D1_SIZE_F bitmapSize);
-    static NextTrackLayout CalculateNextTrackLayout(float logicalWidth, float logicalHeight, const ConfigManager* config, D2D1_SIZE_F bitmapSize);
 
     static SeekBarLayout CalculateSeekBarLayout(float logicalWidth, float logicalHeight, const ConfigManager* config, float progress);
     static PlaybackControlsLayout CalculatePlaybackControlsLayout(float logicalWidth, float logicalHeight, const ConfigManager* config);

@@ -78,10 +78,7 @@ public:
      */
     void SetAlbumArt(ID2D1Bitmap* bitmap);
 
-    /**
-     * @brief 次の曲情報を設定する
-     */
-    void SetNextTrackInfo(bool isReady, ID2D1Bitmap* art, const std::wstring& title, const std::wstring& artist);
+
 
     /**
      * @brief 背景アートのフレーミング情報を設定する
@@ -169,10 +166,7 @@ private:
     std::wstring m_trackTitle = L"Unknown";
     std::wstring m_trackArtist = L"Unknown";
 
-    bool m_nextIsReady = false;
-    std::wstring m_nextTrackTitle = L"";
-    std::wstring m_nextTrackArtist = L"";
-    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_nextArtBitmap;
+
 
     std::optional<size_t> m_focusedPlaylistIndex;
 

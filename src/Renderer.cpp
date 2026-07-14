@@ -15,13 +15,6 @@ void Renderer::SetAlbumArt(ID2D1Bitmap* bitmap) {
     m_currentArtBitmap = bitmap;
 }
 
-void Renderer::SetNextTrackInfo(bool isReady, ID2D1Bitmap* art, const std::wstring& title, const std::wstring& artist) {
-    m_nextIsReady = isReady;
-    m_nextArtBitmap = art;
-    m_nextTrackTitle = title;
-    m_nextTrackArtist = artist;
-}
-
 void Renderer::SetBackgroundFraming(float offsetX, float offsetY, float scale) {
     m_bgOffsetX = offsetX;
     m_bgOffsetY = offsetY;

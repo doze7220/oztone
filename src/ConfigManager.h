@@ -24,8 +24,6 @@ public:
 
     bool GetShowAppLogo() const { return m_showAppLogo; }
     bool GetShowNowPlaying() const { return m_showNowPlaying; }
-    bool GetShowNextTrack() const { return m_showNextTrack; }
-    bool GetEnableNextTrack() const { return m_enableNextTrack; }
     bool GetShowSeekBar() const { return m_showSeekBar; }
     bool GetShowPlaybackControls() const { return m_showPlaybackControls; }
     bool GetShowVolumeControl() const { return m_showVolumeControl; }
@@ -323,30 +321,7 @@ public:
     float GetSeekBarTimeMarginRight() const { return m_seekBarTimeMarginRight; }
     float GetSeekBarTimeLetterSpacing() const { return m_seekBarTimeLetterSpacing; }
 
-    int GetNextBaseRightOffset() const { return m_nextBaseRightOffset; }
-    int GetNextBaseBottomOffset() const { return m_nextBaseBottomOffset; }
-    int GetNextArtOffsetX() const { return m_nextArtOffsetX; }
-    int GetNextArtOffsetY() const { return m_nextArtOffsetY; }
-    int GetNextArtSize() const { return m_nextArtSize; }
-    float GetNextBgOpacity() const { return m_nextBgOpacity; }
-    float GetNextFallbackArtOpacity() const { return m_nextFallbackArtOpacity; }
 
-
-
-    int GetNextLabelOffsetX() const { return m_nextLabelOffsetX; }
-    int GetNextLabelOffsetY() const { return m_nextLabelOffsetY; }
-    float GetNextLabelFontSize() const { return m_nextLabelFontSize; }
-    std::wstring GetNextLabelFontFamily() const { return m_nextLabelFontFamily; }
-
-    int GetNextTitleOffsetX() const { return m_nextTitleOffsetX; }
-    int GetNextTitleOffsetY() const { return m_nextTitleOffsetY; }
-    float GetNextTitleFontSize() const { return m_nextTitleFontSize; }
-    std::wstring GetNextTitleFontFamily() const { return m_nextTitleFontFamily; }
-
-    int GetNextArtistOffsetX() const { return m_nextArtistOffsetX; }
-    int GetNextArtistOffsetY() const { return m_nextArtistOffsetY; }
-    float GetNextArtistFontSize() const { return m_nextArtistFontSize; }
-    std::wstring GetNextArtistFontFamily() const { return m_nextArtistFontFamily; }
     std::wstring GetDefaultPlaylistPath() const { return m_defaultPlaylistPath; }
     void SetDefaultPlaylistPath(const std::wstring& path);
     std::vector<std::wstring> GetAvailablePlaylists() const;
@@ -464,8 +439,6 @@ private:
 
     bool m_showAppLogo;
     bool m_showNowPlaying;
-    bool m_showNextTrack;
-    bool m_enableNextTrack;
     bool m_showSeekBar;
     bool m_showPlaybackControls;
     bool m_showVolumeControl;
@@ -588,30 +561,7 @@ private:
     int m_seekBarTimeMarginRight;
     float m_seekBarTimeLetterSpacing;
 
-    int m_nextBaseRightOffset;
-    int m_nextBaseBottomOffset;
-    int m_nextArtOffsetX;
-    int m_nextArtOffsetY;
-    int m_nextArtSize;
-    float m_nextBgOpacity;
-    float m_nextFallbackArtOpacity;
 
-
-
-    int m_nextLabelOffsetX;
-    int m_nextLabelOffsetY;
-    float m_nextLabelFontSize;
-    std::wstring m_nextLabelFontFamily;
-
-    int m_nextTitleOffsetX;
-    int m_nextTitleOffsetY;
-    float m_nextTitleFontSize;
-    std::wstring m_nextTitleFontFamily;
-
-    int m_nextArtistOffsetX;
-    int m_nextArtistOffsetY;
-    float m_nextArtistFontSize;
-    std::wstring m_nextArtistFontFamily;
 
     std::wstring m_defaultPlaylistPath;
 

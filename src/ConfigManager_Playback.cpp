@@ -76,7 +76,6 @@ void ConfigManager::LoadPlaybackSettings() {
   m_skipSeconds = LoadOrWriteFloat(L"Audio", L"SkipSeconds");
 
   m_showNowPlaying = LoadOrWriteInt(L"Visibility", L"ShowNowPlaying") != 0;
-  m_showNextTrack = LoadOrWriteInt(L"Visibility", L"ShowNextTrack") != 0;
 
   m_baseX = LoadOrWriteInt(L"Layout_NowPlaying", L"BaseX");
   m_baseBottomOffset = LoadOrWriteInt(L"Layout_NowPlaying", L"BaseBottomOffset");
@@ -102,24 +101,5 @@ void ConfigManager::LoadPlaybackSettings() {
   m_trackCountShadowOffsetY = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountShadowOffsetY");
   m_trackCountShadowOpacity = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountShadowOpacity");
 
-  m_enableNextTrack = LoadOrWriteInt(L"Layout_NextTrack", L"EnableNextTrack") != 0;
-  m_nextBaseRightOffset = LoadOrWriteInt(L"Layout_NextTrack", L"BaseRightOffset");
-  m_nextBaseBottomOffset = LoadOrWriteInt(L"Layout_NextTrack", L"BaseBottomOffset");
-  m_nextArtOffsetX = LoadOrWriteInt(L"Layout_NextTrack", L"ArtOffsetX");
-  m_nextArtOffsetY = LoadOrWriteInt(L"Layout_NextTrack", L"ArtOffsetY");
-  m_nextArtSize = LoadOrWriteInt(L"Layout_NextTrack", L"ArtSize");
-  m_nextBgOpacity = LoadOrWriteFloat(L"Layout_NextTrack", L"BgOpacity");
-  m_nextFallbackArtOpacity = LoadOrWriteFloat(L"Layout_NextTrack", L"FallbackArtOpacity");
-  m_nextLabelOffsetX = LoadOrWriteInt(L"Layout_NextTrack", L"LabelOffsetX");
-  m_nextLabelOffsetY = LoadOrWriteInt(L"Layout_NextTrack", L"LabelOffsetY");
-  m_nextLabelFontSize = LoadOrWriteFloat(L"Layout_NextTrack", L"LabelFontSize");
-  m_nextLabelFontFamily = LoadOrWriteString(L"Layout_NextTrack", L"LabelFontFamily");
-  m_nextTitleOffsetX = LoadOrWriteInt(L"Layout_NextTrack", L"TitleOffsetX");
-  m_nextTitleOffsetY = LoadOrWriteInt(L"Layout_NextTrack", L"TitleOffsetY");
-  m_nextTitleFontSize = LoadOrWriteFloat(L"Layout_NextTrack", L"TitleFontSize");
-  m_nextTitleFontFamily = LoadOrWriteString(L"Layout_NextTrack", L"TitleFontFamily");
-  m_nextArtistOffsetX = LoadOrWriteInt(L"Layout_NextTrack", L"ArtistOffsetX");
-  m_nextArtistOffsetY = LoadOrWriteInt(L"Layout_NextTrack", L"ArtistOffsetY");
-  m_nextArtistFontSize = LoadOrWriteFloat(L"Layout_NextTrack", L"ArtistFontSize");
-  m_nextArtistFontFamily = LoadOrWriteString(L"Layout_NextTrack", L"ArtistFontFamily");
+
 }

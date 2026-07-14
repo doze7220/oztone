@@ -60,11 +60,7 @@ struct WidgetContext {
     std::wstring trackArtist;
     ID2D1Bitmap* currentArtBitmap;
     
-    bool nextIsReady;
-    std::wstring nextTrackTitle;
-    std::wstring nextTrackArtist;
-    ID2D1Bitmap* nextArtBitmap;
-    
+
     std::optional<size_t> focusedPlaylistIndex;
     float logoMenuHoverAlpha = 0.0f;
     int playbackHoveredIndex = -1;

@@ -45,9 +45,7 @@ WidgetContext Renderer::BuildLayoutContext(const std::wstring& timeString, float
     }
     ctx.trackTitle = m_trackTitle;
     ctx.trackArtist = m_trackArtist;
-    ctx.nextIsReady = m_nextIsReady;
-    ctx.nextTrackTitle = m_nextTrackTitle;
-    ctx.nextTrackArtist = m_nextTrackArtist;
+
     return ctx;
 }
 
@@ -81,10 +79,7 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
     ctx.trackTitle = m_trackTitle;
     ctx.trackArtist = m_trackArtist;
     ctx.currentArtBitmap = m_currentArtBitmap.Get();
-    ctx.nextIsReady = m_nextIsReady;
-    ctx.nextTrackTitle = m_nextTrackTitle;
-    ctx.nextTrackArtist = m_nextTrackArtist;
-    ctx.nextArtBitmap = m_nextArtBitmap.Get();
+
     ctx.config = m_config;
     ctx.focusedPlaylistIndex = m_focusedPlaylistIndex;
     ctx.availablePlaylistsCache = availablePlaylistsCache;

@@ -1,4 +1,4 @@
-﻿# PROJECT_ARCHITECTURE.md
+# PROJECT_ARCHITECTURE.md
 ## OZtone 全体仕様および実装定義書
 
 本資料は、AIがタスクを実行する際の「全体マップ（見取り図）」および「インデックス（索引）」として機能するものである。AIがどの責務を修正する際にどのファイル（個室）を開くべきかを示す道標に特化させる。
@@ -102,7 +102,7 @@ UI要素ごとの独立した描画・状態管理を担うコンポーネント
 *   `AppLogoWidget` (src/Widget_AppLogo.h/cpp): アプリアイコンの描画
 *   `LogoMenuWidget` (src/Widget_LogoMenu.h/cpp): アプリアイコンホバー時にスライド展開するロゴ拡張メニューの描画
 *   `TrackInfoWidget` (src/Widget_TrackInfo.h/cpp): 左下のアルバムアート・曲名・アーティスト名・トラック番号の描画
-*   `NextTrackWidget` (src/Widget_NextTrack.h/cpp): 右下の「次の曲」情報の描画
+
 *   `SeekBarWidget` (src/Widget_SeekBar.h/cpp): シークバーと再生時間の描画
 *   `PlaybackControlsWidget` (src/Widget_PlaybackControls.h/cpp): 画面下部の再生コントロール（5ボタン）の描画
 *   `VolumeControlWidget` (src/Widget_VolumeControl.h/cpp): 音量コントロールの描画（ツールチップ含む）

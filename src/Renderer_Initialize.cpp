@@ -7,7 +7,6 @@
 #include "Widget_AppLogo.h"
 #include "Widget_LogoMenu.h"
 #include "Widget_TrackInfo.h"
-#include "Widget_NextTrack.h"
 #include "Widget_SeekBar.h"
 #include "Widget_PlaybackControls.h"
 #include "Widget_VolumeControl.h"
@@ -164,7 +163,6 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     m_widgets.push_back(std::make_unique<AppLogoWidget>());
     m_widgets.push_back(std::make_unique<LogoMenuWidget>());
     m_widgets.push_back(std::make_unique<TrackInfoWidget>());
-    m_widgets.push_back(std::make_unique<NextTrackWidget>());
     m_widgets.push_back(std::make_unique<SeekBarWidget>());
     m_widgets.push_back(std::make_unique<PlaybackControlsWidget>());
     m_widgets.push_back(std::make_unique<VolumeControlWidget>());

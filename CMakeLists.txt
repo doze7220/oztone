@@ -53,7 +53,6 @@ set(SOURCES
     src/Visualizer_HaloDust.cpp
     src/Widget_AppLogo.cpp
     src/Widget_TrackInfo.cpp
-    src/Widget_NextTrack.cpp
     src/Widget_SeekBar.cpp
     src/Widget_GlobalHotkeys.cpp
     src/Widget_ResizeGrip.cpp
@@ -91,7 +90,6 @@ set(HEADERS
     src/Widget.h
     src/Widget_AppLogo.h
     src/Widget_TrackInfo.h
-    src/Widget_NextTrack.h
     src/Widget_SeekBar.h
     src/Widget_GlobalHotkeys.h
     src/WidgetCommon.h
