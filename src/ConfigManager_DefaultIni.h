@@ -103,10 +103,15 @@ TrackCountTextAlignment=1
 SeekBarMargin=20.0
 Height=5
 BottomOffset=25
+FgColor=#E0E0E0
+BgColor=#FFFFFF
+FgOpacity=0.8
 BgOpacity=0.3
+TextColor=#FFFFFF
+TextOpacity=1.0
 TimeFontFamily="Courier New"
 TimeFontSize=18.0
-TimeAreaWidth=100
+TimeMarginRight=5.0
 TimeLetterSpacing=-3.0
 
 [Layout_NextTrack]

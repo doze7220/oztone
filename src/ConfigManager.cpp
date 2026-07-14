@@ -155,6 +155,9 @@ std::wstring ConfigManager::LoadOrWriteString(const std::wstring& section, const
 }
 
 void ConfigManager::LoadSettings() {
+  // キャッシュをクリアしてファイルから最新状態を読み込むように強制する
+  WritePrivateProfileStringW(NULL, NULL, NULL, m_iniFilePath.c_str());
+
   LoadWindowSettings();
   LoadPlaylistSettings();
   LoadPlaybackSettings();

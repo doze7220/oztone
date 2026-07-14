@@ -1,4 +1,4 @@
-﻿#include "ConfigManager.h"
+#include "ConfigManager.h"
 #include <string>
 
 void ConfigManager::SetDefaultVolume(float volume) {
@@ -60,10 +60,15 @@ void ConfigManager::LoadPlaybackSettings() {
   m_seekBarMargin = LoadOrWriteFloat(L"Layout_SeekBar", L"SeekBarMargin");
   m_seekBarHeight = LoadOrWriteInt(L"Layout_SeekBar", L"Height");
   m_seekBarBottomOffset = LoadOrWriteInt(L"Layout_SeekBar", L"BottomOffset");
+  m_seekBarFgColor = LoadOrWriteString(L"Layout_SeekBar", L"FgColor");
+  m_seekBarBgColor = LoadOrWriteString(L"Layout_SeekBar", L"BgColor");
+  m_seekBarFgOpacity = LoadOrWriteFloat(L"Layout_SeekBar", L"FgOpacity");
   m_seekBarBgOpacity = LoadOrWriteFloat(L"Layout_SeekBar", L"BgOpacity");
+  m_seekBarTimeTextColor = LoadOrWriteString(L"Layout_SeekBar", L"TextColor");
+  m_seekBarTimeTextOpacity = LoadOrWriteFloat(L"Layout_SeekBar", L"TextOpacity");
   m_seekBarTimeFontFamily = LoadOrWriteString(L"Layout_SeekBar", L"TimeFontFamily");
   m_seekBarTimeFontSize = LoadOrWriteFloat(L"Layout_SeekBar", L"TimeFontSize");
-  m_seekBarTimeAreaWidth = LoadOrWriteInt(L"Layout_SeekBar", L"TimeAreaWidth");
+  m_seekBarTimeMarginRight = LoadOrWriteFloat(L"Layout_SeekBar", L"TimeMarginRight");
   m_seekBarTimeLetterSpacing = LoadOrWriteFloat(L"Layout_SeekBar", L"TimeLetterSpacing");
 
   m_defaultVolume = LoadOrWriteFloat(L"Audio", L"DefaultVolume");

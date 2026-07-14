@@ -312,10 +312,15 @@ public:
     float GetSeekBarMargin() const { return m_seekBarMargin; }
     int GetSeekBarHeight() const { return m_seekBarHeight; }
     int GetSeekBarBottomOffset() const { return m_seekBarBottomOffset; }
+    std::wstring GetSeekBarFgColor() const { return m_seekBarFgColor; }
+    std::wstring GetSeekBarBgColor() const { return m_seekBarBgColor; }
+    float GetSeekBarFgOpacity() const { return m_seekBarFgOpacity; }
     float GetSeekBarBgOpacity() const { return m_seekBarBgOpacity; }
+    std::wstring GetSeekBarTimeTextColor() const { return m_seekBarTimeTextColor; }
+    float GetSeekBarTimeTextOpacity() const { return m_seekBarTimeTextOpacity; }
     const std::wstring& GetSeekBarTimeFontFamily() const { return m_seekBarTimeFontFamily; }
     float GetSeekBarTimeFontSize() const { return m_seekBarTimeFontSize; }
-    int GetSeekBarTimeAreaWidth() const { return m_seekBarTimeAreaWidth; }
+    float GetSeekBarTimeMarginRight() const { return m_seekBarTimeMarginRight; }
     float GetSeekBarTimeLetterSpacing() const { return m_seekBarTimeLetterSpacing; }
 
     int GetNextBaseRightOffset() const { return m_nextBaseRightOffset; }
@@ -572,10 +577,15 @@ private:
     float m_seekBarMargin;
     int m_seekBarHeight;
     int m_seekBarBottomOffset;
+    std::wstring m_seekBarFgColor;
+    std::wstring m_seekBarBgColor;
+    float m_seekBarFgOpacity;
     float m_seekBarBgOpacity;
+    std::wstring m_seekBarTimeTextColor;
+    float m_seekBarTimeTextOpacity;
     std::wstring m_seekBarTimeFontFamily;
     float m_seekBarTimeFontSize;
-    int m_seekBarTimeAreaWidth;
+    int m_seekBarTimeMarginRight;
     float m_seekBarTimeLetterSpacing;
 
     int m_nextBaseRightOffset;

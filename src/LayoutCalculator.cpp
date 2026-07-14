@@ -301,16 +301,16 @@ SeekBarLayout LayoutCalculator::CalculateSeekBarLayout(float logicalWidth, float
     float margin = config->GetSeekBarMargin();
     float totalWidth = logicalWidth - (margin * 2.0f);
     float startX = offsetX + margin;
-    float barAreaWidth = totalWidth - static_cast<float>(config->GetSeekBarTimeAreaWidth());
+    float barAreaWidth = totalWidth;
     float y = logicalHeight - static_cast<float>(config->GetSeekBarBottomOffset());
     float h = static_cast<float>(config->GetSeekBarHeight());
 
     layout.bgRect = D2D1::RectF(startX, y, startX + barAreaWidth, y + h);
     layout.fgRect = D2D1::RectF(startX, y, startX + barAreaWidth * progress, y + h);
     
-    layout.textMaxWidth = totalWidth - barAreaWidth;
+    layout.textMaxWidth = totalWidth - config->GetSeekBarTimeMarginRight();
     layout.textMaxHeight = h;
-    layout.textOrigin = D2D1::Point2F(startX + barAreaWidth, y);
+    layout.textOrigin = D2D1::Point2F(startX, y);
 
     return layout;
 }
