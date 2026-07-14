@@ -157,6 +157,7 @@ bool AudioPlayer::Play(const std::wstring& filepath) {
 
 void AudioPlayer::SetVolume(float volume) {
     if (m_initialized && m_engine) {
+        volume = std::clamp(volume, 0.0002f, 1.0f);
         ma_engine_set_volume(m_engine, volume);
     }
 }
