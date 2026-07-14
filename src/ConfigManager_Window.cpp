@@ -1,4 +1,4 @@
-﻿#include "ConfigManager.h"
+#include "ConfigManager.h"
 
 void ConfigManager::SaveWindowPosition(int x, int y, int width, int height) {
   m_windowX = x;
@@ -71,7 +71,6 @@ void ConfigManager::LoadWindowSettings() {
   m_bgOpacity = LoadOrWriteFloat(L"Layout_Window", L"BgOpacity");
   m_bgDarkenOpacity = LoadOrWriteFloat(L"Layout_Window", L"BgDarkenOpacity");
   m_backgroundArtMode = LoadOrWriteInt(L"Layout_Window", L"BackgroundArtMode");
-  m_controlHoverHeight = LoadOrWriteFloat(L"Layout_Window", L"ControlHoverHeight");
   m_controlLeaveDelay = LoadOrWriteFloat(L"Layout_Window", L"ControlLeaveDelay");
   m_hoverIconColor = LoadOrWriteString(L"Layout_Window", L"HoverIconColor");
   m_hoverFadeOutSpeed = LoadOrWriteFloat(L"Layout_Window", L"HoverFadeOutSpeed");

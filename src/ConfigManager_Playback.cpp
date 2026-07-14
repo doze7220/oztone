@@ -28,6 +28,7 @@ void ConfigManager::LoadPlaybackSettings() {
   m_playbackCenterOffsetX = LoadOrWriteInt(L"Layout_PlaybackControls", L"CenterOffsetX");
   m_playbackButtonSpacing = LoadOrWriteInt(L"Layout_PlaybackControls", L"ButtonSpacing");
   m_playbackButtonSize = LoadOrWriteInt(L"Layout_PlaybackControls", L"ButtonSize");
+  m_controlHoverHeight = LoadOrWriteFloat(L"Layout_PlaybackControls", L"ControlHoverHeight");
   m_skipIconPoints = LoadOrWriteString(L"Layout_PlaybackControls", L"SkipIconPoints");
   m_skipTextFontSize = LoadOrWriteFloat(L"Layout_PlaybackControls", L"SkipTextFontSize");
   m_skipTextOffsetX = LoadOrWriteFloat(L"Layout_PlaybackControls", L"SkipTextOffsetX");

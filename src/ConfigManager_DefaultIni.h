@@ -38,7 +38,6 @@ ShadowOpacity=0.7
 BgOpacity=0.6
 BgDarkenOpacity=0.4
 BackgroundArtMode=0
-ControlHoverHeight=50.0
 HoverIconColor=#ffa500
 HoverFadeOutSpeed=2
 ControlLeaveDelay=3.0
@@ -104,8 +103,8 @@ Height=8
 BottomOffset=25
 FgColor=#FFFFFF
 FgOpacity=0.4
-BgColor=#FFFFFF
-BgOpacity=0.1
+BgColor=#000000
+BgOpacity=0.3
 TimeFontFamily="Courier New"
 TimeFontSize=20.0
 TimeLetterSpacing=-3.0
@@ -114,6 +113,7 @@ TextColor=#FFFFFF
 TextOpacity=1.0
 
 [Layout_PlaybackControls]
+ControlHoverHeight=50.0
 BaseBottomOffset=22
 CenterOffsetX=0
 ButtonSpacing=55
