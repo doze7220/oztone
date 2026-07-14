@@ -40,6 +40,14 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
     }
   } else {
     if (btnIndex == 0) { // 📁 (上の階層へ)
+      std::wstring currentPlaylist = m_config.GetDefaultPlaylistPath();
+      std::vector<std::wstring> available = m_config.GetAvailablePlaylists();
+      for (size_t i = 0; i < available.size(); ++i) {
+        if (available[i] == currentPlaylist) {
+          m_focusedPlaylistIndex = static_cast<int>(i);
+          break;
+        }
+      }
       m_isPlaylistListViewMode = true;
     } else if (btnIndex == 1) { // ➖ (曲削除)
       m_renderer.TriggerFlyText(L"TRACK REMOVED");
