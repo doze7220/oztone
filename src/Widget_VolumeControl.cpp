@@ -174,12 +174,18 @@ void VolumeControlWidget::ReleaseResources() {
 }
 
 void VolumeControlWidget::UpdateAnimation(const WidgetContext &ctx) {
+  float fadeOutSpeed = ctx.config ? ctx.config->GetHoverFadeOutSpeed() : 3.0f;
+  float fadeInSpeed = 10.0f;
+
   if (ctx.isVolumeHovered) {
     m_tooltipAlpha = 1.0f;
+    m_hoverAlpha += ctx.deltaTime * fadeInSpeed;
+    if (m_hoverAlpha > 1.0f) m_hoverAlpha = 1.0f;
   } else {
-    float fadeOutSpeed = ctx.config ? ctx.config->GetHoverFadeOutSpeed() : 3.0f;
     m_tooltipAlpha -= ctx.deltaTime * fadeOutSpeed;
     if (m_tooltipAlpha < 0.0f) m_tooltipAlpha = 0.0f;
+    m_hoverAlpha -= ctx.deltaTime * fadeOutSpeed;
+    if (m_hoverAlpha < 0.0f) m_hoverAlpha = 0.0f;
   }
 }
 void VolumeControlWidget::UpdateLayout(const WidgetContext &ctx,
@@ -225,6 +231,16 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
   }
 
   if (m_controlBrush) {
+    D2D1_COLOR_F baseColor = D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f);
+    D2D1_COLOR_F hoverColor = config ? ParseHexColor(config->GetHoverIconColor()) : baseColor;
+    float t = m_hoverAlpha;
+    D2D1_COLOR_F blendedColor = D2D1::ColorF(
+        baseColor.r + (hoverColor.r - baseColor.r) * t,
+        baseColor.g + (hoverColor.g - baseColor.g) * t,
+        baseColor.b + (hoverColor.b - baseColor.b) * t,
+        1.0f
+    );
+    m_controlBrush->SetColor(blendedColor);
     m_controlBrush->SetOpacity(finalAlpha);
 
     D2D1::Matrix3x2F oldTransform;

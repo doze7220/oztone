@@ -32,4 +32,5 @@ private:
     Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_tooltipWheelGeometry;
     Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_tooltipGeometry;
     float m_tooltipAlpha = 0.0f;
+    float m_hoverAlpha = 0.0f;
 };
