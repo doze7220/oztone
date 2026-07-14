@@ -77,6 +77,9 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   case WM_RBUTTONUP:
     if (HandleRButtonUp(wParam, lParam)) return 0;
     break;
+  case WM_MBUTTONDOWN:
+    if (HandleMButtonDown(wParam, lParam)) return 0;
+    break;
   case WM_LBUTTONDBLCLK:
     HandleLButtonDblClk(wParam, lParam);
     return 0;

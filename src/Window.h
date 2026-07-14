@@ -358,6 +358,7 @@ private:
     void HandleLButtonUp(WPARAM wParam, LPARAM lParam);
     bool HandleRButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam);
     bool HandleRButtonUp(WPARAM wParam, LPARAM lParam);
+    bool HandleMButtonDown(WPARAM wParam, LPARAM lParam);
     void HandleLButtonDblClk(WPARAM wParam, LPARAM lParam);
     bool HandleMouseWheel(HWND hwnd, WPARAM wParam, LPARAM lParam);
     bool HandleKeyDown(WPARAM wParam, LPARAM lParam);

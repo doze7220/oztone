@@ -583,7 +583,7 @@ bool Window::HandleMouseWheel(HWND hwnd, WPARAM wParam, LPARAM lParam) {
     }
     
     if (!m_isPlaylistHovered && !m_isVolumeHovered) {
-      if (GetAsyncKeyState(VK_SHIFT) & 0x8000) {
+      if ((GetAsyncKeyState(VK_SHIFT) & 0x8000) || (wParam & MK_RBUTTON)) {
         if (m_onArtFramingScroll) {
           int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
           m_onArtFramingScroll(static_cast<float>(zDelta));
@@ -591,6 +591,14 @@ bool Window::HandleMouseWheel(HWND hwnd, WPARAM wParam, LPARAM lParam) {
         return true;
       }
     }
+  }
+  return false;
+}
+
+bool Window::HandleMButtonDown(WPARAM wParam, LPARAM lParam) {
+  if (wParam & MK_RBUTTON) {
+    if (m_onArtFramingReset) m_onArtFramingReset();
+    return true;
   }
   return false;
 }
