@@ -207,6 +207,8 @@ PrismGlow2Thickness=8.0
 PrismGlow2Opacity=0.2
 
 [Visualizer_HaloDust]
+HaloDustColorMode=2
+HaloDustFixedColor=#00FFFF
 BaseRadiusRatio=0.35
 GraphLengthRatio=0.25
 HaloGlowOpacity=0.3

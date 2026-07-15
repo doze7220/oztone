@@ -1,4 +1,4 @@
-﻿#include "ConfigManager.h"
+#include "ConfigManager.h"
 #include <string>
 
 void ConfigManager::SetVisualizerMode(int mode) {
@@ -39,6 +39,16 @@ void ConfigManager::SetPrismBeatMaxHeightRatio(float ratio) {
   wchar_t buf[32];
   swprintf_s(buf, L"%.2f", ratio);
   WritePrivateProfileStringW(L"Visualizer_PrismBeat", L"MaxHeightRatio", buf, m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloDustColorMode(int mode) {
+  m_haloDustColorMode = mode;
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"HaloDustColorMode", std::to_wstring(mode).c_str(), m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetHaloDustFixedColor(const std::wstring& color) {
+  m_haloDustFixedColor = color;
+  WritePrivateProfileStringW(L"Visualizer_HaloDust", L"HaloDustFixedColor", color.c_str(), m_iniFilePath.c_str());
 }
 
 void ConfigManager::SetHaloDustBaseRadiusRatio(float ratio) {
@@ -163,6 +173,8 @@ void ConfigManager::LoadVisualizerSettings() {
   m_prismGlow2Thickness = LoadOrWriteFloat(L"Visualizer_PrismBeat", L"PrismGlow2Thickness");
   m_prismGlow2Opacity = LoadOrWriteFloat(L"Visualizer_PrismBeat", L"PrismGlow2Opacity");
 
+  m_haloDustColorMode = LoadOrWriteInt(L"Visualizer_HaloDust", L"HaloDustColorMode");
+  m_haloDustFixedColor = LoadOrWriteString(L"Visualizer_HaloDust", L"HaloDustFixedColor");
   m_haloDustBaseRadiusRatio = LoadOrWriteFloat(L"Visualizer_HaloDust", L"BaseRadiusRatio");
   m_haloDustGraphLengthRatio = LoadOrWriteFloat(L"Visualizer_HaloDust", L"GraphLengthRatio");
   m_haloLaserBaseOpacity = LoadOrWriteFloat(L"Visualizer_HaloDust", L"HaloLaserBaseOpacity");

@@ -1,5 +1,6 @@
 #include "Visualizer_HaloDust.h"
 #include "ConfigManager.h"
+#include "WidgetCommon.h"
 #include <cmath>
 #include <random>
 
@@ -28,6 +29,39 @@ namespace {
         else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
         else { r = c; g = 0; b = x; }
         return D2D1::ColorF(r + m, g + m, b + m, 1.0f);
+    }
+
+    D2D1::ColorF GenerateColorRGB(size_t hashValue) {
+        float hue = static_cast<float>(hashValue % 360);
+
+        // Convert Hue to RGB (Saturation 1.0, Lightness 0.6)
+        float c = 1.0f * (1.0f - std::abs(2.0f * 0.6f - 1.0f));
+        float x_val = c * (1.0f - std::abs(std::fmod(hue / 60.0f, 2.0f) - 1.0f));
+        float m = 0.6f - c / 2.0f;
+        float r = 0, g = 0, b = 0;
+        if(0 <= hue && hue < 60) { r = c; g = x_val; b = 0; }
+        else if(60 <= hue && hue < 120) { r = x_val; g = c; b = 0; }
+        else if(120 <= hue && hue < 180) { r = 0; g = c; b = x_val; }
+        else if(180 <= hue && hue < 240) { r = 0; g = x_val; b = c; }
+        else if(240 <= hue && hue < 300) { r = x_val; g = 0; b = c; }
+        else { r = c; g = 0; b = x_val; }
+        
+        // Additive synthesis with #888888 (0.533f) base for realistic neon glow
+        float baseR = r + m + 0.533f;
+        float baseG = g + m + 0.533f;
+        float baseB = b + m + 0.533f;
+
+        // RGB桁ずらし (青・緑系サイバーカラーへのシフト)
+        float finalR = (std::min)(1.0f, baseB);
+        float finalG = (std::min)(1.0f, baseR);
+        float finalB = (std::min)(1.0f, baseG);
+        
+        return D2D1::ColorF(finalR, finalG, finalB, 1.0f);
+    }
+
+    D2D1::ColorF GenerateColorHSV(size_t hashValue) {
+        float hue = static_cast<float>(hashValue % 3600) / 10.0f;
+        return HsvToRgb(hue, 1.0f, 1.0f);
     }
 }
 
@@ -70,15 +104,19 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
     std::wstring combined = trackTitle + trackArtist;
     size_t hashValue = std::hash<std::wstring>{}(combined);
 
-    // ハッシュ値から純粋なHUEの生成
-    float hue = static_cast<float>(hashValue % 3600) / 10.0f;
+    D2D1::ColorF themeColor(0.0f, 0.0f, 0.0f, 1.0f);
+    int colorMode = m_config ? m_config->GetHaloDustColorMode() : 2;
+    if (colorMode == 0) {
+        themeColor = WidgetCommon::HexToColorF(m_config->GetHaloDustFixedColor());
+    } else if (colorMode == 1) {
+        themeColor = GenerateColorRGB(hashValue);
+    } else {
+        themeColor = GenerateColorHSV(hashValue);
+    }
 
-    // HSV純色を生成 (彩度100%、明度100%)
-    D2D1::ColorF pureColor = HsvToRgb(hue, 1.0f, 1.0f);
-
-    float finalR = pureColor.r;
-    float finalG = pureColor.g;
-    float finalB = pureColor.b;
+    float finalR = themeColor.r;
+    float finalG = themeColor.g;
+    float finalB = themeColor.b;
 
     float glowOpacity = m_config ? m_config->GetHaloGlowOpacity() : CIRCLE_GLOW_OPACITY;
     float glowThickness = m_config ? m_config->GetHaloGlowThickness() : CIRCLE_NEON_GLOW_THICKNESS;

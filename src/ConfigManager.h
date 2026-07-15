@@ -87,6 +87,12 @@ public:
     float GetHaloDustGraphLengthRatio() const { return m_haloDustGraphLengthRatio; }
     void SetHaloDustGraphLengthRatio(float ratio);
 
+    int GetHaloDustColorMode() const { return m_haloDustColorMode; }
+    void SetHaloDustColorMode(int mode);
+
+    std::wstring GetHaloDustFixedColor() const { return m_haloDustFixedColor; }
+    void SetHaloDustFixedColor(const std::wstring& color);
+
     float GetHaloLaserBaseOpacity() const { return m_haloLaserBaseOpacity; }
     void SetHaloLaserBaseOpacity(float opacity);
 
@@ -465,6 +471,8 @@ private:
     float m_prismGlow1Opacity;
     float m_prismGlow2Thickness;
     float m_prismGlow2Opacity;
+    int m_haloDustColorMode;
+    std::wstring m_haloDustFixedColor;
     float m_haloDustBaseRadiusRatio;
     float m_haloDustGraphLengthRatio;
     float m_haloLaserBaseOpacity;
