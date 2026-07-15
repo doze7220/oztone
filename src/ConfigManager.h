@@ -284,6 +284,9 @@ public:
      */
     void ResetToDefaults();
 
+    float GetWatchdogInterval() const { return m_watchdogInterval; }
+    float GetWatchdogTimeout() const { return m_watchdogTimeout; }
+
 
 
 
@@ -712,4 +715,7 @@ private:
     int m_vkActiveBottom;
     int m_modExitApp;
     int m_vkExitApp;
+
+    float m_watchdogInterval;
+    float m_watchdogTimeout;
 };

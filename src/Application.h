@@ -17,6 +17,11 @@
 #include "TrackDatabase.h"
 #include "ArtFramingDatabase.h"
 
+enum class WatchdogState {
+    Normal,
+    Warning
+};
+
 /**
  * @brief アプリケーション全体のライフサイクルとメインループを管理するクラス
  */
@@ -154,4 +159,9 @@ private:
     bool m_suspendIsPlaying = false;
     float m_suspendPosition = 0.0f;
     bool m_isWaitingForDevice = false;
+
+    WatchdogState m_watchdogState = WatchdogState::Normal;
+    ULONGLONG m_lastWatchdogPollTime = 0;
+    float m_lastWatchdogPosition = -1.0f;
+    ULONGLONG m_watchdogWarningStartTime = 0;
 };

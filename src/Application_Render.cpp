@@ -30,6 +30,42 @@ void Application::Run() {
     }
 
     ULONGLONG currentTime = GetTickCount64();
+
+    if (!m_isWaitingForDevice && m_audioPlayer.IsPlaying()) {
+      float currentPos = m_audioPlayer.GetPositionSeconds();
+      if (m_watchdogState == WatchdogState::Normal) {
+        float intervalMs = m_config.GetWatchdogInterval() * 1000.0f;
+        if (currentTime - m_lastWatchdogPollTime >= static_cast<ULONGLONG>(intervalMs)) {
+          m_lastWatchdogPollTime = currentTime;
+          if (m_lastWatchdogPosition >= 0.0f && currentPos == m_lastWatchdogPosition) {
+            m_watchdogState = WatchdogState::Warning;
+            m_watchdogWarningStartTime = currentTime;
+          }
+          m_lastWatchdogPosition = currentPos;
+        }
+      } else if (m_watchdogState == WatchdogState::Warning) {
+        if (currentPos != m_lastWatchdogPosition) {
+          m_watchdogState = WatchdogState::Normal;
+          m_lastWatchdogPosition = currentPos;
+          m_lastWatchdogPollTime = currentTime;
+        } else {
+          float timeoutMs = m_config.GetWatchdogTimeout() * 1000.0f;
+          if (currentTime - m_watchdogWarningStartTime >= static_cast<ULONGLONG>(timeoutMs)) {
+            m_suspendPosition = currentPos;
+            m_suspendIsPlaying = true;
+            m_audioPlayer.Uninitialize();
+            m_isWaitingForDevice = true;
+            m_watchdogState = WatchdogState::Normal;
+            m_lastWatchdogPosition = -1.0f;
+            continue;
+          }
+        }
+      }
+    } else {
+      m_watchdogState = WatchdogState::Normal;
+      m_lastWatchdogPosition = -1.0f;
+    }
+
     if (currentTime - m_lastConfigCheckTime >= 1000) {
       m_lastConfigCheckTime = currentTime;
       if (m_config.CheckForUpdates()) {

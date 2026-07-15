@@ -248,6 +248,10 @@ HaloParticleSpeed=0.015
 HaloParticleSpawnRate=0.025
 HaloParticleLifeTime=400.0
 
+[System]
+WatchdogInterval=1.0
+WatchdogTimeout=5.0
+
 [GlobalHotkeys]
 ShowHotkeys=0
 

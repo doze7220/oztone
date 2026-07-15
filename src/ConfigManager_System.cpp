@@ -2,6 +2,7 @@
 
 #include <windows.h>
 #include <string>
+#include <algorithm>
 
 // [GlobalHotkeys]
 void ConfigManager::SetShowHotkeys(bool show) {
@@ -41,6 +42,10 @@ void ConfigManager::LoadSystemSettings() {
     m_osdFadeWait = LoadOrWriteFloat(L"Layout_OSD", L"OsdFadeWait");
     m_osdFadeSpeed = LoadOrWriteFloat(L"Layout_OSD", L"OsdFadeSpeed");
     m_enableOSD = LoadOrWriteInt(L"Layout_OSD", L"EnableOSD") != 0;
+
+    // System
+    m_watchdogInterval = std::clamp(LoadOrWriteFloat(L"System", L"WatchdogInterval"), 0.5f, 1000.0f);
+    m_watchdogTimeout = std::clamp(LoadOrWriteFloat(L"System", L"WatchdogTimeout"), 2.0f, 1000.0f);
 
     // GlobalHotkeys
     m_showHotkeys = LoadOrWriteInt(L"GlobalHotkeys", L"ShowHotkeys") != 0;

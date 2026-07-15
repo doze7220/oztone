@@ -197,6 +197,7 @@ float AudioPlayer::GetPositionSeconds() {
     float cursor = 0.0f;
     ma_sound_get_cursor_in_seconds(&m_sound, &cursor);
     return cursor;
+
 }
 
 float AudioPlayer::GetLengthSeconds() {
