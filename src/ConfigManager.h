@@ -28,10 +28,20 @@ public:
     bool GetShowPlaybackControls() const { return m_showPlaybackControls; }
     bool GetShowVolumeControl() const { return m_showVolumeControl; }
 
+    std::wstring GetFocusColor() const { return m_focusColor; }
+    float GetHoverFadeOutSpeed() const { return m_hoverFadeOutSpeed; }
+    float GetBaseLeaveDelay() const { return m_baseLeaveDelay; }
+    std::wstring GetBaseFontFamily() const { return m_baseFontFamily; }
+    std::wstring GetMonoFontFamily() const { return m_monoFontFamily; }
+    std::wstring GetIconFontFamily() const { return m_iconFontFamily; }
+    std::wstring GetOsdFontFamily() const { return m_osdFontFamily; }
+
     bool GetEnableShadow() const { return m_enableShadow; }
+    std::wstring GetShadowColor() const { return m_shadowColor; }
     float GetShadowOffsetX() const { return m_shadowOffsetX; }
     float GetShadowOffsetY() const { return m_shadowOffsetY; }
     float GetShadowOpacity() const { return m_shadowOpacity; }
+
     float GetBgDarkenOpacity() const { return m_bgDarkenOpacity; }
     float GetBgOpacity() const { return m_bgOpacity; }
     int GetBackgroundArtMode() const { return m_backgroundArtMode; }
@@ -146,30 +156,20 @@ public:
     float GetSkipTextFontSize() const { return m_skipTextFontSize; }
     float GetSkipTextOffsetX() const { return m_skipTextOffsetX; }
     float GetSkipTextOffsetY() const { return m_skipTextOffsetY; }
-    std::wstring GetSkipTextShadowColor() const { return m_skipTextShadowColor; }
-    float GetSkipTextShadowOpacity() const { return m_skipTextShadowOpacity; }
     float GetSkipTextShadowShift() const { return m_skipTextShadowShift; }
 
     // --- Layout_GlobalHotkeys ---
-    std::wstring GetGlobalHotkeysFontFamily() const { return m_ghFontFamily; }
     float GetGlobalHotkeysFontSize() const { return m_ghFontSize; }
     float GetGlobalHotkeysLineSpacing() const { return m_ghLineSpacing; }
     std::wstring GetGlobalHotkeysCoreColor() const { return m_ghCoreColor; }
     std::wstring GetGlobalHotkeysGlowColor() const { return m_ghGlowColor; }
     float GetGlobalHotkeysGlowOpacity() const { return m_ghGlowOpacity; }
-    std::wstring GetGlobalHotkeysShadowColor() const { return m_ghShadowColor; }
-    float GetGlobalHotkeysShadowOpacity() const { return m_ghShadowOpacity; }
     float GetGlobalHotkeysKeyColumnOffset() const { return m_ghKeyColumnOffset; }
     float GetGlobalHotkeysActionColumnOffset() const { return m_ghActionColumnOffset; }
 
     // --- Layout_OSD ---
-    std::wstring GetOsdFontFamily() const { return m_osdFontFamily; }
     float GetOsdFontSize() const { return m_osdFontSize; }
     std::wstring GetOsdTextColor() const { return m_osdTextColor; }
-    std::wstring GetOsdShadowColor() const { return m_osdShadowColor; }
-    float GetOsdShadowOffsetX() const { return m_osdShadowOffsetX; }
-    float GetOsdShadowOffsetY() const { return m_osdShadowOffsetY; }
-    float GetOsdShadowOpacity() const { return m_osdShadowOpacity; }
     float GetOsdFadeSpeed() const { return m_osdFadeSpeed; }
     float GetOsdFadeWait() const { return m_osdFadeWait; }
 
@@ -251,10 +251,7 @@ public:
     int GetLogoMenuIconOffsetX() const { return m_logoMenuIconOffsetX; }
     int GetLogoMenuIconOffsetY() const { return m_logoMenuIconOffsetY; }
     float GetLogoMenuScrollDuration() const { return m_logoMenuScrollDuration; }
-    float GetMenuLeaveDelay() const { return m_menuLeaveDelay; }
-    std::wstring GetLogoMenuFontFamily() const { return m_logoMenuFontFamily; }
     std::wstring GetLogoMenuTextColor() const { return m_logoMenuTextColor; }
-    std::wstring GetLogoMenuTypingFontFamily() const { return m_logoMenuTypingFontFamily; }
     float GetLogoMenuTypingFontSize() const { return m_logoMenuTypingFontSize; }
     int GetLogoMenuTextOffsetX() const { return m_logoMenuTextOffsetX; }
     int GetLogoMenuTextOffsetY() const { return m_logoMenuTextOffsetY; }
@@ -265,14 +262,6 @@ public:
     float GetLogoMenuLockIconFontSize() const { return m_logoMenuLockIconFontSize; }
     int GetLogoMenuLockIconOffsetX() const { return m_logoMenuLockIconOffsetX; }
     int GetLogoMenuLockIconOffsetY() const { return m_logoMenuLockIconOffsetY; }
-    float GetLogoMenuDescShadowOffsetX() const { return m_logoMenuDescShadowOffsetX; }
-    float GetLogoMenuDescShadowOffsetY() const { return m_logoMenuDescShadowOffsetY; }
-    float GetLogoMenuDescShadowOpacity() const { return m_logoMenuDescShadowOpacity; }
-
-    std::wstring GetHoverIconColor() const { return m_hoverIconColor; }
-    float GetHoverFadeOutSpeed() const { return m_hoverFadeOutSpeed; }
-    std::wstring GetPlayingItemColor() const { return m_playingItemColor; }
-    std::wstring GetHoverItemColor() const { return m_hoverItemColor; }
 
     /**
      * @brief デフォルト設定で上書き保存する
@@ -303,12 +292,10 @@ public:
     int GetTitleOffsetX() const { return m_titleOffsetX; }
     int GetTitleOffsetY() const { return m_titleOffsetY; }
     float GetTitleFontSize() const { return m_titleFontSize; }
-    std::wstring GetTitleFontFamily() const { return m_titleFontFamily; }
 
     int GetArtistOffsetX() const { return m_artistOffsetX; }
     int GetArtistOffsetY() const { return m_artistOffsetY; }
     float GetArtistFontSize() const { return m_artistFontSize; }
-    std::wstring GetArtistFontFamily() const { return m_artistFontFamily; }
 
     float GetSeekBarMargin() const { return m_seekBarMargin; }
     int GetSeekBarHeight() const { return m_seekBarHeight; }
@@ -319,7 +306,6 @@ public:
     float GetSeekBarBgOpacity() const { return m_seekBarBgOpacity; }
     std::wstring GetSeekBarTimeTextColor() const { return m_seekBarTimeTextColor; }
     float GetSeekBarTimeTextOpacity() const { return m_seekBarTimeTextOpacity; }
-    const std::wstring& GetSeekBarTimeFontFamily() const { return m_seekBarTimeFontFamily; }
     float GetSeekBarTimeFontSize() const { return m_seekBarTimeFontSize; }
     float GetSeekBarTimeMarginRight() const { return m_seekBarTimeMarginRight; }
     float GetSeekBarTimeLetterSpacing() const { return m_seekBarTimeLetterSpacing; }
@@ -338,7 +324,6 @@ public:
     void SetDefaultVolume(float volume);
 
     float GetControlHoverHeight() const { return m_controlHoverHeight; }
-    float GetControlLeaveDelay() const { return m_controlLeaveDelay; }
 
     int GetVolumeBaseLeftOffset() const { return m_volBaseLeftOffset; }
     int GetVolumeBaseBottomOffset() const { return m_volBaseBottomOffset; }
@@ -347,12 +332,6 @@ public:
     int GetVolumeTextOffsetY() const { return m_volTextOffsetY; }
     float GetVolumeTextLetterSpacing() const { return m_volTextLetterSpacing; }
     float GetVolumeFontSize() const { return m_volFontSize; }
-    std::wstring GetVolumeFontFamily() const { return m_volFontFamily; }
-
-    bool GetVolumeEnableShadow() const { return m_volEnableShadow; }
-    float GetVolumeShadowOffsetX() const { return m_volShadowOffsetX; }
-    float GetVolumeShadowOffsetY() const { return m_volShadowOffsetY; }
-    float GetVolumeShadowOpacity() const { return m_volShadowOpacity; }
 
     float GetVolumeTooltipIconSize() const { return m_volTooltipIconSize; }
     float GetVolumeTooltipOffsetY() const { return m_volTooltipOffsetY; }
@@ -361,31 +340,24 @@ public:
     float GetVolumeTooltipWidth() const { return m_volTooltipWidth; }
     float GetVolumeTooltipHeight() const { return m_volTooltipHeight; }
 
-    std::wstring GetTrackCountFontFamily() const { return m_trackCountFontFamily; }
     float GetTrackCountFontSize() const { return m_trackCountFontSize; }
     int GetTrackCountOffsetX() const { return m_trackCountOffsetX; }
     int GetTrackCountOffsetY() const { return m_trackCountOffsetY; }
     int GetTrackCountTextAlignment() const { return m_trackCountTextAlignment; }
     float GetTrackCountLetterSpacing() const { return m_trackCountLetterSpacing; }
-    float GetTrackCountShadowOffsetX() const { return m_trackCountShadowOffsetX; }
-    float GetTrackCountShadowOffsetY() const { return m_trackCountShadowOffsetY; }
-    float GetTrackCountShadowOpacity() const { return m_trackCountShadowOpacity; }
 
     int GetPlaylistWidth() const { return m_playlistWidth; }
     int GetPlaylistItemOffsetY() const { return m_playlistItemOffsetY; }
     float GetPlaylistTitleFontSize() const { return m_playlistTitleFontSize; }
-    std::wstring GetPlaylistTitleFontFamily() const { return m_playlistTitleFontFamily; }
     int GetPlaylistTitleOffsetX() const { return m_playlistTitleOffsetX; }
     int GetPlaylistTitleOffsetY() const { return m_playlistTitleOffsetY; }
 
     float GetPlaylistArtistFontSize() const { return m_playlistArtistFontSize; }
-    std::wstring GetPlaylistArtistFontFamily() const { return m_playlistArtistFontFamily; }
     int GetPlaylistArtistOffsetX() const { return m_playlistArtistOffsetX; }
     int GetPlaylistArtistOffsetY() const { return m_playlistArtistOffsetY; }
     std::wstring GetPlaylistArtistColor() const { return m_playlistArtistColor; }
 
     float GetPlaylistTimeFontSize() const { return m_playlistTimeFontSize; }
-    std::wstring GetPlaylistTimeFontFamily() const { return m_playlistTimeFontFamily; }
     int GetPlaylistTimeOffsetX() const { return m_playlistTimeOffsetX; }
     int GetPlaylistTimeOffsetY() const { return m_playlistTimeOffsetY; }
     float GetPlaylistTimeLetterSpacing() const { return m_playlistTimeLetterSpacing; }
@@ -414,9 +386,6 @@ public:
     float GetPlaylistGripArrowHeight() const { return m_playlistGripArrowHeight; }
     float GetPlaylistGripArrowWidth() const { return m_playlistGripArrowWidth; }
     std::wstring GetPlaylistGripArrowColor() const { return m_playlistGripArrowColor; }
-    float GetPlaylistGripShadowOffsetX() const { return m_playlistGripShadowOffsetX; }
-    float GetPlaylistGripShadowOffsetY() const { return m_playlistGripShadowOffsetY; }
-    float GetPlaylistGripShadowOpacity() const { return m_playlistGripShadowOpacity; }
 
     void LoadSettings();
 
@@ -426,6 +395,7 @@ private:
     std::wstring LoadOrWriteString(const std::wstring& section, const std::wstring& key);
     std::wstring GetDefaultIniValue(const std::wstring& section, const std::wstring& key) const;
 
+    void LoadCommonSettings();
     void LoadWindowSettings();
     void LoadPlaylistSettings();
     void LoadPlaybackSettings();
@@ -460,9 +430,19 @@ private:
     int m_windowHeight;
 
     bool m_enableShadow;
+    std::wstring m_shadowColor;
     float m_shadowOffsetX;
     float m_shadowOffsetY;
     float m_shadowOpacity;
+
+    std::wstring m_focusColor;
+    float m_hoverFadeOutSpeed;
+    float m_baseLeaveDelay;
+    std::wstring m_baseFontFamily;
+    std::wstring m_monoFontFamily;
+    std::wstring m_iconFontFamily;
+    std::wstring m_osdFontFamily;
+
     float m_bgDarkenOpacity;
     float m_bgOpacity;
     int m_backgroundArtMode;
@@ -507,10 +487,7 @@ private:
     int m_logoMenuIconOffsetX;
     int m_logoMenuIconOffsetY;
     float m_logoMenuScrollDuration;
-    float m_menuLeaveDelay;
-    std::wstring m_logoMenuFontFamily;
     std::wstring m_logoMenuTextColor;
-    std::wstring m_logoMenuTypingFontFamily;
     float m_logoMenuTypingFontSize;
     int m_logoMenuTextOffsetX;
     int m_logoMenuTextOffsetY;
@@ -521,9 +498,6 @@ private:
     float m_logoMenuLockIconFontSize;
     int m_logoMenuLockIconOffsetX;
     int m_logoMenuLockIconOffsetY;
-    float m_logoMenuDescShadowOffsetX;
-    float m_logoMenuDescShadowOffsetY;
-    float m_logoMenuDescShadowOpacity;
 
     int m_baseX;
     int m_baseBottomOffset;
@@ -532,23 +506,13 @@ private:
     int m_artSize;
     float m_fallbackArtOpacity;
 
-    std::wstring m_hoverIconColor;
-    float m_hoverFadeOutSpeed;
-    std::wstring m_playingItemColor;
-    std::wstring m_hoverItemColor;
-
-
-
-
     int m_titleOffsetX;
     int m_titleOffsetY;
     float m_titleFontSize;
-    std::wstring m_titleFontFamily;
 
     int m_artistOffsetX;
     int m_artistOffsetY;
     float m_artistFontSize;
-    std::wstring m_artistFontFamily;
 
     float m_seekBarMargin;
     int m_seekBarHeight;
@@ -559,7 +523,6 @@ private:
     float m_seekBarBgOpacity;
     std::wstring m_seekBarTimeTextColor;
     float m_seekBarTimeTextOpacity;
-    std::wstring m_seekBarTimeFontFamily;
     float m_seekBarTimeFontSize;
     float m_seekBarTimeMarginRight;
     float m_seekBarTimeLetterSpacing;
@@ -577,8 +540,6 @@ private:
     float m_skipTextFontSize;
     float m_skipTextOffsetX;
     float m_skipTextOffsetY;
-    std::wstring m_skipTextShadowColor;
-    float m_skipTextShadowOpacity;
     float m_skipTextShadowShift;
 
     // --- Layout_GlobalHotkeys ---
@@ -594,13 +555,8 @@ private:
     float m_ghActionColumnOffset;
 
     // --- Layout_OSD ---
-    std::wstring m_osdFontFamily;
     float m_osdFontSize;
     std::wstring m_osdTextColor;
-    std::wstring m_osdShadowColor;
-    float m_osdShadowOffsetX;
-    float m_osdShadowOffsetY;
-    float m_osdShadowOpacity;
     float m_osdFadeSpeed;
     float m_osdFadeWait;
 
@@ -608,7 +564,6 @@ private:
 
     float m_defaultVolume;
     float m_controlHoverHeight;
-    float m_controlLeaveDelay;
     int m_volBaseLeftOffset;
     int m_volBaseBottomOffset;
     int m_volIconSize;
@@ -616,12 +571,6 @@ private:
     int m_volTextOffsetY;
     float m_volTextLetterSpacing;
     float m_volFontSize;
-    std::wstring m_volFontFamily;
-
-    bool m_volEnableShadow;
-    float m_volShadowOffsetX;
-    float m_volShadowOffsetY;
-    float m_volShadowOpacity;
 
     float m_volTooltipIconSize;
     float m_volTooltipOffsetY;
@@ -630,32 +579,25 @@ private:
     float m_volTooltipWidth;
     float m_volTooltipHeight;
 
-    std::wstring m_trackCountFontFamily;
     float m_trackCountFontSize;
     int m_trackCountOffsetX;
     int m_trackCountOffsetY;
     int m_trackCountTextAlignment;
     float m_trackCountLetterSpacing;
-    float m_trackCountShadowOffsetX;
-    float m_trackCountShadowOffsetY;
-    float m_trackCountShadowOpacity;
 
     int m_playlistWidth;
     int m_playlistItemOffsetY;
 
     float m_playlistTitleFontSize;
-    std::wstring m_playlistTitleFontFamily;
     int m_playlistTitleOffsetX;
     int m_playlistTitleOffsetY;
 
     float m_playlistArtistFontSize;
-    std::wstring m_playlistArtistFontFamily;
     int m_playlistArtistOffsetX;
     int m_playlistArtistOffsetY;
     std::wstring m_playlistArtistColor;
 
     float m_playlistTimeFontSize;
-    std::wstring m_playlistTimeFontFamily;
     int m_playlistTimeOffsetX;
     int m_playlistTimeOffsetY;
     float m_playlistTimeLetterSpacing;
@@ -683,9 +625,6 @@ private:
     float m_playlistGripArrowHeight;
     float m_playlistGripArrowWidth;
     std::wstring m_playlistGripArrowColor;
-    float m_playlistGripShadowOffsetX;
-    float m_playlistGripShadowOffsetY;
-    float m_playlistGripShadowOpacity;
 
     bool m_showHotkeys;
     bool m_enableOSD;

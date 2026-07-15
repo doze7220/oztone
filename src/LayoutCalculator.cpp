@@ -208,7 +208,7 @@ TrackInfoLayout LayoutCalculator::CalculateTrackInfoLayout(float logicalWidth, f
     float trackCountX = baseX + static_cast<float>(config->GetTrackCountOffsetX());
     float trackCountY = baseY + static_cast<float>(config->GetTrackCountOffsetY());
     layout.trackCountOrigin = D2D1::Point2F(trackCountX, trackCountY);
-    layout.trackCountShadowOrigin = D2D1::Point2F(trackCountX + config->GetTrackCountShadowOffsetX(), trackCountY + config->GetTrackCountShadowOffsetY());
+    layout.trackCountShadowOrigin = D2D1::Point2F(trackCountX + config->GetShadowOffsetX(), trackCountY + config->GetShadowOffsetY());
     layout.trackCountMaxWidth = 200.0f;
     layout.trackCountMaxHeight = 50.0f;
 
@@ -272,8 +272,8 @@ VolumeControlLayout LayoutCalculator::CalculateVolumeControlLayout(float logical
     layout.spkConeW = layout.volSize * 0.45f;
     layout.spkConeH = layout.volSize * 0.8f;
 
-    layout.shadowX = config->GetVolumeShadowOffsetX();
-    layout.shadowY = config->GetVolumeShadowOffsetY();
+    layout.shadowX = config->GetShadowOffsetX();
+    layout.shadowY = config->GetShadowOffsetY();
 
     layout.textX = layout.volX + static_cast<float>(config->GetVolumeTextOffsetX());
     layout.textY = layout.volY + static_cast<float>(config->GetVolumeTextOffsetY());
@@ -356,8 +356,8 @@ PlaylistLayout LayoutCalculator::CalculatePlaylistLayout(float logicalWidth, flo
 
     layout.bgRect = D2D1::RectF(layout.playlistX, layout.playlistY, layout.playlistX + layout.playlistWidth, layout.playlistY + layout.playlistHeight);
 
-    layout.gripShadowX = layout.gripX + config->GetPlaylistGripShadowOffsetX();
-    layout.gripShadowY = layout.playlistY + config->GetPlaylistGripShadowOffsetY();
+    layout.gripShadowX = layout.gripX + config->GetShadowOffsetX();
+    layout.gripShadowY = layout.playlistY + config->GetShadowOffsetY();
 
     // Scroll
     layout.itemHeight = static_cast<float>(config->GetPlaylistItemOffsetY());
@@ -469,10 +469,10 @@ OsdLayout LayoutCalculator::CalculateOsdLayout(float logicalWidth, float logical
 
     layout.textRect = D2D1::RectF(left, top, left + textWidth, top + textHeight);
     layout.shadowRect = D2D1::RectF(
-        left + config->GetOsdShadowOffsetX(),
-        top + config->GetOsdShadowOffsetY(),
-        left + textWidth + config->GetOsdShadowOffsetX(),
-        top + textHeight + config->GetOsdShadowOffsetY()
+        left + config->GetShadowOffsetX(),
+        top + config->GetShadowOffsetY(),
+        left + textWidth + config->GetShadowOffsetX(),
+        top + textHeight + config->GetShadowOffsetY()
     );
 
     return layout;

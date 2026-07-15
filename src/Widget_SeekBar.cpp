@@ -18,7 +18,7 @@ void SeekBarWidget::CreateResources(ID2D1DeviceContext *context,
 
   if (config) {
     dwriteFactory->CreateTextFormat(
-        config->GetSeekBarTimeFontFamily().c_str(), nullptr,
+        config->GetMonoFontFamily().c_str(), nullptr,
         DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE_NORMAL,
         DWRITE_FONT_STRETCH_NORMAL, config->GetSeekBarTimeFontSize(), L"ja-jp",
         &m_timeTextFormat);

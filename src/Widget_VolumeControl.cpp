@@ -15,7 +15,7 @@ void VolumeControlWidget::CreateResources(ID2D1DeviceContext *context,
 
   if (config) {
     dwriteFactory->CreateTextFormat(
-        config->GetVolumeFontFamily().c_str(), nullptr,
+        config->GetMonoFontFamily().c_str(), nullptr,
         DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE_NORMAL,
         DWRITE_FONT_STRETCH_NORMAL, config->GetVolumeFontSize(), L"ja-jp",
         &m_volumeTextFormat);
@@ -232,7 +232,7 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
 
   if (m_controlBrush) {
     D2D1_COLOR_F baseColor = D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f);
-    D2D1_COLOR_F hoverColor = config ? ParseHexColor(config->GetHoverIconColor()) : baseColor;
+    D2D1_COLOR_F hoverColor = config ? ParseHexColor(config->GetFocusColor()) : baseColor;
     float t = m_hoverAlpha;
     D2D1_COLOR_F blendedColor = D2D1::ColorF(
         baseColor.r + (hoverColor.r - baseColor.r) * t,
@@ -249,8 +249,8 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
         D2D1::Matrix3x2F::Scale(layout.volSize, layout.volSize) *
         D2D1::Matrix3x2F::Translation(layout.volX, layout.volY);
 
-    if (m_shadowBrush && config->GetVolumeEnableShadow()) {
-      m_shadowBrush->SetOpacity(config->GetVolumeShadowOpacity() *
+    if (m_shadowBrush && config->GetEnableShadow()) {
+      m_shadowBrush->SetOpacity(config->GetShadowOpacity() *
                                 finalAlpha);
 
       context->SetTransform(

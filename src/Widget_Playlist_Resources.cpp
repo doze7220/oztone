@@ -10,19 +10,19 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
   m_dwriteFactory = dwriteFactory;
 
   dwriteFactory->CreateTextFormat(
-      config->GetPlaylistTitleFontFamily().c_str(), nullptr,
+      config->GetBaseFontFamily().c_str(), nullptr,
       DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL,
       DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistTitleFontSize(), L"ja-jp",
       &m_playlistTitleTextFormat);
 
   dwriteFactory->CreateTextFormat(
-      config->GetPlaylistArtistFontFamily().c_str(), nullptr,
+      config->GetBaseFontFamily().c_str(), nullptr,
       DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
       DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistArtistFontSize(), L"ja-jp",
       &m_playlistArtistTextFormat);
 
   dwriteFactory->CreateTextFormat(
-      config->GetPlaylistTimeFontFamily().c_str(), nullptr,
+      config->GetBaseFontFamily().c_str(), nullptr,
       DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
       DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistTimeFontSize(), L"en-us",
       &m_playlistTimeTextFormat);
@@ -47,7 +47,7 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
     m_playlistTimeTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
 
   dwriteFactory->CreateTextFormat(
-      config->GetPlaylistTitleFontFamily().c_str(), nullptr,
+      config->GetBaseFontFamily().c_str(), nullptr,
       DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
       DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistToolbarTextFontSize(),
       L"ja-jp", &m_toolbarTextFormat);
@@ -146,7 +146,7 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
   }
 
   D2D1_GRADIENT_STOP stops[2];
-  D2D1_COLOR_F playingColor = ParseHexColor(config->GetPlayingItemColor());
+  D2D1_COLOR_F playingColor = ParseHexColor(config->GetFocusColor());
   stops[0].color = playingColor;
   stops[0].color.a = 0.0f;
   stops[0].position = 0.0f;

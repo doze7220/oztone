@@ -20,7 +20,6 @@ void ConfigManager::SetEnableOSD(bool enable) {
 
 void ConfigManager::LoadSystemSettings() {
     // Layout_GlobalHotkeys
-    m_ghFontFamily = LoadOrWriteString(L"Layout_GlobalHotkeys", L"FontFamily");
     m_ghFontSize = LoadOrWriteFloat(L"Layout_GlobalHotkeys", L"FontSize");
     m_ghLineSpacing = LoadOrWriteFloat(L"Layout_GlobalHotkeys", L"LineSpacing");
     m_ghCoreColor = LoadOrWriteString(L"Layout_GlobalHotkeys", L"CoreColor");
@@ -28,17 +27,10 @@ void ConfigManager::LoadSystemSettings() {
     m_ghGlowOpacity = LoadOrWriteFloat(L"Layout_GlobalHotkeys", L"GlowOpacity");
     m_ghKeyColumnOffset = LoadOrWriteFloat(L"Layout_GlobalHotkeys", L"KeyColumnOffset");
     m_ghActionColumnOffset = LoadOrWriteFloat(L"Layout_GlobalHotkeys", L"ActionColumnOffset");
-    m_ghShadowColor = LoadOrWriteString(L"Layout_GlobalHotkeys", L"ShadowColor");
-    m_ghShadowOpacity = LoadOrWriteFloat(L"Layout_GlobalHotkeys", L"ShadowOpacity");
 
     // Layout_OSD
-    m_osdFontFamily = LoadOrWriteString(L"Layout_OSD", L"OsdFontFamily");
     m_osdFontSize = LoadOrWriteFloat(L"Layout_OSD", L"OsdFontSize");
     m_osdTextColor = LoadOrWriteString(L"Layout_OSD", L"OsdTextColor");
-    m_osdShadowColor = LoadOrWriteString(L"Layout_OSD", L"OsdShadowColor");
-    m_osdShadowOffsetX = LoadOrWriteFloat(L"Layout_OSD", L"OsdShadowOffsetX");
-    m_osdShadowOffsetY = LoadOrWriteFloat(L"Layout_OSD", L"OsdShadowOffsetY");
-    m_osdShadowOpacity = LoadOrWriteFloat(L"Layout_OSD", L"OsdShadowOpacity");
     m_osdFadeWait = LoadOrWriteFloat(L"Layout_OSD", L"OsdFadeWait");
     m_osdFadeSpeed = LoadOrWriteFloat(L"Layout_OSD", L"OsdFadeSpeed");
     m_enableOSD = LoadOrWriteInt(L"Layout_OSD", L"EnableOSD") != 0;

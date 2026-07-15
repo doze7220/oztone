@@ -12,11 +12,11 @@ void TrackInfoWidget::CreateResources(ID2D1DeviceContext *context,
                                       IDWriteFactory *dwriteFactory,
                                       const ConfigManager *config) {
   dwriteFactory->CreateTextFormat(
-      config->GetTitleFontFamily().c_str(), nullptr, DWRITE_FONT_WEIGHT_BOLD,
+      config->GetBaseFontFamily().c_str(), nullptr, DWRITE_FONT_WEIGHT_BOLD,
       DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL,
       config->GetTitleFontSize(), L"ja-jp", &m_titleTextFormat);
   dwriteFactory->CreateTextFormat(
-      config->GetArtistFontFamily().c_str(), nullptr, DWRITE_FONT_WEIGHT_NORMAL,
+      config->GetBaseFontFamily().c_str(), nullptr, DWRITE_FONT_WEIGHT_NORMAL,
       DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL,
       config->GetArtistFontSize(), L"ja-jp", &m_artistTextFormat);
 
@@ -25,7 +25,7 @@ void TrackInfoWidget::CreateResources(ID2D1DeviceContext *context,
 
   m_dwriteFactory = dwriteFactory;
   dwriteFactory->CreateTextFormat(
-      config->GetTrackCountFontFamily().c_str(), nullptr,
+      config->GetMonoFontFamily().c_str(), nullptr,
       DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
       DWRITE_FONT_STRETCH_NORMAL, config->GetTrackCountFontSize(), L"en-us",
       &m_trackCountTextFormat);
@@ -177,7 +177,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
     }
 
     if (m_trackCountTextLayout && m_textBrush) {
-      float tcShadowOpacity = config->GetEnableShadow() ? config->GetTrackCountShadowOpacity() : 0.0f;
+      float tcShadowOpacity = config->GetEnableShadow() ? config->GetShadowOpacity() : 0.0f;
       WidgetCommon::DrawShadowedTextLayout(
           context, m_trackCountTextLayout.Get(), m_textBrush.Get(), m_shadowBrush.Get(),
           layout.trackCountOrigin, layout.trackCountShadowOrigin, tcShadowOpacity);

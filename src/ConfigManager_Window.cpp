@@ -64,14 +64,7 @@ void ConfigManager::LoadWindowSettings() {
   m_windowWidth = LoadOrWriteInt(L"Window", L"WindowWidth");
   m_windowHeight = LoadOrWriteInt(L"Window", L"WindowHeight");
 
-  m_enableShadow = LoadOrWriteInt(L"Layout_Window", L"EnableShadow") != 0;
-  m_shadowOffsetX = LoadOrWriteFloat(L"Layout_Window", L"ShadowOffsetX");
-  m_shadowOffsetY = LoadOrWriteFloat(L"Layout_Window", L"ShadowOffsetY");
-  m_shadowOpacity = LoadOrWriteFloat(L"Layout_Window", L"ShadowOpacity");
   m_bgOpacity = LoadOrWriteFloat(L"Layout_Window", L"BgOpacity");
   m_bgDarkenOpacity = LoadOrWriteFloat(L"Layout_Window", L"BgDarkenOpacity");
   m_backgroundArtMode = LoadOrWriteInt(L"Layout_Window", L"BackgroundArtMode");
-  m_controlLeaveDelay = LoadOrWriteFloat(L"Layout_Window", L"ControlLeaveDelay");
-  m_hoverIconColor = LoadOrWriteString(L"Layout_Window", L"HoverIconColor");
-  m_hoverFadeOutSpeed = LoadOrWriteFloat(L"Layout_Window", L"HoverFadeOutSpeed");
 }

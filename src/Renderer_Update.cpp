@@ -4,7 +4,7 @@
 
 void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode, int playbackHoveredIndex, int playlistHoveredItemIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isLogoClicked, int clickedLogoMenuIndex, int clickedPlaybackIndex, bool* outIsPlaylistExpanded, bool* outIsLogoMenuExpanded) {
     if (isControlHovered) {
-        m_controlLeaveTimer = m_config ? m_config->GetControlLeaveDelay() : 3.0f;
+        m_controlLeaveTimer = m_config ? m_config->GetBaseLeaveDelay() : 3.0f;
         m_controlAlpha += 0.05f;
         if (m_controlAlpha > 1.0f) m_controlAlpha = 1.0f;
     } else {

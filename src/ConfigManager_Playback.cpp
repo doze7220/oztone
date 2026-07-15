@@ -33,8 +33,6 @@ void ConfigManager::LoadPlaybackSettings() {
   m_skipTextFontSize = LoadOrWriteFloat(L"Layout_PlaybackControls", L"SkipTextFontSize");
   m_skipTextOffsetX = LoadOrWriteFloat(L"Layout_PlaybackControls", L"SkipTextOffsetX");
   m_skipTextOffsetY = LoadOrWriteFloat(L"Layout_PlaybackControls", L"SkipTextOffsetY");
-  m_skipTextShadowColor = LoadOrWriteString(L"Layout_PlaybackControls", L"SkipTextShadowColor");
-  m_skipTextShadowOpacity = LoadOrWriteFloat(L"Layout_PlaybackControls", L"SkipTextShadowOpacity");
   m_skipTextShadowShift = LoadOrWriteFloat(L"Layout_PlaybackControls", L"SkipTextShadowShift");
 
   m_showVolumeControl = LoadOrWriteInt(L"Visibility", L"ShowVolumeControl") != 0;
@@ -45,11 +43,6 @@ void ConfigManager::LoadPlaybackSettings() {
   m_volTextOffsetY = LoadOrWriteInt(L"Layout_VolumeControl", L"TextOffsetY");
   m_volTextLetterSpacing = LoadOrWriteFloat(L"Layout_VolumeControl", L"TextLetterSpacing");
   m_volFontSize = LoadOrWriteFloat(L"Layout_VolumeControl", L"FontSize");
-  m_volFontFamily = LoadOrWriteString(L"Layout_VolumeControl", L"FontFamily");
-  m_volEnableShadow = LoadOrWriteInt(L"Layout_VolumeControl", L"EnableShadow") != 0;
-  m_volShadowOffsetX = LoadOrWriteFloat(L"Layout_VolumeControl", L"ShadowOffsetX");
-  m_volShadowOffsetY = LoadOrWriteFloat(L"Layout_VolumeControl", L"ShadowOffsetY");
-  m_volShadowOpacity = LoadOrWriteFloat(L"Layout_VolumeControl", L"ShadowOpacity");
   m_volTooltipIconSize = LoadOrWriteFloat(L"Layout_VolumeControl", L"TooltipIconSize");
   m_volTooltipOffsetY = LoadOrWriteFloat(L"Layout_VolumeControl", L"TooltipOffsetY");
   m_volTooltipBgColor = LoadOrWriteString(L"Layout_VolumeControl", L"TooltipBgColor");
@@ -67,7 +60,6 @@ void ConfigManager::LoadPlaybackSettings() {
   m_seekBarBgOpacity = LoadOrWriteFloat(L"Layout_SeekBar", L"BgOpacity");
   m_seekBarTimeTextColor = LoadOrWriteString(L"Layout_SeekBar", L"TextColor");
   m_seekBarTimeTextOpacity = LoadOrWriteFloat(L"Layout_SeekBar", L"TextOpacity");
-  m_seekBarTimeFontFamily = LoadOrWriteString(L"Layout_SeekBar", L"TimeFontFamily");
   m_seekBarTimeFontSize = LoadOrWriteFloat(L"Layout_SeekBar", L"TimeFontSize");
   m_seekBarTimeMarginRight = LoadOrWriteFloat(L"Layout_SeekBar", L"TimeMarginRight");
   m_seekBarTimeLetterSpacing = LoadOrWriteFloat(L"Layout_SeekBar", L"TimeLetterSpacing");
@@ -87,20 +79,14 @@ void ConfigManager::LoadPlaybackSettings() {
   m_titleOffsetX = LoadOrWriteInt(L"Layout_NowPlaying", L"TitleOffsetX");
   m_titleOffsetY = LoadOrWriteInt(L"Layout_NowPlaying", L"TitleOffsetY");
   m_titleFontSize = LoadOrWriteFloat(L"Layout_NowPlaying", L"TitleFontSize");
-  m_titleFontFamily = LoadOrWriteString(L"Layout_NowPlaying", L"TitleFontFamily");
   m_artistOffsetX = LoadOrWriteInt(L"Layout_NowPlaying", L"ArtistOffsetX");
   m_artistOffsetY = LoadOrWriteInt(L"Layout_NowPlaying", L"ArtistOffsetY");
   m_artistFontSize = LoadOrWriteFloat(L"Layout_NowPlaying", L"ArtistFontSize");
-  m_artistFontFamily = LoadOrWriteString(L"Layout_NowPlaying", L"ArtistFontFamily");
-  m_trackCountFontFamily = LoadOrWriteString(L"Layout_NowPlaying", L"TrackCountFontFamily");
   m_trackCountFontSize = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountFontSize");
   m_trackCountOffsetX = LoadOrWriteInt(L"Layout_NowPlaying", L"TrackCountOffsetX");
   m_trackCountOffsetY = LoadOrWriteInt(L"Layout_NowPlaying", L"TrackCountOffsetY");
   m_trackCountTextAlignment = LoadOrWriteInt(L"Layout_NowPlaying", L"TrackCountTextAlignment");
   m_trackCountLetterSpacing = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountLetterSpacing");
-  m_trackCountShadowOffsetX = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountShadowOffsetX");
-  m_trackCountShadowOffsetY = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountShadowOffsetY");
-  m_trackCountShadowOpacity = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountShadowOpacity");
 
 
 }

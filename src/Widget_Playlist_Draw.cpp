@@ -63,8 +63,8 @@ void PlaylistWidget::DrawGrip(ID2D1DeviceContext* context, const WidgetContext& 
           ? m_playlistGripArrowRightGeometry.Get()
           : m_playlistGripArrowGeometry.Get();
   if (m_playlistGripLineBrush && m_playlistGripArrowBrush && arrowGeometry) {
-    if (m_shadowBrush && config->GetPlaylistGripShadowOpacity() > 0.0f) {
-      m_shadowBrush->SetOpacity(config->GetPlaylistGripShadowOpacity());
+    if (m_shadowBrush && config->GetShadowOpacity() > 0.0f) {
+      m_shadowBrush->SetOpacity(config->GetShadowOpacity());
 
       context->DrawLine(D2D1::Point2F(layout.gripShadowX, layout.playlistY),
                         D2D1::Point2F(layout.gripShadowX,

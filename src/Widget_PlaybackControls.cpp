@@ -151,7 +151,7 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
 
     auto GetButtonColor = [&](int index) {
         D2D1_COLOR_F baseColor = D2D1::ColorF(1.0f, 1.0f, 1.0f, ctx.controlAlpha);
-        D2D1_COLOR_F hoverColor = ParseHexColor(config->GetHoverIconColor());
+        D2D1_COLOR_F hoverColor = ParseHexColor(config->GetFocusColor());
         hoverColor.a = ctx.controlAlpha;
         float t = m_hoverAlpha[index];
         return D2D1::ColorF(
@@ -203,7 +203,7 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
             float scale = 1.0f + rp * 0.5f;
             float opacity = 0.5f * (1.0f - rp) * ctx.controlAlpha;
             
-            D2D1_COLOR_F rippleColor = ParseHexColor(config->GetHoverIconColor());
+            D2D1_COLOR_F rippleColor = ParseHexColor(config->GetFocusColor());
             rippleColor.a = opacity;
             m_controlBrush->SetColor(rippleColor);
             
@@ -248,10 +248,10 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
         float textY = layout.centerY + layout.size * config->GetSkipTextOffsetY();
         float shift = config->GetSkipTextShadowShift();
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> shadowBrush;
-        context->CreateSolidColorBrush(HexToColorF(config->GetSkipTextShadowColor()),
+        context->CreateSolidColorBrush(HexToColorF(config->GetShadowColor()),
                                        &shadowBrush);
         if (shadowBrush) {
-            shadowBrush->SetOpacity(config->GetSkipTextShadowOpacity() * ctx.controlAlpha);
+            shadowBrush->SetOpacity(config->GetShadowOpacity() * ctx.controlAlpha);
             context->DrawTextLayout(D2D1::Point2F(textX + shift, textY + shift),
                                     m_indicatorTextLayout.Get(), shadowBrush.Get());
             context->DrawTextLayout(D2D1::Point2F(textX - shift, textY - shift),
@@ -297,10 +297,10 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
         float textY = layout.centerY + layout.size * config->GetSkipTextOffsetY();
         float shift = config->GetSkipTextShadowShift();
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> shadowBrush;
-        context->CreateSolidColorBrush(HexToColorF(config->GetSkipTextShadowColor()),
+        context->CreateSolidColorBrush(HexToColorF(config->GetShadowColor()),
                                        &shadowBrush);
         if (shadowBrush) {
-            shadowBrush->SetOpacity(config->GetSkipTextShadowOpacity() * ctx.controlAlpha);
+            shadowBrush->SetOpacity(config->GetShadowOpacity() * ctx.controlAlpha);
             context->DrawTextLayout(D2D1::Point2F(textX + shift, textY + shift),
                                     m_indicatorTextLayout.Get(), shadowBrush.Get());
             context->DrawTextLayout(D2D1::Point2F(textX - shift, textY - shift),

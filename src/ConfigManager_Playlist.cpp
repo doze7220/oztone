@@ -1,4 +1,4 @@
-﻿#include "ConfigManager.h"
+#include "ConfigManager.h"
 #include <algorithm>
 #include <filesystem>
 #include <string>
@@ -84,23 +84,17 @@ void ConfigManager::LoadPlaylistSettings() {
     m_playlistWidth = LoadOrWriteInt(L"Layout_Playlist", L"PlaylistWidth");
     m_playlistItemOffsetY = LoadOrWriteInt(L"Layout_Playlist", L"PlaylistItemOffsetY");
 
-    m_playingItemColor = LoadOrWriteString(L"Layout_Playlist", L"PlayingItemColor");
-    m_hoverItemColor = LoadOrWriteString(L"Layout_Playlist", L"HoverItemColor");
-
     m_playlistTitleFontSize = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistTitleFontSize");
-    m_playlistTitleFontFamily = LoadOrWriteString(L"Layout_Playlist", L"PlaylistTitleFontFamily");
     m_playlistTitleOffsetX = LoadOrWriteInt(L"Layout_Playlist", L"PlaylistTitleOffsetX");
     m_playlistTitleOffsetY = LoadOrWriteInt(L"Layout_Playlist", L"PlaylistTitleOffsetY");
 
     m_playlistArtistFontSize = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistArtistFontSize");
     m_playlistArtistColor = LoadOrWriteString(L"Layout_Playlist", L"PlaylistArtistColor");
-    m_playlistArtistFontFamily = LoadOrWriteString(L"Layout_Playlist", L"PlaylistArtistFontFamily");
     m_playlistArtistOffsetX = LoadOrWriteInt(L"Layout_Playlist", L"PlaylistArtistOffsetX");
     m_playlistArtistOffsetY = LoadOrWriteInt(L"Layout_Playlist", L"PlaylistArtistOffsetY");
 
     m_playlistTimeFontSize = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistTimeFontSize");
     m_playlistTimeColor = LoadOrWriteString(L"Layout_Playlist", L"PlaylistTimeColor");
-    m_playlistTimeFontFamily = LoadOrWriteString(L"Layout_Playlist", L"PlaylistTimeFontFamily");
     m_playlistTimeOffsetX = LoadOrWriteInt(L"Layout_Playlist", L"PlaylistTimeOffsetX");
     m_playlistTimeOffsetY = LoadOrWriteInt(L"Layout_Playlist", L"PlaylistTimeOffsetY");
     m_playlistTimeLetterSpacing = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistTimeLetterSpacing");
@@ -112,9 +106,6 @@ void ConfigManager::LoadPlaylistSettings() {
     m_playlistGripArrowHeight = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistGripArrowHeight");
     m_playlistGripArrowWidth = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistGripArrowWidth");
     m_playlistGripArrowColor = LoadOrWriteString(L"Layout_Playlist", L"PlaylistGripArrowColor");
-    m_playlistGripShadowOffsetX = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistGripShadowOffsetX");
-    m_playlistGripShadowOffsetY = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistGripShadowOffsetY");
-    m_playlistGripShadowOpacity = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistGripShadowOpacity");
 
     m_playlistToolbarHeight = LoadOrWriteFloat(L"Layout_Playlist", L"ToolbarHeight");
     m_playlistToolbarIconSize = LoadOrWriteFloat(L"Layout_Playlist", L"ToolbarIconSize");

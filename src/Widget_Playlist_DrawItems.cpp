@@ -23,14 +23,14 @@ void PlaylistWidget::DrawPlaylistList(ID2D1DeviceContext* context, const WidgetC
   float currentY = layout.startY;
   D2D1_COLOR_F originalTextColor = m_textBrush->GetColor();
   auto GetBlendedTextColor = [&](int index, bool isPlaying) {
-      D2D1_COLOR_F baseColor = isPlaying ? ParseHexColor(config->GetPlayingItemColor()) : originalTextColor;
+      D2D1_COLOR_F baseColor = isPlaying ? ParseHexColor(config->GetFocusColor()) : originalTextColor;
       float t = 0.0f;
       auto it = m_hoverAlpha.find(index);
       if (it != m_hoverAlpha.end()) t = it->second;
 
       if (t <= 0.0f) return baseColor;
 
-      D2D1_COLOR_F hoverColor = ParseHexColor(config->GetHoverItemColor());
+      D2D1_COLOR_F hoverColor = ParseHexColor(config->GetFocusColor());
       return D2D1_COLOR_F{
           baseColor.r + (hoverColor.r - baseColor.r) * t,
           baseColor.g + (hoverColor.g - baseColor.g) * t,
@@ -98,14 +98,14 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
   float currentY = layout.startY;
   D2D1_COLOR_F originalTextColor = m_textBrush->GetColor();
   auto GetBlendedTextColor = [&](int index, bool isPlaying) {
-      D2D1_COLOR_F baseColor = isPlaying ? ParseHexColor(config->GetPlayingItemColor()) : originalTextColor;
+      D2D1_COLOR_F baseColor = isPlaying ? ParseHexColor(config->GetFocusColor()) : originalTextColor;
       float t = 0.0f;
       auto it = m_hoverAlpha.find(index);
       if (it != m_hoverAlpha.end()) t = it->second;
 
       if (t <= 0.0f) return baseColor;
 
-      D2D1_COLOR_F hoverColor = ParseHexColor(config->GetHoverItemColor());
+      D2D1_COLOR_F hoverColor = ParseHexColor(config->GetFocusColor());
       return D2D1_COLOR_F{
           baseColor.r + (hoverColor.r - baseColor.r) * t,
           baseColor.g + (hoverColor.g - baseColor.g) * t,
@@ -194,7 +194,7 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
           D2D1_RECT_F textClipRect = D2D1::RectF(startX, itemLayout.hlRect.top, currentX, itemLayout.hlRect.bottom);
           context->PushAxisAlignedClip(&textClipRect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
           
-          m_textBrush->SetColor(ParseHexColor(config->GetPlayingItemColor()));
+          m_textBrush->SetColor(ParseHexColor(config->GetFocusColor()));
           context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
                             m_playlistTitleTextFormat.Get(), &itemLayout.titleRect, m_textBrush.Get());
           if (!artist.empty()) {

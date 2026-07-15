@@ -93,7 +93,7 @@ void LogoMenuWidget::CreateResources(ID2D1DeviceContext *context,
 
   if (config) {
     dwriteFactory->CreateTextFormat(
-        config->GetLogoMenuFontFamily().c_str(), nullptr,
+        config->GetIconFontFamily().c_str(), nullptr,
         DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
         DWRITE_FONT_STRETCH_NORMAL, config->GetLogoMenuIconSize(), L"ja-jp",
         &m_iconTextFormat);
@@ -104,7 +104,7 @@ void LogoMenuWidget::CreateResources(ID2D1DeviceContext *context,
     }
 
     dwriteFactory->CreateTextFormat(
-        config->GetLogoMenuTypingFontFamily().c_str(), nullptr,
+        config->GetBaseFontFamily().c_str(), nullptr,
         DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
         DWRITE_FONT_STRETCH_NORMAL, config->GetLogoMenuTypingFontSize(),
         L"ja-jp", &m_typingTextFormat);
@@ -115,14 +115,14 @@ void LogoMenuWidget::CreateResources(ID2D1DeviceContext *context,
     }
 
     dwriteFactory->CreateTextFormat(
-        config->GetLogoMenuFontFamily().c_str(), nullptr,
-        DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL,
+        config->GetIconFontFamily().c_str(), nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
         DWRITE_FONT_STRETCH_NORMAL, config->GetLogoMenuVisualizerFontSize(),
         L"ja-jp", &m_indicatorTextFormat);
 
     dwriteFactory->CreateTextFormat(
-        config->GetLogoMenuFontFamily().c_str(), nullptr,
-        DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL,
+        config->GetIconFontFamily().c_str(), nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
         DWRITE_FONT_STRETCH_NORMAL, config->GetLogoMenuLockIconFontSize(),
         L"ja-jp", &m_lockIconTextFormat);
     if (m_indicatorTextFormat) {
@@ -162,7 +162,7 @@ void LogoMenuWidget::UpdateAnimation(const WidgetContext &ctx) {
   float duration = ctx.config ? ctx.config->GetLogoMenuScrollDuration() : 0.5f;
   float speed = (duration > 0.0f) ? (1.0f / duration) : 2.0f;
   if (ctx.isLogoMenuHovered || ctx.isHovered) {
-    m_logoMenuLeaveTimer = ctx.config ? ctx.config->GetMenuLeaveDelay() : 3.0f;
+    m_logoMenuLeaveTimer = ctx.config ? ctx.config->GetBaseLeaveDelay() : 3.0f;
   } else if (m_logoMenuLeaveTimer > 0.0f) {
     m_logoMenuLeaveTimer -= ctx.deltaTime;
   }
@@ -275,7 +275,7 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
 
     auto GetBlendedColor = [&](bool isActive, int index) {
         D2D1_COLOR_F baseColor = isActive ? D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f) : D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.4f);
-        D2D1_COLOR_F hoverColor = ParseHexColor(config->GetHoverIconColor());
+        D2D1_COLOR_F hoverColor = ParseHexColor(config->GetFocusColor());
         float t = (index >= 0 && index < static_cast<int>(m_hoverAlpha.size())) ? m_hoverAlpha[index] : 0.0f;
         return D2D1_COLOR_F{
             baseColor.r + (hoverColor.r - baseColor.r) * t,
@@ -434,12 +434,12 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
       }
 
       if (m_shadowBrush) {
-        m_shadowBrush->SetOpacity(config->GetLogoMenuDescShadowOpacity());
+        m_shadowBrush->SetOpacity(config->GetShadowOpacity());
         context->DrawTextLayout(
             D2D1::Point2F(layout.typingTextRect.left +
-                              config->GetLogoMenuDescShadowOffsetX(),
+                              config->GetShadowOffsetX(),
                           layout.typingTextRect.top +
-                              config->GetLogoMenuDescShadowOffsetY()),
+                              config->GetShadowOffsetY()),
             textLayout.Get(), m_shadowBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE);
       }
 
@@ -450,12 +450,12 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
     }
   } else {
     if (m_shadowBrush) {
-      m_shadowBrush->SetOpacity(config->GetLogoMenuDescShadowOpacity());
+      m_shadowBrush->SetOpacity(config->GetShadowOpacity());
       D2D1_RECT_F shadowRect = layout.typingTextRect;
-      shadowRect.left += config->GetLogoMenuDescShadowOffsetX();
-      shadowRect.right += config->GetLogoMenuDescShadowOffsetX();
-      shadowRect.top += config->GetLogoMenuDescShadowOffsetY();
-      shadowRect.bottom += config->GetLogoMenuDescShadowOffsetY();
+      shadowRect.left += config->GetShadowOffsetX();
+      shadowRect.right += config->GetShadowOffsetX();
+      shadowRect.top += config->GetShadowOffsetY();
+      shadowRect.bottom += config->GetShadowOffsetY();
       context->DrawText(textToDraw.c_str(),
                         static_cast<UINT32>(textToDraw.length()),
                         m_typingTextFormat.Get(), shadowRect,

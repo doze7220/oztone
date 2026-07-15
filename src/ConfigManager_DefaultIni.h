@@ -30,17 +30,24 @@ ShowSeekBar=1
 ShowPlaybackControls=1
 ShowVolumeControl=1
 
-[Layout_Window]
+[UI_Common_Parm]
+FocusColor=#FFA500
+HoverFadeOutSpeed=2.0
+BaseLeaveDelay=3.0
+BaseFontFamily=Meiryo
+MonoFontFamily="Courier New"
+IconFontFamily="Segoe UI Emoji"
+OsdFontFamily="MS Gothic"
 EnableShadow=1
+ShadowColor=#000000
 ShadowOffsetX=2.0
 ShadowOffsetY=2.0
 ShadowOpacity=0.7
+
+[Layout_Window]
 BgOpacity=0.6
 BgDarkenOpacity=0.4
 BackgroundArtMode=0
-HoverIconColor=#ffa500
-HoverFadeOutSpeed=2
-ControlLeaveDelay=3.0
 
 [Layout_AppLogo]
 X=16
@@ -50,7 +57,6 @@ Height=64
 
 [Layout_LogoMenu]
 MenuTypingFontSize=14.0
-MenuTypingFontFamily=Meiryo
 MenuTextColor=#FFFFFF
 MenuTextOffsetX=8
 MenuTextOffsetY=-18
@@ -60,17 +66,12 @@ MenuIconSpacing=54
 MenuIconOffsetX=-24
 MenuIconOffsetY=38
 MenuScrollDuration=0.5
-MenuFontFamily="Segoe UI Emoji"
 VisualizerIconFontSize=24.0
 VisualizerIconOffsetX=6
 VisualizerIconOffsetY=0
 LockIconFontSize=20.0
 LockIconOffsetX=-2
 LockIconOffsetY=-2
-DescShadowOffsetX=2.0
-DescShadowOffsetY=1.0
-DescShadowOpacity=0.8
-MenuLeaveDelay=2
 
 [Layout_NowPlaying]
 BaseX=20
@@ -82,19 +83,13 @@ FallbackArtOpacity=0.5
 TitleOffsetX=128
 TitleOffsetY=81
 TitleFontSize=36.0
-TitleFontFamily=Meiryo
 ArtistOffsetX=130
 ArtistOffsetY=60
 ArtistFontSize=18.0
-ArtistFontFamily=Meiryo
 TrackCountOffsetX=-82
 TrackCountOffsetY=-18
-TrackCountFontFamily="Courier New"
 TrackCountFontSize=18.0
 TrackCountLetterSpacing=-3.0
-TrackCountShadowOffsetX=1.0
-TrackCountShadowOffsetY=1.0
-TrackCountShadowOpacity=1.0
 TrackCountTextAlignment=1
 
 [Layout_SeekBar]
@@ -105,7 +100,6 @@ FgColor=#FFFFFF
 FgOpacity=0.4
 BgColor=#000000
 BgOpacity=0.3
-TimeFontFamily="Courier New"
 TimeFontSize=20.0
 TimeLetterSpacing=-3.0
 TimeMarginRight=15.0
@@ -122,8 +116,6 @@ SkipIconPoints=0.1,-0.5,0.65,-0.5,-0.15,0.0,0.65,0.5,0.1,0.5,-0.65,0.0
 SkipTextFontSize=15.0
 SkipTextOffsetX=0.04
 SkipTextOffsetY=-0.05
-SkipTextShadowColor=#444444
-SkipTextShadowOpacity=0.40
 SkipTextShadowShift=1.00
 
 [Layout_VolumeControl]
@@ -134,11 +126,6 @@ TextOffsetX=40
 TextOffsetY=-12
 FontSize=24.0
 TextLetterSpacing=-3.0
-FontFamily="Courier New"
-EnableShadow=1
-ShadowOffsetX=2.0
-ShadowOffsetY=2.0
-ShadowOpacity=0.7
 TooltipIconSize=60
 TooltipOffsetY=-5
 TooltipBgColor=#000000
@@ -152,20 +139,15 @@ IsPlaylistPinned=0
 PlaylistHoverWidth=80
 PlaylistWidth=250
 PlaylistItemOffsetY=45
-PlayingItemColor=#FFA500
-HoverItemColor=#a3a362
 PlaylistTitleFontSize=16.0
-PlaylistTitleFontFamily=Meiryo
 PlaylistTitleOffsetX=20
 PlaylistTitleOffsetY=4
 PlaylistArtistFontSize=12.0
 PlaylistArtistColor=#888888
-PlaylistArtistFontFamily=Meiryo
 PlaylistArtistOffsetX=20
 PlaylistArtistOffsetY=25
 PlaylistTimeFontSize=12.0
 PlaylistTimeColor=#888888
-PlaylistTimeFontFamily=Meiryo
 PlaylistTimeOffsetX=10
 PlaylistTimeOffsetY=25
 PlaylistTimeLetterSpacing=0.0
@@ -176,9 +158,6 @@ PlaylistGripLineColor=#AAAAAA
 PlaylistGripArrowHeight=35.0
 PlaylistGripArrowWidth=15.0
 PlaylistGripArrowColor=#AAAAAA
-PlaylistGripShadowOffsetX=2.0
-PlaylistGripShadowOffsetY=2.0
-PlaylistGripShadowOpacity=0.7
 ToolbarHeight=60.0
 ToolbarIconSize=18.0
 ToolbarIconSpacing=10.0
@@ -190,7 +169,6 @@ PinSubIconFontSize=10.0
 PlaylistLeaveDelay=0.5
 
 [Layout_GlobalHotkeys]
-FontFamily=MS Gothic
 FontSize=15.0
 LineSpacing=20.0
 CoreColor=#FFFFFF
@@ -198,17 +176,10 @@ GlowColor=#00FFFF
 GlowOpacity=0.10
 KeyColumnOffset=360.0
 ActionColumnOffset=140.0
-ShadowColor=#000000
-ShadowOpacity=0.2
 
 [Layout_OSD]
-OsdFontFamily=MS Gothic
 OsdFontSize=48.0
 OsdTextColor=#FFFFFF
-OsdShadowColor=#000000
-OsdShadowOffsetX=2.0
-OsdShadowOffsetY=2.0
-OsdShadowOpacity=0.8
 OsdFadeWait=1.5
 OsdFadeSpeed=1.5
 EnableOSD=1

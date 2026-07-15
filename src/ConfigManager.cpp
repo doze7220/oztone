@@ -155,12 +155,28 @@ void ConfigManager::LoadSettings() {
   // キャッシュをクリアしてファイルから最新状態を読み込むように強制する
   WritePrivateProfileStringW(NULL, NULL, NULL, m_iniFilePath.c_str());
 
+  LoadCommonSettings();
   LoadWindowSettings();
   LoadPlaylistSettings();
   LoadPlaybackSettings();
   LoadLogoMenuSettings();
   LoadVisualizerSettings();
   LoadSystemSettings();
+}
+
+void ConfigManager::LoadCommonSettings() {
+  m_focusColor = LoadOrWriteString(L"UI_Common_Parm", L"FocusColor");
+  m_hoverFadeOutSpeed = LoadOrWriteFloat(L"UI_Common_Parm", L"HoverFadeOutSpeed");
+  m_baseLeaveDelay = LoadOrWriteFloat(L"UI_Common_Parm", L"BaseLeaveDelay");
+  m_baseFontFamily = LoadOrWriteString(L"UI_Common_Parm", L"BaseFontFamily");
+  m_monoFontFamily = LoadOrWriteString(L"UI_Common_Parm", L"MonoFontFamily");
+  m_iconFontFamily = LoadOrWriteString(L"UI_Common_Parm", L"IconFontFamily");
+  m_osdFontFamily = LoadOrWriteString(L"UI_Common_Parm", L"OsdFontFamily");
+  m_enableShadow = LoadOrWriteInt(L"UI_Common_Parm", L"EnableShadow") != 0;
+  m_shadowColor = LoadOrWriteString(L"UI_Common_Parm", L"ShadowColor");
+  m_shadowOffsetX = LoadOrWriteFloat(L"UI_Common_Parm", L"ShadowOffsetX");
+  m_shadowOffsetY = LoadOrWriteFloat(L"UI_Common_Parm", L"ShadowOffsetY");
+  m_shadowOpacity = LoadOrWriteFloat(L"UI_Common_Parm", L"ShadowOpacity");
 }
 
 void ConfigManager::SaveDefaultSettings() {

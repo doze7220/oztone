@@ -36,7 +36,7 @@ void GlobalHotkeysWidget::CreateResources(ID2D1DeviceContext *context,
       .Reset(); // Force recreation of text layout when resources are recreated
 
   dwriteFactory->CreateTextFormat(
-      config->GetGlobalHotkeysFontFamily().c_str(), nullptr,
+      config->GetOsdFontFamily().c_str(), nullptr,
       DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL,
       DWRITE_FONT_STRETCH_NORMAL, config->GetGlobalHotkeysFontSize(), L"en-us",
       &m_textFormat);
@@ -53,7 +53,7 @@ void GlobalHotkeysWidget::CreateResources(ID2D1DeviceContext *context,
                                 config->GetGlobalHotkeysGlowOpacity()),
       &m_glowBrush);
   context->CreateSolidColorBrush(
-      WidgetCommon::HexToColorF(config->GetGlobalHotkeysShadowColor(), 1.0f), &m_shadowBrush);
+      WidgetCommon::HexToColorF(config->GetShadowColor(), 1.0f), &m_shadowBrush);
 }
 
 void GlobalHotkeysWidget::ReleaseResources() {
@@ -275,7 +275,7 @@ void GlobalHotkeysWidget::Draw(ID2D1DeviceContext *context,
                       D2D1_POINT_2F origin) {
     WidgetCommon::DrawShadowedTextLayout(
         context, textLayout.Get(), nullptr, m_shadowBrush.Get(),
-        origin, D2D1::Point2F(origin.x + 2.0f, origin.y + 2.0f), config->GetGlobalHotkeysShadowOpacity());
+        origin, D2D1::Point2F(origin.x + 2.0f, origin.y + 2.0f), config->GetShadowOpacity());
 
     if (m_glowBrush) {
       float glowOffsets[] = {1.5f, 3.0f};
