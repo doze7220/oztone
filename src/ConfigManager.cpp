@@ -73,32 +73,29 @@ std::wstring ConfigManager::GetExecutablePath() const {
 }
 
 std::wstring ConfigManager::GetDefaultIniValue(const std::wstring& section, const std::wstring& key) const {
-    std::istringstream iss(DEFAULT_INI_CONTENT);
-    std::string line;
-    std::string targetSection = "[" + std::string(section.begin(), section.end()) + "]";
-    std::string targetKey = std::string(key.begin(), key.end()) + "=";
+    std::wistringstream iss(DEFAULT_INI_CONTENT);
+    std::wstring line;
+    std::wstring targetSection = L"[" + section + L"]";
+    std::wstring targetKey = key + L"=";
     bool inSection = false;
 
     while (std::getline(iss, line)) {
-        line.erase(0, line.find_first_not_of(" \t\r\n"));
-        line.erase(line.find_last_not_of(" \t\r\n") + 1);
+        line.erase(0, line.find_first_not_of(L" \t\r\n"));
+        line.erase(line.find_last_not_of(L" \t\r\n") + 1);
 
-        if (line.empty() || line[0] == ';') continue;
+        if (line.empty() || line[0] == L';') continue;
 
-        if (line[0] == '[') {
+        if (line[0] == L'[') {
             inSection = (line == targetSection);
             continue;
         }
 
         if (inSection && line.find(targetKey) == 0) {
-            std::string val = line.substr(targetKey.length());
-            if (val.size() >= 2 && val.front() == '"' && val.back() == '"') {
+            std::wstring val = line.substr(targetKey.length());
+            if (val.size() >= 2 && val.front() == L'"' && val.back() == L'"') {
                 val = val.substr(1, val.size() - 2);
             }
-            int size_needed = MultiByteToWideChar(CP_UTF8, 0, val.c_str(), (int)val.size(), NULL, 0);
-            std::wstring wstrTo(size_needed, 0);
-            MultiByteToWideChar(CP_UTF8, 0, val.c_str(), (int)val.size(), &wstrTo[0], size_needed);
-            return wstrTo;
+            return val;
         }
     }
 
@@ -182,7 +179,10 @@ void ConfigManager::SaveDefaultSettings() {
 
   std::ofstream ofs(m_iniFilePath);
   if (ofs) {
-    ofs << DEFAULT_INI_CONTENT;
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, DEFAULT_INI_CONTENT, -1, NULL, 0, NULL, NULL);
+    std::string strTo(size_needed, 0);
+    WideCharToMultiByte(CP_UTF8, 0, DEFAULT_INI_CONTENT, -1, &strTo[0], size_needed, NULL, NULL);
+    ofs << strTo.c_str();
     ofs.close();
   }
 

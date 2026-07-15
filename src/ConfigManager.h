@@ -561,7 +561,7 @@ private:
     float m_seekBarTimeTextOpacity;
     std::wstring m_seekBarTimeFontFamily;
     float m_seekBarTimeFontSize;
-    int m_seekBarTimeMarginRight;
+    float m_seekBarTimeMarginRight;
     float m_seekBarTimeLetterSpacing;
 
 

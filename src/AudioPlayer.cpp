@@ -1,5 +1,8 @@
+#pragma warning(push)
+#pragma warning(disable: 4244)
 #define MINIAUDIO_IMPLEMENTATION
 #include "AudioPlayer.h"
+#pragma warning(pop)
 #include <complex>
 #include <cmath>
 #include <algorithm>

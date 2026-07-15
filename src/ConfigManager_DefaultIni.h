@@ -1,6 +1,6 @@
 #pragma once
 
-constexpr const char *DEFAULT_INI_CONTENT = R"(; OZtone Default Configuration
+constexpr const wchar_t *DEFAULT_INI_CONTENT = LR"(; OZtone Default Configuration
 
 [Playlist]
 DefaultPlaylistPath=playlist.ozl
