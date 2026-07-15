@@ -37,6 +37,14 @@ void TrackInfoWidget::CreateResources(ID2D1DeviceContext *context,
                                  &m_textBrush);
   context->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f),
                                  &m_fallbackBlackBrush);
+
+  D2D1_COLOR_F baseColor = WidgetCommon::HexToColorF(config->GetTrackCountBoxBaseColor());
+  baseColor.a = config->GetTrackCountBoxBaseOpacity();
+  context->CreateSolidColorBrush(baseColor, &m_trackCountBoxBaseBrush);
+
+  D2D1_COLOR_F fontColor = WidgetCommon::HexToColorF(config->GetTrackCountBoxFontColor());
+  context->CreateSolidColorBrush(fontColor, &m_trackCountTextBrush);
+  context->CreateSolidColorBrush(baseColor, &m_trackCountBoxUnderLineBrush);
 }
 
 void TrackInfoWidget::ReleaseResources() {
@@ -50,6 +58,9 @@ void TrackInfoWidget::ReleaseResources() {
   m_trackCountTextFormat.Reset();
   m_trackCountTextLayout.Reset();
   m_dwriteFactory.Reset();
+  m_trackCountBoxBaseBrush.Reset();
+  m_trackCountBoxUnderLineBrush.Reset();
+  m_trackCountTextBrush.Reset();
 }
 
 void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {}
@@ -96,19 +107,12 @@ void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
     std::wstring trackCountStr(trackCountBuf);
 
     if (m_trackCountTextFormat) {
-      int align = config->GetTrackCountTextAlignment();
-      if (align == 0)
-        m_trackCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-      else if (align == 2)
-        m_trackCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-      else
-        m_trackCountTextFormat->SetTextAlignment(
-            DWRITE_TEXT_ALIGNMENT_TRAILING);
+      m_trackCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
     }
 
     m_dwriteFactory->CreateTextLayout(
         trackCountStr.c_str(), static_cast<UINT32>(trackCountStr.length()),
-        m_trackCountTextFormat.Get(), 200.0f, 50.0f, &m_trackCountTextLayout);
+        m_trackCountTextFormat.Get(), static_cast<float>(config->GetArtSize()), config->GetTrackCountBoxWidth(), &m_trackCountTextLayout);
 
     if (m_trackCountTextLayout) {
       Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
@@ -176,11 +180,40 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
           shadowOpacity);
     }
 
-    if (m_trackCountTextLayout && m_textBrush) {
+    if (m_trackCountTextLayout && m_trackCountTextBrush && m_trackCountBoxBaseBrush) {
+      D2D1::Matrix3x2F originalTransform;
+      context->GetTransform(&originalTransform);
+
+      D2D1::Matrix3x2F rotation = D2D1::Matrix3x2F::Rotation(-90.0f, layout.trackCountOrigin);
+      context->SetTransform(rotation * originalTransform);
+
+      D2D1_RECT_F boxRect = D2D1::RectF(
+          layout.trackCountOrigin.x,
+          layout.trackCountOrigin.y,
+          layout.trackCountOrigin.x + layout.trackCountMaxWidth,
+          layout.trackCountOrigin.y + config->GetTrackCountBoxWidth()
+      );
+      context->FillRectangle(&boxRect, m_trackCountBoxBaseBrush.Get());
+
+      D2D1_RECT_F underlineRect = D2D1::RectF(
+          layout.trackCountOrigin.x,
+          layout.trackCountOrigin.y + config->GetTrackCountUnderLineX(),
+          layout.trackCountOrigin.x + layout.trackCountMaxWidth,
+          layout.trackCountOrigin.y + config->GetTrackCountUnderLineX() + config->GetTrackCountUnderLineWidth()
+      );
+      context->FillRectangle(&underlineRect, m_trackCountBoxUnderLineBrush.Get());
+
       float tcShadowOpacity = config->GetEnableShadow() ? config->GetShadowOpacity() : 0.0f;
+      D2D1_POINT_2F shadowOrigin = D2D1::Point2F(
+          layout.trackCountOrigin.x - config->GetShadowOffsetY(),
+          layout.trackCountOrigin.y + config->GetShadowOffsetX()
+      );
+
       WidgetCommon::DrawShadowedTextLayout(
-          context, m_trackCountTextLayout.Get(), m_textBrush.Get(), m_shadowBrush.Get(),
-          layout.trackCountOrigin, layout.trackCountShadowOrigin, tcShadowOpacity);
+          context, m_trackCountTextLayout.Get(), m_trackCountTextBrush.Get(), m_shadowBrush.Get(),
+          layout.trackCountOrigin, shadowOrigin, tcShadowOpacity);
+
+      context->SetTransform(originalTransform);
     }
   }
 }

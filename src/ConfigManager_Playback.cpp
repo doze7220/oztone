@@ -84,9 +84,13 @@ void ConfigManager::LoadPlaybackSettings() {
   m_artistFontSize = LoadOrWriteFloat(L"Layout_NowPlaying", L"ArtistFontSize");
   m_trackCountFontSize = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountFontSize");
   m_trackCountOffsetX = LoadOrWriteInt(L"Layout_NowPlaying", L"TrackCountOffsetX");
-  m_trackCountOffsetY = LoadOrWriteInt(L"Layout_NowPlaying", L"TrackCountOffsetY");
-  m_trackCountTextAlignment = LoadOrWriteInt(L"Layout_NowPlaying", L"TrackCountTextAlignment");
   m_trackCountLetterSpacing = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountLetterSpacing");
+  m_trackCountBoxFontColor = LoadOrWriteString(L"Layout_NowPlaying", L"TrackCountBoxFontColor");
+  m_trackCountBoxBaseColor = LoadOrWriteString(L"Layout_NowPlaying", L"TrackCountBoxBaseColor");
+  m_trackCountBoxBaseOpacity = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountBoxBaseOpacity");
+  m_trackCountBoxWidth = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountBoxWidth");
+  m_trackCountUnderLineWidth = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountUnderLineWidth");
+  m_trackCountUnderLineX = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountUnderLineX");
 
 
 }

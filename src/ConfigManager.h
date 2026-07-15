@@ -342,9 +342,13 @@ public:
 
     float GetTrackCountFontSize() const { return m_trackCountFontSize; }
     int GetTrackCountOffsetX() const { return m_trackCountOffsetX; }
-    int GetTrackCountOffsetY() const { return m_trackCountOffsetY; }
-    int GetTrackCountTextAlignment() const { return m_trackCountTextAlignment; }
     float GetTrackCountLetterSpacing() const { return m_trackCountLetterSpacing; }
+    std::wstring GetTrackCountBoxFontColor() const { return m_trackCountBoxFontColor; }
+    std::wstring GetTrackCountBoxBaseColor() const { return m_trackCountBoxBaseColor; }
+    float GetTrackCountBoxBaseOpacity() const { return m_trackCountBoxBaseOpacity; }
+    float GetTrackCountBoxWidth() const { return m_trackCountBoxWidth; }
+    float GetTrackCountUnderLineWidth() const { return m_trackCountUnderLineWidth; }
+    float GetTrackCountUnderLineX() const { return m_trackCountUnderLineX; }
 
     int GetPlaylistWidth() const { return m_playlistWidth; }
     int GetPlaylistItemOffsetY() const { return m_playlistItemOffsetY; }
@@ -581,9 +585,13 @@ private:
 
     float m_trackCountFontSize;
     int m_trackCountOffsetX;
-    int m_trackCountOffsetY;
-    int m_trackCountTextAlignment;
     float m_trackCountLetterSpacing;
+    std::wstring m_trackCountBoxFontColor;
+    std::wstring m_trackCountBoxBaseColor;
+    float m_trackCountBoxBaseOpacity;
+    float m_trackCountBoxWidth;
+    float m_trackCountUnderLineWidth;
+    float m_trackCountUnderLineX;
 
     int m_playlistWidth;
     int m_playlistItemOffsetY;
