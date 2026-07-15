@@ -15,6 +15,20 @@ namespace {
     constexpr float CIRCLE_PARTICLE_SPEED_MULTIPLIER = 0.3f; // パーティクルの飛散速度の倍率
     constexpr float CIRCLE_LASER_LIFE_MULTIPLIER = 3.0f; // レーザーの寿命倍率
     constexpr float CIRCLE_PARTICLE_LIFE_MULTIPLIER = 2.0f; // パーティクルの寿命倍率
+
+    D2D1::ColorF HsvToRgb(float h, float s, float v) {
+        float c = v * s;
+        float x = c * (1.0f - std::abs(std::fmod(h / 60.0f, 2.0f) - 1.0f));
+        float m = v - c;
+        float r = 0, g = 0, b = 0;
+        if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
+        else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
+        else if (h >= 120 && h < 180) { r = 0; g = c; b = x; }
+        else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
+        else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
+        else { r = c; g = 0; b = x; }
+        return D2D1::ColorF(r + m, g + m, b + m, 1.0f);
+    }
 }
 
 VisualizerHaloDust::VisualizerHaloDust() : m_initialized(false), m_particleCooldown(0) {}
@@ -54,30 +68,17 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
 
     // Hash track info for hue
     std::wstring combined = trackTitle + trackArtist;
-    size_t hash = std::hash<std::wstring>{}(combined);
-    float hue = static_cast<float>(hash % 360);
+    size_t hashValue = std::hash<std::wstring>{}(combined);
 
-    // Convert Hue to RGB (Saturation 1.0, Lightness 0.6)
-    float c = 1.0f * (1.0f - std::abs(2.0f * 0.6f - 1.0f));
-    float x_val = c * (1.0f - std::abs(std::fmod(hue / 60.0f, 2.0f) - 1.0f));
-    float m = 0.6f - c / 2.0f;
-    float r = 0, g = 0, b = 0;
-    if(0 <= hue && hue < 60) { r = c; g = x_val; b = 0; }
-    else if(60 <= hue && hue < 120) { r = x_val; g = c; b = 0; }
-    else if(120 <= hue && hue < 180) { r = 0; g = c; b = x_val; }
-    else if(180 <= hue && hue < 240) { r = 0; g = x_val; b = c; }
-    else if(240 <= hue && hue < 300) { r = x_val; g = 0; b = c; }
-    else { r = c; g = 0; b = x_val; }
-    
-    // Additive synthesis with #888888 (0.533f) base for realistic neon glow
-    float baseR = r + m + 0.533f;
-    float baseG = g + m + 0.533f;
-    float baseB = b + m + 0.533f;
+    // ハッシュ値から純粋なHUEの生成
+    float hue = static_cast<float>(hashValue % 3600) / 10.0f;
 
-    // RGB桁ずらし (青・緑系サイバーカラーへのシフト)
-    float finalR = (std::min)(1.0f, baseB);
-    float finalG = (std::min)(1.0f, baseR);
-    float finalB = (std::min)(1.0f, baseG);
+    // HSV純色を生成 (彩度100%、明度100%)
+    D2D1::ColorF pureColor = HsvToRgb(hue, 1.0f, 1.0f);
+
+    float finalR = pureColor.r;
+    float finalG = pureColor.g;
+    float finalB = pureColor.b;
 
     float glowOpacity = m_config ? m_config->GetHaloGlowOpacity() : CIRCLE_GLOW_OPACITY;
     float glowThickness = m_config ? m_config->GetHaloGlowThickness() : CIRCLE_NEON_GLOW_THICKNESS;
