@@ -284,6 +284,20 @@ public:
         m_onBackgroundClickCallback = cb;
     }
 
+    /**
+     * @brief スリープ移行コールバック
+     */
+    void SetPowerSuspendCallback(std::function<void()> cb) {
+        m_onPowerSuspend = cb;
+    }
+
+    /**
+     * @brief スリープ復帰コールバック
+     */
+    void SetPowerResumeCallback(std::function<void()> cb) {
+        m_onPowerResume = cb;
+    }
+
 
     enum HotkeyID {
         HK_NEXT_TRACK = 100,
@@ -399,6 +413,8 @@ private:
     std::function<void()> m_onArtFramingSave;
     std::function<void(bool)> m_onPlaylistPinnedToggle;
     std::function<void()> m_onBackgroundClickCallback;
+    std::function<void()> m_onPowerSuspend;
+    std::function<void()> m_onPowerResume;
     DropTarget* m_pDropTarget;
 
     static constexpr UINT WM_TRAYICON = WM_APP + 1;

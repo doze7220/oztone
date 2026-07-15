@@ -76,6 +76,16 @@ public:
      * @brief すべての設定を初期化する
      */
     void ResetAllSettings();
+
+    /**
+     * @brief スリープ移行時の処理
+     */
+    void OnPowerSuspend();
+
+    /**
+     * @brief スリープ復帰時の処理
+     */
+    void OnPowerResume();
 private:
     /**
      * @brief Windowからの各種コールバック登録を行う
@@ -140,4 +150,7 @@ private:
     std::optional<size_t> m_focusedPlaylistIndex;
 
     std::vector<PlaylistSummary> m_playlistSummaries;
+
+    bool m_suspendIsPlaying = false;
+    float m_suspendPosition = 0.0f;
 };

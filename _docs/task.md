@@ -10,6 +10,7 @@
 [ ] MP4正式対応: 動画は再生せず、一定時間ごとに動画のそのシーンの静止画を背景アートとして使う
 [ ] 画面外移動防止スイッチ: ウィンドウの一部が表示領域をはみ出た場合に引き戻す。マージン設定付き。
 [ ] 完全透過時のクリックスルー（操作貫通）機能: 背景透過時にHTTRANSPARENTを返し、UIがない部分の操作を背面へ透過させる
+[ ] スリープモードからの復帰
 
 ### 【システムトレイ新規実装】
 アイデアなし
@@ -61,8 +62,7 @@
    │   └── WidgetCommon.h
    ├── Header/
    │   ├── AppLogoWidget.cpp
-   │   ├── TrackInfoWidget.cpp
-   │   └── NextTrackWidget.cpp
+   │   └── TrackInfoWidget.cpp
    ├── Controls/
    │   ├── SeekBarWidget.cpp
    │   ├── PlaybackControlsWidget.cpp

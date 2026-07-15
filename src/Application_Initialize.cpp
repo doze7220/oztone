@@ -249,6 +249,8 @@ void Application::SetupCallbacks() {
     }
   });
 
+  m_window.SetPowerSuspendCallback([this]() { this->OnPowerSuspend(); });
+  m_window.SetPowerResumeCallback([this]() { this->OnPowerResume(); });
 }
 
 bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {

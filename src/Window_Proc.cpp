@@ -101,6 +101,13 @@ LRESULT Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   case WM_COPYDATA:
     HandleCopyData(lParam);
     return 1;
+  case WM_POWERBROADCAST:
+    if (wParam == PBT_APMSUSPEND) {
+      if (m_onPowerSuspend) m_onPowerSuspend();
+    } else if (wParam == PBT_APMRESUMEAUTOMATIC) {
+      if (m_onPowerResume) m_onPowerResume();
+    }
+    return 1;
   case WM_DESTROY:
     HandleDestroy(hwnd);
     return 0;
