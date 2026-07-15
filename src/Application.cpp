@@ -56,17 +56,6 @@ void Application::OnPowerSuspend() {
 }
 
 void Application::OnPowerResume() {
-  if (m_audioPlayer.Initialize()) {
-    m_audioPlayer.SetVolume(m_config.GetDefaultVolume());
-    std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
-    if (!currentTrack.empty()) {
-      if (m_audioPlayer.Play(currentTrack)) {
-        m_audioPlayer.Seek(m_suspendPosition);
-        if (!m_suspendIsPlaying) {
-          m_audioPlayer.TogglePlayPause();
-        }
-      }
-    }
-  }
+  m_isWaitingForDevice = true;
 }
 

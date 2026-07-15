@@ -8,6 +8,27 @@
 
 void Application::Run() {
   while (m_window.ProcessMessages()) {
+    if (m_isWaitingForDevice) {
+      if (m_audioPlayer.HasValidOutputDevice()) {
+        m_isWaitingForDevice = false;
+        if (m_audioPlayer.Initialize()) {
+          m_audioPlayer.SetVolume(m_config.GetDefaultVolume());
+          std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
+          if (!currentTrack.empty()) {
+            if (m_audioPlayer.Play(currentTrack)) {
+              m_audioPlayer.Seek(m_suspendPosition);
+              if (!m_suspendIsPlaying) {
+                m_audioPlayer.TogglePlayPause();
+              }
+            }
+          }
+        }
+      } else {
+        Sleep(10);
+        continue;
+      }
+    }
+
     ULONGLONG currentTime = GetTickCount64();
     if (currentTime - m_lastConfigCheckTime >= 1000) {
       m_lastConfigCheckTime = currentTime;

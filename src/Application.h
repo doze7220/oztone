@@ -153,4 +153,5 @@ private:
 
     bool m_suspendIsPlaying = false;
     float m_suspendPosition = 0.0f;
+    bool m_isWaitingForDevice = false;
 };

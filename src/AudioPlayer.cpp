@@ -97,6 +97,27 @@ void AudioPlayer::Uninitialize() {
     }
 }
 
+bool AudioPlayer::HasValidOutputDevice() {
+    ma_context context;
+    if (ma_context_init(NULL, 0, NULL, &context) != MA_SUCCESS) {
+        return false;
+    }
+
+    ma_device_info* pPlaybackDeviceInfos;
+    ma_uint32 playbackDeviceCount;
+    ma_device_info* pCaptureDeviceInfos;
+    ma_uint32 captureDeviceCount;
+
+    ma_result result = ma_context_get_devices(&context, &pPlaybackDeviceInfos, &playbackDeviceCount, &pCaptureDeviceInfos, &captureDeviceCount);
+    if (result != MA_SUCCESS) {
+        ma_context_uninit(&context);
+        return false;
+    }
+
+    ma_context_uninit(&context);
+    return playbackDeviceCount > 0;
+}
+
 void AudioPlayer::TogglePlayPause() {
     if (!m_isSoundLoaded) return;
     if (ma_sound_is_playing(&m_sound) == MA_TRUE) {

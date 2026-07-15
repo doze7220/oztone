@@ -61,6 +61,13 @@ public:
     void SetVolume(float volume);
 
     /**
+     * @brief 現在有効な出力デバイスが存在するかを確認する
+     * @return 出力デバイスが1つ以上あればtrue
+     */
+    bool HasValidOutputDevice();
+
+
+    /**
      * @brief 現在の音量を取得する
      */
     float GetVolume() const;
