@@ -99,10 +99,9 @@ void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
 
     wchar_t trackCountBuf[64];
     if (ctx.totalTracks == 0) {
-      swprintf_s(trackCountBuf, L"---/---");
+      swprintf_s(trackCountBuf, L"---");
     } else {
-      swprintf_s(trackCountBuf, L"%zu/%zu", ctx.currentTrackIndex + 1,
-                 ctx.totalTracks);
+      swprintf_s(trackCountBuf, L"%zu", ctx.currentTrackIndex + 1);
     }
     std::wstring trackCountStr(trackCountBuf);
 
@@ -203,15 +202,8 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       );
       context->FillRectangle(&underlineRect, m_trackCountBoxUnderLineBrush.Get());
 
-      float tcShadowOpacity = config->GetEnableShadow() ? config->GetShadowOpacity() : 0.0f;
-      D2D1_POINT_2F shadowOrigin = D2D1::Point2F(
-          layout.trackCountOrigin.x - config->GetShadowOffsetY(),
-          layout.trackCountOrigin.y + config->GetShadowOffsetX()
-      );
-
-      WidgetCommon::DrawShadowedTextLayout(
-          context, m_trackCountTextLayout.Get(), m_trackCountTextBrush.Get(), m_shadowBrush.Get(),
-          layout.trackCountOrigin, shadowOrigin, tcShadowOpacity);
+      context->DrawTextLayout(
+          layout.trackCountOrigin, m_trackCountTextLayout.Get(), m_trackCountTextBrush.Get());
 
       context->SetTransform(originalTransform);
     }
