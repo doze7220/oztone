@@ -98,9 +98,12 @@ void PlaylistWidget::DrawToolbar(ID2D1DeviceContext* context, const WidgetContex
   BuildToolbarText(ctx, config, toolbarCenterText);
 
   if (!toolbarCenterText.empty() && m_toolbarTextFormat && m_textBrush) {
+    D2D1_RECT_F textRect = layout.toolbarLayout.textRect;
+    textRect.left += 2.0f;
+
     if (m_shadowBrush && config->GetEnableShadow()) {
       m_shadowBrush->SetOpacity(config->GetShadowOpacity());
-      D2D1_RECT_F sRect = layout.toolbarLayout.textRect;
+      D2D1_RECT_F sRect = textRect;
       sRect.left += 1.0f;
       sRect.top += 1.0f;
       sRect.right += 1.0f;
@@ -112,24 +115,26 @@ void PlaylistWidget::DrawToolbar(ID2D1DeviceContext* context, const WidgetContex
     context->DrawText(toolbarCenterText.c_str(),
                       static_cast<UINT32>(toolbarCenterText.length()),
                       m_toolbarTextFormat.Get(),
-                      &layout.toolbarLayout.textRect, m_textBrush.Get());
+                      &textRect, m_textBrush.Get());
   }
 
   if (!ctx.isPlaylistListViewMode && m_toolbarCountTextFormat && m_textBrush) {
-    std::wstring countText = std::to_wstring(ctx.totalTracks) + L" Tracks";
-    if (m_shadowBrush && config->GetEnableShadow()) {
-      m_shadowBrush->SetOpacity(config->GetShadowOpacity());
-      D2D1_RECT_F sRect = layout.toolbarLayout.textRect;
-      sRect.left += 1.0f;
-      sRect.top += 1.0f;
-      sRect.right += 1.0f;
-      sRect.bottom += 1.0f;
-      context->DrawText(
-          countText.c_str(), static_cast<UINT32>(countText.length()),
-          m_toolbarCountTextFormat.Get(), &sRect, m_shadowBrush.Get());
+    if (ctx.playlistToolbarHoveredIndex == -1) {
+      std::wstring countText = std::to_wstring(ctx.totalTracks) + L" Tracks";
+      if (m_shadowBrush && config->GetEnableShadow()) {
+        m_shadowBrush->SetOpacity(config->GetShadowOpacity());
+        D2D1_RECT_F sRect = layout.toolbarLayout.textRect;
+        sRect.left += 1.0f;
+        sRect.top += 1.0f;
+        sRect.right += 1.0f;
+        sRect.bottom += 1.0f;
+        context->DrawText(
+            countText.c_str(), static_cast<UINT32>(countText.length()),
+            m_toolbarCountTextFormat.Get(), &sRect, m_shadowBrush.Get());
+      }
+      context->DrawText(countText.c_str(), static_cast<UINT32>(countText.length()),
+                        m_toolbarCountTextFormat.Get(), &layout.toolbarLayout.textRect, m_textBrush.Get());
     }
-    context->DrawText(countText.c_str(), static_cast<UINT32>(countText.length()),
-                      m_toolbarCountTextFormat.Get(), &layout.toolbarLayout.textRect, m_textBrush.Get());
   }
 
   for (int i = 0; i < 3; ++i) {

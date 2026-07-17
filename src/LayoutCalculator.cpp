@@ -333,7 +333,7 @@ PlaylistLayout LayoutCalculator::CalculatePlaylistLayout(float logicalWidth, flo
     float btnSize = 30.0f;
     float iconSpacing = config->GetPlaylistToolbarIconSpacing();
     float totalWidth = 3 * btnSize + 2 * iconSpacing;
-    float startX = layout.playlistX + (layout.playlistWidth - totalWidth) / 2.0f;
+    float startX = layout.playlistX + 2.0f; // 左寄せ + 2.0fマージン
     float startY = layout.playlistY + 5.0f; // 上段に配置
 
     // 左から 0, 1, 2 の順に配置 (0:左, 1:中, 2:右)
