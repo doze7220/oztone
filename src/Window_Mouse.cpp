@@ -508,6 +508,8 @@ void Window::HandleLButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam) {
 
   if (IsInLogoRegion(xPos, yPos) && !m_isLogoMenuHovered) {
     m_isLogoClicked = true;
+  } else if (!IsInPlaylistRegion(xPos, yPos) && !m_isLogoMenuHovered && !m_isControlHovered && !m_isVolumeHovered) {
+    if (m_onBackgroundClickCallback) m_onBackgroundClickCallback();
   }
 
   if (!m_config || !m_config->GetLockWindowPosition()) {
@@ -528,7 +530,7 @@ bool Window::HandleRButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam) {
   int xPos = GET_X_LPARAM(lParam);
   int yPos = GET_Y_LPARAM(lParam);
 
-  if (!m_isPlaylistHovered && !m_isLogoMenuHovered && !m_isControlHovered && !m_isVolumeHovered && !IsInLogoRegion(xPos, yPos)) {
+  if (!IsInPlaylistRegion(xPos, yPos) && !m_isLogoMenuHovered && !m_isControlHovered && !m_isVolumeHovered && !IsInLogoRegion(xPos, yPos)) {
       if (m_onBackgroundClickCallback) m_onBackgroundClickCallback();
       m_isArtFramingDragging = true;
       m_artFramingDragStartPt.x = xPos;
