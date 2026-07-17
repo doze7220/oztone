@@ -96,6 +96,11 @@ public:
     void SetFocusedPlaylistIndex(std::optional<size_t> idx);
 
     /**
+     * @brief シャッフルインデックス配列を同期する
+     */
+    void SetShuffleIndices(const std::vector<size_t>& indices);
+
+    /**
      * @brief プレイリストのスクロール量を加算する
      */
     void AddPlaylistScroll(float delta);
@@ -169,6 +174,7 @@ private:
 
 
     std::optional<size_t> m_focusedPlaylistIndex;
+    std::vector<size_t> m_shuffleIndices;
 
     HWND m_hwnd;
     const ConfigManager* m_config;

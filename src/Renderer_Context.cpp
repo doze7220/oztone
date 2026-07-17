@@ -67,6 +67,7 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
     ctx.currentTrackIndex = currentTrackIndex;
     ctx.totalTracks = totalTracks;
     ctx.shuffleMetadataList = shuffleMetadataList;
+    ctx.shuffleIndices = m_shuffleIndices;
     ctx.dpiScale = m_dpiScale;
     if (m_d2dContext) {
         D2D1_SIZE_F sz = m_d2dContext->GetSize();

@@ -43,6 +43,7 @@ struct WidgetContext {
     size_t currentTrackIndex;
     size_t totalTracks;
     const std::vector<TrackMetadata>* shuffleMetadataList;
+    std::vector<size_t> shuffleIndices;
 
     float dpiScale;
     float logicalWidth = 0.0f;

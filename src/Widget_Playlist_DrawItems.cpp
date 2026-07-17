@@ -221,7 +221,12 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
               origin.y + boxWidth
           );
           
-          std::wstring trackNum = std::to_wstring(i + 1);
+          std::wstring trackNum;
+          if (ctx.shuffleIndices.size() > i) {
+              trackNum = std::to_wstring(ctx.shuffleIndices[i] + 1);
+          } else {
+              trackNum = std::to_wstring(i + 1);
+          }
           Microsoft::WRL::ComPtr<IDWriteTextLayout> trackCountLayout;
           if (m_dwriteFactory && SUCCEEDED(m_dwriteFactory->CreateTextLayout(
                   trackNum.c_str(), static_cast<UINT32>(trackNum.length()),

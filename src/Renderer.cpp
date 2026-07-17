@@ -82,3 +82,7 @@ void Renderer::ForceClearHoverDelays() {
         widget->ForceClearHoverDelay();
     }
 }
+
+void Renderer::SetShuffleIndices(const std::vector<size_t>& indices) {
+    m_shuffleIndices = indices;
+}

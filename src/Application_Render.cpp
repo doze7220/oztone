@@ -317,6 +317,7 @@ void Application::ForceRender() {
     metadataList.push_back(meta);
   }
 
+  m_renderer.SetShuffleIndices(m_playlistManager.GetShuffleIndices());
   m_renderer.Render(
       m_window.IsHovered(), m_window.IsControlHovered(),
       m_window.IsVolumeHovered(), m_window.IsPlaylistHovered(),
