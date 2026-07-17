@@ -110,6 +110,11 @@ public:
      */
     std::vector<std::wstring> GetShuffleList() const;
 
+    /**
+     * @brief シャッフルインデックス配列をスレッドセーフに取得する
+     * @return シャッフルインデックスの配列のコピー
+     */
+    std::vector<size_t> GetShuffleIndices() const;
 
     /**
      * @brief 現在および次周のシャッフルリストを初期化・生成する

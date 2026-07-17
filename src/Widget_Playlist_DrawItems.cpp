@@ -231,7 +231,7 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
                   DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(trackNum.length())};
                   layout1->SetCharacterSpacing(0.0f, config->GetPlaylistTrackCountLetterSpacing(), 0.0f, textRange);
               }
-              context->DrawTextLayout(D2D1::Point2F(rotatedBoxRect.left, rotatedBoxRect.top), trackCountLayout.Get(), m_trackCountTextBrush.Get());
+              context->DrawTextLayout(D2D1::Point2F(rotatedBoxRect.left, rotatedBoxRect.top + 1.0f), trackCountLayout.Get(), m_trackCountTextBrush.Get());
           }
 
           D2D1_RECT_F underlineRect = D2D1::RectF(

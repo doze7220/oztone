@@ -300,5 +300,9 @@ std::vector<std::wstring> PlaylistManager::GetShuffleList() const {
     return list;
 }
 
+std::vector<size_t> PlaylistManager::GetShuffleIndices() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_shuffleIndices;
+}
 
 
