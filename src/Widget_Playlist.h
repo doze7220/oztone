@@ -39,6 +39,8 @@ private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistArtistTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_playlistTimeTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_toolbarTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_toolbarCountTextFormat;
+    Microsoft::WRL::ComPtr<IDWriteTextFormat> m_trackCountTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_toolbarIconFormat;
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_pinSubIconFormat;
 
@@ -52,6 +54,8 @@ private:
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_playlistHighlightBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_textBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_shadowBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_trackCountBoxBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_trackCountTextBrush;
 
     Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
 

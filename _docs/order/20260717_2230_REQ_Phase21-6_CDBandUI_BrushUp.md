@@ -1,11 +1,11 @@
-### 作業指示書 REQ: Hotfix CD帯UIのブラッシュアップ (実装実行)
+### 作業指示書 REQ: Phase21-6 CD帯UIのブラッシュアップ (実装実行)
 以下のプロジェクトルールと開発資料を熟読すること。
 *  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
 *  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
 
 #### 【作業手順（厳守事項）】
 1. 本プロンプトはHotfixの「実装実行」である。事前のレポート作成や計画立案は不要なので、直ちに以下の【実装要件】に従ってコードの修正を実行すること。
-2. コード修正が完全に終わった後、Hotfix作業レポートテンプレートを元に、作業レポート（`YYYYMMDD_HHMM_RES_Hotfix_CDBandUI_BrushUp.md`）として新規作成し、対応内容を記録すること。
+2. コード修正が完全に終わった後、Hotfix作業レポートテンプレートを元に、作業レポート（`YYYYMMDD_HHMM_RES_Phase21-6_CDBandUI_BrushUp.md`）として新規作成し、対応内容を記録すること。
 3. チャットにて「CD帯UIのブラッシュアップが完了しました。ビルド・動作確認をお願いします」と報告すること。
 
 #### 【実装要件】

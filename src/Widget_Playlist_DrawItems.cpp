@@ -1,6 +1,7 @@
 #include "Widget_Playlist.h"
 #include "ConfigManager.h"
 #include "LayoutCalculator.h"
+#include "WidgetCommon.h"
 #include <filesystem>
 
 void PlaylistWidget::DrawPlaylistItems(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config, const PlaylistLayout& layout) {
@@ -150,6 +151,17 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
         artist = L"Unknown Artist";
       }
 
+      // --- Layout Adjustment for CD Band ---
+      float bandRightEdge = itemLayout.hlRect.left + config->GetPlaylistTrackCountOffsetX() + config->GetPlaylistTrackCountBoxWidth();
+      if (itemLayout.titleRect.left < bandRightEdge) {
+          float shift = bandRightEdge - itemLayout.titleRect.left + 5.0f;
+          itemLayout.titleRect.left += shift;
+      }
+      if (itemLayout.artistRect.left < bandRightEdge) {
+          float shift = bandRightEdge - itemLayout.artistRect.left + 5.0f;
+          itemLayout.artistRect.left += shift;
+      }
+
       m_textBrush->SetColor(GetBlendedTextColor(static_cast<int>(i), isPlaying && !m_isScanlineActive));
 
       context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
@@ -174,6 +186,63 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
                           m_playlistTimeTextFormat.Get(), &timeRect,
                           m_playlistTimeBrush ? m_playlistTimeBrush.Get()
                                               : m_textBrush.Get());
+      }
+
+      // --- CD Band Drawing ---
+      if (m_trackCountBoxBrush && m_trackCountTextBrush && m_trackCountTextFormat) {
+          float boxX = itemLayout.hlRect.left + config->GetPlaylistTrackCountOffsetX();
+          float boxWidth = config->GetPlaylistTrackCountBoxWidth();
+          
+          float boxStartY = currentY + 1.0f;
+          float boxHeight = layout.itemHeight - 1.0f;
+
+          D2D1_RECT_F boxRect = D2D1::RectF(boxX, boxStartY, boxX + boxWidth, boxStartY + boxHeight);
+          
+          if (isPlaying) {
+              m_trackCountBoxBrush->SetColor(WidgetCommon::HexToColorF(config->GetFocusColor()));
+          } else {
+              m_trackCountBoxBrush->SetColor(WidgetCommon::HexToColorF(config->GetPlaylistTrackCountBoxBaseColor()));
+          }
+          m_trackCountBoxBrush->SetOpacity(config->GetPlaylistTrackCountBoxBaseOpacity());
+          
+          context->FillRectangle(&boxRect, m_trackCountBoxBrush.Get());
+
+          D2D1::Matrix3x2F originalTransform;
+          context->GetTransform(&originalTransform);
+
+          D2D1_POINT_2F origin = D2D1::Point2F(boxX, boxStartY + boxHeight);
+          D2D1::Matrix3x2F rotation = D2D1::Matrix3x2F::Rotation(-90.0f, origin);
+          context->SetTransform(rotation * originalTransform);
+
+          D2D1_RECT_F rotatedBoxRect = D2D1::RectF(
+              origin.x,
+              origin.y,
+              origin.x + boxHeight,
+              origin.y + boxWidth
+          );
+          
+          std::wstring trackNum = std::to_wstring(i + 1);
+          Microsoft::WRL::ComPtr<IDWriteTextLayout> trackCountLayout;
+          if (m_dwriteFactory && SUCCEEDED(m_dwriteFactory->CreateTextLayout(
+                  trackNum.c_str(), static_cast<UINT32>(trackNum.length()),
+                  m_trackCountTextFormat.Get(), boxHeight, boxWidth, &trackCountLayout))) {
+              Microsoft::WRL::ComPtr<IDWriteTextLayout1> layout1;
+              if (SUCCEEDED(trackCountLayout.As(&layout1))) {
+                  DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(trackNum.length())};
+                  layout1->SetCharacterSpacing(0.0f, config->GetPlaylistTrackCountLetterSpacing(), 0.0f, textRange);
+              }
+              context->DrawTextLayout(D2D1::Point2F(rotatedBoxRect.left, rotatedBoxRect.top), trackCountLayout.Get(), m_trackCountTextBrush.Get());
+          }
+
+          D2D1_RECT_F underlineRect = D2D1::RectF(
+              origin.x,
+              origin.y + config->GetPlaylistTrackCountUnderLineX(),
+              origin.x + boxHeight,
+              origin.y + config->GetPlaylistTrackCountUnderLineX() + config->GetPlaylistTrackCountUnderLineWidth()
+          );
+          context->FillRectangle(&underlineRect, m_trackCountBoxBrush.Get());
+
+          context->SetTransform(originalTransform);
       }
 
       if (isPlaying && m_isScanlineActive && m_radarGradientBrush) {

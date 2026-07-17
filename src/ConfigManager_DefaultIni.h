@@ -171,6 +171,15 @@ PinSubIconOffsetX=6
 PinSubIconOffsetY=6
 PinSubIconFontSize=10.0
 PlaylistLeaveDelay=0.5
+TrackCountOffsetX=0.0
+TrackCountBoxWidth=15.0
+TrackCountUnderLineX=16.0
+TrackCountUnderLineWidth=2.0
+TrackCountFontSize=15.0
+TrackCountLetterSpacing=-1.0
+TrackCountBoxFontColor=#000000
+TrackCountBoxBaseColor=#FFFFFF
+TrackCountBoxBaseOpacity=0.4
 
 [Layout_GlobalHotkeys]
 FontSize=15.0

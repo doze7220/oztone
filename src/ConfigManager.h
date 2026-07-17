@@ -383,6 +383,16 @@ public:
     int GetPinSubIconOffsetY() const { return m_pinSubIconOffsetY; }
     float GetPinSubIconFontSize() const { return m_pinSubIconFontSize; }
 
+    float GetPlaylistTrackCountOffsetX() const { return m_playlistTrackCountOffsetX; }
+    float GetPlaylistTrackCountBoxWidth() const { return m_playlistTrackCountBoxWidth; }
+    float GetPlaylistTrackCountUnderLineX() const { return m_playlistTrackCountUnderLineX; }
+    float GetPlaylistTrackCountUnderLineWidth() const { return m_playlistTrackCountUnderLineWidth; }
+    float GetPlaylistTrackCountFontSize() const { return m_playlistTrackCountFontSize; }
+    float GetPlaylistTrackCountLetterSpacing() const { return m_playlistTrackCountLetterSpacing; }
+    std::wstring GetPlaylistTrackCountBoxFontColor() const { return m_playlistTrackCountBoxFontColor; }
+    std::wstring GetPlaylistTrackCountBoxBaseColor() const { return m_playlistTrackCountBoxBaseColor; }
+    float GetPlaylistTrackCountBoxBaseOpacity() const { return m_playlistTrackCountBoxBaseOpacity; }
+
     int GetPlaylistHoverWidth() const { return m_playlistHoverWidth; }
 
     float GetPlaylistBgOpacity() const { return m_playlistBgOpacity; }
@@ -630,6 +640,16 @@ private:
     int m_pinSubIconOffsetX;
     int m_pinSubIconOffsetY;
     float m_pinSubIconFontSize;
+
+    float m_playlistTrackCountOffsetX;
+    float m_playlistTrackCountBoxWidth;
+    float m_playlistTrackCountUnderLineX;
+    float m_playlistTrackCountUnderLineWidth;
+    float m_playlistTrackCountFontSize;
+    float m_playlistTrackCountLetterSpacing;
+    std::wstring m_playlistTrackCountBoxFontColor;
+    std::wstring m_playlistTrackCountBoxBaseColor;
+    float m_playlistTrackCountBoxBaseOpacity;
 
     float m_playlistBgOpacity;
     float m_playlistLeaveDelay;

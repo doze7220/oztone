@@ -117,5 +117,15 @@ void ConfigManager::LoadPlaylistSettings() {
     m_pinSubIconOffsetY = LoadOrWriteInt(L"Layout_Playlist", L"PinSubIconOffsetY");
     m_pinSubIconFontSize = LoadOrWriteFloat(L"Layout_Playlist", L"PinSubIconFontSize");
 
+    m_playlistTrackCountOffsetX = LoadOrWriteFloat(L"Layout_Playlist", L"TrackCountOffsetX");
+    m_playlistTrackCountBoxWidth = LoadOrWriteFloat(L"Layout_Playlist", L"TrackCountBoxWidth");
+    m_playlistTrackCountUnderLineX = LoadOrWriteFloat(L"Layout_Playlist", L"TrackCountUnderLineX");
+    m_playlistTrackCountUnderLineWidth = LoadOrWriteFloat(L"Layout_Playlist", L"TrackCountUnderLineWidth");
+    m_playlistTrackCountFontSize = LoadOrWriteFloat(L"Layout_Playlist", L"TrackCountFontSize");
+    m_playlistTrackCountLetterSpacing = LoadOrWriteFloat(L"Layout_Playlist", L"TrackCountLetterSpacing");
+    m_playlistTrackCountBoxFontColor = LoadOrWriteString(L"Layout_Playlist", L"TrackCountBoxFontColor");
+    m_playlistTrackCountBoxBaseColor = LoadOrWriteString(L"Layout_Playlist", L"TrackCountBoxBaseColor");
+    m_playlistTrackCountBoxBaseOpacity = LoadOrWriteFloat(L"Layout_Playlist", L"TrackCountBoxBaseOpacity");
+
     m_playlistLeaveDelay = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistLeaveDelay");
 }

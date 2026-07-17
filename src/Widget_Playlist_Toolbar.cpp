@@ -115,6 +115,23 @@ void PlaylistWidget::DrawToolbar(ID2D1DeviceContext* context, const WidgetContex
                       &layout.toolbarLayout.textRect, m_textBrush.Get());
   }
 
+  if (!ctx.isPlaylistListViewMode && m_toolbarCountTextFormat && m_textBrush) {
+    std::wstring countText = std::to_wstring(ctx.totalTracks) + L" Tracks";
+    if (m_shadowBrush && config->GetEnableShadow()) {
+      m_shadowBrush->SetOpacity(config->GetShadowOpacity());
+      D2D1_RECT_F sRect = layout.toolbarLayout.textRect;
+      sRect.left += 1.0f;
+      sRect.top += 1.0f;
+      sRect.right += 1.0f;
+      sRect.bottom += 1.0f;
+      context->DrawText(
+          countText.c_str(), static_cast<UINT32>(countText.length()),
+          m_toolbarCountTextFormat.Get(), &sRect, m_shadowBrush.Get());
+    }
+    context->DrawText(countText.c_str(), static_cast<UINT32>(countText.length()),
+                      m_toolbarCountTextFormat.Get(), &layout.toolbarLayout.textRect, m_textBrush.Get());
+  }
+
   for (int i = 0; i < 3; ++i) {
     if (ctx.isPlaylistListViewMode && i == 0)
       continue; // (非表示)

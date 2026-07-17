@@ -1,5 +1,6 @@
 #include "Widget_Playlist.h"
 #include "ConfigManager.h"
+#include "WidgetCommon.h"
 
 void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
                                      IWICImagingFactory *wicFactory,
@@ -52,9 +53,29 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
       DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistToolbarTextFontSize(),
       L"ja-jp", &m_toolbarTextFormat);
   if (m_toolbarTextFormat) {
-    m_toolbarTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+    m_toolbarTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
     m_toolbarTextFormat->SetParagraphAlignment(
         DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+  }
+
+  dwriteFactory->CreateTextFormat(
+      config->GetBaseFontFamily().c_str(), nullptr,
+      DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
+      DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistToolbarTextFontSize(),
+      L"ja-jp", &m_toolbarCountTextFormat);
+  if (m_toolbarCountTextFormat) {
+    m_toolbarCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
+    m_toolbarCountTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+  }
+
+  dwriteFactory->CreateTextFormat(
+      config->GetBaseFontFamily().c_str(), nullptr,
+      DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL,
+      DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistTrackCountFontSize(),
+      L"en-us", &m_trackCountTextFormat);
+  if (m_trackCountTextFormat) {
+    m_trackCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+    m_trackCountTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
   }
 
   dwriteFactory->CreateTextFormat(
@@ -103,6 +124,11 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
                                  &m_playlistBgBrush);
   context->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f),
                                  &m_playlistHighlightBrush);
+
+  context->CreateSolidColorBrush(WidgetCommon::HexToColorF(config->GetPlaylistTrackCountBoxBaseColor()),
+                                 &m_trackCountBoxBrush);
+  context->CreateSolidColorBrush(WidgetCommon::HexToColorF(config->GetPlaylistTrackCountBoxFontColor()),
+                                 &m_trackCountTextBrush);
   context->CreateSolidColorBrush(
       ParseHexColor(config->GetPlaylistGripLineColor()),
       &m_playlistGripLineBrush);
@@ -169,6 +195,8 @@ void PlaylistWidget::ReleaseResources() {
   m_playlistArtistTextFormat.Reset();
   m_playlistTimeTextFormat.Reset();
   m_toolbarTextFormat.Reset();
+  m_toolbarCountTextFormat.Reset();
+  m_trackCountTextFormat.Reset();
   m_toolbarIconFormat.Reset();
   m_pinSubIconFormat.Reset();
   m_playlistArtistBrush.Reset();
@@ -179,6 +207,8 @@ void PlaylistWidget::ReleaseResources() {
   m_playlistGripArrowRightGeometry.Reset();
   m_playlistBgBrush.Reset();
   m_playlistHighlightBrush.Reset();
+  m_trackCountBoxBrush.Reset();
+  m_trackCountTextBrush.Reset();
   m_textBrush.Reset();
   m_shadowBrush.Reset();
   m_radarGradientStops.Reset();
