@@ -12,11 +12,11 @@ SkipSeconds=10.0
 
 [TrackDrum]
 EnableTrackDrum=1
-MaxDuration=3.0
-MinSpeed=10.0
-MaxSpeed=60.0
-Acceleration=20.0
-Deceleration=15.0
+MaxDuration=10.0
+MinSpeed=0.5
+MaxSpeed=2.0
+Acceleration=0.5
+Deceleration=0.5
 
 [Window]
 ShowTitleBar=0
