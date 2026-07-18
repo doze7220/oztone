@@ -31,3 +31,33 @@
 
 #### 【絶対遵守ルール (Constraints)】
 *   **完全な独立**: ドラムのOLD/NOWデータは、プレイリストが破棄・再構築されても絶対に消えない完全に独立したメモリ（実体のコピー）として管理すること。
+
+-----------------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 21-9 Task 1 : データ構造定義とSetTrackInfoシグネチャ変更
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260718_1905_RES_Phase21-9_TrackDrumRebuild.md
+
+#### 【作業手順（厳守事項）】
+1. 本プロンプトはトラックドラム再構築のためのデータ構造定義とインターフェース改修である。直ちに以下の【実装要件】に従ってコードの修正を実行すること。
+2. 作業完了後、既存の作業レポート（20260718_1905_RES_Phase21-9_TrackDrumRebuild.md）の「タスク1」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+3. チャットにて「データ構造定義とシグネチャ変更(Task 1)がすべて完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+プレイリストのデータ構造からトラックドラムのデータを完全に切り離すための準備として、専用のデータ構造と、操作意図を伝達するパイプラインを構築する。
+
+*   **要件1: ドラム専用データ構造と操作意図の定義**
+    *   `src/Renderer.h` に、描画に必要な純粋なデータのみを持つ構造体 `DrumSlotData` を定義する。
+        *   メンバの例: `std::wstring title`, `std::wstring artist`, `std::wstring trackNo`, `Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap`
+    *   `src/Renderer.h` に、ドラムの回転意図を指示する列挙型 `DrumMoveType` を定義する。
+        *   値の例: `Next` (次へ), `Prev` (前へ), `Jump` (任意曲へのジャンプ), `CrossPlaylist` (別リスト移動/ループ), `Reset` (UIクリア等の空打ち)
+*   **要件2: SetTrackInfoシグネチャの変更と安全措置**
+    *   `src/Renderer.h` および `src/Renderer.cpp` にある `Renderer::SetTrackInfo` の引数を改修し、新たに `DrumMoveType moveType` を受け取るように変更する。
+    *   **【重要】** `Application` 層の呼び出し修正はタスク3で行うため、本タスクでのビルドエラーを防ぐ目的で、`Renderer.h` 側の宣言には一時的にデフォルト引数（例: `DrumMoveType moveType = DrumMoveType::Jump`）を付与しておくこと。
+    *   本タスクでは引数の受け取り口を追加するのみとし、`SetTrackInfo` 内部のバケツリレーや物理演算ロジックの変更は絶対に行わないこと。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スコープの厳密な限定**: 本タスクは「データ構造の定義」と「シグネチャの変更（デフォルト引数付き）」のみ。Application側の呼び出し修正や、Renderer内部の物理演算ロジックには絶対に触れないこと。
+
+-----------------------------------------------------------------------------------------
