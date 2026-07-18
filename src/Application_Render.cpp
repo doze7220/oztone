@@ -110,7 +110,7 @@ void Application::Run() {
 
           if (skipCount == 0) {
             // 最初の曲は先読みデータを利用
-            m_renderer.SetTrackInfo(m_prefetchedTitle, m_prefetchedArtist, L"", DrumMoveType::Next);
+            m_renderer.SetTrackInfo(m_prefetchedTitle, m_prefetchedArtist);
             m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
           } else {
             // スキップされた場合は同期的にタグを読み直す
@@ -121,7 +121,7 @@ void Application::Run() {
                 title = std::filesystem::path(track).filename().wstring();
               if (artist.empty())
                 artist = L"---";
-              m_renderer.SetTrackInfo(title, artist, L"", DrumMoveType::Next);
+              m_renderer.SetTrackInfo(title, artist);
 
               const auto &artBytes = m_tagManager.GetAlbumArtBytes();
               if (!artBytes.empty()) {
@@ -141,7 +141,7 @@ void Application::Run() {
               } catch (...) {
                 title = L"UNKNOWN";
               }
-              m_renderer.SetTrackInfo(title, L"---", L"", DrumMoveType::Next);
+              m_renderer.SetTrackInfo(title, L"---");
               m_renderer.SetAlbumArt(nullptr);
             }
           }
@@ -149,7 +149,7 @@ void Application::Run() {
           float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(track, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (PlayCurrentTrack(DrumMoveType::Next)) {
+      if (PlayCurrentTrack()) {
             played = true;
             break;
           }
@@ -159,7 +159,7 @@ void Application::Run() {
         }
 
         if (!played) {
-          m_renderer.SetTrackInfo(L"NO TRACK", L"---", L"", DrumMoveType::Reset);
+          m_renderer.SetTrackInfo(L"NO TRACK", L"---");
           m_renderer.SetAlbumArt(nullptr);
         }
       }
