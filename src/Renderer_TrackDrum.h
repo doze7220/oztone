@@ -23,6 +23,12 @@ public:
     
     bool IsDrumAnimating() const { return m_drumRelativePosition != 0.0f; }
 
+    const std::array<DrumSlot, 2>& GetDrumSlots() const { return m_drumSlots; }
+    int GetCurrentDrumSlotIndex() const { return m_currentDrumSlotIndex; }
+    float GetDrumRelativePosition() const { return m_drumRelativePosition; }
+    size_t GetAnimatingTargetIndex() const { return m_animatingTargetIndex; }
+    int GetAnimatingOldIndexOffset() const { return m_animatingOldIndexOffset; }
+
 private:
     void OnSlotAnimationCompleted();
 

@@ -147,3 +147,38 @@
 *   **WidgetContextの修正は次タスク**: 本タスクでは `WidgetContext` を組み立てる `Renderer_Context.cpp` などの修正は行わない。`WidgetContext` に関連するコンパイルエラーが残るはずだが、それは次タスクで解決するため今は放置してよい。
 
 -----------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 21-10 Task 5 : WidgetContextおよび周辺の配線修正
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260719_0203_RES_Phase21-10_TrackDrumRefactoring.md
+
+#### 【作業手順（厳守事項）】
+1. 本プロンプトはWidgetContextの構築処理の修正である。直ちに以下の【実装要件】に従ってコードの修正を実行すること。
+2. 作業完了後、既存の作業レポート（20260719_0203_RES_Phase21-10_TrackDrumRefactoring.md）の「タスク5」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+3. チャットにて「タスク5(Phase 21-10)が完了しました。タスク6,7の指示をお願いします」と報告すること。
+
+#### 【実装要件】
+`Renderer_Context.cpp` において `WidgetContext` を構築する際、旧来 `Renderer` のメンバ変数を直接参照していたドラム関連の状態を、分離した `TrackDrum` クラスから取得するように修正する。
+
+*   **要件1: TrackDrum へのゲッター追加**
+    *   `src/Renderer_TrackDrum.h` の `TrackDrum` クラス（public セクション）に、以下の情報を外部から取得するためのゲッターメソッドを追加する。
+        *   `const std::array<DrumSlot, 2>& GetDrumSlots() const`
+        *   `int GetCurrentDrumSlotIndex() const`
+        *   `float GetDrumRelativePosition() const`
+        *   `size_t GetAnimatingTargetIndex() const`
+        *   `int GetAnimatingOldIndexOffset() const`
+*   **要件2: Renderer_Context.cpp の修正**
+    *   `src/Renderer_Context.cpp` 内の `BuildAnimationContext` や `BuildRenderContext` などにおいて、`WidgetContext` にドラムの状態を代入している箇所を以下のように `m_trackDrum` を経由して取得するように修正する。
+        *   `ctx.drumSlots = m_trackDrum.GetDrumSlots();`
+        *   `ctx.currentDrumSlotIndex = m_trackDrum.GetCurrentDrumSlotIndex();`
+        *   `ctx.drumRelativePosition = m_trackDrum.GetDrumRelativePosition();`
+        *   `ctx.animatingTargetIndex = m_trackDrum.GetAnimatingTargetIndex();`
+        *   `ctx.animatingOldIndexOffset = m_trackDrum.GetAnimatingOldIndexOffset();`
+
+#### 【絶対遵守ルール (Constraints)】
+*   **Widget内部の修正禁止**: 本タスクでは `Widget_TrackInfo.cpp` などのウィジェット内部の描画ロジックは一切変更しない。`WidgetContext` を中継点とすることで、ウィジェット側は情報源が変わったことに気づかずにそのまま動作し続けるようにすること。
+
+-----------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------

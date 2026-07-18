@@ -30,7 +30,7 @@
     - `Renderer` からドラム計算・制御メソッド群（`StartDrumAnimation`など）を `TrackDrum` へ移動・適応させる。
 [x] タスク4: RendererとTrackDrum間のインターフェース調整
     - `Renderer` に `TrackDrum` のインスタンスを持たせ、委譲メソッド・ゲッター等のアクセス口を整備する。
-[ ] タスク5: WidgetContextおよび周辺の配線修正
+[x] タスク5: WidgetContextおよび周辺の配線修正
     - 描画コンテキスト構築時など、ドラム状態の参照元を `TrackDrum` へ変更する。
 [ ] タスク6: ビルド設定の更新
     - `CMakeLists.txt` に `src/Renderer_TrackDrum.cpp` を追加する。
@@ -56,7 +56,8 @@
     - 各 `Application_*.cpp` から `m_renderer.StartDrumAnimation` や `IsDrumAnimating` を呼び出していた箇所を `m_renderer.GetTrackDrum().StartDrumAnimation(...)` 等へ修正した。
 
 ### タスク5: WidgetContextおよび周辺の配線修正
-    - (未実施)
+    - `Renderer_TrackDrum.h` の `TrackDrum` クラスに、各ドラム状態(`m_drumSlots`, `m_currentDrumSlotIndex`, `m_drumRelativePosition`, `m_animatingTargetIndex`, `m_animatingOldIndexOffset`)を取得するためのゲッターメソッドを追加した。
+    - `Renderer_Context.cpp` における各種コンテキスト構築処理(`BuildAnimationContext`, `BuildLayoutContext`, `BuildRenderContext`)において、ドラムの状態を `Renderer` のメンバ変数ではなく、`m_trackDrum` からゲッターを経由して取得し、`WidgetContext` に代入するように修正した。
 
 ### タスク6: ビルド設定の更新
     - (未実施)

@@ -30,10 +30,10 @@ WidgetContext Renderer::BuildAnimationContext(float deltaTime, bool isControlHov
     ctx.outIsLogoMenuExpanded = outIsLogoMenuExpanded;
     ctx.shuffleIndices = m_shuffleIndices;
     
-    ctx.drumRelativePosition = m_drumRelativePosition;
-    ctx.drumSlots = m_drumSlots;
-    ctx.currentDrumSlotIndex = m_currentDrumSlotIndex;
-    ctx.animatingOldIndexOffset = m_animatingOldIndexOffset;
+    ctx.drumRelativePosition = m_trackDrum.GetDrumRelativePosition();
+    ctx.drumSlots = m_trackDrum.GetDrumSlots();
+    ctx.currentDrumSlotIndex = m_trackDrum.GetCurrentDrumSlotIndex();
+    ctx.animatingOldIndexOffset = m_trackDrum.GetAnimatingOldIndexOffset();
 
     return ctx;
 }
@@ -53,10 +53,10 @@ WidgetContext Renderer::BuildLayoutContext(const std::wstring& timeString, float
     ctx.shuffleIndices = m_shuffleIndices;
     ctx.shuffleMetadataList = shuffleMetadataList;
 
-    ctx.drumRelativePosition = m_drumRelativePosition;
-    ctx.drumSlots = m_drumSlots;
-    ctx.currentDrumSlotIndex = m_currentDrumSlotIndex;
-    ctx.animatingOldIndexOffset = m_animatingOldIndexOffset;
+    ctx.drumRelativePosition = m_trackDrum.GetDrumRelativePosition();
+    ctx.drumSlots = m_trackDrum.GetDrumSlots();
+    ctx.currentDrumSlotIndex = m_trackDrum.GetCurrentDrumSlotIndex();
+    ctx.animatingOldIndexOffset = m_trackDrum.GetAnimatingOldIndexOffset();
 
     return ctx;
 }
@@ -90,11 +90,11 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
     ctx.controlAlpha = m_controlAlpha;
     ctx.timeString = m_lastTimeString;
 
-    ctx.drumRelativePosition = m_drumRelativePosition;
-    ctx.drumSlots = m_drumSlots;
-    ctx.currentDrumSlotIndex = m_currentDrumSlotIndex;
-    ctx.animatingTargetIndex = m_animatingTargetIndex;
-    ctx.animatingOldIndexOffset = m_animatingOldIndexOffset;
+    ctx.drumRelativePosition = m_trackDrum.GetDrumRelativePosition();
+    ctx.drumSlots = m_trackDrum.GetDrumSlots();
+    ctx.currentDrumSlotIndex = m_trackDrum.GetCurrentDrumSlotIndex();
+    ctx.animatingTargetIndex = m_trackDrum.GetAnimatingTargetIndex();
+    ctx.animatingOldIndexOffset = m_trackDrum.GetAnimatingOldIndexOffset();
 
     ctx.config = m_config;
     ctx.focusedPlaylistIndex = m_focusedPlaylistIndex;
