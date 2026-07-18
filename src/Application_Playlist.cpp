@@ -7,11 +7,11 @@
 
 void Application::OnPlaylistToolbarClicked(int btnIndex) {
   if (m_isPlaylistListViewMode) {
-    if (btnIndex == 1) { // ➕ (新規作成)
+    if (btnIndex == 1) { // ➁E(新規作�E)
       m_renderer.TriggerFlyText(L"NEW PLAYLIST CREATED");
       this->CreateNewPlaylist();
       m_isPlaylistListViewMode = false;
-    } else if (btnIndex == 2) { // 🗑️ (リスト削除)
+    } else if (btnIndex == 2) { // 🗑�E�E(リスト削除)
       m_renderer.TriggerFlyText(L"PLAYLIST DELETED");
       if (m_focusedPlaylistIndex.has_value()) {
         std::vector<std::wstring> available =
@@ -39,7 +39,7 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
       }
     }
   } else {
-    if (btnIndex == 0) { // 📁 (上の階層へ)
+    if (btnIndex == 0) { // 📁 (上�E階層へ)
       std::wstring currentPlaylist = m_config.GetDefaultPlaylistPath();
       std::vector<std::wstring> available = m_config.GetAvailablePlaylists();
       for (size_t i = 0; i < available.size(); ++i) {
@@ -49,7 +49,7 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
         }
       }
       m_isPlaylistListViewMode = true;
-    } else if (btnIndex == 1) { // ➖ (曲削除)
+    } else if (btnIndex == 1) { // ➁E(曲削除)
       m_renderer.TriggerFlyText(L"TRACK REMOVED");
       if (!m_playlistManager.IsEmpty()) {
         m_playlistManager.RemoveCurrentTrack();
@@ -72,7 +72,7 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
               title = std::filesystem::path(track).filename().wstring();
             if (artist.empty())
               artist = L"---";
-            m_renderer.SetTrackInfo(title, artist);
+            m_renderer.SetTrackInfo(title, artist, m_playlistManager.GetCurrentIndex());
 
             const auto &artBytes = m_tagManager.GetAlbumArtBytes();
             if (!artBytes.empty()) {
@@ -92,7 +92,7 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
             } catch (...) {
               title = L"UNKNOWN";
             }
-            m_renderer.SetTrackInfo(title, L"---");
+            m_renderer.SetTrackInfo(title, L"---", m_playlistManager.GetCurrentIndex());
             m_renderer.SetAlbumArt(nullptr);
           }
 
@@ -101,12 +101,12 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
           m_renderer.SetBackgroundFraming(artX, artY, artScale);
           PlayCurrentTrack();
         } else {
-          m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+          m_renderer.SetTrackInfo(L"NO TRACK", L"---", 0, true);
           m_renderer.SetAlbumArt(nullptr);
           m_isPrefetchReady.store(false);
         }
       }
-    } else if (btnIndex == 2) { // 🗑️ (全曲削除)
+    } else if (btnIndex == 2) { // 🗑�E�E(全曲削除)
       m_renderer.TriggerFlyText(L"PLAYLIST CLEARED");
       this->ClearPlaylist();
     }
@@ -127,9 +127,8 @@ void Application::OnPlaylistClicked(int x, int y) {
 
   float toolbarHeight = m_config.GetPlaylistToolbarHeight();
   if (logicalY < toolbarHeight) {
-    // ツールバー領域へのクリックはWindow.cpp(WM_LBUTTONDOWN)から
-    // SetPlaylistToolbarClickCallbackを通じて飛んでくるためここでは無視する。
-    return;
+    // チE�Eルバ�E領域へのクリチE��はWindow.cpp(WM_LBUTTONDOWN)から
+    // SetPlaylistToolbarClickCallbackを通じて飛んでくるためここでは無視する、E    return;
   }
 
   if (m_isPlaylistListViewMode) {
@@ -207,7 +206,7 @@ void Application::OnPlaylistClicked(int x, int y) {
           title = std::filesystem::path(track).filename().wstring();
         if (artist.empty())
           artist = L"---";
-        m_renderer.SetTrackInfo(title, artist);
+        m_renderer.SetTrackInfo(title, artist, m_playlistManager.GetCurrentIndex());
 
         const auto &artBytes = m_tagManager.GetAlbumArtBytes();
         if (!artBytes.empty()) {
@@ -227,7 +226,7 @@ void Application::OnPlaylistClicked(int x, int y) {
         } catch (...) {
           title = L"UNKNOWN";
         }
-        m_renderer.SetTrackInfo(title, L"---");
+        m_renderer.SetTrackInfo(title, L"---", m_playlistManager.GetCurrentIndex());
         m_renderer.SetAlbumArt(nullptr);
       }
 
@@ -235,7 +234,7 @@ void Application::OnPlaylistClicked(int x, int y) {
       m_framingDb.GetFraming(track, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
       if (!PlayCurrentTrack()) {
-        m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+        m_renderer.SetTrackInfo(L"NO TRACK", L"---", 0, true);
         m_renderer.SetAlbumArt(nullptr);
       }
     }
@@ -304,7 +303,7 @@ void Application::ClearPlaylist() {
   m_audioPlayer.Stop();
 
   m_isPrefetchReady.store(false);
-  m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+  m_renderer.SetTrackInfo(L"NO TRACK", L"---", 0, true);
   m_renderer.SetAlbumArt(nullptr);
 }
 
@@ -324,8 +323,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
     return;
   }
 
-  // 切り替え前に現在のプレイリスト状態を保存
-  if (!m_playlistManager.IsEmpty()) {
+  // 刁E��替え前に現在のプレイリスト状態を保孁E  if (!m_playlistManager.IsEmpty()) {
     m_playlistManager.SaveToFile(oldPath);
     if (!m_framingDbPath.empty()) {
       m_framingDb.SaveToFile(m_framingDbPath);
@@ -338,12 +336,11 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
   m_isContinuousStream = false;
   m_streamBreakDirection = StreamBreakDirection::Next;
 
-  // 既存の再生やキューをクリアする（ClearPlaylist()
-  // はファイルを空にしてしまうので呼ばない）
-  m_audioPlayer.Stop();
+  // 既存�E再生めE��ューをクリアする�E�ElearPlaylist()
+  // はファイルを空にしてしまぁE�Eで呼ばなぁE��E  m_audioPlayer.Stop();
   m_trackAnalyzer.ClearQueue();
   m_isPrefetchReady.store(false);
-  m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+  m_renderer.SetTrackInfo(L"NO TRACK", L"---", 0, true);
   m_renderer.SetAlbumArt(nullptr);
 
   m_playlistManager.Clear();
@@ -368,7 +365,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
           title = std::filesystem::path(currentTrack).filename().wstring();
         if (artist.empty())
           artist = L"---";
-        m_renderer.SetTrackInfo(title, artist);
+        m_renderer.SetTrackInfo(title, artist, m_playlistManager.GetCurrentIndex());
 
         const auto &artBytes = m_tagManager.GetAlbumArtBytes();
         if (!artBytes.empty()) {
@@ -388,7 +385,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
         } catch (...) {
           title = L"UNKNOWN";
         }
-        m_renderer.SetTrackInfo(title, L"---");
+        m_renderer.SetTrackInfo(title, L"---", m_playlistManager.GetCurrentIndex());
         m_renderer.SetAlbumArt(nullptr);
       }
 
@@ -405,7 +402,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
     }
 
     if (!played) {
-      m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+      m_renderer.SetTrackInfo(L"NO TRACK", L"---", 0, true);
       m_renderer.SetAlbumArt(nullptr);
     }
   }
@@ -452,8 +449,7 @@ void Application::CreateNewPlaylist() {
     sequence++;
   }
 
-  // 新しいパスに変更する前に現在の状態を保存
-  if (!m_playlistManager.IsEmpty()) {
+  // 新しいパスに変更する前に現在の状態を保孁E  if (!m_playlistManager.IsEmpty()) {
     m_playlistManager.SaveToFile(defaultPath);
   }
 

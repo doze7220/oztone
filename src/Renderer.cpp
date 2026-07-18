@@ -8,6 +8,8 @@ Renderer::~Renderer() {}
 
 void Renderer::ResetDrumPosition(size_t targetIndex, bool isNext) {
     m_drumTargetIndex = targetIndex;
+    m_pendingOldIsCrossPlaylist = true;
+    m_pendingStreamBreakDirection = isNext ? 1 : -1;
     if (isNext) {
         m_drumPosition = static_cast<double>(targetIndex) - 1.0;
     } else {
@@ -15,8 +17,8 @@ void Renderer::ResetDrumPosition(size_t targetIndex, bool isNext) {
     }
 }
 
-void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artist) {
-    if (m_config && m_config->GetEnableTrackDrum() && m_lastCurrentTrackIndex != static_cast<size_t>(-1) && m_lastCurrentTrackIndex != static_cast<size_t>(-2)) {
+void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artist, size_t currentTrackIndex, bool isResetUI) {
+    if (m_config && m_config->GetEnableTrackDrum() && m_lastCurrentTrackIndex != static_cast<size_t>(-1) && m_lastCurrentTrackIndex != static_cast<size_t>(-2) && !isResetUI) {
         m_oldTrackTitle = m_trackTitle;
         m_oldTrackArtist = m_trackArtist;
         m_oldTrackIndex = m_lastCurrentTrackIndex;
@@ -24,6 +26,17 @@ void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artis
         m_oldBgOffsetX = m_bgOffsetX;
         m_oldBgOffsetY = m_bgOffsetY;
         m_oldBgScale = m_bgScale;
+        m_oldIsCrossPlaylist = m_pendingOldIsCrossPlaylist;
+        m_streamBreakDirection = m_pendingStreamBreakDirection;
+        m_pendingOldIsCrossPlaylist = false;
+        
+        wchar_t trackCountBuf[64];
+        size_t displayNo = m_lastCurrentTrackIndex + 1;
+        if (!m_shuffleIndices.empty() && m_lastCurrentTrackIndex < m_shuffleIndices.size()) {
+            displayNo = m_shuffleIndices[m_lastCurrentTrackIndex] + 1;
+        }
+        swprintf_s(trackCountBuf, L"%zu", displayNo);
+        m_oldTrackNoString = trackCountBuf;
         
         if (!m_isFirstTrackLoaded) {
             m_isDrumAnimating = false;
