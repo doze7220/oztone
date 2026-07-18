@@ -36,36 +36,83 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isVolumeHovere
 }
 
 void Renderer::DrawBackground() {
-    int bgMode = m_config ? m_config->GetBackgroundArtMode() : 0;
-    ID2D1Bitmap* artBitmap = nullptr;
-    if (bgMode == 0) {
-        artBitmap = m_currentArtBitmap ? m_currentArtBitmap.Get() : m_placeholderArtBitmap.Get();
-    } else if (bgMode == 2) {
-        artBitmap = m_placeholderArtBitmap.Get();
-    }
+    if (!m_config) return;
+
+    int bgMode = m_config->GetBackgroundArtMode();
+    ID2D1Bitmap* nowBitmap = nullptr;
+    ID2D1Bitmap* oldBitmap = nullptr;
     
-    if (artBitmap && m_config) {
-        D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-        float logicWidth = renderTargetSize.width / m_dpiScale;
-        float logicHeight = renderTargetSize.height / m_dpiScale;
-        
-        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, artBitmap->GetSize(), m_bgOffsetX, m_bgOffsetY, m_bgScale);
-        
-        m_d2dContext->DrawBitmap(
-            artBitmap,
-            &layout.destRect,
-            m_config->GetBgOpacity(),
-            D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
-            &layout.srcRect
-        );
+    if (bgMode == 0) {
+        nowBitmap = m_currentArtBitmap.Get();
+        oldBitmap = m_oldArtBitmap.Get();
+    } else if (bgMode == 2) {
+        nowBitmap = m_placeholderArtBitmap.Get();
+        oldBitmap = m_placeholderArtBitmap.Get();
     }
 
-    if (m_config && m_config->GetBgDarkenOpacity() > 0.0f && m_bgDarkenBrush) {
-        m_bgDarkenBrush->SetOpacity(m_config->GetBgDarkenOpacity());
-        D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
-        float logicWidth = rtSize.width / m_dpiScale;
-        float logicHeight = rtSize.height / m_dpiScale;
+    D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
+    float logicWidth = renderTargetSize.width / m_dpiScale;
+    float logicHeight = renderTargetSize.height / m_dpiScale;
+    float bgOpacity = m_config->GetBgOpacity();
+
+    if (m_isDrumAnimating && m_config->GetEnableTrackDrum()) {
+        double diff = m_drumPosition - static_cast<double>(m_drumStartIndex);
+        double total = static_cast<double>(m_drumTargetIndex) - static_cast<double>(m_drumStartIndex);
+        float progress = 0.0f;
+        if (std::abs(total) > 0.0001) {
+            progress = static_cast<float>(diff / total);
+        }
+        if (progress < 0.0f) progress = 0.0f;
+        if (progress > 1.0f) progress = 1.0f;
+
+        float oldOpacity = bgOpacity * (1.0f - progress);
+        float nowOpacity = bgOpacity * progress;
+
+        // Draw OLD
+        ID2D1Bitmap* bmpOld = oldBitmap;
+        if (!bmpOld && bgMode == 0) bmpOld = m_placeholderArtBitmap.Get();
+        if (bmpOld) {
+            BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, bmpOld->GetSize(), m_oldBgOffsetX, m_oldBgOffsetY, m_oldBgScale);
+            m_d2dContext->DrawBitmap(
+                bmpOld,
+                &layout.destRect,
+                oldOpacity,
+                D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
+                &layout.srcRect
+            );
+        }
+
+        // Draw NOW
+        if (nowBitmap) {
+            BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, nowBitmap->GetSize(), m_bgOffsetX, m_bgOffsetY, m_bgScale);
+            m_d2dContext->DrawBitmap(
+                nowBitmap,
+                &layout.destRect,
+                nowOpacity,
+                D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
+                &layout.srcRect
+            );
+        }
+    } else {
+        ID2D1Bitmap* bmpNow = nowBitmap;
+        if (!bmpNow && bgMode == 0) {
+            bmpNow = m_placeholderArtBitmap.Get();
+        }
         
+        if (bmpNow) {
+            BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, bmpNow->GetSize(), m_bgOffsetX, m_bgOffsetY, m_bgScale);
+            m_d2dContext->DrawBitmap(
+                bmpNow,
+                &layout.destRect,
+                bgOpacity,
+                D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
+                &layout.srcRect
+            );
+        }
+    }
+
+    if (m_config->GetBgDarkenOpacity() > 0.0f && m_bgDarkenBrush) {
+        m_bgDarkenBrush->SetOpacity(m_config->GetBgDarkenOpacity());
         BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, D2D1::SizeF(0.0f, 0.0f));
         m_d2dContext->FillRectangle(&layout.overlayRect, m_bgDarkenBrush.Get());
     }

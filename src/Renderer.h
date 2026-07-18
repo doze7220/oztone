@@ -189,6 +189,9 @@ private:
     std::wstring m_oldTrackArtist;
     size_t m_oldTrackIndex = static_cast<size_t>(-1);
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_oldArtBitmap;
+    float m_oldBgOffsetX = 0.0f;
+    float m_oldBgOffsetY = 0.0f;
+    float m_oldBgScale = 1.0f;
     bool m_isDrumAnimating = false;
     double m_drumPosition = 0.0;
     double m_drumVelocity = 0.0;

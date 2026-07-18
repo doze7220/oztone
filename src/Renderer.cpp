@@ -12,6 +12,9 @@ void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artis
         m_oldTrackArtist = m_trackArtist;
         m_oldTrackIndex = m_lastCurrentTrackIndex;
         m_oldArtBitmap = m_currentArtBitmap;
+        m_oldBgOffsetX = m_bgOffsetX;
+        m_oldBgOffsetY = m_bgOffsetY;
+        m_oldBgScale = m_bgScale;
         m_isDrumAnimating = true;
     } else {
         m_isDrumAnimating = false;

@@ -210,15 +210,17 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
     TrackInfoLayout layout = LayoutCalculator::CalculateTrackInfoLayout(
         logicWidth, logicHeight, config, bitmapSize);
 
+    float slotHeight = config->GetArtSize() + config->GetShadowOffsetY() + 1.0f;
+
     D2D1_RECT_F drumClipRect = layout.clipRect;
     drumClipRect.top = layout.fallbackArtRect.top;
-    drumClipRect.bottom = layout.fallbackArtRect.bottom;
+    drumClipRect.bottom = layout.fallbackArtRect.top + slotHeight;
     context->PushAxisAlignedClip(drumClipRect, D2D1_ANTIALIAS_MODE_ALIASED);
 
     auto drawDrumItem = [&](size_t trackIndex, double diffOffset) {
       if (std::abs(diffOffset) > 2.0) return;
 
-      float offsetY = static_cast<float>(diffOffset) * config->GetArtSize();
+      float offsetY = static_cast<float>(diffOffset) * slotHeight;
       D2D1::Matrix3x2F transform = D2D1::Matrix3x2F::Translation(0.0f, offsetY);
       D2D1::Matrix3x2F originalTransform;
       context->GetTransform(&originalTransform);

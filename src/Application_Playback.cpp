@@ -36,11 +36,7 @@ void Application::HandleMediaCommand(int cmd) {
       if (cmd == APPCOMMAND_MEDIA_NEXTTRACK && skipCount == 0 &&
           m_isPrefetchReady.load()) {
         m_renderer.SetTrackInfo(m_prefetchedTitle, m_prefetchedArtist);
-        if (m_config.GetEnableTrackDrum()) {
-          m_renderer.SetAlbumArt(nullptr);
-        } else {
-          m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
-        }
+        m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
       } else {
         if (m_tagManager.Load(track)) {
           std::wstring title = m_tagManager.GetTitle();
@@ -52,19 +48,15 @@ void Application::HandleMediaCommand(int cmd) {
           m_renderer.SetTrackInfo(title, artist);
 
           const auto &artBytes = m_tagManager.GetAlbumArtBytes();
-          if (m_config.GetEnableTrackDrum()) {
-            m_renderer.SetAlbumArt(nullptr);
-          } else {
-            if (!artBytes.empty()) {
-              Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-              if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
-                m_renderer.SetAlbumArt(artBitmap.Get());
-              } else {
-                m_renderer.SetAlbumArt(nullptr);
-              }
+          if (!artBytes.empty()) {
+            Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+            if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
+              m_renderer.SetAlbumArt(artBitmap.Get());
             } else {
               m_renderer.SetAlbumArt(nullptr);
             }
+          } else {
+            m_renderer.SetAlbumArt(nullptr);
           }
         } else {
           std::wstring title;
