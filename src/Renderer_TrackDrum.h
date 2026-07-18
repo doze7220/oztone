@@ -3,13 +3,29 @@
 #include "WidgetContext.h"
 #include <array>
 #include <functional>
+#include <d2d1.h>
+
+class ConfigManager;
 
 class TrackDrum {
 public:
     TrackDrum();
     ~TrackDrum();
 
+    void StartDrumAnimation(int relativeDistance, 
+                            std::function<TrackMetadata(int relativeIndex)> dataProvider,
+                            std::function<void()> onComplete);
+                            
+    void Update(float deltaTime, const ConfigManager* config);
+
+    void SetAlbumArt(ID2D1Bitmap* bitmap);
+    void UpdateCurrentDrumSlot(const TrackMetadata& meta);
+    
+    bool IsDrumAnimating() const { return m_drumRelativePosition != 0.0f; }
+
 private:
+    void OnSlotAnimationCompleted();
+
     float m_drumRelativePosition = 0.0f;
     std::array<DrumSlot, 2> m_drumSlots;
     int m_currentDrumSlotIndex = 0;

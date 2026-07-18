@@ -26,7 +26,7 @@
     - `src/Renderer_TrackDrum.h` と `src/Renderer_TrackDrum.cpp` を作成し、インクルードガードや基本構造を記述する。
 [x] タスク2: 既存変数の移植 (Renderer -> TrackDrum)
     - `Renderer` からドラム関連のメンバ変数を切り離し、`TrackDrum` クラスへ移動する。
-[ ] タスク3: 既存メソッドの移植 (Renderer -> TrackDrum)
+[x] タスク3: 既存メソッドの移植 (Renderer -> TrackDrum)
     - `Renderer` からドラム計算・制御メソッド群（`StartDrumAnimation`など）を `TrackDrum` へ移動・適応させる。
 [ ] タスク4: RendererとTrackDrum間のインターフェース調整
     - `Renderer` に `TrackDrum` のインスタンスを持たせ、委譲メソッド・ゲッター等のアクセス口を整備する。
@@ -46,7 +46,9 @@
     - `Renderer_TrackDrum.h` に必要なインクルード（`WidgetContext.h`, `<array>`, `<functional>`）を追加し、上記の変数を `TrackDrum` の private メンバとして移植し、インライン初期化を記述した。
 
 ### タスク3: 既存メソッドの移植 (Renderer -> TrackDrum)
-    - (未実施)
+    - `src/Renderer.h` および `src/Renderer.cpp` から `StartDrumAnimation`, `OnSlotAnimationCompleted`, `SetAlbumArt`, `UpdateCurrentDrumSlot`, `IsDrumAnimating` の宣言・実装を削除した。
+    - `src/Renderer_Update.cpp` の `UpdateAnimation` 内の物理演算・境界判定ロジックを切り取り、`TrackDrum::Update` の実装とした。
+    - 削除・切り取ったメソッドを `src/Renderer_TrackDrum.h` および `src/Renderer_TrackDrum.cpp` に `TrackDrum` クラスのメソッドとして定義・実装し、`ConfigManager*` の渡し方などを調整した。ロジック自体は変更せずに移動を完了した。
 
 ### タスク4: RendererとTrackDrum間のインターフェース調整
     - (未実施)

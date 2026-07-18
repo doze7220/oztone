@@ -34,30 +34,6 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
             if (m_flyTextAlpha < 0.0f) m_flyTextAlpha = 0.0f;
         }
 
-        if (!m_config->GetEnableTrackDrum()) {
-            m_drumRelativePosition = 0.0f;
-            m_animatingTargetIndex = 0;
-        } else {
-            if (m_drumRelativePosition != 0.0f) {
-                float dampingFactor = static_cast<float>(m_config->GetTrackDrumMaxSpeed()) * deltaTime;
-                if (dampingFactor > 1.0f) dampingFactor = 1.0f;
-                
-                m_drumRelativePosition += (0.0f - m_drumRelativePosition) * dampingFactor;
-                
-                int currentPosRound = static_cast<int>(std::round(m_drumRelativePosition));
-                if (currentPosRound != m_animatingTargetIndex) {
-                    m_animatingOldIndexOffset = m_animatingTargetIndex;
-                    m_animatingTargetIndex = currentPosRound;
-                    OnSlotAnimationCompleted();
-                }
-
-                if (std::abs(m_drumRelativePosition) < 0.001f) {
-                    m_drumRelativePosition = 0.0f;
-                    m_animatingTargetIndex = 0;
-                    OnSlotAnimationCompleted();
-                }
-            }
-        }
     }
 
     WidgetContext ctx = BuildAnimationContext(deltaTime, isControlHovered, isVolumeHovered, isPlaylistHovered, isLogoMenuHovered, logoMenuHoveredIndex, currentTrackIndex, totalTracks, isPlaylistListViewMode, playbackHoveredIndex, playlistHoveredItemIndex, logoMenuItems, isLogoClicked, clickedLogoMenuIndex, clickedPlaybackIndex, outIsPlaylistExpanded, outIsLogoMenuExpanded);

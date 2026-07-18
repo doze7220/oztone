@@ -72,26 +72,9 @@ public:
     void ReloadResources();
 
     /**
-     * @brief ドラムアニメーションを開始する
-     */
-    void StartDrumAnimation(int relativeDistance, 
-                            std::function<TrackMetadata(int relativeIndex)> dataProvider,
-                            std::function<void()> onComplete);
-
-    /**
-     * @brief アルバムアートを設定する。nullptrの場合はプレースホルダーが使用される。
-     */
-    void SetAlbumArt(ID2D1Bitmap* bitmap);
-
-    /**
      * @brief 背景アートを設定する。
      */
     void SetBackgroundArt(ID2D1Bitmap* bitmap);
-
-    /**
-     * @brief 現在のドラムスロットのメタデータを非同期更新用に安全に上書きする。
-     */
-    void UpdateCurrentDrumSlot(const TrackMetadata& meta);
 
 
 
@@ -148,11 +131,6 @@ public:
      */
     bool LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitmap** ppBitmap);
 
-    /**
-     * @brief トラックドラムがアニメーション中かどうかを返す
-     */
-    bool IsDrumAnimating() const { return m_drumRelativePosition != 0.0f; }
-
 private:
     // D3D11 リソース
     Microsoft::WRL::ComPtr<ID3D11Device> m_d3dDevice;
@@ -197,8 +175,6 @@ private:
     std::vector<size_t> m_shuffleIndices;
 
 
-
-    void OnSlotAnimationCompleted();
 
     HWND m_hwnd;
     const ConfigManager* m_config;

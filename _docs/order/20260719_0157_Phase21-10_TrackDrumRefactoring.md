@@ -91,3 +91,59 @@
 *   **メソッド移植の禁止**: 本タスクでは変数の移動のみに専念すること。既存の `Renderer.cpp` や `Renderer_Update.cpp` 内で変数が未定義になることによる大量のコンパイルエラーが発生するが、次タスクでメソッドごと移動して解決するため、今は一切気にせずエラーを放置してよい。
 
 -----------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 21-10 Task 3 : 既存メソッドの移植 (Renderer -> TrackDrum)
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260719_0203_RES_Phase21-10_TrackDrumRefactoring.md
+
+#### 【作業手順（厳守事項）】
+1. 本プロンプトはRendererからTrackDrumへのメソッドの移植である。直ちに以下の【実装要件】に従ってコードの修正を実行すること。
+2. 作業完了後、既存の作業レポート（20260719_0203_RES_Phase21-10_TrackDrumRefactoring.md）の「タスク3」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+3. チャットにて「タスク3(Phase 21-10)が完了しました。タスク4の指示をお願いします」と報告すること。
+
+#### 【実装要件】
+現在 `Renderer` クラス内に存在するドラムアニメーション制御・更新メソッド群を、`TrackDrum` クラスへ移動する。
+
+*   **要件1: Rendererからのメソッド削除と分離**
+    *   `src/Renderer.h` から `StartDrumAnimation`, `OnSlotAnimationCompleted`, `StepDrumSlot` 等のドラム専用メソッドの宣言を削除する。
+    *   `src/Renderer.cpp` から `StartDrumAnimation`, `OnSlotAnimationCompleted`, `StepDrumSlot` の実装を削除する。
+    *   `src/Renderer_Update.cpp` の `UpdateAnimation` 内部から、ドラムの相対距離の計算および境界判定（`OnSlotAnimationCompleted` 呼び出し）を行っている物理演算ロジックのブロックを切り取る。
+*   **要件2: TrackDrumへのメソッド定義と実装**
+    *   `src/Renderer_TrackDrum.h` の `TrackDrum` クラスの public セクションに `StartAnimation` (または `StartDrumAnimation`), `Update` を定義し、private セクションに `OnSlotAnimationCompleted`, `StepDrumSlot` 等の内部制御メソッドを定義する。
+    *   `src/Renderer_TrackDrum.cpp` に、要件1で切り取った各メソッドの実装を移植する（`TrackDrum::` のスコープをつける）。
+*   **要件3: TrackDrum内部での完結化**
+    *   移植したメソッド内において、`m_drumSlots` などのメンバ変数へのアクセスが `TrackDrum` のスコープ内で完結するように整備する。必要であれば `TrackDrum.cpp` 内に不足しているインクルード（`<algorithm>`や`<cmath>`等）を追加する。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **ロジック変更の禁止**: 移植する物理演算、状態判定、イベント呼び出しのロジック（計算式やIF文の条件など）は **1ミリも変更せず** そのまま移動させること。
+*   **コンパイルエラーの放置**: メソッドを移動したことにより、`Application` などの呼び出し元で「メソッドが見つからない」というコンパイルエラーが発生するが、これは次のタスク（インターフェース調整）で解決するため、今は一切気にせずエラーを放置してよい。
+
+-----------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 21-10 Task 4 : RendererとTrackDrum間のインターフェース調整
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260719_0203_RES_Phase21-10_TrackDrumRefactoring.md
+
+#### 【作業手順（厳守事項）】
+1. 本プロンプトはRendererとTrackDrumのインターフェース調整である。直ちに以下の【実装要件】に従ってコードの修正を実行すること。
+2. 作業完了後、既存の作業レポート（20260719_0203_RES_Phase21-10_TrackDrumRefactoring.md）の「タスク4」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+3. チャットにて「タスク4(Phase 21-10)が完了しました。タスク5の指示をお願いします」と報告すること。
+
+#### 【実装要件】
+分離した `TrackDrum` クラスを `Renderer` の部品として組み込み、外部（ApplicationやRenderer_Update）からアクセスできるように配線を繋ぐ。
+
+*   **要件1: Renderer.h への組み込み**
+    *   `src/Renderer.h` に `#include "Renderer_TrackDrum.h"` を追加する。
+    *   `Renderer` クラスの private メンバに `TrackDrum m_trackDrum;` を追加する。
+    *   public メンバに `TrackDrum& GetTrackDrum() { return m_trackDrum; }` などのゲッターを追加し、外部からドラムエンジンへアクセスできるようにする。
+*   **要件2: Renderer_Update.cpp の修正**
+    *   `src/Renderer_Update.cpp` の `UpdateAnimation` メソッド内部にて、旧来ドラムの物理演算ロジックがあった場所で `m_trackDrum.Update();` を呼び出すように配線する。
+*   **要件3: Application層からの呼び出し修正**
+    *   `src/Application_Playback.cpp` 等で曲を切り替える際、`m_renderer.StartDrumAnimation(...)` と呼び出していた箇所を、要件1で作成したゲッターを経由して `m_renderer.GetTrackDrum().StartAnimation(...)` （またはTrackDrum側のメソッド名）を呼び出すように修正する。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **WidgetContextの修正は次タスク**: 本タスクでは `WidgetContext` を組み立てる `Renderer_Context.cpp` などの修正は行わない。`WidgetContext` に関連するコンパイルエラーが残るはずだが、それは次タスクで解決するため今は放置してよい。
+
+-----------------------------------------------------------------------------------
