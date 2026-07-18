@@ -61,7 +61,7 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
           PlayCurrentTrack();
         } else {
           m_renderer.GetTrackDrum().StartDrumAnimation(0, nullptr, nullptr);
-          m_renderer.SetAlbumArt(nullptr);
+          m_renderer.GetTrackDrum().SetAlbumArt(nullptr);
         }
       }
     } else if (btnIndex == 2) { // 🗑️ (全曲削除)
@@ -154,7 +154,7 @@ void Application::OnPlaylistClicked(int x, int y) {
       int distance = static_cast<int>(oldIndex) - static_cast<int>(index);
       if (!PlayCurrentTrack(distance)) {
         m_renderer.GetTrackDrum().StartDrumAnimation(0, nullptr, nullptr);
-        m_renderer.SetAlbumArt(nullptr);
+        m_renderer.GetTrackDrum().SetAlbumArt(nullptr);
       }
     }
   }
@@ -222,7 +222,7 @@ void Application::ClearPlaylist() {
   m_audioPlayer.Stop();
 
   m_renderer.GetTrackDrum().StartDrumAnimation(0, nullptr, nullptr);
-  m_renderer.SetAlbumArt(nullptr);
+  m_renderer.GetTrackDrum().SetAlbumArt(nullptr);
 }
 
 void Application::SwitchPlaylist(const std::wstring &filepath) {
@@ -257,7 +257,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
   m_audioPlayer.Stop();
   m_trackAnalyzer.ClearQueue();
   m_renderer.GetTrackDrum().StartDrumAnimation(0, nullptr, nullptr);
-  m_renderer.SetAlbumArt(nullptr);
+  m_renderer.GetTrackDrum().SetAlbumArt(nullptr);
 
   m_playlistManager.Clear();
   m_playlistManager.LoadFromFile(filepath);
@@ -279,7 +279,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
 
     if (!played) {
       m_renderer.GetTrackDrum().StartDrumAnimation(0, nullptr, nullptr);
-      m_renderer.SetAlbumArt(nullptr);
+      m_renderer.GetTrackDrum().SetAlbumArt(nullptr);
     }
   }
 

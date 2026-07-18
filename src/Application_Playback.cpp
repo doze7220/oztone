@@ -52,7 +52,7 @@ void Application::HandleMediaCommand(int cmd) {
 
     if (!played) {
       m_renderer.GetTrackDrum().StartDrumAnimation(0, nullptr, nullptr);
-      m_renderer.SetAlbumArt(nullptr);
+      m_renderer.GetTrackDrum().SetAlbumArt(nullptr);
     } else {
       PlayCurrentTrack(totalDistance);
     }
@@ -138,7 +138,7 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
     m_renderer.SetBackgroundFraming(artX, artY, artScale);
 
     auto onComplete = [this, track, artBitmap]() {
-      m_renderer.SetAlbumArt(artBitmap.Get());
+      m_renderer.GetTrackDrum().SetAlbumArt(artBitmap.Get());
       UpdateTrackMetadataIfNeeded(track);
     };
 
@@ -183,7 +183,7 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
         m_playlistManager.SaveToFile(defaultPath);
         UpdatePlaylistSummaries();
         
-        m_renderer.UpdateCurrentDrumSlot(currentMeta);
+        m_renderer.GetTrackDrum().UpdateCurrentDrumSlot(currentMeta);
       }
     } else {
         currentMeta.filepath = filepath;
@@ -196,7 +196,7 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
         m_playlistManager.SaveToFile(defaultPath);
         UpdatePlaylistSummaries();
         
-        m_renderer.UpdateCurrentDrumSlot(currentMeta);
+        m_renderer.GetTrackDrum().UpdateCurrentDrumSlot(currentMeta);
     }
   }
 }

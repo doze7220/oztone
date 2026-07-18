@@ -115,7 +115,7 @@ void Application::Run() {
 
         if (!played) {
           m_renderer.GetTrackDrum().StartDrumAnimation(0, nullptr, nullptr);
-          m_renderer.SetAlbumArt(nullptr);
+          m_renderer.GetTrackDrum().SetAlbumArt(nullptr);
         }
     }
 
@@ -257,7 +257,7 @@ void Application::ForceRender() {
       if (m_currentArtThread.joinable()) {
           m_currentArtThread.join();
       }
-      m_renderer.SetAlbumArt(m_loadedCurrentArt.Get());
+      m_renderer.GetTrackDrum().SetAlbumArt(m_loadedCurrentArt.Get());
   }
 
   m_window.SetPlaylistExpanded(isPlaylistExpanded);

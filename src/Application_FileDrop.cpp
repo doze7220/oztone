@@ -141,7 +141,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
 
       if (!played) {
         m_renderer.GetTrackDrum().StartDrumAnimation(0, nullptr, nullptr);
-        m_renderer.SetAlbumArt(nullptr);
+        m_renderer.GetTrackDrum().SetAlbumArt(nullptr);
       }
     }
   }

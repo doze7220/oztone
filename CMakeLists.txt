@@ -47,6 +47,7 @@ set(SOURCES
     src/Renderer_Update.cpp
     src/Renderer_Draw.cpp
     src/Renderer_Context.cpp
+    src/Renderer_TrackDrum.cpp
     src/LayoutCalculator.cpp
     src/Visualizer.cpp
     src/Visualizer_PrismBeat.cpp
@@ -81,6 +82,7 @@ set(HEADERS
     src/Window.h
     src/ConfigManager.h
     src/Renderer.h
+    src/Renderer_TrackDrum.h
     src/LayoutCalculator.h
     src/Visualizer.h
     src/IVisualizerStyle.h

@@ -32,9 +32,9 @@
     - `Renderer` に `TrackDrum` のインスタンスを持たせ、委譲メソッド・ゲッター等のアクセス口を整備する。
 [x] タスク5: WidgetContextおよび周辺の配線修正
     - 描画コンテキスト構築時など、ドラム状態の参照元を `TrackDrum` へ変更する。
-[ ] タスク6: ビルド設定の更新
-    - `CMakeLists.txt` に `src/Renderer_TrackDrum.cpp` を追加する。
-[ ] タスク7: ドキュメント更新
+[x] タスク6: ビルド設定の更新
+    - `CMakeLists.txt` に `src/Renderer_TrackDrum.cpp` と `src/Renderer_TrackDrum.h` を追加する。
+[x] タスク7: ドキュメント更新
     - `PROJECT_ARCHITECTURE.md` の記述を更新し、TrackDrumクラスの分離について記載する。
 
 ## 4. 詳細作業内容
@@ -60,9 +60,10 @@
     - `Renderer_Context.cpp` における各種コンテキスト構築処理(`BuildAnimationContext`, `BuildLayoutContext`, `BuildRenderContext`)において、ドラムの状態を `Renderer` のメンバ変数ではなく、`m_trackDrum` からゲッターを経由して取得し、`WidgetContext` に代入するように修正した。
 
 ### タスク6: ビルド設定の更新
-    - (未実施)
+    - `CMakeLists.txt` のソースファイルリスト (`SOURCES`) に `src/Renderer_TrackDrum.cpp` を追加し、ヘッダファイルリスト (`HEADERS`) に `src/Renderer_TrackDrum.h` を追加した。
 
 ### タスク7: ドキュメント更新
-    - (未実施)
+    - `PROJECT_ARCHITECTURE.md` の「5. 実装済みクラス・関数リファレンス」の `Renderer` クラスの項目内に、物理分割ファイルとして `Renderer_TrackDrum.cpp: ドラムアニメーションの物理演算と状態管理（TrackDrumクラス）` を追記した。
+    - 合わせて、ドラムの機能が `Renderer` から切り離され、部品としてカプセル化された旨を明記した。
 
 
