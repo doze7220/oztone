@@ -92,7 +92,7 @@ public:
     /**
      * @brief 再生中の曲情報を設定する
      */
-    void SetTrackInfo(const std::wstring& title, const std::wstring& artist, DrumMoveType moveType = DrumMoveType::Jump);
+    void SetTrackInfo(const std::wstring& title, const std::wstring& artist, const std::wstring& trackNoString = L"", DrumMoveType moveType = DrumMoveType::Jump, size_t currentTrackIndex = 0);
 
     /**
      * @brief アルバムアートを設定する。nullptrの場合はプレースホルダーが使用される。
@@ -204,6 +204,10 @@ private:
 
     std::optional<size_t> m_focusedPlaylistIndex;
     std::vector<size_t> m_shuffleIndices;
+
+    // DrumSlot バケツリレー用
+    DrumSlotData m_oldDrumSlot;
+    DrumSlotData m_nowDrumSlot;
 
     // Track Drum States
     std::wstring m_oldTrackTitle;

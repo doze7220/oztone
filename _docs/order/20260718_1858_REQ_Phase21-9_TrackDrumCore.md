@@ -61,3 +61,31 @@
 *   **スコープの厳密な限定**: 本タスクは「データ構造の定義」と「シグネチャの変更（デフォルト引数付き）」のみ。Application側の呼び出し修正や、Renderer内部の物理演算ロジックには絶対に触れないこと。
 
 -----------------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 21-9 Task 2 : バケツリレーと位置ワープ処理の実装
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260718_1905_RES_Phase21-9_TrackDrumRebuild.md
+
+#### 【作業手順（厳守事項）】
+1. 本プロンプトは完全独立型ドラムエンジンのコアロジック実装である。直ちに以下の【実装要件】に従ってコードの修正を実行すること。
+2. 作業完了後、既存の作業レポート（20260718_1905_RES_Phase21-9_TrackDrumRebuild.md）の「タスク2」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+3. チャットにて「バケツリレーと位置ワープ処理(Task 2)が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+*   **要件1: 実体データとしてのバケツリレー確立**
+    *   `src/Renderer.h` に、`DrumSlotData m_oldDrumSlot;` と `DrumSlotData m_nowDrumSlot;` をメンバ変数として追加する（コンストラクタ等で適切に初期化すること）。
+    *   `src/Renderer.cpp` の `SetTrackInfo` 呼び出し時、新しい情報が渡された瞬間、無条件で `m_oldDrumSlot = m_nowDrumSlot;` を実行し、既存データを完全に退避させる（絶対的なバケツリレー）。
+    *   退避後、渡された曲名、アーティスト名等の引数を `m_nowDrumSlot` に保存する。（※画像ビットマップの保存については、後続の `SetAlbumArt` などの呼び出し時に `m_nowDrumSlot.artBitmap` にセットされるよう合わせて改修すること）。
+*   **要件2: DrumMoveType に応じた現在位置の正確なワープ**
+    *   `SetTrackInfo` にて、引数 `moveType` の意図に従い、アニメーションの目標地点（`currentTrackIndex`）に対する現在のドラム位置（`m_drumPosition`）を正確にワープさせるロジックを実装する。
+        *   `DrumMoveType::Next` または `DrumMoveType::CrossPlaylist` : `m_drumPosition = static_cast<float>(currentTrackIndex) - 1.0f;` （1つ手前から順方向へアニメーションさせる）
+        *   `DrumMoveType::Prev` : `m_drumPosition = static_cast<float>(currentTrackIndex) + 1.0f;` （1つ先から逆方向へアニメーションさせる）
+        *   `DrumMoveType::Reset` : `m_drumPosition = static_cast<float>(currentTrackIndex);` （UIクリア時などのため、アニメーションさせず即時着地させる）
+        *   `DrumMoveType::Jump` : 遠距離の回転アニメーションを表現するため、`m_drumPosition` は上書きせず現在の位置を維持する。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スコープの厳密な限定**: Application層の呼び出し元変更（タスク3）や、Widget_TrackInfo層での描画切り替え（タスク4, 5）には絶対に触れないこと。今回は Renderer 内部でのデータ退避と、回転アニメーション開始前の位置ワープ（仕込み）のみに限定する。
+
+
+-----------------------------------------------------------------------------------------

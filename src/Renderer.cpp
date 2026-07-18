@@ -6,7 +6,32 @@ Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_c
 
 Renderer::~Renderer() {}
 
-void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artist, DrumMoveType moveType) {
+void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artist, const std::wstring& trackNoString, DrumMoveType moveType, size_t currentTrackIndex) {
+    // 絶対的なバケツリレー
+    m_oldDrumSlot = m_nowDrumSlot;
+
+    // 現在データの保存
+    m_nowDrumSlot.title = title;
+    m_nowDrumSlot.artist = artist;
+    m_nowDrumSlot.trackNo = trackNoString;
+
+    // DrumMoveType に応じた現在位置の正確なワープ
+    switch (moveType) {
+        case DrumMoveType::Next:
+        case DrumMoveType::CrossPlaylist:
+            m_drumPosition = static_cast<float>(currentTrackIndex) - 1.0f;
+            break;
+        case DrumMoveType::Prev:
+            m_drumPosition = static_cast<float>(currentTrackIndex) + 1.0f;
+            break;
+        case DrumMoveType::Reset:
+            m_drumPosition = static_cast<float>(currentTrackIndex);
+            break;
+        case DrumMoveType::Jump:
+            // 遠距離の回転アニメーションを表現するため、現在位置を維持
+            break;
+    }
+
     if (m_config && m_config->GetEnableTrackDrum() && m_lastCurrentTrackIndex != static_cast<size_t>(-1) && m_lastCurrentTrackIndex != static_cast<size_t>(-2)) {
         m_oldTrackTitle = m_trackTitle;
         m_oldTrackArtist = m_trackArtist;
@@ -26,6 +51,7 @@ void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artis
 
 void Renderer::SetAlbumArt(ID2D1Bitmap* bitmap) {
     m_currentArtBitmap = bitmap;
+    m_nowDrumSlot.artBitmap = bitmap;
 }
 
 void Renderer::SetBackgroundFraming(float offsetX, float offsetY, float scale) {
