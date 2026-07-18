@@ -99,13 +99,7 @@ void Application::Run() {
             m_framingDb.SaveToFile(m_framingDbPath);
           }
         }
-        
-        size_t prevIndex = m_playlistManager.GetCurrentIndex();
         m_playlistManager.Advance();
-        if (m_playlistManager.GetCurrentIndex() <= prevIndex) {
-            m_isContinuousStream = false;
-            m_streamBreakDirection = StreamBreakDirection::Next;
-        }
 
         size_t skipCount = 0;
         bool played = false;
@@ -113,11 +107,6 @@ void Application::Run() {
 
         while (skipCount < totalCount) {
           std::wstring track = m_playlistManager.GetCurrentTrack();
-
-          if (!m_isContinuousStream) {
-              m_renderer.ResetDrumPosition(m_playlistManager.GetCurrentIndex(), m_streamBreakDirection == StreamBreakDirection::Next);
-              m_isContinuousStream = true;
-          }
 
           if (skipCount == 0) {
             // 最初の曲は先読みデータを利用

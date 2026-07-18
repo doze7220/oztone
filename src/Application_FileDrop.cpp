@@ -122,9 +122,6 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
       }
     }
 
-    m_isContinuousStream = false;
-    m_streamBreakDirection = StreamBreakDirection::Next;
-
     if (!isShiftPressed || (wasEmpty && !m_audioPlayer.IsPlaying())) {
       m_audioPlayer.Stop();
 
@@ -134,12 +131,6 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
 
       while (skipCount < totalCount) {
         std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
-
-        if (!m_isContinuousStream) {
-            m_renderer.ResetDrumPosition(m_playlistManager.GetCurrentIndex(), m_streamBreakDirection == StreamBreakDirection::Next);
-            m_isContinuousStream = true;
-        }
-
         if (m_tagManager.Load(currentTrack)) {
           std::wstring title = m_tagManager.GetTitle();
           std::wstring artist = m_tagManager.GetArtist();

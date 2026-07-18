@@ -18,20 +18,10 @@ void Application::HandleMediaCommand(int cmd) {
     }
     if (cmd == APPCOMMAND_MEDIA_NEXTTRACK) {
       m_renderer.TriggerFlyText(L"NEXT TRACK");
-      size_t prevIndex = m_playlistManager.GetCurrentIndex();
       m_playlistManager.Advance();
-      if (m_playlistManager.GetCurrentIndex() <= prevIndex) {
-          m_isContinuousStream = false;
-          m_streamBreakDirection = StreamBreakDirection::Next;
-      }
     } else {
       m_renderer.TriggerFlyText(L"PREV TRACK");
-      size_t prevIndex = m_playlistManager.GetCurrentIndex();
       m_playlistManager.Previous();
-      if (m_playlistManager.GetCurrentIndex() >= prevIndex) {
-          m_isContinuousStream = false;
-          m_streamBreakDirection = StreamBreakDirection::Prev;
-      }
     }
 
     size_t skipCount = 0;
@@ -42,11 +32,6 @@ void Application::HandleMediaCommand(int cmd) {
 
     while (skipCount < totalCount) {
       std::wstring track = m_playlistManager.GetCurrentTrack();
-
-      if (!m_isContinuousStream) {
-          m_renderer.ResetDrumPosition(m_playlistManager.GetCurrentIndex(), m_streamBreakDirection == StreamBreakDirection::Next);
-          m_isContinuousStream = true;
-      }
 
       if (cmd == APPCOMMAND_MEDIA_NEXTTRACK && skipCount == 0 &&
           m_isPrefetchReady.load()) {

@@ -166,10 +166,6 @@ private:
     float m_suspendPosition = 0.0f;
     bool m_isWaitingForDevice = false;
 
-    bool m_isContinuousStream = true;
-    enum class StreamBreakDirection { Next, Prev };
-    StreamBreakDirection m_streamBreakDirection = StreamBreakDirection::Next;
-
     WatchdogState m_watchdogState = WatchdogState::Normal;
     ULONGLONG m_lastWatchdogPollTime = 0;
     float m_lastWatchdogPosition = -1.0f;

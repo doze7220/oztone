@@ -74,11 +74,6 @@ public:
     void SetTrackInfo(const std::wstring& title, const std::wstring& artist);
 
     /**
-     * @brief 継続ストリームでない場合にトラックドラムの現在位置を強制リセットする
-     */
-    void ResetDrumPosition(size_t targetIndex, bool isNext);
-
-    /**
      * @brief アルバムアートを設定する。nullptrの場合はプレースホルダーが使用される。
      */
     void SetAlbumArt(ID2D1Bitmap* bitmap);
@@ -203,7 +198,6 @@ private:
     double m_drumVelocity = 0.0;
     size_t m_drumTargetIndex = 0;
     size_t m_drumStartIndex = 0;
-    int m_drumVirtualOldIndex = 0;
 
     HWND m_hwnd;
     const ConfigManager* m_config;
