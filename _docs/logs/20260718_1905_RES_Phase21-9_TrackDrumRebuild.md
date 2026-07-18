@@ -18,7 +18,7 @@
     - 描画は `oldDrumSlot` と `nowDrumSlot` の実体のみに依存させる。
 
 ## 3. 実装タスクリスト
-- [ ] タスク1: `Renderer.h` へのデータ構造定義と `SetTrackInfo` シグネチャ変更
+- [x] タスク1: `Renderer.h` へのデータ構造定義と `SetTrackInfo` シグネチャ変更
 - [ ] タスク2: `Renderer.cpp` および `Renderer_Update.cpp` でのバケツリレーと位置ワープ処理の実装
 - [ ] タスク3: `Application` 層の全 `SetTrackInfo` 呼び出し箇所への `DrumMoveType` 適用
 - [ ] タスク4: `WidgetContext.h` への `DrumSlotData` 追加と古い変数のパージ
