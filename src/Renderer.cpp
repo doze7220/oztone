@@ -6,6 +6,15 @@ Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_c
 
 Renderer::~Renderer() {}
 
+void Renderer::ResetDrumPosition(size_t targetIndex, bool isNext) {
+    m_drumTargetIndex = targetIndex;
+    if (isNext) {
+        m_drumPosition = static_cast<double>(targetIndex) - 1.0;
+    } else {
+        m_drumPosition = static_cast<double>(targetIndex) + 1.0;
+    }
+}
+
 void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artist) {
     if (m_config && m_config->GetEnableTrackDrum() && m_lastCurrentTrackIndex != static_cast<size_t>(-1) && m_lastCurrentTrackIndex != static_cast<size_t>(-2)) {
         m_oldTrackTitle = m_trackTitle;
@@ -23,6 +32,7 @@ void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artis
         } else {
             m_isDrumAnimating = true;
         }
+        m_drumVirtualOldIndex = static_cast<int>(std::round(m_drumPosition));
     } else {
         m_isDrumAnimating = false;
         if (!m_isFirstTrackLoaded) {
@@ -31,6 +41,7 @@ void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artis
             }
             m_drumPosition = static_cast<double>(m_drumTargetIndex);
         }
+        m_drumVirtualOldIndex = static_cast<int>(std::round(m_drumPosition));
     }
 
     m_isFirstTrackLoaded = true;

@@ -240,7 +240,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
         titleLayout = m_titleTextLayout.Get();
         artistLayout = m_artistTextLayout.Get();
         trackCountLayout = m_trackCountTextLayout.Get();
-      } else if (trackIndex == ctx.drumStartIndex) {
+      } else if (static_cast<int>(trackIndex) == ctx.drumVirtualOldIndex) {
         art = ctx.oldArtBitmap;
         titleLayout = m_oldTitleTextLayout.Get();
         artistLayout = m_oldArtistTextLayout.Get();
@@ -395,7 +395,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
     int endSlot   = static_cast<int>(std::ceil(ctx.drumPosition + 1.5));
 
     for (int i = startSlot; i <= endSlot; ++i) {
-        if (i < 0 || (ctx.totalTracks > 0 && i >= static_cast<int>(ctx.totalTracks))) continue;
+        if (i != ctx.drumVirtualOldIndex && (i < 0 || (ctx.totalTracks > 0 && i >= static_cast<int>(ctx.totalTracks)))) continue;
         double diffOffset = static_cast<double>(i) - ctx.drumPosition;
         drawDrumItem(static_cast<size_t>(i), diffOffset);
     }

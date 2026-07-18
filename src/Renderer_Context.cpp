@@ -39,6 +39,7 @@ WidgetContext Renderer::BuildAnimationContext(float deltaTime, bool isControlHov
     ctx.drumVelocity = m_drumVelocity;
     ctx.drumTargetIndex = m_drumTargetIndex;
     ctx.drumStartIndex = m_drumStartIndex;
+    ctx.drumVirtualOldIndex = m_drumVirtualOldIndex;
 
     return ctx;
 }
@@ -68,6 +69,7 @@ WidgetContext Renderer::BuildLayoutContext(const std::wstring& timeString, float
     ctx.drumVelocity = m_drumVelocity;
     ctx.drumTargetIndex = m_drumTargetIndex;
     ctx.drumStartIndex = m_drumStartIndex;
+    ctx.drumVirtualOldIndex = m_drumVirtualOldIndex;
 
     return ctx;
 }
@@ -113,6 +115,7 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
     ctx.drumVelocity = m_drumVelocity;
     ctx.drumTargetIndex = m_drumTargetIndex;
     ctx.drumStartIndex = m_drumStartIndex;
+    ctx.drumVirtualOldIndex = m_drumVirtualOldIndex;
 
     ctx.config = m_config;
     ctx.focusedPlaylistIndex = m_focusedPlaylistIndex;

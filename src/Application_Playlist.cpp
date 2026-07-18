@@ -59,6 +59,12 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
         m_audioPlayer.Stop();
         if (!m_playlistManager.IsEmpty()) {
           std::wstring track = m_playlistManager.GetCurrentTrack();
+          
+          if (!m_isContinuousStream) {
+              m_renderer.ResetDrumPosition(m_playlistManager.GetCurrentIndex(), m_streamBreakDirection == StreamBreakDirection::Next);
+              m_isContinuousStream = true;
+          }
+
           if (m_tagManager.Load(track)) {
             std::wstring title = m_tagManager.GetTitle();
             std::wstring artist = m_tagManager.GetArtist();
@@ -188,6 +194,11 @@ void Application::OnPlaylistClicked(int x, int y) {
     auto list = m_playlistManager.GetShuffleList();
     if (index < list.size()) {
       std::wstring track = list[index];
+
+      if (!m_isContinuousStream) {
+          m_renderer.ResetDrumPosition(m_playlistManager.GetCurrentIndex(), m_streamBreakDirection == StreamBreakDirection::Next);
+          m_isContinuousStream = true;
+      }
 
       if (m_tagManager.Load(track)) {
         std::wstring title = m_tagManager.GetTitle();
@@ -324,6 +335,9 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
   m_focusedPlaylistIndex.reset();
   m_config.SetDefaultPlaylistPath(filepath);
 
+  m_isContinuousStream = false;
+  m_streamBreakDirection = StreamBreakDirection::Next;
+
   // 既存の再生やキューをクリアする（ClearPlaylist()
   // はファイルを空にしてしまうので呼ばない）
   m_audioPlayer.Stop();
@@ -341,6 +355,12 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
 
     while (skipCount < totalCount) {
       std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
+
+      if (!m_isContinuousStream) {
+          m_renderer.ResetDrumPosition(m_playlistManager.GetCurrentIndex(), m_streamBreakDirection == StreamBreakDirection::Next);
+          m_isContinuousStream = true;
+      }
+
       if (m_tagManager.Load(currentTrack)) {
         std::wstring title = m_tagManager.GetTitle();
         std::wstring artist = m_tagManager.GetArtist();
