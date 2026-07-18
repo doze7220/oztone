@@ -76,10 +76,8 @@ void Application::Run() {
     }
 
     if (m_audioPlayer.IsAtEnd()) {
-      // ロードが完了するまで待機（このフレームはスキップして待つ）
-      if (m_isPrefetchReady.load()) {
-        std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
-        if (m_audioPlayer.IsLearningValid()) {
+      std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
+      if (m_audioPlayer.IsLearningValid()) {
           float learnedPeak = m_audioPlayer.GetLearningPeakAmplitude();
           float learnedFreq = m_audioPlayer.GetLearningMaxFrequency();
           TrackMetadata meta;
@@ -119,7 +117,6 @@ void Application::Run() {
           m_renderer.SetDrumTarget(0);
           m_renderer.SetAlbumArt(nullptr);
         }
-      }
     }
 
     ForceRender();

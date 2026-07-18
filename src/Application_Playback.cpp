@@ -52,72 +52,6 @@ void Application::HandleMediaCommand(int cmd) {
   }
 }
 
-void Application::PrefetchNextTrack() {
-  m_isPrefetchReady.store(false);
-
-  if (m_prefetchThread.joinable()) {
-    m_prefetchThread.join();
-  }
-
-  m_prefetchThread = std::thread([this]() {
-    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-
-    m_prefetchedTitle.clear();
-    m_prefetchedArtist.clear();
-    m_prefetchedAlbumArt.Reset();
-
-    std::wstring nextFile = m_playlistManager.GetNextTrack();
-    if (!nextFile.empty()) {
-      bool loadSuccess = false;
-      try {
-        if (std::filesystem::exists(std::filesystem::path(nextFile))) {
-          loadSuccess = m_tagManager.Load(nextFile);
-        }
-      } catch (...) {
-        loadSuccess = false;
-      }
-
-      if (loadSuccess) {
-        m_prefetchedTitle = m_tagManager.GetTitle();
-        m_prefetchedArtist = m_tagManager.GetArtist();
-
-        if (m_prefetchedTitle.empty()) {
-          try {
-            m_prefetchedTitle =
-                std::filesystem::path(nextFile).filename().wstring();
-          } catch (...) {
-            m_prefetchedTitle = L"UNKNOWN";
-          }
-        }
-        if (m_prefetchedArtist.empty()) {
-          m_prefetchedArtist = L"---";
-        }
-
-        const auto &artBytes = m_tagManager.GetAlbumArtBytes();
-        if (!artBytes.empty()) {
-          m_renderer.LoadBitmapFromMemory(artBytes, &m_prefetchedAlbumArt);
-        }
-
-        UpdateTrackMetadataIfNeeded(nextFile);
-      } else {
-        try {
-          m_prefetchedTitle =
-              std::filesystem::path(nextFile).filename().wstring();
-        } catch (...) {
-          m_prefetchedTitle = L"UNKNOWN";
-        }
-        m_prefetchedArtist = L"---";
-      }
-    }
-
-    m_isPrefetchReady.store(true);
-
-    if (SUCCEEDED(hr)) {
-      CoUninitialize();
-    }
-  });
-}
-
 void Application::LoadCurrentTrackArtAsync() {
   m_isCurrentArtLoadReady.store(false);
 
@@ -159,24 +93,20 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
     m_renderer.SetDrumTarget(relativeDistance);
 
     // 2. 切り替わった新スロットに対して画像をセットする
-    if (relativeDistance == 1 && m_isPrefetchReady.load()) {
-      m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
-    } else {
-      if (m_tagManager.Load(track)) {
-        const auto &artBytes = m_tagManager.GetAlbumArtBytes();
-        if (!artBytes.empty()) {
-          Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-          if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
-            m_renderer.SetAlbumArt(artBitmap.Get());
-          } else {
-            m_renderer.SetAlbumArt(nullptr);
-          }
+    if (m_tagManager.Load(track)) {
+      const auto &artBytes = m_tagManager.GetAlbumArtBytes();
+      if (!artBytes.empty()) {
+        Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+        if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
+          m_renderer.SetAlbumArt(artBitmap.Get());
         } else {
           m_renderer.SetAlbumArt(nullptr);
         }
       } else {
         m_renderer.SetAlbumArt(nullptr);
       }
+    } else {
+      m_renderer.SetAlbumArt(nullptr);
     }
 
     // 3. 新スロットに対してフレーミング情報をセットする
@@ -185,7 +115,6 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
     m_renderer.SetBackgroundFraming(artX, artY, artScale);
 
     UpdateTrackMetadataIfNeeded(track);
-    PrefetchNextTrack();
     return true;
   }
   return false;

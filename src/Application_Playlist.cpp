@@ -62,7 +62,6 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
         } else {
           m_renderer.SetDrumTarget(0);
           m_renderer.SetAlbumArt(nullptr);
-          m_isPrefetchReady.store(false);
         }
       }
     } else if (btnIndex == 2) { // 🗑️ (全曲削除)
@@ -222,7 +221,6 @@ void Application::ClearPlaylist() {
 
   m_audioPlayer.Stop();
 
-  m_isPrefetchReady.store(false);
   m_renderer.SetDrumTarget(0);
   m_renderer.SetAlbumArt(nullptr);
 }
@@ -258,7 +256,6 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
   // はファイルを空にしてしまうので呼ばない）
   m_audioPlayer.Stop();
   m_trackAnalyzer.ClearQueue();
-  m_isPrefetchReady.store(false);
   m_renderer.SetDrumTarget(0);
   m_renderer.SetAlbumArt(nullptr);
 

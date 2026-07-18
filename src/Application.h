@@ -114,11 +114,6 @@ private:
      */
     void UpdatePlaylistSummaries();
 
-    /**
-     * @brief 次の曲のタグ情報と画像を先読みする
-     */
-    void PrefetchNextTrack();
-
     void LoadCurrentTrackArtAsync();
 
     /**
@@ -137,14 +132,6 @@ private:
     AudioPlayer m_audioPlayer;
     TagManager m_tagManager;
     PlaylistManager m_playlistManager;
-
-    // 先読みデータ
-    std::atomic<bool> m_isPrefetchReady{false};
-    std::thread m_prefetchThread;
-    
-    std::wstring m_prefetchedTitle;
-    std::wstring m_prefetchedArtist;
-    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_prefetchedAlbumArt;
 
     std::thread m_currentArtThread;
     std::atomic<bool> m_isCurrentArtLoadReady{false};

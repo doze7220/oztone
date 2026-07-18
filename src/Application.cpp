@@ -6,9 +6,6 @@ Application::Application() {}
 Application::~Application() {
   m_trackAnalyzer.Uninitialize();
 
-  if (m_prefetchThread.joinable()) {
-    m_prefetchThread.join();
-  }
   m_audioPlayer.Uninitialize();
 
   m_config.SetDefaultPlaylistPath(m_config.GetDefaultPlaylistPath());
