@@ -51,7 +51,7 @@ oztone/
 2.  **初期化 (`Application::Initialize`)**: 内部で `Window::Initialize`、`Renderer::Initialize`、`AudioPlayer::Initialize` を順次呼び出しシステムの初期化を行う。
 3.  **メインループ (`Application::Run`)**: `Window::ProcessMessages` を毎フレーム呼び出し、OSのメッセージを処理。
 4.  **メッセージ処理 (`Window::WindowProc` / `DropTarget`)**: OSからのイベントを処理。`WM_DESTROY` の他、アプリアイコン上での `WM_LBUTTONDOWN`（ドラッグ移動）を処理。ファイルのドラッグ＆ドロップは `IDropTarget` を通じて処理される。
-5.  **状態管理と画像ロード（フリップサイクル）**: 曲情報の状態管理において、変数のコピー退避（バケツリレー）を廃止し、全てのアニメーション対象トラック情報をディープコピーして保持する「フルコピー・バッファリング機構」へ刷新。旧来の先読み処理は完全パージされ、画像の非同期ロードはフリップ後のカレントスロットに対してオンデマンドで行うストイックなライフサイクルへ移行。
+5.  **状態管理と画像ロード（フリップサイクル）**: 曲情報の状態管理において、変数のコピー退避（バケツリレー）を廃止し、現在と過去の2つのスロットのみを保持しフリップする「ダブルバッファリング（ピンポンバッファ）機構」へ集約・純化。画像の非同期ロードはフリップ後のカレントスロットに対してオンデマンドで行うストイックなライフサイクルへ移行。
 
 ---
 
@@ -103,7 +103,7 @@ UI要素ごとの独立した描画・状態管理を担うコンポーネント
 **各具象Widget:**
 *   `AppLogoWidget` (src/Widget_AppLogo.h/cpp): アプリアイコンの描画
 *   `LogoMenuWidget` (src/Widget_LogoMenu.h/cpp): アプリアイコンホバー時にスライド展開するロゴ拡張メニューの描画
-*   `TrackInfoWidget` (src/Widget_TrackInfo.h/cpp): 左下のアルバムアート・曲名・アーティスト名の描画。データ層への直接アクセス（オンデマンド取得）の責務を剥奪され、コンテキストから渡される独立したフルコピー・バッファ (`DrumBuffer`) の情報を無条件で描画するだけの受動態へ純化された。
+*   `TrackInfoWidget` (src/Widget_TrackInfo.h/cpp): 左下のアルバムアート・曲名・アーティスト名の描画。データ層への直接アクセス（オンデマンド取得）の責務を剥奪され、コンテキストから渡される独立した2つのスロット (`drumSlots`) の情報を無条件で描画するだけの受動態へ純化された。中間アニメーション時はガラス板のみのフォールバックを描画する。
 *   `SeekBarWidget` (src/Widget_SeekBar.h/cpp): シークバーと再生時間の描画
 *   `PlaybackControlsWidget` (src/Widget_PlaybackControls.h/cpp): 画面下部の再生コントロール（5ボタン）の描画
 *   `VolumeControlWidget` (src/Widget_VolumeControl.h/cpp): 音量コントロールの描画（ツールチップ含む）

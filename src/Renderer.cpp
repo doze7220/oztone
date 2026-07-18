@@ -6,30 +6,29 @@ Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_c
 
 Renderer::~Renderer() {}
 
-void Renderer::SetDrumTarget(int relativeDistance, const std::map<int, DrumSlot>& newMetas) {
-    std::map<int, DrumSlot> shiftedBuffer;
-    for (auto& pair : m_drumBuffer) {
-        shiftedBuffer[pair.first - relativeDistance] = pair.second;
-    }
-    
-    for (const auto& pair : newMetas) {
-        shiftedBuffer[pair.first].trackTitle = pair.second.trackTitle;
-        shiftedBuffer[pair.first].trackArtist = pair.second.trackArtist;
-        shiftedBuffer[pair.first].trackNumber = pair.second.trackNumber;
-    }
-    
-    m_drumBuffer = shiftedBuffer;
-    m_drumRelativePosition += static_cast<float>(relativeDistance);
-    
-    if (m_drumBuffer.count(0) > 0) {
-        m_drumBuffer[0].artBitmap = nullptr;
+void Renderer::SetDrumTarget(int relativeDistance, const DrumSlot& newTrack) {
+    if (relativeDistance != 0) {
+        m_animatingOldIndexOffset = -relativeDistance;
     } else {
-        m_drumBuffer[0] = DrumSlot();
+        m_animatingOldIndexOffset = 0;
     }
+    
+    // 1. スロットのフリップ
+    m_currentDrumSlotIndex = 1 - m_currentDrumSlotIndex;
+    
+    // 2. 画像（artBitmap）を一旦クリア
+    m_drumSlots[m_currentDrumSlotIndex].artBitmap = nullptr;
+    
+    // 3. テキスト情報をディープコピー
+    m_drumSlots[m_currentDrumSlotIndex].trackTitle = newTrack.trackTitle;
+    m_drumSlots[m_currentDrumSlotIndex].trackArtist = newTrack.trackArtist;
+    m_drumSlots[m_currentDrumSlotIndex].trackNumber = newTrack.trackNumber;
+
+    m_drumRelativePosition += static_cast<float>(relativeDistance);
 }
 
 void Renderer::SetAlbumArt(ID2D1Bitmap* bitmap) {
-    m_drumBuffer[0].artBitmap = bitmap;
+    m_drumSlots[m_currentDrumSlotIndex].artBitmap = bitmap;
 }
 
 void Renderer::SetBackgroundFraming(float offsetX, float offsetY, float scale) {
@@ -43,7 +42,7 @@ void Renderer::ClampArtFraming(float scale, float& offsetX, float& offsetY) {
     int bgMode = m_config ? m_config->GetBackgroundArtMode() : 0;
     ID2D1Bitmap* artBitmap = nullptr;
     if (bgMode == 0) {
-        artBitmap = (m_drumBuffer.count(0) > 0 && m_drumBuffer[0].artBitmap) ? m_drumBuffer[0].artBitmap.Get() : m_placeholderArtBitmap.Get();
+        artBitmap = m_drumSlots[m_currentDrumSlotIndex].artBitmap ? m_drumSlots[m_currentDrumSlotIndex].artBitmap.Get() : m_placeholderArtBitmap.Get();
     } else if (bgMode == 2) {
         artBitmap = m_placeholderArtBitmap.Get();
     }

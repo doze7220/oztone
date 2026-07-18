@@ -46,7 +46,7 @@ void TrackInfoWidget::ReleaseResources() {
 
 void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {
   bool isDrumAnimating = (ctx.drumRelativePosition != 0.0f);
-  auto currentArt = (ctx.drumBuffer.count(0) > 0 && ctx.drumBuffer.at(0).artBitmap) ? ctx.drumBuffer.at(0).artBitmap : nullptr;
+  auto currentArt = ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap ? ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap : nullptr;
   if (!isDrumAnimating) {
     if (!m_lastArtBitmap && currentArt) {
       m_artCrossfadeProgress = 0.0f;
@@ -67,8 +67,8 @@ void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
     return;
 
   if (m_dwriteFactory) {
-    std::wstring currentTitle = ctx.drumBuffer.count(0) > 0 ? ctx.drumBuffer.at(0).trackTitle : L"";
-    std::wstring currentArtist = ctx.drumBuffer.count(0) > 0 ? ctx.drumBuffer.at(0).trackArtist : L"";
+    std::wstring currentTitle = ctx.drumSlots[ctx.currentDrumSlotIndex].trackTitle;
+    std::wstring currentArtist = ctx.drumSlots[ctx.currentDrumSlotIndex].trackArtist;
 
     if (m_titleTextFormat &&
         (!m_titleTextLayout || m_lastTitle != currentTitle)) {
@@ -105,8 +105,8 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
     float logicWidth = rtSize.width / ctx.dpiScale;
     float logicHeight = rtSize.height / ctx.dpiScale;
 
-    D2D1_SIZE_F bitmapSize = (ctx.drumBuffer.count(0) > 0 && ctx.drumBuffer.at(0).artBitmap)
-                                 ? ctx.drumBuffer.at(0).artBitmap->GetSize()
+    D2D1_SIZE_F bitmapSize = ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap
+                                 ? ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap->GetSize()
                                  : D2D1::SizeF(0.0f, 0.0f);
     TrackInfoLayout layout = LayoutCalculator::CalculateTrackInfoLayout(
         logicWidth, logicHeight, config, bitmapSize);
@@ -137,8 +137,13 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       std::wstring textTitle;
       std::wstring textArtist;
 
-      if (ctx.drumBuffer.count(relativeIndex) > 0) {
-          const auto& slot = ctx.drumBuffer.at(relativeIndex);
+      if (relativeIndex == 0) {
+          const auto& slot = ctx.drumSlots[ctx.currentDrumSlotIndex];
+          art = slot.artBitmap.Get();
+          textTitle = slot.trackTitle;
+          textArtist = slot.trackArtist;
+      } else if (relativeIndex == ctx.animatingOldIndexOffset && ctx.animatingOldIndexOffset != 0) {
+          const auto& slot = ctx.drumSlots[1 - ctx.currentDrumSlotIndex];
           art = slot.artBitmap.Get();
           textTitle = slot.trackTitle;
           textArtist = slot.trackArtist;

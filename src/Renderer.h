@@ -73,7 +73,7 @@ public:
     /**
      * @brief ドラムのターゲット相対位置を加算する
      */
-    void SetDrumTarget(int relativeDistance, const std::map<int, DrumSlot>& newMetas = {});
+    void SetDrumTarget(int relativeDistance, const DrumSlot& newTrack = DrumSlot());
 
     /**
      * @brief アルバムアートを設定する。nullptrの場合はプレースホルダーが使用される。
@@ -184,7 +184,9 @@ private:
 
     // Track Drum States
     float m_drumRelativePosition = 0.0f;
-    std::map<int, DrumSlot> m_drumBuffer;
+    std::array<DrumSlot, 2> m_drumSlots;
+    int m_currentDrumSlotIndex = 0;
+    int m_animatingOldIndexOffset = 0;
 
     HWND m_hwnd;
     const ConfigManager* m_config;

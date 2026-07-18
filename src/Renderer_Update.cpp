@@ -59,15 +59,15 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
 
 void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList) {
     if (totalTracks > 0 && currentTrackIndex < shuffleMetadataList.size()) {
-        m_drumBuffer[0].trackTitle = shuffleMetadataList[currentTrackIndex].title;
-        m_drumBuffer[0].trackArtist = shuffleMetadataList[currentTrackIndex].artist;
+        m_drumSlots[m_currentDrumSlotIndex].trackTitle = shuffleMetadataList[currentTrackIndex].title;
+        m_drumSlots[m_currentDrumSlotIndex].trackArtist = shuffleMetadataList[currentTrackIndex].artist;
         wchar_t numBuf[32];
         swprintf_s(numBuf, L"%zu / %zu", currentTrackIndex + 1, totalTracks);
-        m_drumBuffer[0].trackNumber = numBuf;
+        m_drumSlots[m_currentDrumSlotIndex].trackNumber = numBuf;
     } else {
-        m_drumBuffer[0].trackTitle = L"";
-        m_drumBuffer[0].trackArtist = L"";
-        m_drumBuffer[0].trackNumber = L"";
+        m_drumSlots[m_currentDrumSlotIndex].trackTitle = L"";
+        m_drumSlots[m_currentDrumSlotIndex].trackArtist = L"";
+        m_drumSlots[m_currentDrumSlotIndex].trackNumber = L"";
     }
 
     if (m_forceTextLayoutUpdate) {

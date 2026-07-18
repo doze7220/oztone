@@ -69,7 +69,9 @@ struct WidgetContext {
 
     // Track Drum States
     float drumRelativePosition = 0.0f;
-    std::map<int, DrumSlot> drumBuffer;
+    std::array<DrumSlot, 2> drumSlots;
+    int currentDrumSlotIndex = 0;
+    int animatingOldIndexOffset = 0;
 
     std::optional<size_t> focusedPlaylistIndex;
     float logoMenuHoverAlpha = 0.0f;

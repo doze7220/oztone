@@ -92,53 +92,39 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
   std::wstring track = m_playlistManager.GetCurrentTrack();
   if (m_audioPlayer.Play(track)) {
     // 1. フリップ用バッファの構築
-    std::map<int, DrumSlot> drumBuffer;
-    
-    int startIdx = -std::abs(relativeDistance) - 2;
-    int endIdx = std::abs(relativeDistance) + 2;
-    
+    DrumSlot newSlot;
     size_t totalTracks = m_playlistManager.GetCount();
     size_t currentIndex = m_playlistManager.GetCurrentIndex();
     const auto& shuffleIndices = m_playlistManager.GetShuffleIndices();
     const auto& shuffleList = m_playlistManager.GetShuffleList();
     
-    for (int i = startIdx; i <= endIdx; ++i) {
-      int absIndex = static_cast<int>(currentIndex) + i;
-      int normalizedIndex = 0;
-      if (totalTracks > 0) {
-        normalizedIndex = (absIndex % static_cast<int>(totalTracks) + static_cast<int>(totalTracks)) % static_cast<int>(totalTracks);
-      }
+    if (totalTracks > 0 && currentIndex < shuffleList.size()) {
+      std::wstring path = shuffleList[currentIndex];
       
-      DrumSlot slot;
-      if (totalTracks > 0 && normalizedIndex >= 0 && normalizedIndex < static_cast<int>(shuffleList.size())) {
-        std::wstring path = shuffleList[normalizedIndex];
-        
-        TrackMetadata meta;
-        if (m_trackDatabase.GetMetadata(path, meta) && meta.isMetaLoaded) {
-          slot.trackTitle = meta.title;
-          slot.trackArtist = meta.artist;
-        } else {
-          TagManager tempTag;
-          if (tempTag.Load(path)) {
-            slot.trackTitle = tempTag.GetTitle();
-            slot.trackArtist = tempTag.GetArtist();
-            if (slot.trackTitle.empty()) {
-              try { slot.trackTitle = std::filesystem::path(path).filename().wstring(); } catch (...) { slot.trackTitle = L"UNKNOWN"; }
-            }
-            if (slot.trackArtist.empty()) slot.trackArtist = L"---";
+      TrackMetadata meta;
+      if (m_trackDatabase.GetMetadata(path, meta) && meta.isMetaLoaded) {
+        newSlot.trackTitle = meta.title;
+        newSlot.trackArtist = meta.artist;
+      } else {
+        TagManager tempTag;
+        if (tempTag.Load(path)) {
+          newSlot.trackTitle = tempTag.GetTitle();
+          newSlot.trackArtist = tempTag.GetArtist();
+          if (newSlot.trackTitle.empty()) {
+            try { newSlot.trackTitle = std::filesystem::path(path).filename().wstring(); } catch (...) { newSlot.trackTitle = L"UNKNOWN"; }
           }
-        }
-        if (normalizedIndex < static_cast<int>(shuffleIndices.size())) {
-          wchar_t buffer[64];
-          swprintf_s(buffer, L"%03zu/%03zu", shuffleIndices[normalizedIndex] + 1, totalTracks);
-          slot.trackNumber = buffer;
+          if (newSlot.trackArtist.empty()) newSlot.trackArtist = L"---";
         }
       }
-      drumBuffer[i] = slot;
+      if (currentIndex < shuffleIndices.size()) {
+        wchar_t buffer[64];
+        swprintf_s(buffer, L"%03zu/%03zu", shuffleIndices[currentIndex] + 1, totalTracks);
+        newSlot.trackNumber = buffer;
+      }
     }
 
     // 先にフリップを確定させ、インデックスを切り替える
-    m_renderer.SetDrumTarget(relativeDistance, drumBuffer);
+    m_renderer.SetDrumTarget(relativeDistance, newSlot);
 
     // 2. 切り替わった新スロットに対して画像をセットする
     if (m_tagManager.Load(track)) {
