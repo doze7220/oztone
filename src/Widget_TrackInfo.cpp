@@ -137,12 +137,12 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       std::wstring textTitle;
       std::wstring textArtist;
 
-      if (relativeIndex == 0) {
+      if (relativeIndex == ctx.animatingTargetIndex) {
           const auto& slot = ctx.drumSlots[ctx.currentDrumSlotIndex];
           art = slot.artBitmap.Get();
           textTitle = slot.trackTitle;
           textArtist = slot.trackArtist;
-      } else if (relativeIndex == ctx.animatingOldIndexOffset && ctx.animatingOldIndexOffset != 0) {
+      } else if (relativeIndex == ctx.animatingOldIndexOffset) {
           const auto& slot = ctx.drumSlots[1 - ctx.currentDrumSlotIndex];
           art = slot.artBitmap.Get();
           textTitle = slot.trackTitle;
@@ -174,7 +174,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
 
       if (drawGlass) {
           artOpacity = 0.0f;
-      } else if (relativeIndex == 0 && m_artCrossfadeProgress < 1.0f) {
+      } else if (relativeIndex == ctx.animatingTargetIndex && m_artCrossfadeProgress < 1.0f) {
           drawGlass = true;
           artOpacity = m_artCrossfadeProgress;
           glassAlphaMultiplier = 1.0f - m_artCrossfadeProgress;

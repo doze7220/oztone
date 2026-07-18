@@ -6,25 +6,30 @@ Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_c
 
 Renderer::~Renderer() {}
 
-void Renderer::SetDrumTarget(int relativeDistance, const DrumSlot& newTrack) {
-    if (relativeDistance != 0) {
-        m_animatingOldIndexOffset = -relativeDistance;
-    } else {
-        m_animatingOldIndexOffset = 0;
+void Renderer::StartDrumAnimation(int relativeDistance, 
+                                  std::function<TrackMetadata(int relativeIndex)> dataProvider,
+                                  std::function<void()> onComplete) {
+    if (relativeDistance == 0) {
+        if (dataProvider) {
+            TrackMetadata meta = dataProvider(0);
+            m_drumSlots[m_currentDrumSlotIndex].artBitmap = nullptr;
+            m_drumSlots[m_currentDrumSlotIndex].trackTitle = meta.title;
+            m_drumSlots[m_currentDrumSlotIndex].trackArtist = meta.artist;
+            m_drumSlots[m_currentDrumSlotIndex].trackNumber = meta.timeString;
+        }
+        if (onComplete) {
+            onComplete();
+        }
+        return;
     }
-    
-    // 1. スロットのフリップ
-    m_currentDrumSlotIndex = 1 - m_currentDrumSlotIndex;
-    
-    // 2. 画像（artBitmap）を一旦クリア
-    m_drumSlots[m_currentDrumSlotIndex].artBitmap = nullptr;
-    
-    // 3. テキスト情報をディープコピー
-    m_drumSlots[m_currentDrumSlotIndex].trackTitle = newTrack.trackTitle;
-    m_drumSlots[m_currentDrumSlotIndex].trackArtist = newTrack.trackArtist;
-    m_drumSlots[m_currentDrumSlotIndex].trackNumber = newTrack.trackNumber;
 
+    m_drumDataProvider = dataProvider;
+    m_drumOnComplete = onComplete;
+    
     m_drumRelativePosition += static_cast<float>(relativeDistance);
+    
+    m_animatingTargetIndex += relativeDistance;
+    m_animatingOldIndexOffset += relativeDistance;
 }
 
 void Renderer::SetAlbumArt(ID2D1Bitmap* bitmap) {

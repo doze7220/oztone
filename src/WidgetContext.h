@@ -71,6 +71,7 @@ struct WidgetContext {
     float drumRelativePosition = 0.0f;
     std::array<DrumSlot, 2> drumSlots;
     int currentDrumSlotIndex = 0;
+    int animatingTargetIndex = 0;
     int animatingOldIndexOffset = 0;
 
     std::optional<size_t> focusedPlaylistIndex;

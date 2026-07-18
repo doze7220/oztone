@@ -60,7 +60,7 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
         if (!m_playlistManager.IsEmpty()) {
           PlayCurrentTrack();
         } else {
-          m_renderer.SetDrumTarget(0);
+          m_renderer.StartDrumAnimation(0, nullptr, nullptr);
           m_renderer.SetAlbumArt(nullptr);
         }
       }
@@ -153,7 +153,7 @@ void Application::OnPlaylistClicked(int x, int y) {
     if (index < list.size()) {
       int distance = static_cast<int>(oldIndex) - static_cast<int>(index);
       if (!PlayCurrentTrack(distance)) {
-        m_renderer.SetDrumTarget(0);
+        m_renderer.StartDrumAnimation(0, nullptr, nullptr);
         m_renderer.SetAlbumArt(nullptr);
       }
     }
@@ -221,7 +221,7 @@ void Application::ClearPlaylist() {
 
   m_audioPlayer.Stop();
 
-  m_renderer.SetDrumTarget(0);
+  m_renderer.StartDrumAnimation(0, nullptr, nullptr);
   m_renderer.SetAlbumArt(nullptr);
 }
 
@@ -256,7 +256,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
   // はファイルを空にしてしまうので呼ばない）
   m_audioPlayer.Stop();
   m_trackAnalyzer.ClearQueue();
-  m_renderer.SetDrumTarget(0);
+  m_renderer.StartDrumAnimation(0, nullptr, nullptr);
   m_renderer.SetAlbumArt(nullptr);
 
   m_playlistManager.Clear();
@@ -278,7 +278,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
     }
 
     if (!played) {
-      m_renderer.SetDrumTarget(0);
+      m_renderer.StartDrumAnimation(0, nullptr, nullptr);
       m_renderer.SetAlbumArt(nullptr);
     }
   }

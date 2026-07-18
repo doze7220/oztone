@@ -93,6 +93,7 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
     ctx.drumRelativePosition = m_drumRelativePosition;
     ctx.drumSlots = m_drumSlots;
     ctx.currentDrumSlotIndex = m_currentDrumSlotIndex;
+    ctx.animatingTargetIndex = m_animatingTargetIndex;
     ctx.animatingOldIndexOffset = m_animatingOldIndexOffset;
 
     ctx.config = m_config;

@@ -36,6 +36,7 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
 
         if (!m_config->GetEnableTrackDrum()) {
             m_drumRelativePosition = 0.0f;
+            m_animatingTargetIndex = 0;
         } else {
             if (m_drumRelativePosition != 0.0f) {
                 float dampingFactor = static_cast<float>(m_config->GetTrackDrumMaxSpeed()) * deltaTime;
@@ -43,8 +44,30 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
                 
                 m_drumRelativePosition += (0.0f - m_drumRelativePosition) * dampingFactor;
                 
+                int currentPosRound = static_cast<int>(std::round(m_drumRelativePosition));
+                if (currentPosRound != m_animatingTargetIndex) {
+                    m_animatingOldIndexOffset = m_animatingTargetIndex;
+                    m_animatingTargetIndex = currentPosRound;
+
+                    if (m_drumDataProvider) {
+                        TrackMetadata meta = m_drumDataProvider(m_animatingTargetIndex);
+                        m_currentDrumSlotIndex = 1 - m_currentDrumSlotIndex;
+                        m_drumSlots[m_currentDrumSlotIndex].artBitmap = nullptr;
+                        m_drumSlots[m_currentDrumSlotIndex].trackTitle = meta.title;
+                        m_drumSlots[m_currentDrumSlotIndex].trackArtist = meta.artist;
+                        m_drumSlots[m_currentDrumSlotIndex].trackNumber = meta.timeString;
+                    }
+                }
+
                 if (std::abs(m_drumRelativePosition) < 0.001f) {
                     m_drumRelativePosition = 0.0f;
+                    m_animatingTargetIndex = 0;
+                    if (m_drumOnComplete) {
+                        auto cb = m_drumOnComplete;
+                        m_drumOnComplete = nullptr;
+                        m_drumDataProvider = nullptr;
+                        cb();
+                    }
                 }
             }
         }

@@ -32,9 +32,12 @@ void Application::HandleMediaCommand(int cmd) {
 
     m_audioPlayer.Stop();
 
+    int totalDistance = 0;
     while (skipCount < totalCount) {
       int distance = (cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) ? 1 : -1;
-      if (PlayCurrentTrack(distance)) {
+      totalDistance += distance;
+      std::wstring track = m_playlistManager.GetCurrentTrack();
+      if (m_audioPlayer.Play(track)) {
         played = true;
         break;
       }
@@ -48,8 +51,10 @@ void Application::HandleMediaCommand(int cmd) {
     }
 
     if (!played) {
-      m_renderer.SetDrumTarget(0);
+      m_renderer.StartDrumAnimation(0, nullptr, nullptr);
       m_renderer.SetAlbumArt(nullptr);
+    } else {
+      PlayCurrentTrack(totalDistance);
     }
   }
 }
@@ -91,64 +96,57 @@ void Application::LoadCurrentTrackArtAsync() {
 bool Application::PlayCurrentTrack(int relativeDistance) {
   std::wstring track = m_playlistManager.GetCurrentTrack();
   if (m_audioPlayer.Play(track)) {
-    // 1. フリップ用バッファの構築
-    DrumSlot newSlot;
-    size_t totalTracks = m_playlistManager.GetCount();
-    size_t currentIndex = m_playlistManager.GetCurrentIndex();
-    const auto& shuffleIndices = m_playlistManager.GetShuffleIndices();
-    const auto& shuffleList = m_playlistManager.GetShuffleList();
-    
-    if (totalTracks > 0 && currentIndex < shuffleList.size()) {
-      std::wstring path = shuffleList[currentIndex];
+    auto dataProvider = [this](int relativeIndex) -> TrackMetadata {
+      size_t currentIdx = m_playlistManager.GetCurrentIndex();
+      size_t total = m_playlistManager.GetCount();
+      size_t targetIdx = (currentIdx + relativeIndex + total) % total;
       
+      std::wstring path = m_playlistManager.GetShuffleList()[targetIdx];
       TrackMetadata meta;
       if (m_trackDatabase.GetMetadata(path, meta) && meta.isMetaLoaded) {
-        newSlot.trackTitle = meta.title;
-        newSlot.trackArtist = meta.artist;
+        return meta;
       } else {
         TagManager tempTag;
         if (tempTag.Load(path)) {
-          newSlot.trackTitle = tempTag.GetTitle();
-          newSlot.trackArtist = tempTag.GetArtist();
-          if (newSlot.trackTitle.empty()) {
-            try { newSlot.trackTitle = std::filesystem::path(path).filename().wstring(); } catch (...) { newSlot.trackTitle = L"UNKNOWN"; }
+          meta.title = tempTag.GetTitle();
+          meta.artist = tempTag.GetArtist();
+          if (meta.title.empty()) {
+            try { meta.title = std::filesystem::path(path).filename().wstring(); } catch (...) { meta.title = L"UNKNOWN"; }
           }
-          if (newSlot.trackArtist.empty()) newSlot.trackArtist = L"---";
+          if (meta.artist.empty()) meta.artist = L"---";
+        } else {
+          try { meta.title = std::filesystem::path(path).filename().wstring(); } catch (...) { meta.title = L"UNKNOWN"; }
+          meta.artist = L"---";
         }
+        return meta;
       }
-      if (currentIndex < shuffleIndices.size()) {
-        wchar_t buffer[64];
-        swprintf_s(buffer, L"%03zu/%03zu", shuffleIndices[currentIndex] + 1, totalTracks);
-        newSlot.trackNumber = buffer;
-      }
-    }
+    };
 
-    // 先にフリップを確定させ、インデックスを切り替える
-    m_renderer.SetDrumTarget(relativeDistance, newSlot);
-
-    // 2. 切り替わった新スロットに対して画像をセットする
-    if (m_tagManager.Load(track)) {
-      const auto &artBytes = m_tagManager.GetAlbumArtBytes();
-      if (!artBytes.empty()) {
-        Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-        if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
-          m_renderer.SetAlbumArt(artBitmap.Get());
+    auto onComplete = [this, track]() {
+      if (m_tagManager.Load(track)) {
+        const auto &artBytes = m_tagManager.GetAlbumArtBytes();
+        if (!artBytes.empty()) {
+          Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+          if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
+            m_renderer.SetAlbumArt(artBitmap.Get());
+          } else {
+            m_renderer.SetAlbumArt(nullptr);
+          }
         } else {
           m_renderer.SetAlbumArt(nullptr);
         }
       } else {
         m_renderer.SetAlbumArt(nullptr);
       }
-    } else {
-      m_renderer.SetAlbumArt(nullptr);
-    }
 
-    // 3. 新スロットに対してフレーミング情報をセットする
-    float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
-    m_framingDb.GetFraming(track, artX, artY, artScale);
-    m_renderer.SetBackgroundFraming(artX, artY, artScale);
+      float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
+      m_framingDb.GetFraming(track, artX, artY, artScale);
+      m_renderer.SetBackgroundFraming(artX, artY, artScale);
 
-    UpdateTrackMetadataIfNeeded(track);
+      UpdateTrackMetadataIfNeeded(track);
+    };
+
+    m_renderer.StartDrumAnimation(relativeDistance, dataProvider, onComplete);
     return true;
   }
   return false;
