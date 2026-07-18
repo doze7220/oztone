@@ -36,6 +36,13 @@ void Renderer::SetAlbumArt(ID2D1Bitmap* bitmap) {
     m_drumSlots[m_currentDrumSlotIndex].artBitmap = bitmap;
 }
 
+void Renderer::UpdateCurrentDrumSlot(const TrackMetadata& meta) {
+    if (!IsDrumAnimating()) {
+        m_drumSlots[m_currentDrumSlotIndex].trackTitle = meta.title;
+        m_drumSlots[m_currentDrumSlotIndex].trackArtist = meta.artist;
+    }
+}
+
 void Renderer::SetBackgroundFraming(float offsetX, float offsetY, float scale) {
     m_bgOffsetX = offsetX;
     m_bgOffsetY = offsetY;
@@ -106,4 +113,24 @@ void Renderer::ForceClearHoverDelays() {
 
 void Renderer::SetShuffleIndices(const std::vector<size_t>& indices) {
     m_shuffleIndices = indices;
+}
+
+void Renderer::OnSlotAnimationCompleted() {
+    if (m_drumRelativePosition == 0.0f) {
+        if (m_drumOnComplete) {
+            auto cb = m_drumOnComplete;
+            m_drumOnComplete = nullptr;
+            m_drumDataProvider = nullptr;
+            cb();
+        }
+    } else {
+        if (m_drumDataProvider) {
+            TrackMetadata meta = m_drumDataProvider(m_animatingTargetIndex);
+            m_currentDrumSlotIndex = 1 - m_currentDrumSlotIndex;
+            m_drumSlots[m_currentDrumSlotIndex].artBitmap = nullptr;
+            m_drumSlots[m_currentDrumSlotIndex].trackTitle = meta.title;
+            m_drumSlots[m_currentDrumSlotIndex].trackArtist = meta.artist;
+            m_drumSlots[m_currentDrumSlotIndex].trackNumber = meta.timeString;
+        }
+    }
 }

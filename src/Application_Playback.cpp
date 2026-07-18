@@ -186,6 +186,8 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
         std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
         m_playlistManager.SaveToFile(defaultPath);
         UpdatePlaylistSummaries();
+        
+        m_renderer.UpdateCurrentDrumSlot(currentMeta);
       }
     } else {
         currentMeta.filepath = filepath;
@@ -197,6 +199,8 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
         std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
         m_playlistManager.SaveToFile(defaultPath);
         UpdatePlaylistSummaries();
+        
+        m_renderer.UpdateCurrentDrumSlot(currentMeta);
     }
   }
 }

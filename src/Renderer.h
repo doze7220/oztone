@@ -83,6 +83,11 @@ public:
      */
     void SetAlbumArt(ID2D1Bitmap* bitmap);
 
+    /**
+     * @brief 現在のドラムスロットのメタデータを非同期更新用に安全に上書きする。
+     */
+    void UpdateCurrentDrumSlot(const TrackMetadata& meta);
+
 
 
     /**
@@ -194,6 +199,8 @@ private:
     
     std::function<TrackMetadata(int)> m_drumDataProvider;
     std::function<void()> m_drumOnComplete;
+
+    void OnSlotAnimationCompleted();
 
     HWND m_hwnd;
     const ConfigManager* m_config;

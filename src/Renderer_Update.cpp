@@ -48,26 +48,13 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
                 if (currentPosRound != m_animatingTargetIndex) {
                     m_animatingOldIndexOffset = m_animatingTargetIndex;
                     m_animatingTargetIndex = currentPosRound;
-
-                    if (m_drumDataProvider) {
-                        TrackMetadata meta = m_drumDataProvider(m_animatingTargetIndex);
-                        m_currentDrumSlotIndex = 1 - m_currentDrumSlotIndex;
-                        m_drumSlots[m_currentDrumSlotIndex].artBitmap = nullptr;
-                        m_drumSlots[m_currentDrumSlotIndex].trackTitle = meta.title;
-                        m_drumSlots[m_currentDrumSlotIndex].trackArtist = meta.artist;
-                        m_drumSlots[m_currentDrumSlotIndex].trackNumber = meta.timeString;
-                    }
+                    OnSlotAnimationCompleted();
                 }
 
                 if (std::abs(m_drumRelativePosition) < 0.001f) {
                     m_drumRelativePosition = 0.0f;
                     m_animatingTargetIndex = 0;
-                    if (m_drumOnComplete) {
-                        auto cb = m_drumOnComplete;
-                        m_drumOnComplete = nullptr;
-                        m_drumDataProvider = nullptr;
-                        cb();
-                    }
+                    OnSlotAnimationCompleted();
                 }
             }
         }
@@ -81,18 +68,6 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
 }
 
 void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList) {
-    if (totalTracks > 0 && currentTrackIndex < shuffleMetadataList.size()) {
-        m_drumSlots[m_currentDrumSlotIndex].trackTitle = shuffleMetadataList[currentTrackIndex].title;
-        m_drumSlots[m_currentDrumSlotIndex].trackArtist = shuffleMetadataList[currentTrackIndex].artist;
-        wchar_t numBuf[32];
-        swprintf_s(numBuf, L"%zu / %zu", currentTrackIndex + 1, totalTracks);
-        m_drumSlots[m_currentDrumSlotIndex].trackNumber = numBuf;
-    } else {
-        m_drumSlots[m_currentDrumSlotIndex].trackTitle = L"";
-        m_drumSlots[m_currentDrumSlotIndex].trackArtist = L"";
-        m_drumSlots[m_currentDrumSlotIndex].trackNumber = L"";
-    }
-
     if (m_forceTextLayoutUpdate) {
         m_lastTimeString = L"";
         m_lastVolume = -2.0f;
