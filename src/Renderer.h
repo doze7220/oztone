@@ -13,6 +13,7 @@
 #include <memory>
 #include <optional>
 #include <array>
+#include <map>
 #include "PlaylistManager.h"
 #include "TrackDatabase.h"
 #include "Visualizer.h"
@@ -72,7 +73,7 @@ public:
     /**
      * @brief ドラムのターゲット相対位置を加算する
      */
-    void SetDrumTarget(int relativeDistance);
+    void SetDrumTarget(int relativeDistance, const std::map<int, DrumSlot>& newMetas = {});
 
     /**
      * @brief アルバムアートを設定する。nullptrの場合はプレースホルダーが使用される。
@@ -183,8 +184,7 @@ private:
 
     // Track Drum States
     float m_drumRelativePosition = 0.0f;
-    std::array<DrumSlot, 2> m_drumSlots;
-    int m_currentDrumSlotIndex = 0;
+    std::map<int, DrumSlot> m_drumBuffer;
 
     HWND m_hwnd;
     const ConfigManager* m_config;

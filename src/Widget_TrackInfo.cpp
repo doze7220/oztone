@@ -65,7 +65,7 @@ void TrackInfoWidget::ReleaseResources() {
 
 void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {
   bool isDrumAnimating = (ctx.drumRelativePosition != 0.0f);
-  auto currentArt = ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap;
+  auto currentArt = (ctx.drumBuffer.count(0) > 0 && ctx.drumBuffer.at(0).artBitmap) ? ctx.drumBuffer.at(0).artBitmap : nullptr;
   if (!isDrumAnimating) {
     if (!m_lastArtBitmap && currentArt) {
       m_artCrossfadeProgress = 0.0f;
@@ -76,9 +76,6 @@ void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {
     m_lastArtBitmap = currentArt;
   } else {
     m_artCrossfadeProgress = 1.0f;
-    if (!m_wasDrumAnimating) {
-      m_animatingOldIndexOffset = static_cast<int>(std::round(ctx.drumRelativePosition));
-    }
   }
   m_wasDrumAnimating = isDrumAnimating;
 }
@@ -89,8 +86,8 @@ void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
     return;
 
   if (m_dwriteFactory) {
-    std::wstring currentTitle = ctx.drumSlots[ctx.currentDrumSlotIndex].trackTitle;
-    std::wstring currentArtist = ctx.drumSlots[ctx.currentDrumSlotIndex].trackArtist;
+    std::wstring currentTitle = ctx.drumBuffer.count(0) > 0 ? ctx.drumBuffer.at(0).trackTitle : L"";
+    std::wstring currentArtist = ctx.drumBuffer.count(0) > 0 ? ctx.drumBuffer.at(0).trackArtist : L"";
 
     if (m_titleTextFormat &&
         (!m_titleTextLayout || m_lastTitle != currentTitle)) {
@@ -117,7 +114,7 @@ void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
   }
 
   if (m_dwriteFactory && m_trackCountTextFormat) {
-    std::wstring currentTrackNumber = ctx.drumSlots[ctx.currentDrumSlotIndex].trackNumber;
+    std::wstring currentTrackNumber = ctx.drumBuffer.count(0) > 0 ? ctx.drumBuffer.at(0).trackNumber : L"";
     if (!m_trackCountTextLayout || m_lastTrackNumber != currentTrackNumber) {
       m_lastTrackNumber = currentTrackNumber;
       m_trackCountTextLayout.Reset();
@@ -153,8 +150,8 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
     float logicWidth = rtSize.width / ctx.dpiScale;
     float logicHeight = rtSize.height / ctx.dpiScale;
 
-    D2D1_SIZE_F bitmapSize = ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap
-                                 ? ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap->GetSize()
+    D2D1_SIZE_F bitmapSize = (ctx.drumBuffer.count(0) > 0 && ctx.drumBuffer.at(0).artBitmap)
+                                 ? ctx.drumBuffer.at(0).artBitmap->GetSize()
                                  : D2D1::SizeF(0.0f, 0.0f);
     TrackInfoLayout layout = LayoutCalculator::CalculateTrackInfoLayout(
         logicWidth, logicHeight, config, bitmapSize);
@@ -184,31 +181,16 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       Microsoft::WRL::ComPtr<IDWriteTextLayout> tempTitleLayout;
       Microsoft::WRL::ComPtr<IDWriteTextLayout> tempArtistLayout;
 
-      int absIndex = static_cast<int>(ctx.currentTrackIndex) + relativeIndex;
-      int normalizedIndex = 0;
-      if (ctx.totalTracks > 0) {
-          normalizedIndex = (absIndex % static_cast<int>(ctx.totalTracks) + static_cast<int>(ctx.totalTracks)) % static_cast<int>(ctx.totalTracks);
-      }
-
       std::wstring textTitle;
       std::wstring textArtist;
       std::wstring textTrackCount;
-      if (ctx.shuffleMetadataList && normalizedIndex >= 0 && normalizedIndex < static_cast<int>(ctx.shuffleMetadataList->size())) {
-          const auto& meta = (*ctx.shuffleMetadataList)[normalizedIndex];
-          textTitle = meta.title;
-          textArtist = meta.artist;
-          if (normalizedIndex < static_cast<int>(ctx.shuffleIndices.size()) && ctx.totalTracks > 0) {
-              wchar_t buffer[64];
-              swprintf_s(buffer, L"%03zu/%03zu", ctx.shuffleIndices[normalizedIndex] + 1, ctx.totalTracks);
-              textTrackCount = buffer;
-          }
-      }
 
-      if (relativeIndex == 0) {
-          art = ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap.Get();
-      } else if (m_wasDrumAnimating && relativeIndex == m_animatingOldIndexOffset) {
-          int oldSlotIndex = 1 - ctx.currentDrumSlotIndex;
-          art = ctx.drumSlots[oldSlotIndex].artBitmap.Get();
+      if (ctx.drumBuffer.count(relativeIndex) > 0) {
+          const auto& slot = ctx.drumBuffer.at(relativeIndex);
+          art = slot.artBitmap.Get();
+          textTitle = slot.trackTitle;
+          textArtist = slot.trackArtist;
+          textTrackCount = slot.trackNumber;
       }
 
       if (textTitle == m_lastTitle && textArtist == m_lastArtist && textTrackCount == m_lastTrackNumber) {

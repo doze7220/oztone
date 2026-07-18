@@ -5,6 +5,7 @@
 #include <vector>
 #include <optional>
 #include <array>
+#include <map>
 #include <wrl/client.h>
 
 #include "PlaylistManager.h"
@@ -68,8 +69,7 @@ struct WidgetContext {
 
     // Track Drum States
     float drumRelativePosition = 0.0f;
-    std::array<DrumSlot, 2> drumSlots;
-    int currentDrumSlotIndex = 0;
+    std::map<int, DrumSlot> drumBuffer;
 
     std::optional<size_t> focusedPlaylistIndex;
     float logoMenuHoverAlpha = 0.0f;
