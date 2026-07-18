@@ -8,6 +8,8 @@ Renderer::~Renderer() {}
 
 void Renderer::SetDrumTarget(int relativeDistance) {
     m_drumRelativePosition += static_cast<float>(relativeDistance);
+    m_oldTrackTitle = m_currentTrackTitle;
+    m_oldTrackArtist = m_currentTrackArtist;
 }
 
 void Renderer::SetAlbumArt(ID2D1Bitmap* bitmap) {

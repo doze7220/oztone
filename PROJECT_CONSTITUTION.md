@@ -35,4 +35,5 @@
 #### 3.3. 実装計画、兼作業レポート (RES) テンプレート
 「AIが実装計画や作業レポート（RES）を作成する際は、用途に応じて以下のテンプレートファイルを参照し、フォーマットに完全に準拠して出力すること。
   * 新規実装・計画立案時: `D:\ozlab\oztone\_docs\RES(ImpretonPlan)_template.md`
-  * Hotfix作業時: `D:\ozlab\oztone\_docs\RES(Hotfix)_template.md`」
+  * 既存実装Hotfix追記対応時：`D:\ozlab\oztone\_docs\RES(AddHotfix)_template.md`
+  * 単体Hotfix作業時: `D:\ozlab\oztone\_docs\RES(Hotfix)_template.md`」

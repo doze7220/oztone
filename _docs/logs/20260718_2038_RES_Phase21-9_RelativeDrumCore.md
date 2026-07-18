@@ -67,3 +67,32 @@
     - 各種操作（Next, Prev, JumpToIndex, SwitchPlaylistなど）に伴う `PlayCurrentTrack` 呼び出し時に、適切な相対距離(`-1`, `1`, `oldIndex - newIndex`) を伝達するよう修正。
     - `ClearPlaylist` や初期起動時のUI空状態対応について、古い `SetTrackInfo` の「"NO TRACK"」文字列表現を廃止し、`m_renderer.SetDrumTarget(0);` を呼び出すよう統一。
     - タスク1から発生していた `SetTrackInfo` 起因のビルドエラーを完全に解消し、Application層に残っていたバケツリレー用の古い変数をパージ。
+
+### HOTFIX1
+#### 原因・理由: バケツリレー残骸の完全破壊と真のオンデマンド描画の強制適用
+    - AIの指示無視によって、Renderer層やWidgetContextに「目標（NEW）のデータを過去（OLD）へコピーして退避させる処理・変数」（`m_trackTitle`等）が残存していたため。
+
+#### 対応: バケツリレー残骸の完全パージおよびプレイリスト直参照の描画ループ実装
+    - `Renderer.h`, `Renderer_Context.cpp`, `WidgetContext.h` からメタデータの退避変数（`m_trackTitle`, `trackTitle` 等）を1行残らずすべて削除。
+    - `Widget_TrackInfo.cpp` のレイアウト更新および描画ループにて、退避変数を一切参照せず、`ctx.currentTrackIndex` と相対インデックス(`i`) を用いて絶対インデックスを求め、`ctx.totalTracks` でモジュロ演算を行い、`ctx.shuffleMetadataList` からメタデータを直接オンデマンドで取得するよう実装。
+    - 目標スロット(`i == 0`)の時のみ `ctx.currentArtBitmap` を描画し、それ以外のスロットでは画像が存在しないためフォールバック（ガラス板）を描画する条件分岐を適用。
+
+### HOTFIX2
+#### 原因・理由: NEWのUnknown表記とOLDの画像消失
+    - NEWで曲名・アーティスト名がUnknownになる原因は、Renderer::UpdateTextLayouts 内で WidgetContext を生成する際に shuffleMetadataList を渡していなかったため、Widget_TrackInfo::UpdateLayout でメタデータを取得できていなかったから。
+    - OLDでスクロール開始と同時にアルバムアートがガラス板になる原因は、Hotfix1で指示した「i != 0 では画像が存在しないためフォールバックを描画する」というロジックにより、アニメーション中の過去スロット(i != 0)の画像が描画されなくなっていたため。
+
+#### 対応: メタデータの受け渡し修正と過去画像の保持(UI状態として)
+    - Renderer.h, Renderer_Update.cpp, Renderer_Context.cpp, Application_Render.cpp を修正し、UpdateTextLayouts 経由でも shuffleMetadataList を WidgetContext の Layout 更新用に適切に渡すよう修正。
+    - Widget_TrackInfo.h/.cpp に UIアニメーション用の保持変数として ComPtr<ID2D1Bitmap> m_lastArtBitmap と m_animatingOldIndexOffset を追加。Renderer側からのバケツリレー（メタデータの退避）は行わず、あくまで「直前フレームの画面に表示されていた画像を、アニメーション中の古いスロット(OLD)に描画する」UI表現の状態保持として実装した。
+
+### HOTFIX3
+#### 原因・理由: プレイリスト切り替えに伴うテキスト残像の消失
+    - プレイリストが切り替わった直後のアニメーション中、対象の古いインデックスが新しいプレイリストの範囲外になるなど、オンデマンド取得で以前のテキスト情報が正しく引けなくなる問題を解決するため。
+
+#### 対象ファイル: WidgetContext.h, Renderer.h, Renderer.cpp, Renderer_Update.cpp, Renderer_Context.cpp, Widget_TrackInfo.cpp
+
+#### 対応: 曲切り替え時のテキスト退避（バケツリレー）の復活
+    - `WidgetContext` と `Renderer` に `oldTrackTitle`, `oldTrackArtist` を追加。
+    - `Renderer::SetDrumTarget` 実行時に現在のタイトルとアーティストを退避。
+    - `Widget_TrackInfo.cpp` にて、アニメーション中の OLD スロットに対してはオンデマンド取得を行わず、退避された `oldTrackTitle` と `oldTrackArtist` の情報を利用するようハイブリッド描画の条件分岐を修正。

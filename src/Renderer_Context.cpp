@@ -31,11 +31,13 @@ WidgetContext Renderer::BuildAnimationContext(float deltaTime, bool isControlHov
     ctx.shuffleIndices = m_shuffleIndices;
     
     ctx.drumRelativePosition = m_drumRelativePosition;
+    ctx.oldTrackTitle = m_oldTrackTitle;
+    ctx.oldTrackArtist = m_oldTrackArtist;
 
     return ctx;
 }
 
-WidgetContext Renderer::BuildLayoutContext(const std::wstring& timeString, float volume, size_t currentTrackIndex, size_t totalTracks) const {
+WidgetContext Renderer::BuildLayoutContext(const std::wstring& timeString, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>* shuffleMetadataList) const {
     WidgetContext ctx = {};
     ctx.timeString = timeString;
     ctx.volume = volume;
@@ -48,8 +50,11 @@ WidgetContext Renderer::BuildLayoutContext(const std::wstring& timeString, float
         ctx.logicalHeight = sz.height / m_dpiScale;
     }
     ctx.shuffleIndices = m_shuffleIndices;
+    ctx.shuffleMetadataList = shuffleMetadataList;
 
     ctx.drumRelativePosition = m_drumRelativePosition;
+    ctx.oldTrackTitle = m_oldTrackTitle;
+    ctx.oldTrackArtist = m_oldTrackArtist;
 
     return ctx;
 }
@@ -85,6 +90,8 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
     ctx.currentArtBitmap = m_currentArtBitmap.Get();
 
     ctx.drumRelativePosition = m_drumRelativePosition;
+    ctx.oldTrackTitle = m_oldTrackTitle;
+    ctx.oldTrackArtist = m_oldTrackArtist;
 
     ctx.config = m_config;
     ctx.focusedPlaylistIndex = m_focusedPlaylistIndex;

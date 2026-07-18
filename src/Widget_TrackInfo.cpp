@@ -72,10 +72,13 @@ void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {
       m_artCrossfadeProgress += ctx.deltaTime * 3.0f; // 300ms fade
       if (m_artCrossfadeProgress > 1.0f) m_artCrossfadeProgress = 1.0f;
     }
+    m_lastArtBitmap = ctx.currentArtBitmap;
   } else {
     m_artCrossfadeProgress = 1.0f;
+    if (!m_wasDrumAnimating) {
+      m_animatingOldIndexOffset = static_cast<int>(std::round(ctx.drumRelativePosition));
+    }
   }
-  m_lastArtBitmap = ctx.currentArtBitmap;
   m_wasDrumAnimating = isDrumAnimating;
 }
 
@@ -207,8 +210,23 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
         artistLayout = m_artistTextLayout.Get();
         trackCountLayout = m_trackCountTextLayout.Get();
       } else {
-        // 中間スロット：メタデータからタイトル・アーティスト名と、CD帯(トラックナンバー)のテキストを生成
-        if (ctx.totalTracks > 0) {
+        if (m_wasDrumAnimating && relativeIndex == m_animatingOldIndexOffset) {
+            art = m_lastArtBitmap.Get();
+            
+            if (!ctx.oldTrackTitle.empty() && m_dwriteFactory && m_titleTextFormat) {
+                m_dwriteFactory->CreateTextLayout(
+                    ctx.oldTrackTitle.c_str(), static_cast<UINT32>(ctx.oldTrackTitle.length()),
+                    m_titleTextFormat.Get(), 4000.0f, 1000.0f, &tempTitleLayout);
+                titleLayout = tempTitleLayout.Get();
+            }
+            if (!ctx.oldTrackArtist.empty() && m_dwriteFactory && m_artistTextFormat) {
+                m_dwriteFactory->CreateTextLayout(
+                    ctx.oldTrackArtist.c_str(), static_cast<UINT32>(ctx.oldTrackArtist.length()),
+                    m_artistTextFormat.Get(), 4000.0f, 1000.0f, &tempArtistLayout);
+                artistLayout = tempArtistLayout.Get();
+            }
+        } else if (ctx.totalTracks > 0) {
+            // 中間スロット：メタデータからタイトル・アーティスト名と、CD帯(トラックナンバー)のテキストを生成
             std::wstring midTitle;
             std::wstring midArtist;
             if (ctx.shuffleMetadataList && normalizedIndex < static_cast<int>(ctx.shuffleMetadataList->size())) {
@@ -229,7 +247,9 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
                     m_artistTextFormat.Get(), 4000.0f, 1000.0f, &tempArtistLayout);
                 artistLayout = tempArtistLayout.Get();
             }
+        }
 
+        if (ctx.totalTracks > 0) {
             wchar_t trackCountBuf[64];
             size_t displayNo = normalizedIndex + 1;
             if (!ctx.shuffleIndices.empty() && normalizedIndex < static_cast<int>(ctx.shuffleIndices.size())) {

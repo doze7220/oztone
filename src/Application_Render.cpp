@@ -293,12 +293,6 @@ void Application::ForceRender() {
   m_window.SetPlaylistExpanded(isPlaylistExpanded);
   m_window.SetLogoMenuExpanded(isLogoMenuExpanded);
 
-  // 4. レイアウトキャッシュの更新
-  m_renderer.UpdateTextLayouts(timeString, m_audioPlayer.GetVolume(),
-                               m_playlistManager.GetCurrentIndex(),
-                               m_playlistManager.GetCount());
-
-  // 5. 描画の実行
   std::vector<std::wstring> shuffleList = m_playlistManager.GetShuffleList();
   std::vector<TrackMetadata> metadataList;
   metadataList.reserve(shuffleList.size());
@@ -315,6 +309,12 @@ void Application::ForceRender() {
     }
     metadataList.push_back(meta);
   }
+
+  // 4. レイアウトキャッシュの更新
+  m_renderer.UpdateTextLayouts(timeString, m_audioPlayer.GetVolume(),
+                               m_playlistManager.GetCurrentIndex(),
+                               m_playlistManager.GetCount(),
+                               metadataList);
 
   m_renderer.Render(
       m_window.IsHovered(), m_window.IsControlHovered(),

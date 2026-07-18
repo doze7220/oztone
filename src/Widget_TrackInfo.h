@@ -24,8 +24,9 @@ private:
     std::wstring m_lastArtist;
 
     float m_artCrossfadeProgress = 1.0f;
-    ID2D1Bitmap* m_lastArtBitmap = nullptr;
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_lastArtBitmap;
     bool m_wasDrumAnimating = false;
+    int m_animatingOldIndexOffset = 0;
 
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_shadowBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_textBrush;

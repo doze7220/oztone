@@ -57,7 +57,12 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
     }
 }
 
-void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, size_t currentTrackIndex, size_t totalTracks) {
+void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList) {
+    if (totalTracks > 0 && currentTrackIndex < shuffleMetadataList.size()) {
+        m_currentTrackTitle = shuffleMetadataList[currentTrackIndex].title;
+        m_currentTrackArtist = shuffleMetadataList[currentTrackIndex].artist;
+    }
+
     if (m_forceTextLayoutUpdate) {
         m_lastTimeString = L"";
         m_lastVolume = -2.0f;
@@ -71,7 +76,7 @@ void Renderer::UpdateTextLayouts(const std::wstring& timeString, float volume, s
     m_lastCurrentTrackIndex = currentTrackIndex;
     m_lastTotalTracks = totalTracks;
     
-    WidgetContext ctx = BuildLayoutContext(timeString, volume, currentTrackIndex, totalTracks);
+    WidgetContext ctx = BuildLayoutContext(timeString, volume, currentTrackIndex, totalTracks, &shuffleMetadataList);
     
     for (auto& widget : m_widgets) {
         widget->UpdateLayout(ctx, m_config);

@@ -61,6 +61,8 @@ struct WidgetContext {
     
     // Track Drum States
     float drumRelativePosition = 0.0f;
+    std::wstring oldTrackTitle;
+    std::wstring oldTrackArtist;
 
     std::optional<size_t> focusedPlaylistIndex;
     float logoMenuHoverAlpha = 0.0f;
