@@ -190,43 +190,56 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
           normalizedIndex = (absIndex % static_cast<int>(ctx.totalTracks) + static_cast<int>(ctx.totalTracks)) % static_cast<int>(ctx.totalTracks);
       }
 
+      std::wstring textTitle;
+      std::wstring textArtist;
+      std::wstring textTrackCount;
+      if (ctx.shuffleMetadataList && normalizedIndex >= 0 && normalizedIndex < static_cast<int>(ctx.shuffleMetadataList->size())) {
+          const auto& meta = (*ctx.shuffleMetadataList)[normalizedIndex];
+          textTitle = meta.title;
+          textArtist = meta.artist;
+          if (normalizedIndex < static_cast<int>(ctx.shuffleIndices.size()) && ctx.totalTracks > 0) {
+              wchar_t buffer[64];
+              swprintf_s(buffer, L"%03zu/%03zu", ctx.shuffleIndices[normalizedIndex] + 1, ctx.totalTracks);
+              textTrackCount = buffer;
+          }
+      }
+
       if (relativeIndex == 0) {
-        art = ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap.Get();
-        titleLayout = m_titleTextLayout.Get();
-        artistLayout = m_artistTextLayout.Get();
-        trackCountLayout = m_trackCountTextLayout.Get();
+          art = ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap.Get();
+      } else if (m_wasDrumAnimating && relativeIndex == m_animatingOldIndexOffset) {
+          int oldSlotIndex = 1 - ctx.currentDrumSlotIndex;
+          art = ctx.drumSlots[oldSlotIndex].artBitmap.Get();
+      }
+
+      if (textTitle == m_lastTitle && textArtist == m_lastArtist && textTrackCount == m_lastTrackNumber) {
+          titleLayout = m_titleTextLayout.Get();
+          artistLayout = m_artistTextLayout.Get();
+          trackCountLayout = m_trackCountTextLayout.Get();
       } else {
-        if (m_wasDrumAnimating && relativeIndex == m_animatingOldIndexOffset) {
-            int oldSlotIndex = 1 - ctx.currentDrumSlotIndex;
-            art = ctx.drumSlots[oldSlotIndex].artBitmap.Get();
-            
-            const auto& oldSlot = ctx.drumSlots[oldSlotIndex];
-            
-            if (!oldSlot.trackTitle.empty() && m_dwriteFactory && m_titleTextFormat) {
-                m_dwriteFactory->CreateTextLayout(
-                    oldSlot.trackTitle.c_str(), static_cast<UINT32>(oldSlot.trackTitle.length()),
-                    m_titleTextFormat.Get(), 4000.0f, 1000.0f, &tempTitleLayout);
-                titleLayout = tempTitleLayout.Get();
-            }
-            if (!oldSlot.trackArtist.empty() && m_dwriteFactory && m_artistTextFormat) {
-                m_dwriteFactory->CreateTextLayout(
-                    oldSlot.trackArtist.c_str(), static_cast<UINT32>(oldSlot.trackArtist.length()),
-                    m_artistTextFormat.Get(), 4000.0f, 1000.0f, &tempArtistLayout);
-                artistLayout = tempArtistLayout.Get();
-            }
-            if (!oldSlot.trackNumber.empty() && m_dwriteFactory && m_trackCountTextFormat) {
-                m_dwriteFactory->CreateTextLayout(
-                    oldSlot.trackNumber.c_str(), static_cast<UINT32>(oldSlot.trackNumber.length()),
-                    m_trackCountTextFormat.Get(), static_cast<float>(config->GetArtSize()), config->GetTrackCountBoxWidth(), &tempTrackCountLayout);
-                
-                Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
-                if (SUCCEEDED(tempTrackCountLayout.As(&textLayout1))) {
-                    DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(oldSlot.trackNumber.length())};
-                    textLayout1->SetCharacterSpacing(0.0f, config->GetTrackCountLetterSpacing(), 0.0f, textRange);
-                }
-                trackCountLayout = tempTrackCountLayout.Get();
-            }
-        }
+          if (!textTitle.empty() && m_dwriteFactory && m_titleTextFormat) {
+              m_dwriteFactory->CreateTextLayout(
+                  textTitle.c_str(), static_cast<UINT32>(textTitle.length()),
+                  m_titleTextFormat.Get(), 4000.0f, 1000.0f, &tempTitleLayout);
+              titleLayout = tempTitleLayout.Get();
+          }
+          if (!textArtist.empty() && m_dwriteFactory && m_artistTextFormat) {
+              m_dwriteFactory->CreateTextLayout(
+                  textArtist.c_str(), static_cast<UINT32>(textArtist.length()),
+                  m_artistTextFormat.Get(), 4000.0f, 1000.0f, &tempArtistLayout);
+              artistLayout = tempArtistLayout.Get();
+          }
+          if (!textTrackCount.empty() && m_dwriteFactory && m_trackCountTextFormat) {
+              m_dwriteFactory->CreateTextLayout(
+                  textTrackCount.c_str(), static_cast<UINT32>(textTrackCount.length()),
+                  m_trackCountTextFormat.Get(), static_cast<float>(config->GetArtSize()), config->GetTrackCountBoxWidth(), &tempTrackCountLayout);
+              
+              Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
+              if (SUCCEEDED(tempTrackCountLayout.As(&textLayout1))) {
+                  DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(textTrackCount.length())};
+                  textLayout1->SetCharacterSpacing(0.0f, config->GetTrackCountLetterSpacing(), 0.0f, textRange);
+              }
+              trackCountLayout = tempTrackCountLayout.Get();
+          }
       }
 
       bool drawGlass = (art == nullptr);

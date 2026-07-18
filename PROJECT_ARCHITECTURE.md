@@ -103,7 +103,7 @@ UI要素ごとの独立した描画・状態管理を担うコンポーネント
 **各具象Widget:**
 *   `AppLogoWidget` (src/Widget_AppLogo.h/cpp): アプリアイコンの描画
 *   `LogoMenuWidget` (src/Widget_LogoMenu.h/cpp): アプリアイコンホバー時にスライド展開するロゴ拡張メニューの描画
-*   `TrackInfoWidget` (src/Widget_TrackInfo.h/cpp): 左下のアルバムアート・曲名・アーティスト名・トラック番号の描画。データ層への直接アクセス（オンデマンド取得）の責務を剥奪され、コンテキストから渡される `DrumSlot` を描画するだけの受動態へ純化された。
+*   `TrackInfoWidget` (src/Widget_TrackInfo.h/cpp): 左下のアルバムアート・曲名・アーティスト名・トラック番号の描画。データ層への直接アクセス（オンデマンド取得）の責務を剥奪され、コンテキストから渡される `DrumSlot` (画像) と `shuffleMetadataList` (テキスト) を描画するだけの受動態へ純化された。
 
 *   `SeekBarWidget` (src/Widget_SeekBar.h/cpp): シークバーと再生時間の描画
 *   `PlaybackControlsWidget` (src/Widget_PlaybackControls.h/cpp): 画面下部の再生コントロール（5ボタン）の描画
