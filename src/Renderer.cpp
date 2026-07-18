@@ -36,6 +36,10 @@ void Renderer::SetAlbumArt(ID2D1Bitmap* bitmap) {
     m_drumSlots[m_currentDrumSlotIndex].artBitmap = bitmap;
 }
 
+void Renderer::SetBackgroundArt(ID2D1Bitmap* bitmap) {
+    m_backgroundArtBitmap = bitmap;
+}
+
 void Renderer::UpdateCurrentDrumSlot(const TrackMetadata& meta) {
     if (!IsDrumAnimating()) {
         m_drumSlots[m_currentDrumSlotIndex].trackTitle = meta.title;
@@ -54,7 +58,7 @@ void Renderer::ClampArtFraming(float scale, float& offsetX, float& offsetY) {
     int bgMode = m_config ? m_config->GetBackgroundArtMode() : 0;
     ID2D1Bitmap* artBitmap = nullptr;
     if (bgMode == 0) {
-        artBitmap = m_drumSlots[m_currentDrumSlotIndex].artBitmap ? m_drumSlots[m_currentDrumSlotIndex].artBitmap.Get() : m_placeholderArtBitmap.Get();
+        artBitmap = m_backgroundArtBitmap ? m_backgroundArtBitmap.Get() : m_placeholderArtBitmap.Get();
     } else if (bgMode == 2) {
         artBitmap = m_placeholderArtBitmap.Get();
     }

@@ -42,7 +42,7 @@ void Renderer::DrawBackground() {
     ID2D1Bitmap* nowBitmap = nullptr;
     
     if (bgMode == 0) {
-        nowBitmap = m_drumSlots[m_currentDrumSlotIndex].artBitmap ? m_drumSlots[m_currentDrumSlotIndex].artBitmap.Get() : nullptr;
+        nowBitmap = m_backgroundArtBitmap ? m_backgroundArtBitmap.Get() : nullptr;
     } else if (bgMode == 2) {
         nowBitmap = m_placeholderArtBitmap.Get();
     }

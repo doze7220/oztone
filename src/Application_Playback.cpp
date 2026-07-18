@@ -122,27 +122,23 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
       }
     };
 
-    auto onComplete = [this, track]() {
-      if (m_tagManager.Load(track)) {
-        const auto &artBytes = m_tagManager.GetAlbumArtBytes();
-        if (!artBytes.empty()) {
-          Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-          if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
-            m_renderer.SetAlbumArt(artBitmap.Get());
-          } else {
-            m_renderer.SetAlbumArt(nullptr);
-          }
-        } else {
-          m_renderer.SetAlbumArt(nullptr);
-        }
-      } else {
-        m_renderer.SetAlbumArt(nullptr);
+    bool tagLoaded = m_tagManager.Load(track);
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+    if (tagLoaded) {
+      const auto &artBytes = m_tagManager.GetAlbumArtBytes();
+      if (!artBytes.empty()) {
+        m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap);
       }
+    }
 
-      float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
-      m_framingDb.GetFraming(track, artX, artY, artScale);
-      m_renderer.SetBackgroundFraming(artX, artY, artScale);
+    m_renderer.SetBackgroundArt(artBitmap.Get());
 
+    float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
+    m_framingDb.GetFraming(track, artX, artY, artScale);
+    m_renderer.SetBackgroundFraming(artX, artY, artScale);
+
+    auto onComplete = [this, track, artBitmap]() {
+      m_renderer.SetAlbumArt(artBitmap.Get());
       UpdateTrackMetadataIfNeeded(track);
     };
 

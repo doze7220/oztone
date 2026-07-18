@@ -84,6 +84,11 @@ public:
     void SetAlbumArt(ID2D1Bitmap* bitmap);
 
     /**
+     * @brief 背景アートを設定する。
+     */
+    void SetBackgroundArt(ID2D1Bitmap* bitmap);
+
+    /**
      * @brief 現在のドラムスロットのメタデータを非同期更新用に安全に上書きする。
      */
     void UpdateCurrentDrumSlot(const TrackMetadata& meta);
@@ -184,6 +189,7 @@ private:
 
     Microsoft::WRL::ComPtr<IWICImagingFactory> m_wicFactory;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_placeholderArtBitmap;
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_backgroundArtBitmap;
 
 
 
