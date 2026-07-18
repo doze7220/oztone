@@ -283,6 +283,8 @@ void Application::ForceRender() {
   bool isPlaylistExpanded = false;
   bool isLogoMenuExpanded = false;
 
+  bool wasDrumAnimating = m_renderer.IsDrumAnimating();
+
   m_renderer.UpdateAnimation(
       0.016f, m_window.IsControlHovered(), m_window.IsVolumeHovered(),
       m_window.IsPlaylistHovered(), m_window.IsLogoMenuHovered(),
@@ -291,6 +293,18 @@ void Application::ForceRender() {
       m_window.GetPlaybackHoveredIndex(), playlistHoveredItemIndex,
       &m_window.GetLogoMenuItems(), logoClicked, logoMenuClicked,
       playbackClicked, &isPlaylistExpanded, &isLogoMenuExpanded);
+
+  if (wasDrumAnimating && !m_renderer.IsDrumAnimating()) {
+      LoadCurrentTrackArtAsync();
+  }
+
+  if (m_isCurrentArtLoadReady.load()) {
+      m_isCurrentArtLoadReady.store(false);
+      if (m_currentArtThread.joinable()) {
+          m_currentArtThread.join();
+      }
+      m_renderer.SetAlbumArt(m_loadedCurrentArt.Get());
+  }
 
   m_window.SetPlaylistExpanded(isPlaylistExpanded);
   m_window.SetLogoMenuExpanded(isLogoMenuExpanded);

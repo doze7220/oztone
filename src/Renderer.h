@@ -128,7 +128,15 @@ public:
     /**
      * @brief メモリ上のバイナリデータからID2D1Bitmapを生成する
      */
+    /**
+     * @brief メモリ上のバイナリデータからID2D1Bitmapを生成する
+     */
     bool LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitmap** ppBitmap);
+
+    /**
+     * @brief トラックドラムがアニメーション中かどうかを返す
+     */
+    bool IsDrumAnimating() const { return m_isDrumAnimating; }
 
 private:
     // D3D11 リソース
@@ -184,6 +192,7 @@ private:
     double m_drumPosition = 0.0;
     double m_drumVelocity = 0.0;
     size_t m_drumTargetIndex = 0;
+    size_t m_drumStartIndex = 0;
 
     HWND m_hwnd;
     const ConfigManager* m_config;

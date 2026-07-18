@@ -63,7 +63,21 @@ void TrackInfoWidget::ReleaseResources() {
   m_trackCountTextBrush.Reset();
 }
 
-void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {}
+void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {
+  if (!ctx.isDrumAnimating) {
+    if (m_wasDrumAnimating || (!m_lastArtBitmap && ctx.currentArtBitmap)) {
+      m_artCrossfadeProgress = 0.0f;
+    } else if (m_artCrossfadeProgress < 1.0f) {
+      m_artCrossfadeProgress += ctx.deltaTime * 3.0f; // 300ms fade
+      if (m_artCrossfadeProgress > 1.0f) m_artCrossfadeProgress = 1.0f;
+    }
+  } else {
+    m_artCrossfadeProgress = 1.0f;
+  }
+  m_lastArtBitmap = ctx.currentArtBitmap;
+  m_wasDrumAnimating = ctx.isDrumAnimating;
+}
+
 void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
                                    const ConfigManager *config) {
   if (!config)
@@ -87,6 +101,25 @@ void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
           ctx.trackArtist.c_str(),
           static_cast<UINT32>(ctx.trackArtist.length()),
           m_artistTextFormat.Get(), 4000.0f, 1000.0f, &m_artistTextLayout);
+    }
+    
+    if (m_titleTextFormat &&
+        (!m_oldTitleTextLayout || m_lastOldTitle != ctx.oldTrackTitle)) {
+      m_lastOldTitle = ctx.oldTrackTitle;
+      m_oldTitleTextLayout.Reset();
+      m_dwriteFactory->CreateTextLayout(
+          ctx.oldTrackTitle.c_str(), static_cast<UINT32>(ctx.oldTrackTitle.length()),
+          m_titleTextFormat.Get(), 4000.0f, 1000.0f, &m_oldTitleTextLayout);
+    }
+
+    if (m_artistTextFormat &&
+        (!m_oldArtistTextLayout || m_lastOldArtist != ctx.oldTrackArtist)) {
+      m_lastOldArtist = ctx.oldTrackArtist;
+      m_oldArtistTextLayout.Reset();
+      m_dwriteFactory->CreateTextLayout(
+          ctx.oldTrackArtist.c_str(),
+          static_cast<UINT32>(ctx.oldTrackArtist.length()),
+          m_artistTextFormat.Get(), 4000.0f, 1000.0f, &m_oldArtistTextLayout);
     }
   }
 
@@ -143,45 +176,89 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
     TrackInfoLayout layout = LayoutCalculator::CalculateTrackInfoLayout(
         logicWidth, logicHeight, config, bitmapSize);
 
-    if (ctx.currentArtBitmap) {
-      if (m_shadowBrush && config->GetEnableShadow()) {
-        m_shadowBrush->SetOpacity(config->GetShadowOpacity());
-        context->FillRectangle(&layout.artShadowRect, m_shadowBrush.Get());
+    auto drawDrumItem = [&](bool isNow, double diffOffset) {
+      if (std::abs(diffOffset) > 2.0) return;
+
+      float offsetY = static_cast<float>(diffOffset) * config->GetArtSize();
+      D2D1::Matrix3x2F transform = D2D1::Matrix3x2F::Translation(0.0f, offsetY);
+      D2D1::Matrix3x2F originalTransform;
+      context->GetTransform(&originalTransform);
+      context->SetTransform(transform * originalTransform);
+
+      ID2D1Bitmap* art = isNow ? ctx.currentArtBitmap : ctx.oldArtBitmap;
+      IDWriteTextLayout* titleLayout = isNow ? m_titleTextLayout.Get() : m_oldTitleTextLayout.Get();
+      IDWriteTextLayout* artistLayout = isNow ? m_artistTextLayout.Get() : m_oldArtistTextLayout.Get();
+
+      bool drawGlass = false;
+      float artOpacity = 1.0f;
+      float glassAlphaMultiplier = 1.0f;
+
+      if (ctx.isDrumAnimating) {
+        drawGlass = true;
+        artOpacity = 0.0f;
+      } else {
+        if (isNow) {
+          if (!art) {
+            drawGlass = true;
+            artOpacity = 0.0f;
+          } else {
+            drawGlass = true;
+            artOpacity = m_artCrossfadeProgress;
+            glassAlphaMultiplier = 1.0f - m_artCrossfadeProgress;
+          }
+        } else {
+          drawGlass = (!art);
+        }
       }
 
-      context->DrawBitmap(ctx.currentArtBitmap, &layout.artDestRect, 1.0f,
-                          D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
-    } else {
-      if (m_fallbackBlackBrush) {
-        m_fallbackBlackBrush->SetOpacity(config->GetFallbackArtOpacity());
-        context->FillRectangle(&layout.fallbackArtRect,
-                               m_fallbackBlackBrush.Get());
+      if (!art) {
+        artOpacity = 0.0f;
+        drawGlass = true;
+        glassAlphaMultiplier = 1.0f;
       }
-    }
 
-    if (m_textBrush && m_titleTextLayout && m_artistTextLayout) {
-      m_titleTextLayout->SetMaxWidth(layout.titleRect.right -
-                                     layout.titleRect.left);
-      m_titleTextLayout->SetMaxHeight(layout.titleRect.bottom -
-                                      layout.titleRect.top);
-      m_artistTextLayout->SetMaxWidth(layout.artistRect.right -
-                                      layout.artistRect.left);
-      m_artistTextLayout->SetMaxHeight(layout.artistRect.bottom -
-                                       layout.artistRect.top);
+      if (drawGlass && m_fallbackBlackBrush) {
+        m_fallbackBlackBrush->SetOpacity(config->GetFallbackArtOpacity() * glassAlphaMultiplier);
+        context->FillRectangle(&layout.fallbackArtRect, m_fallbackBlackBrush.Get());
+      }
 
-      float shadowOpacity = config->GetEnableShadow() ? config->GetShadowOpacity() : 0.0f;
-      WidgetCommon::DrawShadowedTextLayout(
-          context, m_titleTextLayout.Get(), m_textBrush.Get(), m_shadowBrush.Get(),
-          D2D1::Point2F(layout.titleRect.left, layout.titleRect.top),
-          D2D1::Point2F(layout.titleShadowRect.left, layout.titleShadowRect.top),
-          shadowOpacity);
+      if (artOpacity > 0.0f && art) {
+        if (m_shadowBrush && config->GetEnableShadow()) {
+          m_shadowBrush->SetOpacity(config->GetShadowOpacity() * artOpacity);
+          context->FillRectangle(&layout.artShadowRect, m_shadowBrush.Get());
+        }
+        context->DrawBitmap(art, &layout.artDestRect, artOpacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+      }
 
-      WidgetCommon::DrawShadowedTextLayout(
-          context, m_artistTextLayout.Get(), m_textBrush.Get(), m_shadowBrush.Get(),
-          D2D1::Point2F(layout.artistRect.left, layout.artistRect.top),
-          D2D1::Point2F(layout.artistShadowRect.left, layout.artistShadowRect.top),
-          shadowOpacity);
-    }
+      if (m_textBrush && titleLayout && artistLayout) {
+        titleLayout->SetMaxWidth(layout.titleRect.right - layout.titleRect.left);
+        titleLayout->SetMaxHeight(layout.titleRect.bottom - layout.titleRect.top);
+        artistLayout->SetMaxWidth(layout.artistRect.right - layout.artistRect.left);
+        artistLayout->SetMaxHeight(layout.artistRect.bottom - layout.artistRect.top);
+
+        float shadowOpacity = config->GetEnableShadow() ? config->GetShadowOpacity() : 0.0f;
+        WidgetCommon::DrawShadowedTextLayout(
+            context, titleLayout, m_textBrush.Get(), m_shadowBrush.Get(),
+            D2D1::Point2F(layout.titleRect.left, layout.titleRect.top),
+            D2D1::Point2F(layout.titleShadowRect.left, layout.titleShadowRect.top),
+            shadowOpacity);
+
+        WidgetCommon::DrawShadowedTextLayout(
+            context, artistLayout, m_textBrush.Get(), m_shadowBrush.Get(),
+            D2D1::Point2F(layout.artistRect.left, layout.artistRect.top),
+            D2D1::Point2F(layout.artistShadowRect.left, layout.artistShadowRect.top),
+            shadowOpacity);
+      }
+
+      context->SetTransform(originalTransform);
+    };
+
+    double diffOld = static_cast<double>(ctx.drumStartIndex) - ctx.drumPosition;
+    drawDrumItem(false, diffOld);
+
+    double diffNow = static_cast<double>(ctx.drumTargetIndex) - ctx.drumPosition;
+    drawDrumItem(true, diffNow);
+
 
     if (m_trackCountTextLayout && m_trackCountTextBrush && m_trackCountBoxBaseBrush) {
       D2D1::Matrix3x2F originalTransform;

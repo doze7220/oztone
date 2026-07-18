@@ -36,7 +36,11 @@ void Application::HandleMediaCommand(int cmd) {
       if (cmd == APPCOMMAND_MEDIA_NEXTTRACK && skipCount == 0 &&
           m_isPrefetchReady.load()) {
         m_renderer.SetTrackInfo(m_prefetchedTitle, m_prefetchedArtist);
-        m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
+        if (m_config.GetEnableTrackDrum()) {
+          m_renderer.SetAlbumArt(nullptr);
+        } else {
+          m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
+        }
       } else {
         if (m_tagManager.Load(track)) {
           std::wstring title = m_tagManager.GetTitle();
@@ -48,15 +52,19 @@ void Application::HandleMediaCommand(int cmd) {
           m_renderer.SetTrackInfo(title, artist);
 
           const auto &artBytes = m_tagManager.GetAlbumArtBytes();
-          if (!artBytes.empty()) {
-            Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-            if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
-              m_renderer.SetAlbumArt(artBitmap.Get());
+          if (m_config.GetEnableTrackDrum()) {
+            m_renderer.SetAlbumArt(nullptr);
+          } else {
+            if (!artBytes.empty()) {
+              Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+              if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
+                m_renderer.SetAlbumArt(artBitmap.Get());
+              } else {
+                m_renderer.SetAlbumArt(nullptr);
+              }
             } else {
               m_renderer.SetAlbumArt(nullptr);
             }
-          } else {
-            m_renderer.SetAlbumArt(nullptr);
           }
         } else {
           std::wstring title;
@@ -153,6 +161,40 @@ void Application::PrefetchNextTrack() {
 
     m_isPrefetchReady.store(true);
 
+    if (SUCCEEDED(hr)) {
+      CoUninitialize();
+    }
+  });
+}
+
+void Application::LoadCurrentTrackArtAsync() {
+  m_isCurrentArtLoadReady.store(false);
+
+  if (m_currentArtThread.joinable()) {
+    m_currentArtThread.join();
+  }
+
+  m_currentArtThread = std::thread([this]() {
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    m_loadedCurrentArt.Reset();
+
+    std::wstring currentFile = m_playlistManager.GetCurrentTrack();
+    if (!currentFile.empty()) {
+      bool loadSuccess = false;
+      try {
+        if (std::filesystem::exists(std::filesystem::path(currentFile))) {
+          TagManager localTag;
+          if (localTag.Load(currentFile)) {
+            const auto &artBytes = localTag.GetAlbumArtBytes();
+            if (!artBytes.empty()) {
+              m_renderer.LoadBitmapFromMemory(artBytes, &m_loadedCurrentArt);
+            }
+          }
+        }
+      } catch (...) {}
+    }
+
+    m_isCurrentArtLoadReady.store(true);
     if (SUCCEEDED(hr)) {
       CoUninitialize();
     }

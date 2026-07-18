@@ -39,7 +39,25 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
             m_drumPosition = static_cast<double>(currentTrackIndex);
             m_drumVelocity = 0.0;
         } else {
-            m_drumTargetIndex = currentTrackIndex;
+            if (m_drumTargetIndex != currentTrackIndex) {
+                m_drumStartIndex = m_drumTargetIndex;
+                m_drumTargetIndex = currentTrackIndex;
+                if (m_isDrumAnimating) {
+                    double target = static_cast<double>(m_drumTargetIndex);
+                    double diff = target - m_drumPosition;
+                    
+                    double maxSpeed = m_config->GetTrackDrumMaxSpeed();
+                    double maxDuration = m_config->GetTrackDrumMaxDuration();
+                    double maxDist = maxSpeed * maxDuration;
+                    
+                    if (std::abs(diff) > maxDist) {
+                        m_drumPosition = target - (diff > 0.0 ? maxDist : -maxDist);
+                    }
+                }
+            } else {
+                m_drumTargetIndex = currentTrackIndex;
+            }
+
             if (m_isDrumAnimating) {
                 double target = static_cast<double>(m_drumTargetIndex);
                 double diff = target - m_drumPosition;
