@@ -176,6 +176,15 @@ private:
     std::optional<size_t> m_focusedPlaylistIndex;
     std::vector<size_t> m_shuffleIndices;
 
+    // Track Drum States
+    std::wstring m_oldTrackTitle;
+    std::wstring m_oldTrackArtist;
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_oldArtBitmap;
+    bool m_isDrumAnimating = false;
+    double m_drumPosition = 0.0;
+    double m_drumVelocity = 0.0;
+    size_t m_drumTargetIndex = 0;
+
     HWND m_hwnd;
     const ConfigManager* m_config;
     float m_dpiScale = 1.0f;

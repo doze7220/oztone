@@ -61,6 +61,14 @@ struct WidgetContext {
     std::wstring trackArtist;
     ID2D1Bitmap* currentArtBitmap;
     
+    // Track Drum States
+    std::wstring oldTrackTitle;
+    std::wstring oldTrackArtist;
+    ID2D1Bitmap* oldArtBitmap = nullptr;
+    bool isDrumAnimating = false;
+    double drumPosition = 0.0;
+    double drumVelocity = 0.0;
+    size_t drumTargetIndex = 0;
 
     std::optional<size_t> focusedPlaylistIndex;
     float logoMenuHoverAlpha = 0.0f;

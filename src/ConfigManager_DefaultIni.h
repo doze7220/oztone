@@ -10,6 +10,14 @@ DefaultVolume=1.0
 ShuffleMode=1
 SkipSeconds=10.0
 
+[TrackDrum]
+EnableTrackDrum=1
+MaxDuration=3.0
+MinSpeed=10.0
+MaxSpeed=60.0
+Acceleration=20.0
+Deceleration=15.0
+
 [Window]
 ShowTitleBar=0
 ShowWindowFrame=0

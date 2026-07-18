@@ -158,6 +158,13 @@ public:
     float GetSkipSeconds() const { return m_skipSeconds; }
     void SetSkipSeconds(float seconds);
 
+    bool GetEnableTrackDrum() const { return m_tdEnable; }
+    float GetTrackDrumMaxDuration() const { return m_tdMaxDuration; }
+    float GetTrackDrumMinSpeed() const { return m_tdMinSpeed; }
+    float GetTrackDrumMaxSpeed() const { return m_tdMaxSpeed; }
+    float GetTrackDrumAcceleration() const { return m_tdAcceleration; }
+    float GetTrackDrumDeceleration() const { return m_tdDeceleration; }
+
     std::wstring GetSkipIconPoints() const { return m_skipIconPoints; }
     float GetSkipTextFontSize() const { return m_skipTextFontSize; }
     float GetSkipTextOffsetX() const { return m_skipTextOffsetX; }
@@ -563,6 +570,13 @@ private:
     float m_skipTextOffsetX;
     float m_skipTextOffsetY;
     float m_skipTextShadowShift;
+
+    bool m_tdEnable;
+    float m_tdMaxDuration;
+    float m_tdMinSpeed;
+    float m_tdMaxSpeed;
+    float m_tdAcceleration;
+    float m_tdDeceleration;
 
     // --- Layout_GlobalHotkeys ---
     std::wstring m_ghFontFamily;

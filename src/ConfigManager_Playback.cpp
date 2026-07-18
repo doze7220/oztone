@@ -92,5 +92,10 @@ void ConfigManager::LoadPlaybackSettings() {
   m_trackCountUnderLineWidth = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountUnderLineWidth");
   m_trackCountUnderLineX = LoadOrWriteFloat(L"Layout_NowPlaying", L"TrackCountUnderLineX");
 
-
+  m_tdEnable = LoadOrWriteInt(L"TrackDrum", L"EnableTrackDrum") != 0;
+  m_tdMaxDuration = LoadOrWriteFloat(L"TrackDrum", L"MaxDuration");
+  m_tdMinSpeed = LoadOrWriteFloat(L"TrackDrum", L"MinSpeed");
+  m_tdMaxSpeed = LoadOrWriteFloat(L"TrackDrum", L"MaxSpeed");
+  m_tdAcceleration = LoadOrWriteFloat(L"TrackDrum", L"Acceleration");
+  m_tdDeceleration = LoadOrWriteFloat(L"TrackDrum", L"Deceleration");
 }
