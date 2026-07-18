@@ -71,7 +71,7 @@ public:
     /**
      * @brief 再生中の曲情報を設定する
      */
-    void SetTrackInfo(const std::wstring& title, const std::wstring& artist, size_t currentTrackIndex, bool isResetUI = false);
+    void SetTrackInfo(const std::wstring& title, const std::wstring& artist);
 
     /**
      * @brief 継続ストリームでない場合にトラックドラムの現在位置を強制リセットする
@@ -193,15 +193,10 @@ private:
     std::wstring m_oldTrackTitle;
     std::wstring m_oldTrackArtist;
     size_t m_oldTrackIndex = static_cast<size_t>(-1);
-    std::wstring m_oldTrackNoString;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_oldArtBitmap;
     float m_oldBgOffsetX = 0.0f;
     float m_oldBgOffsetY = 0.0f;
     float m_oldBgScale = 1.0f;
-    bool m_oldIsCrossPlaylist = false;
-    int m_streamBreakDirection = 0;
-    bool m_pendingOldIsCrossPlaylist = false;
-    int m_pendingStreamBreakDirection = 0;
     bool m_isDrumAnimating = false;
     bool m_isFirstTrackLoaded = false;
     double m_drumPosition = 0.0;

@@ -33,7 +33,6 @@ WidgetContext Renderer::BuildAnimationContext(float deltaTime, bool isControlHov
     ctx.oldTrackTitle = m_oldTrackTitle;
     ctx.oldTrackArtist = m_oldTrackArtist;
     ctx.oldTrackIndex = m_oldTrackIndex;
-    ctx.oldTrackNoString = m_oldTrackNoString;
     ctx.oldArtBitmap = m_oldArtBitmap.Get();
     ctx.isDrumAnimating = m_isDrumAnimating;
     ctx.drumPosition = m_drumPosition;
@@ -41,8 +40,6 @@ WidgetContext Renderer::BuildAnimationContext(float deltaTime, bool isControlHov
     ctx.drumTargetIndex = m_drumTargetIndex;
     ctx.drumStartIndex = m_drumStartIndex;
     ctx.drumVirtualOldIndex = m_drumVirtualOldIndex;
-    ctx.oldIsCrossPlaylist = m_oldIsCrossPlaylist;
-    ctx.streamBreakDirection = m_streamBreakDirection;
 
     return ctx;
 }
@@ -66,7 +63,6 @@ WidgetContext Renderer::BuildLayoutContext(const std::wstring& timeString, float
     ctx.oldTrackTitle = m_oldTrackTitle;
     ctx.oldTrackArtist = m_oldTrackArtist;
     ctx.oldTrackIndex = m_oldTrackIndex;
-    ctx.oldTrackNoString = m_oldTrackNoString;
     ctx.oldArtBitmap = m_oldArtBitmap.Get();
     ctx.isDrumAnimating = m_isDrumAnimating;
     ctx.drumPosition = m_drumPosition;
@@ -74,8 +70,6 @@ WidgetContext Renderer::BuildLayoutContext(const std::wstring& timeString, float
     ctx.drumTargetIndex = m_drumTargetIndex;
     ctx.drumStartIndex = m_drumStartIndex;
     ctx.drumVirtualOldIndex = m_drumVirtualOldIndex;
-    ctx.oldIsCrossPlaylist = m_oldIsCrossPlaylist;
-    ctx.streamBreakDirection = m_streamBreakDirection;
 
     return ctx;
 }
@@ -115,15 +109,13 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
     ctx.oldTrackTitle = m_oldTrackTitle;
     ctx.oldTrackArtist = m_oldTrackArtist;
     ctx.oldTrackIndex = m_oldTrackIndex;
-    ctx.oldTrackNoString = m_oldTrackNoString;
     ctx.oldArtBitmap = m_oldArtBitmap.Get();
     ctx.isDrumAnimating = m_isDrumAnimating;
     ctx.drumPosition = m_drumPosition;
     ctx.drumVelocity = m_drumVelocity;
     ctx.drumTargetIndex = m_drumTargetIndex;
+    ctx.drumStartIndex = m_drumStartIndex;
     ctx.drumVirtualOldIndex = m_drumVirtualOldIndex;
-    ctx.oldIsCrossPlaylist = m_oldIsCrossPlaylist;
-    ctx.streamBreakDirection = m_streamBreakDirection;
 
     ctx.config = m_config;
     ctx.focusedPlaylistIndex = m_focusedPlaylistIndex;

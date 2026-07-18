@@ -50,7 +50,7 @@ void Application::HandleMediaCommand(int cmd) {
 
       if (cmd == APPCOMMAND_MEDIA_NEXTTRACK && skipCount == 0 &&
           m_isPrefetchReady.load()) {
-        m_renderer.SetTrackInfo(m_prefetchedTitle, m_prefetchedArtist, m_playlistManager.GetCurrentIndex());
+        m_renderer.SetTrackInfo(m_prefetchedTitle, m_prefetchedArtist);
         m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
       } else {
         if (m_tagManager.Load(track)) {
@@ -60,7 +60,7 @@ void Application::HandleMediaCommand(int cmd) {
             title = std::filesystem::path(track).filename().wstring();
           if (artist.empty())
             artist = L"---";
-          m_renderer.SetTrackInfo(title, artist, m_playlistManager.GetCurrentIndex());
+          m_renderer.SetTrackInfo(title, artist);
 
           const auto &artBytes = m_tagManager.GetAlbumArtBytes();
           if (!artBytes.empty()) {
@@ -80,7 +80,7 @@ void Application::HandleMediaCommand(int cmd) {
           } catch (...) {
             title = L"Unknown";
           }
-          m_renderer.SetTrackInfo(title, L"---", m_playlistManager.GetCurrentIndex());
+          m_renderer.SetTrackInfo(title, L"---");
           m_renderer.SetAlbumArt(nullptr);
         }
       }
@@ -102,7 +102,7 @@ void Application::HandleMediaCommand(int cmd) {
     }
 
     if (!played) {
-      m_renderer.SetTrackInfo(L"NO TRACK", L"---", 0, true);
+      m_renderer.SetTrackInfo(L"NO TRACK", L"---");
       m_renderer.SetAlbumArt(nullptr);
     }
   }

@@ -168,10 +168,17 @@ void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
     m_lastOldTrackIndex = ctx.oldTrackIndex;
     m_oldTrackCountTextLayout.Reset();
 
-    std::wstring trackCountStr = L"---";
-    if (ctx.totalTracks > 0 && ctx.oldTrackIndex != static_cast<size_t>(-1) && ctx.oldTrackIndex != static_cast<size_t>(-2) && !ctx.oldTrackNoString.empty()) {
-        trackCountStr = ctx.oldTrackNoString;
+    wchar_t trackCountBuf[64];
+    if (ctx.totalTracks == 0 || ctx.oldTrackIndex == static_cast<size_t>(-1) || ctx.oldTrackIndex == static_cast<size_t>(-2)) {
+      swprintf_s(trackCountBuf, L"---");
+    } else {
+      size_t displayNo = ctx.oldTrackIndex + 1;
+      if (!ctx.shuffleIndices.empty() && ctx.oldTrackIndex < ctx.shuffleIndices.size()) {
+          displayNo = ctx.shuffleIndices[ctx.oldTrackIndex] + 1;
+      }
+      swprintf_s(trackCountBuf, L"%zu", displayNo);
     }
+    std::wstring trackCountStr(trackCountBuf);
 
     m_dwriteFactory->CreateTextLayout(
         trackCountStr.c_str(), static_cast<UINT32>(trackCountStr.length()),
@@ -210,7 +217,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
     drumClipRect.bottom = layout.fallbackArtRect.top + slotHeight;
     context->PushAxisAlignedClip(drumClipRect, D2D1_ANTIALIAS_MODE_ALIASED);
 
-    auto drawDrumItem = [&](int slotIndex, double diffOffset) {
+    auto drawDrumItem = [&](size_t trackIndex, double diffOffset) {
       if (std::abs(diffOffset) > 2.0) return;
 
       float offsetY = static_cast<float>(diffOffset) * slotHeight;
@@ -228,22 +235,19 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       Microsoft::WRL::ComPtr<IDWriteTextLayout> tempTitleLayout;
       Microsoft::WRL::ComPtr<IDWriteTextLayout> tempArtistLayout;
 
-      if (slotIndex == static_cast<int>(ctx.drumTargetIndex)) {
+      if (trackIndex == ctx.drumTargetIndex) {
         art = ctx.currentArtBitmap;
         titleLayout = m_titleTextLayout.Get();
         artistLayout = m_artistTextLayout.Get();
         trackCountLayout = m_trackCountTextLayout.Get();
-      } else if (ctx.oldIsCrossPlaylist ? 
-                 (slotIndex == static_cast<int>(ctx.drumTargetIndex) - ctx.streamBreakDirection) : 
-                 (slotIndex == static_cast<int>(ctx.oldTrackIndex))) {
+      } else if (static_cast<int>(trackIndex) == ctx.drumVirtualOldIndex) {
         art = ctx.oldArtBitmap;
         titleLayout = m_oldTitleTextLayout.Get();
         artistLayout = m_oldArtistTextLayout.Get();
         trackCountLayout = m_oldTrackCountTextLayout.Get();
       } else {
         // 中間スロット：メタデータからタイトル・アーティスト名と、CD帯(トラックナンバー)のテキストを生成
-        if (ctx.totalTracks > 0 && slotIndex >= 0 && slotIndex < static_cast<int>(ctx.totalTracks)) {
-            size_t trackIndex = static_cast<size_t>(slotIndex);
+        if (ctx.totalTracks > 0) {
             std::wstring midTitle;
             std::wstring midArtist;
             if (ctx.shuffleMetadataList && trackIndex < ctx.shuffleMetadataList->size()) {
@@ -292,7 +296,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
 
       if (drawGlass) {
           artOpacity = 0.0f;
-      } else if (slotIndex == static_cast<int>(ctx.drumTargetIndex) && m_artCrossfadeProgress < 1.0f) {
+      } else if (trackIndex == ctx.drumTargetIndex && m_artCrossfadeProgress < 1.0f) {
           drawGlass = true;
           artOpacity = m_artCrossfadeProgress;
           glassAlphaMultiplier = 1.0f - m_artCrossfadeProgress;
@@ -391,12 +395,9 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
     int endSlot   = static_cast<int>(std::ceil(ctx.drumPosition + 1.5));
 
     for (int i = startSlot; i <= endSlot; ++i) {
-        bool isOldSlot = ctx.oldIsCrossPlaylist ? 
-                         (i == static_cast<int>(ctx.drumTargetIndex) - ctx.streamBreakDirection) : 
-                         (i == static_cast<int>(ctx.oldTrackIndex));
-        if (!isOldSlot && (i < 0 || (ctx.totalTracks > 0 && i >= static_cast<int>(ctx.totalTracks)))) continue;
+        if (i != ctx.drumVirtualOldIndex && (i < 0 || (ctx.totalTracks > 0 && i >= static_cast<int>(ctx.totalTracks)))) continue;
         double diffOffset = static_cast<double>(i) - ctx.drumPosition;
-        drawDrumItem(i, diffOffset);
+        drawDrumItem(static_cast<size_t>(i), diffOffset);
     }
 
     context->PopAxisAlignedClip();

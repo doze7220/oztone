@@ -92,7 +92,8 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
         }
       }
     } catch (...) {
-      // アクセス拒否などのエラーは無要E    }
+      // アクセス拒否などのエラーは無視
+    }
   }
 
   if (addedAny) {
@@ -146,7 +147,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
             title = std::filesystem::path(currentTrack).filename().wstring();
           if (artist.empty())
             artist = L"---";
-          m_renderer.SetTrackInfo(title, artist, m_playlistManager.GetCurrentIndex());
+          m_renderer.SetTrackInfo(title, artist);
 
           const auto &artBytes = m_tagManager.GetAlbumArtBytes();
           if (!artBytes.empty()) {
@@ -166,7 +167,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
           } catch (...) {
             title = L"UNKNOWN";
           }
-          m_renderer.SetTrackInfo(title, L"---", m_playlistManager.GetCurrentIndex());
+          m_renderer.SetTrackInfo(title, L"---");
           m_renderer.SetAlbumArt(nullptr);
         }
 
@@ -183,7 +184,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
       }
 
       if (!played) {
-        m_renderer.SetTrackInfo(L"NO TRACK", L"---", 0, true);
+        m_renderer.SetTrackInfo(L"NO TRACK", L"---");
         m_renderer.SetAlbumArt(nullptr);
       }
     }
