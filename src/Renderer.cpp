@@ -6,7 +6,7 @@ Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_c
 
 Renderer::~Renderer() {}
 
-void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artist, DrumMoveType moveType) {
+void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artist) {
     if (m_config && m_config->GetEnableTrackDrum() && m_lastCurrentTrackIndex != static_cast<size_t>(-1) && m_lastCurrentTrackIndex != static_cast<size_t>(-2)) {
         m_oldTrackTitle = m_trackTitle;
         m_oldTrackArtist = m_trackArtist;

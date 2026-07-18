@@ -21,27 +21,6 @@
 class ConfigManager;
 
 /**
- * @brief トラックドラムの回転意図を指示する列挙型
- */
-enum class DrumMoveType {
-    Next,           // 次へ
-    Prev,           // 前へ
-    Jump,           // 任意曲へのジャンプ
-    CrossPlaylist,  // 別リスト移動/ループ
-    Reset           // UIクリア等の空打ち
-};
-
-/**
- * @brief トラックドラムの描画に必要な純粋なデータ
- */
-struct DrumSlotData {
-    std::wstring title;
-    std::wstring artist;
-    std::wstring trackNo;
-    Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-};
-
-/**
  * @brief Direct3D 11 と Direct2D を用いたハイブリッド描画エンジン
  * 
  * 将来的な3Dビジュアライザと2D UI(アルバムアート等)を共存させるため、
@@ -92,7 +71,7 @@ public:
     /**
      * @brief 再生中の曲情報を設定する
      */
-    void SetTrackInfo(const std::wstring& title, const std::wstring& artist, DrumMoveType moveType = DrumMoveType::Jump);
+    void SetTrackInfo(const std::wstring& title, const std::wstring& artist);
 
     /**
      * @brief アルバムアートを設定する。nullptrの場合はプレースホルダーが使用される。
