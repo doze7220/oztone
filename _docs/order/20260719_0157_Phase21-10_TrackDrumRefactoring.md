@@ -59,3 +59,35 @@
 
 -----------------------------------------------------------------------------------
 
+### 作業指示書 REQ: Phase 21-10 Task 2 : 既存変数の移植 (Renderer -> TrackDrum)
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260719_0203_RES_Phase21-10_TrackDrumRefactoring.md
+
+#### 【作業手順（厳守事項）】
+1. 本プロンプトはRendererからTrackDrumへのメンバ変数の移植である。直ちに以下の【実装要件】に従ってコードの修正を実行すること。
+2. 作業完了後、既存の作業レポート（20260719_0203_RES_Phase21-10_TrackDrumRefactoring.md）の「タスク2」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+3. チャットにて「タスク2(Phase 21-10)が完了しました。タスク3の指示をお願いします」と報告すること。
+
+#### 【実装要件】
+現在 `Renderer` クラスが持っているドラム関連の変数をすべて `TrackDrum` クラスの private メンバへ移動する。
+
+*   **要件1: Renderer.h からの変数削除**
+    *   `src/Renderer.h` の private メンバから以下の変数を削除（パージ）する。
+        *   `std::array<DrumSlot, 2> m_drumSlots;`
+        *   `int m_currentDrumSlotIndex;`
+        *   `float m_drumRelativePosition;`
+        *   `size_t m_animatingTargetIndex;`
+        *   `int m_animatingOldIndexOffset;`
+        *   `std::function<TrackMetadata(size_t)> m_drumDataProvider;`
+        *   `std::function<void()> m_drumOnComplete;`
+        *   その他、純粋にドラムの状態管理にのみ使われている変数が残っていれば合わせて削除する。
+*   **要件2: Renderer_TrackDrum.h への変数追加と初期化**
+    *   `src/Renderer_TrackDrum.h` に、変数定義に必要なインクルード（`#include "WidgetContext.h"`, `<array>`, `<functional>` 等）を追加する。
+    *   `class TrackDrum` の private セクションに、要件1で削除した変数群をそのままの型と名前で追加する。
+    *   `TrackDrum` のコンストラクタを定義し、各変数が安全な初期値（0やnullptrなど）を持つように初期化リストまたはインライン初期化を記述する。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **メソッド移植の禁止**: 本タスクでは変数の移動のみに専念すること。既存の `Renderer.cpp` や `Renderer_Update.cpp` 内で変数が未定義になることによる大量のコンパイルエラーが発生するが、次タスクでメソッドごと移動して解決するため、今は一切気にせずエラーを放置してよい。
+
+-----------------------------------------------------------------------------------

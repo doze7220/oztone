@@ -24,7 +24,7 @@
 ## 3. 実装タスクリスト
 [x] タスク1: 新規ファイル作成とTrackDrumクラスの基盤定義
     - `src/Renderer_TrackDrum.h` と `src/Renderer_TrackDrum.cpp` を作成し、インクルードガードや基本構造を記述する。
-[ ] タスク2: 既存変数の移植 (Renderer -> TrackDrum)
+[x] タスク2: 既存変数の移植 (Renderer -> TrackDrum)
     - `Renderer` からドラム関連のメンバ変数を切り離し、`TrackDrum` クラスへ移動する。
 [ ] タスク3: 既存メソッドの移植 (Renderer -> TrackDrum)
     - `Renderer` からドラム計算・制御メソッド群（`StartDrumAnimation`など）を `TrackDrum` へ移動・適応させる。
@@ -42,7 +42,8 @@
     - `src/Renderer_TrackDrum.h` および `src/Renderer_TrackDrum.cpp` を新規作成し、独立した `TrackDrum` クラスの枠組みを定義した。
 
 ### タスク2: 既存変数の移植 (Renderer -> TrackDrum)
-    - (未実施)
+    - `Renderer.h` から `m_drumSlots`, `m_currentDrumSlotIndex`, `m_drumRelativePosition`, `m_animatingTargetIndex`, `m_animatingOldIndexOffset`, `m_drumDataProvider`, `m_drumOnComplete` を削除した。
+    - `Renderer_TrackDrum.h` に必要なインクルード（`WidgetContext.h`, `<array>`, `<functional>`）を追加し、上記の変数を `TrackDrum` の private メンバとして移植し、インライン初期化を記述した。
 
 ### タスク3: 既存メソッドの移植 (Renderer -> TrackDrum)
     - (未実施)
