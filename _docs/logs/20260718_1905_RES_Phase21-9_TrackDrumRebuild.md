@@ -19,7 +19,7 @@
 
 ## 3. 実装タスクリスト
 - [x] タスク1: `Renderer.h` へのデータ構造定義と `SetTrackInfo` シグネチャ変更
-- [x] タスク2: `Renderer.cpp` および `Renderer_Update.cpp` でのバケツリレーと位置ワープ処理の実装
+- [ ] タスク2: `Renderer.cpp` および `Renderer_Update.cpp` でのバケツリレーと位置ワープ処理の実装
 - [ ] タスク3: `Application` 層の全 `SetTrackInfo` 呼び出し箇所への `DrumMoveType` 適用
 - [ ] タスク4: `WidgetContext.h` への `DrumSlotData` 追加と古い変数のパージ
 - [ ] タスク5: `Widget_TrackInfo.cpp` での描画処理の純化と古いハックのパージ
@@ -54,7 +54,6 @@
       - `m_drumTargetIndex = targetIndex;`
       - アニメーションフラグ `m_isDrumAnimating` と初速度設定を行う。
     - **削除対象ハック**: `Renderer_Update.cpp` 側で `m_drumTargetIndex != currentTrackIndex` を毎フレーム監視してアニメーションを自動トリガー・リセットしていた冗長な推測処理を完全にパージし、すべて `SetTrackInfo` 呼び出し時の明示的ワープに一本化する。
-    - **完了**: `SetTrackInfo` 内部で `m_oldDrumSlot = m_nowDrumSlot` による絶対的なバケツリレーを実装し、指定された `DrumMoveType` に応じた `m_drumPosition` のワープ処理を実装した。また、`SetAlbumArt` 時に `m_nowDrumSlot.artBitmap` が更新されるように修正した。
 
 ### タスク3: `Application` 層の全 `SetTrackInfo` 呼び出し箇所への `DrumMoveType` 適用
     - `Application_Render.cpp`, `Application_Playlist.cpp`, `Application_Playback.cpp`, `Application_Initialize.cpp`, `Application_FileDrop.cpp` を網羅的に修正。
