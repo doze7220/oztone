@@ -35,18 +35,9 @@ void Application::HandleMediaCommand(int cmd) {
 
       if (cmd == APPCOMMAND_MEDIA_NEXTTRACK && skipCount == 0 &&
           m_isPrefetchReady.load()) {
-        m_renderer.SetTrackInfo(m_prefetchedTitle, m_prefetchedArtist);
         m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
       } else {
         if (m_tagManager.Load(track)) {
-          std::wstring title = m_tagManager.GetTitle();
-          std::wstring artist = m_tagManager.GetArtist();
-          if (title.empty())
-            title = std::filesystem::path(track).filename().wstring();
-          if (artist.empty())
-            artist = L"---";
-          m_renderer.SetTrackInfo(title, artist);
-
           const auto &artBytes = m_tagManager.GetAlbumArtBytes();
           if (!artBytes.empty()) {
             Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
@@ -59,13 +50,6 @@ void Application::HandleMediaCommand(int cmd) {
             m_renderer.SetAlbumArt(nullptr);
           }
         } else {
-          std::wstring title;
-          try {
-            title = std::filesystem::path(track).filename().wstring();
-          } catch (...) {
-            title = L"Unknown";
-          }
-          m_renderer.SetTrackInfo(title, L"---");
           m_renderer.SetAlbumArt(nullptr);
         }
       }
@@ -73,7 +57,8 @@ void Application::HandleMediaCommand(int cmd) {
       float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(track, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (PlayCurrentTrack()) {
+      int distance = (cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) ? 1 : -1;
+      if (PlayCurrentTrack(distance)) {
         played = true;
         break;
       }
@@ -87,7 +72,7 @@ void Application::HandleMediaCommand(int cmd) {
     }
 
     if (!played) {
-      m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+      m_renderer.SetDrumTarget(0);
       m_renderer.SetAlbumArt(nullptr);
     }
   }
@@ -193,9 +178,10 @@ void Application::LoadCurrentTrackArtAsync() {
   });
 }
 
-bool Application::PlayCurrentTrack() {
+bool Application::PlayCurrentTrack(int relativeDistance) {
   std::wstring track = m_playlistManager.GetCurrentTrack();
   if (m_audioPlayer.Play(track)) {
+    m_renderer.SetDrumTarget(relativeDistance);
     UpdateTrackMetadataIfNeeded(track);
     PrefetchNextTrack();
     return true;

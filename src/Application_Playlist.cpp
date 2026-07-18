@@ -60,14 +60,6 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
         if (!m_playlistManager.IsEmpty()) {
           std::wstring track = m_playlistManager.GetCurrentTrack();
           if (m_tagManager.Load(track)) {
-            std::wstring title = m_tagManager.GetTitle();
-            std::wstring artist = m_tagManager.GetArtist();
-            if (title.empty())
-              title = std::filesystem::path(track).filename().wstring();
-            if (artist.empty())
-              artist = L"---";
-            m_renderer.SetTrackInfo(title, artist);
-
             const auto &artBytes = m_tagManager.GetAlbumArtBytes();
             if (!artBytes.empty()) {
               Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
@@ -80,13 +72,6 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
               m_renderer.SetAlbumArt(nullptr);
             }
           } else {
-            std::wstring title;
-            try {
-              title = std::filesystem::path(track).filename().wstring();
-            } catch (...) {
-              title = L"UNKNOWN";
-            }
-            m_renderer.SetTrackInfo(title, L"---");
             m_renderer.SetAlbumArt(nullptr);
           }
 
@@ -95,7 +80,7 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
           m_renderer.SetBackgroundFraming(artX, artY, artScale);
           PlayCurrentTrack();
         } else {
-          m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+          m_renderer.SetDrumTarget(0);
           m_renderer.SetAlbumArt(nullptr);
           m_isPrefetchReady.store(false);
         }
@@ -190,14 +175,6 @@ void Application::OnPlaylistClicked(int x, int y) {
       std::wstring track = list[index];
 
       if (m_tagManager.Load(track)) {
-        std::wstring title = m_tagManager.GetTitle();
-        std::wstring artist = m_tagManager.GetArtist();
-        if (title.empty())
-          title = std::filesystem::path(track).filename().wstring();
-        if (artist.empty())
-          artist = L"---";
-        m_renderer.SetTrackInfo(title, artist);
-
         const auto &artBytes = m_tagManager.GetAlbumArtBytes();
         if (!artBytes.empty()) {
           Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
@@ -210,21 +187,15 @@ void Application::OnPlaylistClicked(int x, int y) {
           m_renderer.SetAlbumArt(nullptr);
         }
       } else {
-        std::wstring title;
-        try {
-          title = std::filesystem::path(track).filename().wstring();
-        } catch (...) {
-          title = L"UNKNOWN";
-        }
-        m_renderer.SetTrackInfo(title, L"---");
         m_renderer.SetAlbumArt(nullptr);
       }
 
       float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(track, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (!PlayCurrentTrack()) {
-        m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+      int distance = static_cast<int>(oldIndex) - static_cast<int>(index);
+      if (!PlayCurrentTrack(distance)) {
+        m_renderer.SetDrumTarget(0);
         m_renderer.SetAlbumArt(nullptr);
       }
     }
@@ -293,7 +264,7 @@ void Application::ClearPlaylist() {
   m_audioPlayer.Stop();
 
   m_isPrefetchReady.store(false);
-  m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+  m_renderer.SetDrumTarget(0);
   m_renderer.SetAlbumArt(nullptr);
 }
 
@@ -329,7 +300,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
   m_audioPlayer.Stop();
   m_trackAnalyzer.ClearQueue();
   m_isPrefetchReady.store(false);
-  m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+  m_renderer.SetDrumTarget(0);
   m_renderer.SetAlbumArt(nullptr);
 
   m_playlistManager.Clear();
@@ -342,14 +313,6 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
     while (skipCount < totalCount) {
       std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
       if (m_tagManager.Load(currentTrack)) {
-        std::wstring title = m_tagManager.GetTitle();
-        std::wstring artist = m_tagManager.GetArtist();
-        if (title.empty())
-          title = std::filesystem::path(currentTrack).filename().wstring();
-        if (artist.empty())
-          artist = L"---";
-        m_renderer.SetTrackInfo(title, artist);
-
         const auto &artBytes = m_tagManager.GetAlbumArtBytes();
         if (!artBytes.empty()) {
           Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
@@ -362,20 +325,13 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
           m_renderer.SetAlbumArt(nullptr);
         }
       } else {
-        std::wstring title;
-        try {
-          title = std::filesystem::path(currentTrack).filename().wstring();
-        } catch (...) {
-          title = L"UNKNOWN";
-        }
-        m_renderer.SetTrackInfo(title, L"---");
         m_renderer.SetAlbumArt(nullptr);
       }
 
       float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(currentTrack, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (PlayCurrentTrack()) {
+      if (PlayCurrentTrack(-1)) {
         played = true;
         break;
       }
@@ -385,7 +341,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
     }
 
     if (!played) {
-      m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+      m_renderer.SetDrumTarget(0);
       m_renderer.SetAlbumArt(nullptr);
     }
   }

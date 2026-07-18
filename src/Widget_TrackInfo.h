@@ -23,11 +23,6 @@ private:
     std::wstring m_lastTitle;
     std::wstring m_lastArtist;
 
-    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_oldTitleTextLayout;
-    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_oldArtistTextLayout;
-    std::wstring m_lastOldTitle;
-    std::wstring m_lastOldArtist;
-
     float m_artCrossfadeProgress = 1.0f;
     ID2D1Bitmap* m_lastArtBitmap = nullptr;
     bool m_wasDrumAnimating = false;
@@ -41,9 +36,6 @@ private:
     Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
     size_t m_lastTotalTracks = static_cast<size_t>(-1);
     size_t m_lastCurrentTrackIndex = static_cast<size_t>(-1);
-    size_t m_lastOldTrackIndex = static_cast<size_t>(-1);
-    Microsoft::WRL::ComPtr<IDWriteTextLayout> m_oldTrackCountTextLayout;
-
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_trackCountBoxBaseBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_trackCountBoxUnderLineBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_trackCountTextBrush;

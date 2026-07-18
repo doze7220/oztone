@@ -35,67 +35,17 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
         }
 
         if (!m_config->GetEnableTrackDrum()) {
-            m_isDrumAnimating = false;
-            m_drumPosition = static_cast<double>(currentTrackIndex);
-            m_drumVelocity = 0.0;
+            m_drumRelativePosition = 0.0f;
         } else {
-            if (m_drumTargetIndex != currentTrackIndex) {
-                m_drumStartIndex = m_drumTargetIndex;
-                m_drumTargetIndex = currentTrackIndex;
-                if (m_isDrumAnimating) {
-                    double target = static_cast<double>(m_drumTargetIndex);
-                    double diff = target - m_drumPosition;
-                    
-                    double maxSpeed = m_config->GetTrackDrumMaxSpeed();
-                    double maxDuration = m_config->GetTrackDrumMaxDuration();
-                    double maxDist = maxSpeed * maxDuration;
-                    
-                    if (std::abs(diff) > maxDist) {
-                        m_drumPosition = target - (diff > 0.0 ? maxDist : -maxDist);
-                    }
-                }
-            } else {
-                m_drumTargetIndex = currentTrackIndex;
-            }
-
-            if (m_isDrumAnimating) {
-                double target = static_cast<double>(m_drumTargetIndex);
-                double diff = target - m_drumPosition;
+            if (m_drumRelativePosition != 0.0f) {
+                float dampingFactor = static_cast<float>(m_config->GetTrackDrumMaxSpeed()) * deltaTime;
+                if (dampingFactor > 1.0f) dampingFactor = 1.0f;
                 
-                if (std::abs(diff) < 0.001 && std::abs(m_drumVelocity) < 0.001) {
-                    m_isDrumAnimating = false;
-                    m_drumPosition = target;
-                    m_drumVelocity = 0.0;
-                } else {
-                    double accel = m_config->GetTrackDrumAcceleration();
-                    double decel = m_config->GetTrackDrumDeceleration();
-                    double maxSpeed = m_config->GetTrackDrumMaxSpeed();
-                    
-                    double dir = (diff > 0.0) ? 1.0 : -1.0;
-                    double currentSpeed = std::abs(m_drumVelocity);
-                    double dist = std::abs(diff);
-                    double stoppingDist = (currentSpeed * currentSpeed) / (2.0 * decel);
-                    
-                    if (dist <= stoppingDist) {
-                        currentSpeed -= decel * deltaTime;
-                        if (currentSpeed < 0.0) currentSpeed = 0.0;
-                    } else {
-                        currentSpeed += accel * deltaTime;
-                        if (currentSpeed > maxSpeed) currentSpeed = maxSpeed;
-                    }
-                    
-                    m_drumVelocity = currentSpeed * dir;
-                    m_drumPosition += m_drumVelocity * deltaTime;
-                    
-                    if ((dir > 0.0 && m_drumPosition > target) || (dir < 0.0 && m_drumPosition < target)) {
-                        m_drumPosition = target;
-                        m_drumVelocity = 0.0;
-                        m_isDrumAnimating = false;
-                    }
+                m_drumRelativePosition += (0.0f - m_drumRelativePosition) * dampingFactor;
+                
+                if (std::abs(m_drumRelativePosition) < 0.001f) {
+                    m_drumRelativePosition = 0.0f;
                 }
-            } else {
-                m_drumPosition = static_cast<double>(currentTrackIndex);
-                m_drumVelocity = 0.0;
             }
         }
     }

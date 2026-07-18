@@ -40,14 +40,11 @@ void Renderer::DrawBackground() {
 
     int bgMode = m_config->GetBackgroundArtMode();
     ID2D1Bitmap* nowBitmap = nullptr;
-    ID2D1Bitmap* oldBitmap = nullptr;
     
     if (bgMode == 0) {
         nowBitmap = m_currentArtBitmap.Get();
-        oldBitmap = m_oldArtBitmap.Get();
     } else if (bgMode == 2) {
         nowBitmap = m_placeholderArtBitmap.Get();
-        oldBitmap = m_placeholderArtBitmap.Get();
     }
 
     D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
@@ -55,60 +52,20 @@ void Renderer::DrawBackground() {
     float logicHeight = renderTargetSize.height / m_dpiScale;
     float bgOpacity = m_config->GetBgOpacity();
 
-    if (m_isDrumAnimating && m_config->GetEnableTrackDrum()) {
-        double diff = m_drumPosition - static_cast<double>(m_drumStartIndex);
-        double total = static_cast<double>(m_drumTargetIndex) - static_cast<double>(m_drumStartIndex);
-        float progress = 0.0f;
-        if (std::abs(total) > 0.0001) {
-            progress = static_cast<float>(diff / total);
-        }
-        if (progress < 0.0f) progress = 0.0f;
-        if (progress > 1.0f) progress = 1.0f;
-
-        float oldOpacity = bgOpacity * (1.0f - progress);
-        float nowOpacity = bgOpacity * progress;
-
-        // Draw OLD
-        ID2D1Bitmap* bmpOld = oldBitmap;
-        if (!bmpOld && bgMode == 0) bmpOld = m_placeholderArtBitmap.Get();
-        if (bmpOld) {
-            BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, bmpOld->GetSize(), m_oldBgOffsetX, m_oldBgOffsetY, m_oldBgScale);
-            m_d2dContext->DrawBitmap(
-                bmpOld,
-                &layout.destRect,
-                oldOpacity,
-                D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
-                &layout.srcRect
-            );
-        }
-
-        // Draw NOW
-        if (nowBitmap) {
-            BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, nowBitmap->GetSize(), m_bgOffsetX, m_bgOffsetY, m_bgScale);
-            m_d2dContext->DrawBitmap(
-                nowBitmap,
-                &layout.destRect,
-                nowOpacity,
-                D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
-                &layout.srcRect
-            );
-        }
-    } else {
-        ID2D1Bitmap* bmpNow = nowBitmap;
-        if (!bmpNow && bgMode == 0) {
-            bmpNow = m_placeholderArtBitmap.Get();
-        }
-        
-        if (bmpNow) {
-            BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, bmpNow->GetSize(), m_bgOffsetX, m_bgOffsetY, m_bgScale);
-            m_d2dContext->DrawBitmap(
-                bmpNow,
-                &layout.destRect,
-                bgOpacity,
-                D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
-                &layout.srcRect
-            );
-        }
+    ID2D1Bitmap* bmpNow = nowBitmap;
+    if (!bmpNow && bgMode == 0) {
+        bmpNow = m_placeholderArtBitmap.Get();
+    }
+    
+    if (bmpNow) {
+        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, bmpNow->GetSize(), m_bgOffsetX, m_bgOffsetY, m_bgScale);
+        m_d2dContext->DrawBitmap(
+            bmpNow,
+            &layout.destRect,
+            bgOpacity,
+            D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
+            &layout.srcRect
+        );
     }
 
     if (m_config->GetBgDarkenOpacity() > 0.0f && m_bgDarkenBrush) {
@@ -128,6 +85,8 @@ void Renderer::DrawVisualizer(const std::vector<float>& spectrum, const TrackMet
         float maxFrequency = currentMeta ? currentMeta->maxFrequency : 0.0f;
 
         VisualizerLayout layout = LayoutCalculator::CalculateVisualizerLayout(logicWidth, logicHeight);
-        m_visualizer.Draw(m_d2dContext.Get(), spectrum, layout.drawRect, m_trackTitle, m_trackArtist, peakAmplitude, maxFrequency);
+        std::wstring title = currentMeta ? currentMeta->title : L"Unknown";
+        std::wstring artist = currentMeta ? currentMeta->artist : L"Unknown";
+        m_visualizer.Draw(m_d2dContext.Get(), spectrum, layout.drawRect, title, artist, peakAmplitude, maxFrequency);
     }
 }

@@ -295,14 +295,6 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
       while (skipCount < totalCount) {
         std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
         if (m_tagManager.Load(currentTrack)) {
-          std::wstring title = m_tagManager.GetTitle();
-          std::wstring artist = m_tagManager.GetArtist();
-          if (title.empty())
-            title = std::filesystem::path(currentTrack).filename().wstring();
-          if (artist.empty())
-            artist = L"---";
-          m_renderer.SetTrackInfo(title, artist);
-
           const auto &artBytes = m_tagManager.GetAlbumArtBytes();
           if (!artBytes.empty()) {
             Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
@@ -315,20 +307,13 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
             m_renderer.SetAlbumArt(nullptr);
           }
         } else {
-          std::wstring title;
-          try {
-            title = std::filesystem::path(currentTrack).filename().wstring();
-          } catch (...) {
-            title = L"UNKNOWN";
-          }
-          m_renderer.SetTrackInfo(title, L"---");
           m_renderer.SetAlbumArt(nullptr);
         }
 
         float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(currentTrack, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (PlayCurrentTrack()) {
+      if (PlayCurrentTrack(-1)) {
           played = true;
           break;
         }
@@ -339,12 +324,12 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
 
       if (!played) {
         // UIの初期表示（空状態）
-        m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+        m_renderer.SetDrumTarget(0);
         m_renderer.SetAlbumArt(nullptr);
       }
     } else {
       // UIの初期表示（空状態）
-      m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+      m_renderer.SetDrumTarget(0);
       m_renderer.SetAlbumArt(nullptr);
     }
   }

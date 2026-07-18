@@ -69,9 +69,9 @@ public:
     void ReloadResources();
 
     /**
-     * @brief 再生中の曲情報を設定する
+     * @brief ドラムのターゲット相対位置を加算する
      */
-    void SetTrackInfo(const std::wstring& title, const std::wstring& artist);
+    void SetDrumTarget(int relativeDistance);
 
     /**
      * @brief アルバムアートを設定する。nullptrの場合はプレースホルダーが使用される。
@@ -136,7 +136,7 @@ public:
     /**
      * @brief トラックドラムがアニメーション中かどうかを返す
      */
-    bool IsDrumAnimating() const { return m_isDrumAnimating; }
+    bool IsDrumAnimating() const { return m_drumRelativePosition != 0.0f; }
 
 private:
     // D3D11 リソース
@@ -176,27 +176,13 @@ private:
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_placeholderArtBitmap;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_currentArtBitmap; // 現在再生中のアルバムアート
 
-    std::wstring m_trackTitle = L"Unknown";
-    std::wstring m_trackArtist = L"Unknown";
-
 
 
     std::optional<size_t> m_focusedPlaylistIndex;
     std::vector<size_t> m_shuffleIndices;
 
     // Track Drum States
-    std::wstring m_oldTrackTitle;
-    std::wstring m_oldTrackArtist;
-    size_t m_oldTrackIndex = static_cast<size_t>(-1);
-    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_oldArtBitmap;
-    float m_oldBgOffsetX = 0.0f;
-    float m_oldBgOffsetY = 0.0f;
-    float m_oldBgScale = 1.0f;
-    bool m_isDrumAnimating = false;
-    double m_drumPosition = 0.0;
-    double m_drumVelocity = 0.0;
-    size_t m_drumTargetIndex = 0;
-    size_t m_drumStartIndex = 0;
+    float m_drumRelativePosition = 0.0f;
 
     HWND m_hwnd;
     const ConfigManager* m_config;

@@ -64,7 +64,8 @@ void TrackInfoWidget::ReleaseResources() {
 }
 
 void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {
-  if (!ctx.isDrumAnimating) {
+  bool isDrumAnimating = (ctx.drumRelativePosition != 0.0f);
+  if (!isDrumAnimating) {
     if (!m_lastArtBitmap && ctx.currentArtBitmap) {
       m_artCrossfadeProgress = 0.0f;
     } else if (m_artCrossfadeProgress < 1.0f) {
@@ -75,7 +76,7 @@ void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {
     m_artCrossfadeProgress = 1.0f;
   }
   m_lastArtBitmap = ctx.currentArtBitmap;
-  m_wasDrumAnimating = ctx.isDrumAnimating;
+  m_wasDrumAnimating = isDrumAnimating;
 }
 
 void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
@@ -84,42 +85,35 @@ void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
     return;
 
   if (m_dwriteFactory) {
+    std::wstring currentTitle = L"Unknown";
+    std::wstring currentArtist = L"Unknown";
+    if (ctx.totalTracks > 0 && ctx.shuffleMetadataList) {
+        int absIndex = static_cast<int>(ctx.currentTrackIndex);
+        int normalizedIndex = (absIndex % static_cast<int>(ctx.totalTracks) + static_cast<int>(ctx.totalTracks)) % static_cast<int>(ctx.totalTracks);
+        if (normalizedIndex < static_cast<int>(ctx.shuffleMetadataList->size())) {
+            const auto& meta = (*ctx.shuffleMetadataList)[normalizedIndex];
+            currentTitle = meta.title;
+            currentArtist = meta.artist;
+        }
+    }
+
     if (m_titleTextFormat &&
-        (!m_titleTextLayout || m_lastTitle != ctx.trackTitle)) {
-      m_lastTitle = ctx.trackTitle;
+        (!m_titleTextLayout || m_lastTitle != currentTitle)) {
+      m_lastTitle = currentTitle;
       m_titleTextLayout.Reset();
       m_dwriteFactory->CreateTextLayout(
-          ctx.trackTitle.c_str(), static_cast<UINT32>(ctx.trackTitle.length()),
+          currentTitle.c_str(), static_cast<UINT32>(currentTitle.length()),
           m_titleTextFormat.Get(), 4000.0f, 1000.0f, &m_titleTextLayout);
     }
 
     if (m_artistTextFormat &&
-        (!m_artistTextLayout || m_lastArtist != ctx.trackArtist)) {
-      m_lastArtist = ctx.trackArtist;
+        (!m_artistTextLayout || m_lastArtist != currentArtist)) {
+      m_lastArtist = currentArtist;
       m_artistTextLayout.Reset();
       m_dwriteFactory->CreateTextLayout(
-          ctx.trackArtist.c_str(),
-          static_cast<UINT32>(ctx.trackArtist.length()),
+          currentArtist.c_str(),
+          static_cast<UINT32>(currentArtist.length()),
           m_artistTextFormat.Get(), 4000.0f, 1000.0f, &m_artistTextLayout);
-    }
-    
-    if (m_titleTextFormat &&
-        (!m_oldTitleTextLayout || m_lastOldTitle != ctx.oldTrackTitle)) {
-      m_lastOldTitle = ctx.oldTrackTitle;
-      m_oldTitleTextLayout.Reset();
-      m_dwriteFactory->CreateTextLayout(
-          ctx.oldTrackTitle.c_str(), static_cast<UINT32>(ctx.oldTrackTitle.length()),
-          m_titleTextFormat.Get(), 4000.0f, 1000.0f, &m_oldTitleTextLayout);
-    }
-
-    if (m_artistTextFormat &&
-        (!m_oldArtistTextLayout || m_lastOldArtist != ctx.oldTrackArtist)) {
-      m_lastOldArtist = ctx.oldTrackArtist;
-      m_oldArtistTextLayout.Reset();
-      m_dwriteFactory->CreateTextLayout(
-          ctx.oldTrackArtist.c_str(),
-          static_cast<UINT32>(ctx.oldTrackArtist.length()),
-          m_artistTextFormat.Get(), 4000.0f, 1000.0f, &m_oldArtistTextLayout);
     }
   }
 
@@ -160,40 +154,6 @@ void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
       }
     }
   }
-
-  if (m_dwriteFactory && m_trackCountTextFormat &&
-      (!m_oldTrackCountTextLayout || m_lastTotalTracks != ctx.totalTracks ||
-       m_lastOldTrackIndex != ctx.oldTrackIndex)) {
-    m_lastTotalTracks = ctx.totalTracks;
-    m_lastOldTrackIndex = ctx.oldTrackIndex;
-    m_oldTrackCountTextLayout.Reset();
-
-    wchar_t trackCountBuf[64];
-    if (ctx.totalTracks == 0 || ctx.oldTrackIndex == static_cast<size_t>(-1) || ctx.oldTrackIndex == static_cast<size_t>(-2)) {
-      swprintf_s(trackCountBuf, L"---");
-    } else {
-      size_t displayNo = ctx.oldTrackIndex + 1;
-      if (!ctx.shuffleIndices.empty() && ctx.oldTrackIndex < ctx.shuffleIndices.size()) {
-          displayNo = ctx.shuffleIndices[ctx.oldTrackIndex] + 1;
-      }
-      swprintf_s(trackCountBuf, L"%zu", displayNo);
-    }
-    std::wstring trackCountStr(trackCountBuf);
-
-    m_dwriteFactory->CreateTextLayout(
-        trackCountStr.c_str(), static_cast<UINT32>(trackCountStr.length()),
-        m_trackCountTextFormat.Get(), static_cast<float>(config->GetArtSize()), config->GetTrackCountBoxWidth(), &m_oldTrackCountTextLayout);
-
-    if (m_oldTrackCountTextLayout) {
-      Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
-      if (SUCCEEDED(m_oldTrackCountTextLayout.As(&textLayout1))) {
-        DWRITE_TEXT_RANGE textRange = {
-            0, static_cast<UINT32>(trackCountStr.length())};
-        textLayout1->SetCharacterSpacing(
-            0.0f, config->GetTrackCountLetterSpacing(), 0.0f, textRange);
-      }
-    }
-  }
 }
 
 void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
@@ -217,7 +177,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
     drumClipRect.bottom = layout.fallbackArtRect.top + slotHeight;
     context->PushAxisAlignedClip(drumClipRect, D2D1_ANTIALIAS_MODE_ALIASED);
 
-    auto drawDrumItem = [&](size_t trackIndex, double diffOffset) {
+    auto drawDrumItem = [&](int relativeIndex, double diffOffset) {
       if (std::abs(diffOffset) > 2.0) return;
 
       float offsetY = static_cast<float>(diffOffset) * slotHeight;
@@ -235,12 +195,13 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       Microsoft::WRL::ComPtr<IDWriteTextLayout> tempTitleLayout;
       Microsoft::WRL::ComPtr<IDWriteTextLayout> tempArtistLayout;
 
-      if (trackIndex == ctx.drumStartIndex) {
-        art = ctx.oldArtBitmap;
-        titleLayout = m_oldTitleTextLayout.Get();
-        artistLayout = m_oldArtistTextLayout.Get();
-        trackCountLayout = m_oldTrackCountTextLayout.Get();
-      } else if (trackIndex == ctx.drumTargetIndex) {
+      int absIndex = static_cast<int>(ctx.currentTrackIndex) + relativeIndex;
+      int normalizedIndex = 0;
+      if (ctx.totalTracks > 0) {
+          normalizedIndex = (absIndex % static_cast<int>(ctx.totalTracks) + static_cast<int>(ctx.totalTracks)) % static_cast<int>(ctx.totalTracks);
+      }
+
+      if (relativeIndex == 0) {
         art = ctx.currentArtBitmap;
         titleLayout = m_titleTextLayout.Get();
         artistLayout = m_artistTextLayout.Get();
@@ -250,8 +211,8 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
         if (ctx.totalTracks > 0) {
             std::wstring midTitle;
             std::wstring midArtist;
-            if (ctx.shuffleMetadataList && trackIndex < ctx.shuffleMetadataList->size()) {
-                const auto& meta = (*ctx.shuffleMetadataList)[trackIndex];
+            if (ctx.shuffleMetadataList && normalizedIndex < static_cast<int>(ctx.shuffleMetadataList->size())) {
+                const auto& meta = (*ctx.shuffleMetadataList)[normalizedIndex];
                 midTitle = meta.title;
                 midArtist = meta.artist;
             }
@@ -270,9 +231,9 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
             }
 
             wchar_t trackCountBuf[64];
-            size_t displayNo = trackIndex + 1;
-            if (!ctx.shuffleIndices.empty() && trackIndex < ctx.shuffleIndices.size()) {
-                displayNo = ctx.shuffleIndices[trackIndex] + 1;
+            size_t displayNo = normalizedIndex + 1;
+            if (!ctx.shuffleIndices.empty() && normalizedIndex < static_cast<int>(ctx.shuffleIndices.size())) {
+                displayNo = ctx.shuffleIndices[normalizedIndex] + 1;
             }
             swprintf_s(trackCountBuf, L"%zu", displayNo);
             std::wstring trackCountStr(trackCountBuf);
@@ -296,7 +257,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
 
       if (drawGlass) {
           artOpacity = 0.0f;
-      } else if (trackIndex == ctx.drumTargetIndex && m_artCrossfadeProgress < 1.0f) {
+      } else if (relativeIndex == 0 && m_artCrossfadeProgress < 1.0f) {
           drawGlass = true;
           artOpacity = m_artCrossfadeProgress;
           glassAlphaMultiplier = 1.0f - m_artCrossfadeProgress;
@@ -391,13 +352,13 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       context->SetTransform(originalTransform);
     };
 
-    int startSlot = static_cast<int>(std::floor(ctx.drumPosition - 1.5));
-    int endSlot   = static_cast<int>(std::ceil(ctx.drumPosition + 1.5));
+    int startSlot = static_cast<int>(std::floor(ctx.drumRelativePosition - 1.5f));
+    int endSlot   = static_cast<int>(std::ceil(ctx.drumRelativePosition + 1.5f));
 
     for (int i = startSlot; i <= endSlot; ++i) {
-        if (i < 0 || (ctx.totalTracks > 0 && i >= static_cast<int>(ctx.totalTracks))) continue;
-        double diffOffset = static_cast<double>(i) - ctx.drumPosition;
-        drawDrumItem(static_cast<size_t>(i), diffOffset);
+        if (ctx.totalTracks == 0 && i != 0) continue;
+        double diffOffset = static_cast<double>(i) - ctx.drumRelativePosition;
+        drawDrumItem(i, diffOffset);
     }
 
     context->PopAxisAlignedClip();
