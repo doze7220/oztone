@@ -205,16 +205,7 @@ TrackInfoLayout LayoutCalculator::CalculateTrackInfoLayout(float logicalWidth, f
         artistY + config->GetShadowOffsetY() + 50.0f
     );
 
-    // TrackCount (CD帯UI)
-    // 起点: アルバムアートのベース座標 (x, y) に Offset 加算
-    float trackCountX = x + static_cast<float>(config->GetTrackCountOffsetX());
-    float trackCountY = y + size;
-    layout.trackCountOrigin = D2D1::Point2F(trackCountX, trackCountY);
-    layout.trackCountShadowOrigin = D2D1::Point2F(trackCountX + config->GetShadowOffsetX(), trackCountY + config->GetShadowOffsetY());
-    
-    // -90度回転後の座標系における幅と高さ (Visual spaceの縦横が逆転)
-    layout.trackCountMaxWidth = size;
-    layout.trackCountMaxHeight = config->GetTrackCountBoxWidth();
+
 
     return layout;
 }

@@ -33,10 +33,7 @@ struct TrackInfoLayout {
     D2D1_RECT_F artistRect;
     D2D1_RECT_F artistShadowRect;
 
-    D2D1_POINT_2F trackCountOrigin;
-    D2D1_POINT_2F trackCountShadowOrigin;
-    float trackCountMaxWidth;
-    float trackCountMaxHeight;
+
 
     D2D1_RECT_F clipRect;
 };

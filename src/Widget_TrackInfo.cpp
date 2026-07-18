@@ -24,12 +24,6 @@ void TrackInfoWidget::CreateResources(ID2D1DeviceContext *context,
   WidgetCommon::ApplyTextTrimming(dwriteFactory, m_artistTextFormat.Get());
 
   m_dwriteFactory = dwriteFactory;
-  dwriteFactory->CreateTextFormat(
-      config->GetMonoFontFamily().c_str(), nullptr,
-      DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
-      DWRITE_FONT_STRETCH_NORMAL, config->GetTrackCountFontSize(), L"en-us",
-      &m_trackCountTextFormat);
-  WidgetCommon::ApplyTextTrimming(dwriteFactory, m_trackCountTextFormat.Get());
 
   context->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f),
                                  &m_shadowBrush);
@@ -37,14 +31,6 @@ void TrackInfoWidget::CreateResources(ID2D1DeviceContext *context,
                                  &m_textBrush);
   context->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f),
                                  &m_fallbackBlackBrush);
-
-  D2D1_COLOR_F baseColor = WidgetCommon::HexToColorF(config->GetTrackCountBoxBaseColor());
-  baseColor.a = config->GetTrackCountBoxBaseOpacity();
-  context->CreateSolidColorBrush(baseColor, &m_trackCountBoxBaseBrush);
-
-  D2D1_COLOR_F fontColor = WidgetCommon::HexToColorF(config->GetTrackCountBoxFontColor());
-  context->CreateSolidColorBrush(fontColor, &m_trackCountTextBrush);
-  context->CreateSolidColorBrush(baseColor, &m_trackCountBoxUnderLineBrush);
 }
 
 void TrackInfoWidget::ReleaseResources() {
@@ -55,12 +41,7 @@ void TrackInfoWidget::ReleaseResources() {
   m_shadowBrush.Reset();
   m_textBrush.Reset();
   m_fallbackBlackBrush.Reset();
-  m_trackCountTextFormat.Reset();
-  m_trackCountTextLayout.Reset();
   m_dwriteFactory.Reset();
-  m_trackCountBoxBaseBrush.Reset();
-  m_trackCountBoxUnderLineBrush.Reset();
-  m_trackCountTextBrush.Reset();
 }
 
 void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {
@@ -113,33 +94,7 @@ void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
     }
   }
 
-  if (m_dwriteFactory && m_trackCountTextFormat) {
-    std::wstring currentTrackNumber = ctx.drumBuffer.count(0) > 0 ? ctx.drumBuffer.at(0).trackNumber : L"";
-    if (!m_trackCountTextLayout || m_lastTrackNumber != currentTrackNumber) {
-      m_lastTrackNumber = currentTrackNumber;
-      m_trackCountTextLayout.Reset();
 
-      if (m_trackCountTextFormat) {
-        m_trackCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-      }
-
-      if (!currentTrackNumber.empty()) {
-        m_dwriteFactory->CreateTextLayout(
-            currentTrackNumber.c_str(), static_cast<UINT32>(currentTrackNumber.length()),
-            m_trackCountTextFormat.Get(), static_cast<float>(config->GetArtSize()), config->GetTrackCountBoxWidth(), &m_trackCountTextLayout);
-
-        if (m_trackCountTextLayout) {
-          Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
-          if (SUCCEEDED(m_trackCountTextLayout.As(&textLayout1))) {
-            DWRITE_TEXT_RANGE textRange = {
-                0, static_cast<UINT32>(currentTrackNumber.length())};
-            textLayout1->SetCharacterSpacing(
-                0.0f, config->GetTrackCountLetterSpacing(), 0.0f, textRange);
-          }
-        }
-      }
-    }
-  }
 }
 
 void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
@@ -175,28 +130,23 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       ID2D1Bitmap* art = nullptr;
       IDWriteTextLayout* titleLayout = nullptr;
       IDWriteTextLayout* artistLayout = nullptr;
-      IDWriteTextLayout* trackCountLayout = nullptr;
 
-      Microsoft::WRL::ComPtr<IDWriteTextLayout> tempTrackCountLayout;
       Microsoft::WRL::ComPtr<IDWriteTextLayout> tempTitleLayout;
       Microsoft::WRL::ComPtr<IDWriteTextLayout> tempArtistLayout;
 
       std::wstring textTitle;
       std::wstring textArtist;
-      std::wstring textTrackCount;
 
       if (ctx.drumBuffer.count(relativeIndex) > 0) {
           const auto& slot = ctx.drumBuffer.at(relativeIndex);
           art = slot.artBitmap.Get();
           textTitle = slot.trackTitle;
           textArtist = slot.trackArtist;
-          textTrackCount = slot.trackNumber;
       }
 
-      if (textTitle == m_lastTitle && textArtist == m_lastArtist && textTrackCount == m_lastTrackNumber) {
+      if (textTitle == m_lastTitle && textArtist == m_lastArtist) {
           titleLayout = m_titleTextLayout.Get();
           artistLayout = m_artistTextLayout.Get();
-          trackCountLayout = m_trackCountTextLayout.Get();
       } else {
           if (!textTitle.empty() && m_dwriteFactory && m_titleTextFormat) {
               m_dwriteFactory->CreateTextLayout(
@@ -210,18 +160,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
                   m_artistTextFormat.Get(), 4000.0f, 1000.0f, &tempArtistLayout);
               artistLayout = tempArtistLayout.Get();
           }
-          if (!textTrackCount.empty() && m_dwriteFactory && m_trackCountTextFormat) {
-              m_dwriteFactory->CreateTextLayout(
-                  textTrackCount.c_str(), static_cast<UINT32>(textTrackCount.length()),
-                  m_trackCountTextFormat.Get(), static_cast<float>(config->GetArtSize()), config->GetTrackCountBoxWidth(), &tempTrackCountLayout);
-              
-              Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
-              if (SUCCEEDED(tempTrackCountLayout.As(&textLayout1))) {
-                  DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(textTrackCount.length())};
-                  textLayout1->SetCharacterSpacing(0.0f, config->GetTrackCountLetterSpacing(), 0.0f, textRange);
-              }
-              trackCountLayout = tempTrackCountLayout.Get();
-          }
+
       }
 
       bool drawGlass = (art == nullptr);
@@ -293,34 +232,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
             shadowOpacity);
       }
 
-      if (trackCountLayout && m_trackCountTextBrush && m_trackCountBoxBaseBrush) {
-        D2D1::Matrix3x2F currentTransform;
-        context->GetTransform(&currentTransform);
 
-        D2D1::Matrix3x2F rotation = D2D1::Matrix3x2F::Rotation(-90.0f, layout.trackCountOrigin);
-        context->SetTransform(rotation * currentTransform);
-
-        D2D1_RECT_F boxRect = D2D1::RectF(
-            layout.trackCountOrigin.x,
-            layout.trackCountOrigin.y,
-            layout.trackCountOrigin.x + layout.trackCountMaxWidth,
-            layout.trackCountOrigin.y + config->GetTrackCountBoxWidth()
-        );
-        context->FillRectangle(&boxRect, m_trackCountBoxBaseBrush.Get());
-
-        D2D1_RECT_F underlineRect = D2D1::RectF(
-            layout.trackCountOrigin.x,
-            layout.trackCountOrigin.y + config->GetTrackCountUnderLineX(),
-            layout.trackCountOrigin.x + layout.trackCountMaxWidth,
-            layout.trackCountOrigin.y + config->GetTrackCountUnderLineX() + config->GetTrackCountUnderLineWidth()
-        );
-        context->FillRectangle(&underlineRect, m_trackCountBoxUnderLineBrush.Get());
-
-        context->DrawTextLayout(
-            layout.trackCountOrigin, trackCountLayout, m_trackCountTextBrush.Get());
-
-        context->SetTransform(currentTransform);
-      }
 
       context->SetTransform(originalTransform);
     };

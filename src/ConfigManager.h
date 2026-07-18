@@ -353,15 +353,7 @@ public:
     float GetVolumeTooltipWidth() const { return m_volTooltipWidth; }
     float GetVolumeTooltipHeight() const { return m_volTooltipHeight; }
 
-    float GetTrackCountFontSize() const { return m_trackCountFontSize; }
-    int GetTrackCountOffsetX() const { return m_trackCountOffsetX; }
-    float GetTrackCountLetterSpacing() const { return m_trackCountLetterSpacing; }
-    std::wstring GetTrackCountBoxFontColor() const { return m_trackCountBoxFontColor; }
-    std::wstring GetTrackCountBoxBaseColor() const { return m_trackCountBoxBaseColor; }
-    float GetTrackCountBoxBaseOpacity() const { return m_trackCountBoxBaseOpacity; }
-    float GetTrackCountBoxWidth() const { return m_trackCountBoxWidth; }
-    float GetTrackCountUnderLineWidth() const { return m_trackCountUnderLineWidth; }
-    float GetTrackCountUnderLineX() const { return m_trackCountUnderLineX; }
+
 
     int GetPlaylistWidth() const { return m_playlistWidth; }
     int GetPlaylistItemOffsetY() const { return m_playlistItemOffsetY; }
@@ -615,15 +607,7 @@ private:
     float m_volTooltipWidth;
     float m_volTooltipHeight;
 
-    float m_trackCountFontSize;
-    int m_trackCountOffsetX;
-    float m_trackCountLetterSpacing;
-    std::wstring m_trackCountBoxFontColor;
-    std::wstring m_trackCountBoxBaseColor;
-    float m_trackCountBoxBaseOpacity;
-    float m_trackCountBoxWidth;
-    float m_trackCountUnderLineWidth;
-    float m_trackCountUnderLineX;
+
 
     int m_playlistWidth;
     int m_playlistItemOffsetY;
