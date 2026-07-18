@@ -250,14 +250,8 @@ void PlaylistManager::LoadFromFile(const std::wstring& inPath, ArtFramingDatabas
         }
     }
     
-    bool isEmpty = false;
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        isEmpty = m_playlist.empty();
-    }
-    if (!isEmpty) {
-        InitializeShuffle();
-    }
+    // キューの再構築（RebuildQueue）は、シャッフルモードの状態を考慮する必要があるため、
+    // ここでは行わず、呼び出し元（Applicationクラス等）で明示的に行う設計とする。
 }
 
 bool PlaylistManager::IsEmpty() const {

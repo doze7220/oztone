@@ -286,6 +286,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     m_audioPlayer.SetVolume(m_config.GetDefaultVolume());
     std::wstring defPlaylist = m_config.GetDefaultPlaylistPath();
     m_playlistManager.LoadFromFile(defPlaylist, &m_framingDb);
+    m_playlistManager.RebuildQueue(m_config.GetShuffleMode());
 
     if (!m_playlistManager.IsEmpty()) {
       size_t skipCount = 0;

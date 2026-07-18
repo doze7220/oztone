@@ -261,6 +261,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
 
   m_playlistManager.Clear();
   m_playlistManager.LoadFromFile(filepath);
+  m_playlistManager.RebuildQueue(m_config.GetShuffleMode());
   if (!m_playlistManager.IsEmpty()) {
     size_t skipCount = 0;
     bool played = false;
