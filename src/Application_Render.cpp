@@ -172,6 +172,7 @@ void Application::Run() {
 
 void Application::ForceRender() {
   m_renderer.SetFocusedPlaylistIndex(m_focusedPlaylistIndex);
+  m_renderer.SetShuffleIndices(m_playlistManager.GetShuffleIndices());
 
   // 1. 時間と進行度の計算
   float posSec = m_audioPlayer.GetPositionSeconds();
@@ -317,7 +318,6 @@ void Application::ForceRender() {
     metadataList.push_back(meta);
   }
 
-  m_renderer.SetShuffleIndices(m_playlistManager.GetShuffleIndices());
   m_renderer.Render(
       m_window.IsHovered(), m_window.IsControlHovered(),
       m_window.IsVolumeHovered(), m_window.IsPlaylistHovered(),

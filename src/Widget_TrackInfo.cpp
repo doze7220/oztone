@@ -101,7 +101,11 @@ void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
     if (ctx.totalTracks == 0) {
       swprintf_s(trackCountBuf, L"---");
     } else {
-      swprintf_s(trackCountBuf, L"%zu", ctx.currentTrackIndex + 1);
+      size_t displayNo = ctx.currentTrackIndex + 1; // フォールバック
+      if (!ctx.shuffleIndices.empty() && ctx.currentTrackIndex < ctx.shuffleIndices.size()) {
+          displayNo = ctx.shuffleIndices[ctx.currentTrackIndex] + 1;
+      }
+      swprintf_s(trackCountBuf, L"%zu", displayNo);
     }
     std::wstring trackCountStr(trackCountBuf);
 

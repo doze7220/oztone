@@ -28,6 +28,7 @@ WidgetContext Renderer::BuildAnimationContext(float deltaTime, bool isControlHov
     ctx.logoMenuItems = logoMenuItems;
     ctx.outIsPlaylistExpanded = outIsPlaylistExpanded;
     ctx.outIsLogoMenuExpanded = outIsLogoMenuExpanded;
+    ctx.shuffleIndices = m_shuffleIndices;
     return ctx;
 }
 
@@ -45,6 +46,7 @@ WidgetContext Renderer::BuildLayoutContext(const std::wstring& timeString, float
     }
     ctx.trackTitle = m_trackTitle;
     ctx.trackArtist = m_trackArtist;
+    ctx.shuffleIndices = m_shuffleIndices;
 
     return ctx;
 }
