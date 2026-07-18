@@ -114,7 +114,7 @@ void Application::Run() {
         }
 
         if (!played) {
-          m_renderer.StartDrumAnimation(0, nullptr, nullptr);
+          m_renderer.GetTrackDrum().StartDrumAnimation(0, nullptr, nullptr);
           m_renderer.SetAlbumArt(nullptr);
         }
     }
@@ -237,7 +237,7 @@ void Application::ForceRender() {
   bool isPlaylistExpanded = false;
   bool isLogoMenuExpanded = false;
 
-  bool wasDrumAnimating = m_renderer.IsDrumAnimating();
+  bool wasDrumAnimating = m_renderer.GetTrackDrum().IsDrumAnimating();
 
   m_renderer.UpdateAnimation(
       0.016f, m_window.IsControlHovered(), m_window.IsVolumeHovered(),
@@ -248,7 +248,7 @@ void Application::ForceRender() {
       &m_window.GetLogoMenuItems(), logoClicked, logoMenuClicked,
       playbackClicked, &isPlaylistExpanded, &isLogoMenuExpanded);
 
-  if (wasDrumAnimating && !m_renderer.IsDrumAnimating()) {
+  if (wasDrumAnimating && !m_renderer.GetTrackDrum().IsDrumAnimating()) {
       LoadCurrentTrackArtAsync();
   }
 

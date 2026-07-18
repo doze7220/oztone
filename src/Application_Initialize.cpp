@@ -305,12 +305,12 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
 
       if (!played) {
         // UIの初期表示（空状態）
-        m_renderer.StartDrumAnimation(0, nullptr, nullptr);
+        m_renderer.GetTrackDrum().StartDrumAnimation(0, nullptr, nullptr);
         m_renderer.SetAlbumArt(nullptr);
       }
     } else {
       // UIの初期表示（空状態）
-      m_renderer.StartDrumAnimation(0, nullptr, nullptr);
+      m_renderer.GetTrackDrum().StartDrumAnimation(0, nullptr, nullptr);
       m_renderer.SetAlbumArt(nullptr);
     }
   }

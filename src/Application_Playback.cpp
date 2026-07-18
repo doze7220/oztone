@@ -51,7 +51,7 @@ void Application::HandleMediaCommand(int cmd) {
     }
 
     if (!played) {
-      m_renderer.StartDrumAnimation(0, nullptr, nullptr);
+      m_renderer.GetTrackDrum().StartDrumAnimation(0, nullptr, nullptr);
       m_renderer.SetAlbumArt(nullptr);
     } else {
       PlayCurrentTrack(totalDistance);
@@ -142,7 +142,7 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
       UpdateTrackMetadataIfNeeded(track);
     };
 
-    m_renderer.StartDrumAnimation(relativeDistance, dataProvider, onComplete);
+    m_renderer.GetTrackDrum().StartDrumAnimation(relativeDistance, dataProvider, onComplete);
     return true;
   }
   return false;

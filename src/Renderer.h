@@ -20,6 +20,7 @@
 #include "Visualizer.h"
 #include "Widget.h"
 #include "Window.h"
+#include "Renderer_TrackDrum.h"
 
 class ConfigManager;
 
@@ -75,6 +76,8 @@ public:
      * @brief 背景アートを設定する。
      */
     void SetBackgroundArt(ID2D1Bitmap* bitmap);
+
+    TrackDrum& GetTrackDrum() { return m_trackDrum; }
 
 
 
@@ -190,6 +193,7 @@ private:
     float m_flyTextWaitTimer = 0.0f;
     std::wstring m_flyTextString;
     Visualizer m_visualizer;
+    TrackDrum m_trackDrum;
 
     std::vector<std::unique_ptr<IWidget>> m_widgets;
 

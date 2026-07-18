@@ -28,7 +28,7 @@
     - `Renderer` からドラム関連のメンバ変数を切り離し、`TrackDrum` クラスへ移動する。
 [x] タスク3: 既存メソッドの移植 (Renderer -> TrackDrum)
     - `Renderer` からドラム計算・制御メソッド群（`StartDrumAnimation`など）を `TrackDrum` へ移動・適応させる。
-[ ] タスク4: RendererとTrackDrum間のインターフェース調整
+[x] タスク4: RendererとTrackDrum間のインターフェース調整
     - `Renderer` に `TrackDrum` のインスタンスを持たせ、委譲メソッド・ゲッター等のアクセス口を整備する。
 [ ] タスク5: WidgetContextおよび周辺の配線修正
     - 描画コンテキスト構築時など、ドラム状態の参照元を `TrackDrum` へ変更する。
@@ -51,7 +51,9 @@
     - 削除・切り取ったメソッドを `src/Renderer_TrackDrum.h` および `src/Renderer_TrackDrum.cpp` に `TrackDrum` クラスのメソッドとして定義・実装し、`ConfigManager*` の渡し方などを調整した。ロジック自体は変更せずに移動を完了した。
 
 ### タスク4: RendererとTrackDrum間のインターフェース調整
-    - (未実施)
+    - `Renderer.h` に `TrackDrum m_trackDrum;` と `GetTrackDrum()` ゲッターを追加した。
+    - `Renderer_Update.cpp` 内の `UpdateAnimation` にて `m_trackDrum.Update()` を呼び出すように配線した。
+    - 各 `Application_*.cpp` から `m_renderer.StartDrumAnimation` や `IsDrumAnimating` を呼び出していた箇所を `m_renderer.GetTrackDrum().StartDrumAnimation(...)` 等へ修正した。
 
 ### タスク5: WidgetContextおよび周辺の配線修正
     - (未実施)

@@ -36,8 +36,10 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
 
     }
 
+    m_trackDrum.Update(deltaTime, m_config);
+
     WidgetContext ctx = BuildAnimationContext(deltaTime, isControlHovered, isVolumeHovered, isPlaylistHovered, isLogoMenuHovered, logoMenuHoveredIndex, currentTrackIndex, totalTracks, isPlaylistListViewMode, playbackHoveredIndex, playlistHoveredItemIndex, logoMenuItems, isLogoClicked, clickedLogoMenuIndex, clickedPlaybackIndex, outIsPlaylistExpanded, outIsLogoMenuExpanded);
-    
+
     for (auto& widget : m_widgets) {
         widget->UpdateAnimation(ctx);
     }
