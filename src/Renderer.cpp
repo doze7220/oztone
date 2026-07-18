@@ -7,13 +7,15 @@ Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_c
 Renderer::~Renderer() {}
 
 void Renderer::SetDrumTarget(int relativeDistance) {
+    m_currentDrumSlotIndex = 1 - m_currentDrumSlotIndex;
     m_drumRelativePosition += static_cast<float>(relativeDistance);
-    m_oldTrackTitle = m_currentTrackTitle;
-    m_oldTrackArtist = m_currentTrackArtist;
+    
+    // reset image to nullptr so it waits for new art
+    m_drumSlots[m_currentDrumSlotIndex].artBitmap = nullptr;
 }
 
 void Renderer::SetAlbumArt(ID2D1Bitmap* bitmap) {
-    m_currentArtBitmap = bitmap;
+    m_drumSlots[m_currentDrumSlotIndex].artBitmap = bitmap;
 }
 
 void Renderer::SetBackgroundFraming(float offsetX, float offsetY, float scale) {
@@ -27,7 +29,7 @@ void Renderer::ClampArtFraming(float scale, float& offsetX, float& offsetY) {
     int bgMode = m_config ? m_config->GetBackgroundArtMode() : 0;
     ID2D1Bitmap* artBitmap = nullptr;
     if (bgMode == 0) {
-        artBitmap = m_currentArtBitmap ? m_currentArtBitmap.Get() : m_placeholderArtBitmap.Get();
+        artBitmap = m_drumSlots[m_currentDrumSlotIndex].artBitmap ? m_drumSlots[m_currentDrumSlotIndex].artBitmap.Get() : m_placeholderArtBitmap.Get();
     } else if (bgMode == 2) {
         artBitmap = m_placeholderArtBitmap.Get();
     }

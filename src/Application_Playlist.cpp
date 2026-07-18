@@ -58,26 +58,6 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
 
         m_audioPlayer.Stop();
         if (!m_playlistManager.IsEmpty()) {
-          std::wstring track = m_playlistManager.GetCurrentTrack();
-          if (m_tagManager.Load(track)) {
-            const auto &artBytes = m_tagManager.GetAlbumArtBytes();
-            if (!artBytes.empty()) {
-              Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-              if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
-                m_renderer.SetAlbumArt(artBitmap.Get());
-              } else {
-                m_renderer.SetAlbumArt(nullptr);
-              }
-            } else {
-              m_renderer.SetAlbumArt(nullptr);
-            }
-          } else {
-            m_renderer.SetAlbumArt(nullptr);
-          }
-
-          float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
-          m_framingDb.GetFraming(track, artX, artY, artScale);
-          m_renderer.SetBackgroundFraming(artX, artY, artScale);
           PlayCurrentTrack();
         } else {
           m_renderer.SetDrumTarget(0);
@@ -172,27 +152,6 @@ void Application::OnPlaylistClicked(int x, int y) {
 
     auto list = m_playlistManager.GetShuffleList();
     if (index < list.size()) {
-      std::wstring track = list[index];
-
-      if (m_tagManager.Load(track)) {
-        const auto &artBytes = m_tagManager.GetAlbumArtBytes();
-        if (!artBytes.empty()) {
-          Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-          if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
-            m_renderer.SetAlbumArt(artBitmap.Get());
-          } else {
-            m_renderer.SetAlbumArt(nullptr);
-          }
-        } else {
-          m_renderer.SetAlbumArt(nullptr);
-        }
-      } else {
-        m_renderer.SetAlbumArt(nullptr);
-      }
-
-      float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
-      m_framingDb.GetFraming(track, artX, artY, artScale);
-      m_renderer.SetBackgroundFraming(artX, artY, artScale);
       int distance = static_cast<int>(oldIndex) - static_cast<int>(index);
       if (!PlayCurrentTrack(distance)) {
         m_renderer.SetDrumTarget(0);
@@ -311,26 +270,6 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
     size_t totalCount = m_playlistManager.GetCount();
 
     while (skipCount < totalCount) {
-      std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
-      if (m_tagManager.Load(currentTrack)) {
-        const auto &artBytes = m_tagManager.GetAlbumArtBytes();
-        if (!artBytes.empty()) {
-          Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-          if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
-            m_renderer.SetAlbumArt(artBitmap.Get());
-          } else {
-            m_renderer.SetAlbumArt(nullptr);
-          }
-        } else {
-          m_renderer.SetAlbumArt(nullptr);
-        }
-      } else {
-        m_renderer.SetAlbumArt(nullptr);
-      }
-
-      float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
-      m_framingDb.GetFraming(currentTrack, artX, artY, artScale);
-      m_renderer.SetBackgroundFraming(artX, artY, artScale);
       if (PlayCurrentTrack(-1)) {
         played = true;
         break;

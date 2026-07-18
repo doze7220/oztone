@@ -106,34 +106,7 @@ void Application::Run() {
         size_t totalCount = m_playlistManager.GetCount();
 
         while (skipCount < totalCount) {
-          std::wstring track = m_playlistManager.GetCurrentTrack();
-
-          if (skipCount == 0) {
-            // 最初の曲は先読みデータを利用
-            m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
-          } else {
-            // スキップされた場合は同期的にタグを読み直す
-            if (m_tagManager.Load(track)) {
-              const auto &artBytes = m_tagManager.GetAlbumArtBytes();
-              if (!artBytes.empty()) {
-                Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-                if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
-                  m_renderer.SetAlbumArt(artBitmap.Get());
-                } else {
-                  m_renderer.SetAlbumArt(nullptr);
-                }
-              } else {
-                m_renderer.SetAlbumArt(nullptr);
-              }
-            } else {
-              m_renderer.SetAlbumArt(nullptr);
-            }
-          }
-
-          float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
-      m_framingDb.GetFraming(track, artX, artY, artScale);
-      m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (PlayCurrentTrack(-1)) {
+          if (PlayCurrentTrack(-1)) {
             played = true;
             break;
           }

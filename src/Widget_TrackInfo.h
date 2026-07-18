@@ -35,8 +35,7 @@ private:
     Microsoft::WRL::ComPtr<IDWriteTextFormat> m_trackCountTextFormat;
     Microsoft::WRL::ComPtr<IDWriteTextLayout> m_trackCountTextLayout;
     Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
-    size_t m_lastTotalTracks = static_cast<size_t>(-1);
-    size_t m_lastCurrentTrackIndex = static_cast<size_t>(-1);
+    std::wstring m_lastTrackNumber;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_trackCountBoxBaseBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_trackCountBoxUnderLineBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_trackCountTextBrush;

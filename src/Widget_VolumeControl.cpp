@@ -192,7 +192,7 @@ void VolumeControlWidget::UpdateLayout(const WidgetContext &ctx,
                                        const ConfigManager *config) {
   if (!config || !m_dwriteFactory) return;
 
-  D2D1_SIZE_F renderTargetSize = ctx.currentArtBitmap ? D2D1_SIZE_F{1024, 512} : D2D1_SIZE_F{1024, 512}; // Need actual context size, but we can just use DPI scale logic
+  D2D1_SIZE_F renderTargetSize = ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap ? D2D1_SIZE_F{1024, 512} : D2D1_SIZE_F{1024, 512}; // Need actual context size, but we can just use DPI scale logic
 }
 
 void VolumeControlWidget::Draw(ID2D1DeviceContext *context,

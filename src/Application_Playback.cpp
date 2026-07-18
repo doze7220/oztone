@@ -31,32 +31,6 @@ void Application::HandleMediaCommand(int cmd) {
     m_audioPlayer.Stop();
 
     while (skipCount < totalCount) {
-      std::wstring track = m_playlistManager.GetCurrentTrack();
-
-      if (cmd == APPCOMMAND_MEDIA_NEXTTRACK && skipCount == 0 &&
-          m_isPrefetchReady.load()) {
-        m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
-      } else {
-        if (m_tagManager.Load(track)) {
-          const auto &artBytes = m_tagManager.GetAlbumArtBytes();
-          if (!artBytes.empty()) {
-            Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-            if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
-              m_renderer.SetAlbumArt(artBitmap.Get());
-            } else {
-              m_renderer.SetAlbumArt(nullptr);
-            }
-          } else {
-            m_renderer.SetAlbumArt(nullptr);
-          }
-        } else {
-          m_renderer.SetAlbumArt(nullptr);
-        }
-      }
-
-      float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
-      m_framingDb.GetFraming(track, artX, artY, artScale);
-      m_renderer.SetBackgroundFraming(artX, artY, artScale);
       int distance = (cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) ? 1 : -1;
       if (PlayCurrentTrack(distance)) {
         played = true;
@@ -181,7 +155,35 @@ void Application::LoadCurrentTrackArtAsync() {
 bool Application::PlayCurrentTrack(int relativeDistance) {
   std::wstring track = m_playlistManager.GetCurrentTrack();
   if (m_audioPlayer.Play(track)) {
+    // 1. 先にフリップを確定させ、インデックスを切り替える
     m_renderer.SetDrumTarget(relativeDistance);
+
+    // 2. 切り替わった新スロットに対して画像をセットする
+    if (relativeDistance == 1 && m_isPrefetchReady.load()) {
+      m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
+    } else {
+      if (m_tagManager.Load(track)) {
+        const auto &artBytes = m_tagManager.GetAlbumArtBytes();
+        if (!artBytes.empty()) {
+          Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+          if (m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap)) {
+            m_renderer.SetAlbumArt(artBitmap.Get());
+          } else {
+            m_renderer.SetAlbumArt(nullptr);
+          }
+        } else {
+          m_renderer.SetAlbumArt(nullptr);
+        }
+      } else {
+        m_renderer.SetAlbumArt(nullptr);
+      }
+    }
+
+    // 3. 新スロットに対してフレーミング情報をセットする
+    float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
+    m_framingDb.GetFraming(track, artX, artY, artScale);
+    m_renderer.SetBackgroundFraming(artX, artY, artScale);
+
     UpdateTrackMetadataIfNeeded(track);
     PrefetchNextTrack();
     return true;

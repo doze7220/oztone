@@ -65,14 +65,15 @@ void TrackInfoWidget::ReleaseResources() {
 
 void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {
   bool isDrumAnimating = (ctx.drumRelativePosition != 0.0f);
+  auto currentArt = ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap;
   if (!isDrumAnimating) {
-    if (!m_lastArtBitmap && ctx.currentArtBitmap) {
+    if (!m_lastArtBitmap && currentArt) {
       m_artCrossfadeProgress = 0.0f;
     } else if (m_artCrossfadeProgress < 1.0f) {
       m_artCrossfadeProgress += ctx.deltaTime * 3.0f; // 300ms fade
       if (m_artCrossfadeProgress > 1.0f) m_artCrossfadeProgress = 1.0f;
     }
-    m_lastArtBitmap = ctx.currentArtBitmap;
+    m_lastArtBitmap = currentArt;
   } else {
     m_artCrossfadeProgress = 1.0f;
     if (!m_wasDrumAnimating) {
@@ -88,72 +89,57 @@ void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
     return;
 
   if (m_dwriteFactory) {
-    std::wstring currentTitle = L"Unknown";
-    std::wstring currentArtist = L"Unknown";
-    if (ctx.totalTracks > 0 && ctx.shuffleMetadataList) {
-        int absIndex = static_cast<int>(ctx.currentTrackIndex);
-        int normalizedIndex = (absIndex % static_cast<int>(ctx.totalTracks) + static_cast<int>(ctx.totalTracks)) % static_cast<int>(ctx.totalTracks);
-        if (normalizedIndex < static_cast<int>(ctx.shuffleMetadataList->size())) {
-            const auto& meta = (*ctx.shuffleMetadataList)[normalizedIndex];
-            currentTitle = meta.title;
-            currentArtist = meta.artist;
-        }
-    }
+    std::wstring currentTitle = ctx.drumSlots[ctx.currentDrumSlotIndex].trackTitle;
+    std::wstring currentArtist = ctx.drumSlots[ctx.currentDrumSlotIndex].trackArtist;
 
     if (m_titleTextFormat &&
         (!m_titleTextLayout || m_lastTitle != currentTitle)) {
       m_lastTitle = currentTitle;
       m_titleTextLayout.Reset();
-      m_dwriteFactory->CreateTextLayout(
-          currentTitle.c_str(), static_cast<UINT32>(currentTitle.length()),
-          m_titleTextFormat.Get(), 4000.0f, 1000.0f, &m_titleTextLayout);
+      if (!currentTitle.empty()) {
+        m_dwriteFactory->CreateTextLayout(
+            currentTitle.c_str(), static_cast<UINT32>(currentTitle.length()),
+            m_titleTextFormat.Get(), 4000.0f, 1000.0f, &m_titleTextLayout);
+      }
     }
 
     if (m_artistTextFormat &&
         (!m_artistTextLayout || m_lastArtist != currentArtist)) {
       m_lastArtist = currentArtist;
       m_artistTextLayout.Reset();
-      m_dwriteFactory->CreateTextLayout(
-          currentArtist.c_str(),
-          static_cast<UINT32>(currentArtist.length()),
-          m_artistTextFormat.Get(), 4000.0f, 1000.0f, &m_artistTextLayout);
+      if (!currentArtist.empty()) {
+        m_dwriteFactory->CreateTextLayout(
+            currentArtist.c_str(),
+            static_cast<UINT32>(currentArtist.length()),
+            m_artistTextFormat.Get(), 4000.0f, 1000.0f, &m_artistTextLayout);
+      }
     }
   }
 
-  if (m_dwriteFactory && m_trackCountTextFormat &&
-      (!m_trackCountTextLayout || m_lastTotalTracks != ctx.totalTracks ||
-       m_lastCurrentTrackIndex != ctx.currentTrackIndex)) {
-    m_lastTotalTracks = ctx.totalTracks;
-    m_lastCurrentTrackIndex = ctx.currentTrackIndex;
-    m_trackCountTextLayout.Reset();
+  if (m_dwriteFactory && m_trackCountTextFormat) {
+    std::wstring currentTrackNumber = ctx.drumSlots[ctx.currentDrumSlotIndex].trackNumber;
+    if (!m_trackCountTextLayout || m_lastTrackNumber != currentTrackNumber) {
+      m_lastTrackNumber = currentTrackNumber;
+      m_trackCountTextLayout.Reset();
 
-    wchar_t trackCountBuf[64];
-    if (ctx.totalTracks == 0) {
-      swprintf_s(trackCountBuf, L"---");
-    } else {
-      size_t displayNo = ctx.currentTrackIndex + 1; // フォールバック
-      if (!ctx.shuffleIndices.empty() && ctx.currentTrackIndex < ctx.shuffleIndices.size()) {
-          displayNo = ctx.shuffleIndices[ctx.currentTrackIndex] + 1;
+      if (m_trackCountTextFormat) {
+        m_trackCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
       }
-      swprintf_s(trackCountBuf, L"%zu", displayNo);
-    }
-    std::wstring trackCountStr(trackCountBuf);
 
-    if (m_trackCountTextFormat) {
-      m_trackCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-    }
+      if (!currentTrackNumber.empty()) {
+        m_dwriteFactory->CreateTextLayout(
+            currentTrackNumber.c_str(), static_cast<UINT32>(currentTrackNumber.length()),
+            m_trackCountTextFormat.Get(), static_cast<float>(config->GetArtSize()), config->GetTrackCountBoxWidth(), &m_trackCountTextLayout);
 
-    m_dwriteFactory->CreateTextLayout(
-        trackCountStr.c_str(), static_cast<UINT32>(trackCountStr.length()),
-        m_trackCountTextFormat.Get(), static_cast<float>(config->GetArtSize()), config->GetTrackCountBoxWidth(), &m_trackCountTextLayout);
-
-    if (m_trackCountTextLayout) {
-      Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
-      if (SUCCEEDED(m_trackCountTextLayout.As(&textLayout1))) {
-        DWRITE_TEXT_RANGE textRange = {
-            0, static_cast<UINT32>(trackCountStr.length())};
-        textLayout1->SetCharacterSpacing(
-            0.0f, config->GetTrackCountLetterSpacing(), 0.0f, textRange);
+        if (m_trackCountTextLayout) {
+          Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
+          if (SUCCEEDED(m_trackCountTextLayout.As(&textLayout1))) {
+            DWRITE_TEXT_RANGE textRange = {
+                0, static_cast<UINT32>(currentTrackNumber.length())};
+            textLayout1->SetCharacterSpacing(
+                0.0f, config->GetTrackCountLetterSpacing(), 0.0f, textRange);
+          }
+        }
       }
     }
   }
@@ -167,8 +153,8 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
     float logicWidth = rtSize.width / ctx.dpiScale;
     float logicHeight = rtSize.height / ctx.dpiScale;
 
-    D2D1_SIZE_F bitmapSize = ctx.currentArtBitmap
-                                 ? ctx.currentArtBitmap->GetSize()
+    D2D1_SIZE_F bitmapSize = ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap
+                                 ? ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap->GetSize()
                                  : D2D1::SizeF(0.0f, 0.0f);
     TrackInfoLayout layout = LayoutCalculator::CalculateTrackInfoLayout(
         logicWidth, logicHeight, config, bitmapSize);
@@ -205,69 +191,41 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       }
 
       if (relativeIndex == 0) {
-        art = ctx.currentArtBitmap;
+        art = ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap.Get();
         titleLayout = m_titleTextLayout.Get();
         artistLayout = m_artistTextLayout.Get();
         trackCountLayout = m_trackCountTextLayout.Get();
       } else {
         if (m_wasDrumAnimating && relativeIndex == m_animatingOldIndexOffset) {
-            art = m_lastArtBitmap.Get();
+            int oldSlotIndex = 1 - ctx.currentDrumSlotIndex;
+            art = ctx.drumSlots[oldSlotIndex].artBitmap.Get();
             
-            if (!ctx.oldTrackTitle.empty() && m_dwriteFactory && m_titleTextFormat) {
+            const auto& oldSlot = ctx.drumSlots[oldSlotIndex];
+            
+            if (!oldSlot.trackTitle.empty() && m_dwriteFactory && m_titleTextFormat) {
                 m_dwriteFactory->CreateTextLayout(
-                    ctx.oldTrackTitle.c_str(), static_cast<UINT32>(ctx.oldTrackTitle.length()),
+                    oldSlot.trackTitle.c_str(), static_cast<UINT32>(oldSlot.trackTitle.length()),
                     m_titleTextFormat.Get(), 4000.0f, 1000.0f, &tempTitleLayout);
                 titleLayout = tempTitleLayout.Get();
             }
-            if (!ctx.oldTrackArtist.empty() && m_dwriteFactory && m_artistTextFormat) {
+            if (!oldSlot.trackArtist.empty() && m_dwriteFactory && m_artistTextFormat) {
                 m_dwriteFactory->CreateTextLayout(
-                    ctx.oldTrackArtist.c_str(), static_cast<UINT32>(ctx.oldTrackArtist.length()),
+                    oldSlot.trackArtist.c_str(), static_cast<UINT32>(oldSlot.trackArtist.length()),
                     m_artistTextFormat.Get(), 4000.0f, 1000.0f, &tempArtistLayout);
                 artistLayout = tempArtistLayout.Get();
             }
-        } else if (ctx.totalTracks > 0) {
-            // 中間スロット：メタデータからタイトル・アーティスト名と、CD帯(トラックナンバー)のテキストを生成
-            std::wstring midTitle;
-            std::wstring midArtist;
-            if (ctx.shuffleMetadataList && normalizedIndex < static_cast<int>(ctx.shuffleMetadataList->size())) {
-                const auto& meta = (*ctx.shuffleMetadataList)[normalizedIndex];
-                midTitle = meta.title;
-                midArtist = meta.artist;
-            }
-
-            if (!midTitle.empty() && m_dwriteFactory && m_titleTextFormat) {
+            if (!oldSlot.trackNumber.empty() && m_dwriteFactory && m_trackCountTextFormat) {
                 m_dwriteFactory->CreateTextLayout(
-                    midTitle.c_str(), static_cast<UINT32>(midTitle.length()),
-                    m_titleTextFormat.Get(), 4000.0f, 1000.0f, &tempTitleLayout);
-                titleLayout = tempTitleLayout.Get();
+                    oldSlot.trackNumber.c_str(), static_cast<UINT32>(oldSlot.trackNumber.length()),
+                    m_trackCountTextFormat.Get(), static_cast<float>(config->GetArtSize()), config->GetTrackCountBoxWidth(), &tempTrackCountLayout);
+                
+                Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
+                if (SUCCEEDED(tempTrackCountLayout.As(&textLayout1))) {
+                    DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(oldSlot.trackNumber.length())};
+                    textLayout1->SetCharacterSpacing(0.0f, config->GetTrackCountLetterSpacing(), 0.0f, textRange);
+                }
+                trackCountLayout = tempTrackCountLayout.Get();
             }
-            if (!midArtist.empty() && m_dwriteFactory && m_artistTextFormat) {
-                m_dwriteFactory->CreateTextLayout(
-                    midArtist.c_str(), static_cast<UINT32>(midArtist.length()),
-                    m_artistTextFormat.Get(), 4000.0f, 1000.0f, &tempArtistLayout);
-                artistLayout = tempArtistLayout.Get();
-            }
-        }
-
-        if (ctx.totalTracks > 0) {
-            wchar_t trackCountBuf[64];
-            size_t displayNo = normalizedIndex + 1;
-            if (!ctx.shuffleIndices.empty() && normalizedIndex < static_cast<int>(ctx.shuffleIndices.size())) {
-                displayNo = ctx.shuffleIndices[normalizedIndex] + 1;
-            }
-            swprintf_s(trackCountBuf, L"%zu", displayNo);
-            std::wstring trackCountStr(trackCountBuf);
-
-            m_dwriteFactory->CreateTextLayout(
-                trackCountStr.c_str(), static_cast<UINT32>(trackCountStr.length()),
-                m_trackCountTextFormat.Get(), static_cast<float>(config->GetArtSize()), config->GetTrackCountBoxWidth(), &tempTrackCountLayout);
-            
-            Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
-            if (SUCCEEDED(tempTrackCountLayout.As(&textLayout1))) {
-                DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(trackCountStr.length())};
-                textLayout1->SetCharacterSpacing(0.0f, config->GetTrackCountLetterSpacing(), 0.0f, textRange);
-            }
-            trackCountLayout = tempTrackCountLayout.Get();
         }
       }
 

@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <array>
+#include <wrl/client.h>
 
 #include "PlaylistManager.h"
 #include "TrackDatabase.h"
@@ -16,6 +18,13 @@ struct PlaylistSummary {
     std::wstring displayName;
     size_t trackCount = 0;
     std::wstring totalTimeString = L"---";
+};
+
+struct DrumSlot {
+    std::wstring trackTitle;
+    std::wstring trackArtist;
+    std::wstring trackNumber;
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
 };
 
 /**
@@ -57,12 +66,10 @@ struct WidgetContext {
 
     std::wstring timeString;
 
-    ID2D1Bitmap* currentArtBitmap;
-    
     // Track Drum States
     float drumRelativePosition = 0.0f;
-    std::wstring oldTrackTitle;
-    std::wstring oldTrackArtist;
+    std::array<DrumSlot, 2> drumSlots;
+    int currentDrumSlotIndex = 0;
 
     std::optional<size_t> focusedPlaylistIndex;
     float logoMenuHoverAlpha = 0.0f;

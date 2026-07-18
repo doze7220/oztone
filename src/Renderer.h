@@ -12,6 +12,7 @@
 #include <vector>
 #include <memory>
 #include <optional>
+#include <array>
 #include "PlaylistManager.h"
 #include "TrackDatabase.h"
 #include "Visualizer.h"
@@ -174,7 +175,6 @@ private:
 
     Microsoft::WRL::ComPtr<IWICImagingFactory> m_wicFactory;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_placeholderArtBitmap;
-    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_currentArtBitmap; // 現在再生中のアルバムアート
 
 
 
@@ -183,10 +183,8 @@ private:
 
     // Track Drum States
     float m_drumRelativePosition = 0.0f;
-    std::wstring m_currentTrackTitle;
-    std::wstring m_currentTrackArtist;
-    std::wstring m_oldTrackTitle;
-    std::wstring m_oldTrackArtist;
+    std::array<DrumSlot, 2> m_drumSlots;
+    int m_currentDrumSlotIndex = 0;
 
     HWND m_hwnd;
     const ConfigManager* m_config;
