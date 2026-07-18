@@ -235,16 +235,16 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       Microsoft::WRL::ComPtr<IDWriteTextLayout> tempTitleLayout;
       Microsoft::WRL::ComPtr<IDWriteTextLayout> tempArtistLayout;
 
-      if (trackIndex == ctx.drumStartIndex) {
-        art = ctx.oldArtBitmap;
-        titleLayout = m_oldTitleTextLayout.Get();
-        artistLayout = m_oldArtistTextLayout.Get();
-        trackCountLayout = m_oldTrackCountTextLayout.Get();
-      } else if (trackIndex == ctx.drumTargetIndex) {
+      if (trackIndex == ctx.drumTargetIndex) {
         art = ctx.currentArtBitmap;
         titleLayout = m_titleTextLayout.Get();
         artistLayout = m_artistTextLayout.Get();
         trackCountLayout = m_trackCountTextLayout.Get();
+      } else if (trackIndex == ctx.drumStartIndex) {
+        art = ctx.oldArtBitmap;
+        titleLayout = m_oldTitleTextLayout.Get();
+        artistLayout = m_oldArtistTextLayout.Get();
+        trackCountLayout = m_oldTrackCountTextLayout.Get();
       } else {
         // 中間スロット：メタデータからタイトル・アーティスト名と、CD帯(トラックナンバー)のテキストを生成
         if (ctx.totalTracks > 0) {

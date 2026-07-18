@@ -44,6 +44,13 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
                 m_drumTargetIndex = currentTrackIndex;
                 if (m_isDrumAnimating) {
                     double target = static_cast<double>(m_drumTargetIndex);
+                    
+                    if (m_drumStartIndex > 0 && m_drumTargetIndex == 0) {
+                        m_drumPosition = target - 1.0;
+                    } else if (m_drumStartIndex == 0 && m_drumTargetIndex == totalTracks - 1) {
+                        m_drumPosition = target + 1.0;
+                    }
+
                     double diff = target - m_drumPosition;
                     
                     double maxSpeed = m_config->GetTrackDrumMaxSpeed();

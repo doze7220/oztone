@@ -15,11 +15,25 @@ void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artis
         m_oldBgOffsetX = m_bgOffsetX;
         m_oldBgOffsetY = m_bgOffsetY;
         m_oldBgScale = m_bgScale;
-        m_isDrumAnimating = true;
+        
+        if (!m_isFirstTrackLoaded) {
+            m_isDrumAnimating = false;
+            m_drumTargetIndex = m_lastCurrentTrackIndex;
+            m_drumPosition = static_cast<double>(m_drumTargetIndex);
+        } else {
+            m_isDrumAnimating = true;
+        }
     } else {
         m_isDrumAnimating = false;
+        if (!m_isFirstTrackLoaded) {
+            if (m_lastCurrentTrackIndex != static_cast<size_t>(-1) && m_lastCurrentTrackIndex != static_cast<size_t>(-2)) {
+                m_drumTargetIndex = m_lastCurrentTrackIndex;
+            }
+            m_drumPosition = static_cast<double>(m_drumTargetIndex);
+        }
     }
 
+    m_isFirstTrackLoaded = true;
     m_trackTitle = title;
     m_trackArtist = artist;
 }

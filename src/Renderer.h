@@ -193,6 +193,7 @@ private:
     float m_oldBgOffsetY = 0.0f;
     float m_oldBgScale = 1.0f;
     bool m_isDrumAnimating = false;
+    bool m_isFirstTrackLoaded = false;
     double m_drumPosition = 0.0;
     double m_drumVelocity = 0.0;
     size_t m_drumTargetIndex = 0;
