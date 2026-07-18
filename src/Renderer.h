@@ -32,16 +32,6 @@ enum class DrumMoveType {
 };
 
 /**
- * @brief トラックドラムの描画に必要な純粋なデータ
- */
-struct DrumSlotData {
-    std::wstring title;
-    std::wstring artist;
-    std::wstring trackNo;
-    Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-};
-
-/**
  * @brief Direct3D 11 と Direct2D を用いたハイブリッド描画エンジン
  * 
  * 将来的な3Dビジュアライザと2D UI(アルバムアート等)を共存させるため、
@@ -92,7 +82,7 @@ public:
     /**
      * @brief 再生中の曲情報を設定する
      */
-    void SetTrackInfo(const std::wstring& title, const std::wstring& artist, const std::wstring& trackNoString = L"", DrumMoveType moveType = DrumMoveType::Jump, size_t currentTrackIndex = 0);
+    void SetTrackInfo(const std::wstring& title, const std::wstring& artist, const std::wstring& trackNoString, DrumMoveType moveType, size_t currentTrackIndex = 0);
 
     /**
      * @brief アルバムアートを設定する。nullptrの場合はプレースホルダーが使用される。
@@ -210,10 +200,7 @@ private:
     DrumSlotData m_nowDrumSlot;
 
     // Track Drum States
-    std::wstring m_oldTrackTitle;
-    std::wstring m_oldTrackArtist;
     size_t m_oldTrackIndex = static_cast<size_t>(-1);
-    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_oldArtBitmap;
     float m_oldBgOffsetX = 0.0f;
     float m_oldBgOffsetY = 0.0f;
     float m_oldBgScale = 1.0f;

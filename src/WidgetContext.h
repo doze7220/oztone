@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <wrl/client.h>
 
 #include "PlaylistManager.h"
 #include "TrackDatabase.h"
@@ -24,6 +25,17 @@ struct PlaylistSummary {
  * Widget固有の状態・キャッシュ・リソースはWidget自身が保持すること。
  * このコンテキストを巨大なGod Objectにしないこと。
  */
+
+/**
+ * @brief トラックドラムの描画に必要な純粋なデータ
+ */
+struct DrumSlotData {
+    std::wstring title;
+    std::wstring artist;
+    std::wstring trackNo;
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+};
+
 struct WidgetContext {
     float deltaTime;
     bool isHovered;
@@ -62,15 +74,15 @@ struct WidgetContext {
     ID2D1Bitmap* currentArtBitmap;
     
     // Track Drum States
-    std::wstring oldTrackTitle;
-    std::wstring oldTrackArtist;
-    ID2D1Bitmap* oldArtBitmap = nullptr;
     bool isDrumAnimating = false;
     double drumPosition = 0.0;
     double drumVelocity = 0.0;
     size_t drumTargetIndex = 0;
     size_t drumStartIndex = 0;
     size_t oldTrackIndex = 0;
+
+    DrumSlotData oldDrumSlot;
+    DrumSlotData nowDrumSlot;
 
     std::optional<size_t> focusedPlaylistIndex;
     float logoMenuHoverAlpha = 0.0f;

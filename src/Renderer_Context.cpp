@@ -30,15 +30,15 @@ WidgetContext Renderer::BuildAnimationContext(float deltaTime, bool isControlHov
     ctx.outIsLogoMenuExpanded = outIsLogoMenuExpanded;
     ctx.shuffleIndices = m_shuffleIndices;
     
-    ctx.oldTrackTitle = m_oldTrackTitle;
-    ctx.oldTrackArtist = m_oldTrackArtist;
     ctx.oldTrackIndex = m_oldTrackIndex;
-    ctx.oldArtBitmap = m_oldArtBitmap.Get();
     ctx.isDrumAnimating = m_isDrumAnimating;
     ctx.drumPosition = m_drumPosition;
     ctx.drumVelocity = m_drumVelocity;
     ctx.drumTargetIndex = m_drumTargetIndex;
     ctx.drumStartIndex = m_drumStartIndex;
+
+    ctx.oldDrumSlot = m_oldDrumSlot;
+    ctx.nowDrumSlot = m_nowDrumSlot;
 
     return ctx;
 }
@@ -59,15 +59,15 @@ WidgetContext Renderer::BuildLayoutContext(const std::wstring& timeString, float
     ctx.trackArtist = m_trackArtist;
     ctx.shuffleIndices = m_shuffleIndices;
 
-    ctx.oldTrackTitle = m_oldTrackTitle;
-    ctx.oldTrackArtist = m_oldTrackArtist;
     ctx.oldTrackIndex = m_oldTrackIndex;
-    ctx.oldArtBitmap = m_oldArtBitmap.Get();
     ctx.isDrumAnimating = m_isDrumAnimating;
     ctx.drumPosition = m_drumPosition;
     ctx.drumVelocity = m_drumVelocity;
     ctx.drumTargetIndex = m_drumTargetIndex;
     ctx.drumStartIndex = m_drumStartIndex;
+
+    ctx.oldDrumSlot = m_oldDrumSlot;
+    ctx.nowDrumSlot = m_nowDrumSlot;
 
     return ctx;
 }
@@ -104,15 +104,15 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
     ctx.trackArtist = m_trackArtist;
     ctx.currentArtBitmap = m_currentArtBitmap.Get();
 
-    ctx.oldTrackTitle = m_oldTrackTitle;
-    ctx.oldTrackArtist = m_oldTrackArtist;
     ctx.oldTrackIndex = m_oldTrackIndex;
-    ctx.oldArtBitmap = m_oldArtBitmap.Get();
     ctx.isDrumAnimating = m_isDrumAnimating;
     ctx.drumPosition = m_drumPosition;
     ctx.drumVelocity = m_drumVelocity;
     ctx.drumTargetIndex = m_drumTargetIndex;
     ctx.drumStartIndex = m_drumStartIndex;
+
+    ctx.oldDrumSlot = m_oldDrumSlot;
+    ctx.nowDrumSlot = m_nowDrumSlot;
 
     ctx.config = m_config;
     ctx.focusedPlaylistIndex = m_focusedPlaylistIndex;

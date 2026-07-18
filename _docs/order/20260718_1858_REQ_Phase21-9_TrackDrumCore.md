@@ -89,3 +89,66 @@
 
 
 -----------------------------------------------------------------------------------------
+
+
+### 作業指示書 REQ: Phase 21-9 Task 3 : Application層の操作意図(DrumMoveType)伝達
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260718_1905_RES_Phase21-9_TrackDrumRebuild.md
+
+#### 【作業手順（厳守事項）】
+1. 本プロンプトは完全独立型ドラムエンジンのためのApplication層呼び出し改修である。直ちに以下の【実装要件】に従ってコードの修正を実行すること。
+2. 作業完了後、既存の作業レポート（20260718_1905_RES_Phase21-9_TrackDrumRebuild.md）の「タスク3」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+3. チャットにて「Application層の操作意図伝達(Task 3)が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+Application層の各処理において `m_renderer.SetTrackInfo` を呼び出している全箇所（初期化、曲送り/戻し、プレイリスト切り替え、クリアなど）を調査し、その操作コンテキストに合致する `DrumMoveType` を明示的に引数として渡すように修正する。
+
+*   **要件1: `PlayCurrentTrack` のシグネチャ拡張と伝播**
+    *   `src/Application.h` および `src/Application_Playback.cpp` の `PlayCurrentTrack()` の引数に、デフォルト値を持つ `DrumMoveType moveType = DrumMoveType::Jump` を追加する。
+    *   `PlayCurrentTrack` 内部で `m_renderer.SetTrackInfo` を呼び出す際、受け取った `moveType` をそのまま Renderer へ伝播させる。
+*   **要件2: 各アクションからの意図伝達（神経接続）**
+    *   メディアキー操作やUI操作から `PlayCurrentTrack` を呼び出す箇所を特定し、操作の意図に合わせた `DrumMoveType` を引数として渡すように修正する。
+        *   曲送り（NextTrack）や自動ループ再生時: `DrumMoveType::Next`
+        *   曲戻し（PrevTrack）時: `DrumMoveType::Prev`
+        *   リスト一覧からの切り替え時（SwitchPlaylist）: `DrumMoveType::CrossPlaylist`
+        *   リスト内での任意の曲クリック（JumpToIndex）等: `DrumMoveType::Jump`
+*   **要件3: 初期実装形式（UIクリア等）の純化**
+    *   `src/Application_Playlist.cpp` の `ClearPlaylist()` や、初期化時の空打ちなど、直接 `m_renderer.SetTrackInfo(L"NO TRACK", L"---", ...);` と文字列を渡している箇所を特定する。
+    *   これらはUIリセットを意味するため、必ず `DrumMoveType::Reset` を第4引数（`moveType`）として明示的に渡すように修正する。
+*   **要件4: デフォルト引数のパージ（安全装置の解除）**
+    *   Application層のすべての呼び出し元への適用が完了したら、タスク1で `src/Renderer.h` の `SetTrackInfo` 宣言に一時的に付与していたデフォルト引数（`= DrumMoveType::Jump` 等）を削除し、引数の受け渡しを強制（純化）する。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スコープの厳密な限定**: 本タスクはApplication層からの呼び出し元の修正と、Renderer.hのシグネチャ純化のみ。`WidgetContext` へのデータ追加（タスク4）や、`Widget_TrackInfo` での描画切り替え（タスク5）には絶対に触れないこと。
+
+-----------------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 21-9 Task 4 & 5 : 描画層の純化とOLD/NOWスナップショットの適用
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260718_1905_RES_Phase21-9_TrackDrumRebuild.md
+
+#### 【作業手順（厳守事項）】
+1. 本プロンプトは完全独立型ドラムエンジン構築の最終ステップである「描画層の純化」である。直ちに以下の【実装要件】に従ってコードの修正を実行すること。
+2. 作業完了後、既存の作業レポート（20260718_1905_RES_Phase21-9_TrackDrumRebuild.md）の「タスク4」「タスク5」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+3. チャットにて「描画層の純化(Task 4 & 5)が完了しました。完全独立型ドラムエンジンの完成です。動作確認をお願いします！」と報告すること。
+
+#### 【実装要件】
+現在発生しているインデックス不整合による描画バグを根本解決するため、Widget_TrackInfo の描画がプレイリストデータを一切見ず、Rendererから渡された OLD / NOW のスナップショットのみを参照するように純化する。
+
+*   **要件1: WidgetContext へのスナップショット追加 (タスク4)**
+    *   `src/WidgetContext.h` に `DrumSlotData` の定義を `Renderer.h` から移動させる（WidgetContext が Renderer をインクルードしないよう依存関係を整理すること）。
+    *   `WidgetContext` 構造体に `DrumSlotData oldDrumSlot;` と `DrumSlotData nowDrumSlot;` をメンバとして追加する。
+    *   ※ `currentTrackIndex` 等の既存変数はドラムの目標位置計算に必要なのでそのまま残す。
+*   **要件2: Renderer からのデータ受け渡し**
+    *   `src/Renderer_Context.cpp` の `BuildRenderContext` （または `BuildAnimationContext`）にて、Renderer が保持している `m_oldDrumSlot` と `m_nowDrumSlot` を、そのまま `ctx.oldDrumSlot` と `ctx.nowDrumSlot` にコピーして Widget 層へ渡すように修正する。
+*   **要件3: Widget_TrackInfo の描画純化 (タスク5)**
+    *   `src/Widget_TrackInfo.cpp` の `Draw` メソッド内にある仮想スロット描画ループ（`for (int i = minSlot; i <= maxSlot; ++i)`）を以下のように改修する。
+    *   ループ内でプレイリストの配列（`ctx.shuffleMetadataList` など）へインデックスアクセスして曲情報や画像を取得している処理を **すべて削除** する。
+    *   代わりに、描画対象のスロット `slotIndex (i)` が目標位置の `ctx.currentTrackIndex` と一致するかどうかで純粋に分岐させる。
+        *   `i == static_cast<int>(ctx.currentTrackIndex)` の場合: `ctx.nowDrumSlot` の画像、タイトル、アーティスト、トラックNoを描画する。
+        *   それ以外（`i != static_cast<int>(ctx.currentTrackIndex)`）の場合: すべて **無条件で** `ctx.oldDrumSlot` の画像、タイトル、アーティスト、トラックNoを描画する。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **プレイリスト参照の完全禁止**: `Widget_TrackInfo.cpp` の仮想スロット描画ループ内において、`ctx.shuffleMetadataList[i]` のようにインデックスでプレイリスト情報を取得する処理は絶対に許容しない。必ずスナップショットデータ（`oldDrumSlot` / `nowDrumSlot`）を使用すること。

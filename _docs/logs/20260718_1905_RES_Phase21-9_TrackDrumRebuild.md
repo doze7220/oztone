@@ -20,9 +20,9 @@
 ## 3. 実装タスクリスト
 - [x] タスク1: `Renderer.h` へのデータ構造定義と `SetTrackInfo` シグネチャ変更
 - [x] タスク2: `Renderer.cpp` および `Renderer_Update.cpp` でのバケツリレーと位置ワープ処理の実装
-- [ ] タスク3: `Application` 層の全 `SetTrackInfo` 呼び出し箇所への `DrumMoveType` 適用
-- [ ] タスク4: `WidgetContext.h` への `DrumSlotData` 追加と古い変数のパージ
-- [ ] タスク5: `Widget_TrackInfo.cpp` での描画処理の純化と古いハックのパージ
+- [x] タスク3: `Application` 層の全 `SetTrackInfo` 呼び出し箇所への `DrumMoveType` 適用
+- [x] タスク4: `WidgetContext.h` への `DrumSlotData` 追加と古い変数のパージ
+- [x] タスク5: `Widget_TrackInfo.cpp` での描画処理の純化と古いハックのパージ
 
 ## 4. 詳細作業内容
 ### タスク1: `Renderer.h` へのデータ構造定義と `SetTrackInfo` シグネチャ変更
@@ -56,19 +56,20 @@
     - **削除対象ハック**: `Renderer_Update.cpp` 側で `m_drumTargetIndex != currentTrackIndex` を毎フレーム監視してアニメーションを自動トリガー・リセットしていた冗長な推測処理を完全にパージし、すべて `SetTrackInfo` 呼び出し時の明示的ワープに一本化する。
     - **完了**: `SetTrackInfo` 内部で `m_oldDrumSlot = m_nowDrumSlot` による絶対的なバケツリレーを実装し、指定された `DrumMoveType` に応じた `m_drumPosition` のワープ処理を実装した。また、`SetAlbumArt` 時に `m_nowDrumSlot.artBitmap` が更新されるように修正した。
 
-### タスク3: `Application` 層の全 `SetTrackInfo` 呼び出し箇所への `DrumMoveType` 適用
+### [x] タスク3: `Application` 層の全 `SetTrackInfo` 呼び出し箇所への `DrumMoveType` 適用
     - `Application_Render.cpp`, `Application_Playlist.cpp`, `Application_Playback.cpp`, `Application_Initialize.cpp`, `Application_FileDrop.cpp` を網羅的に修正。
     - 呼び出し時の引数に `DrumMoveType` (曲送りなら `Next` など) と `trackNoString` を追加する。
     - プレイリストのインデックス操作からトラック番号表示文字列を算出するロジック（`shuffleIndices` のルックアップ等）を `Application` 側に寄せる。
+    - **完了**: `PlayCurrentTrack` に `DrumMoveType` 引数を追加し、すべてのアクションから意図に合わせた `DrumMoveType` (Next, Prev, Jump, CrossPlaylist, Reset) を `SetTrackInfo` および `PlayCurrentTrack` へ明示的に渡すように修正した。`Renderer.h` の `SetTrackInfo` から `moveType` などのデフォルト引数も削除し、シグネチャを純化した。
 
-### タスク4: `WidgetContext.h` への `DrumSlotData` 追加と古い変数のパージ
-    - `WidgetContext` に `DrumSlotData oldDrumSlot;` と `DrumSlotData nowDrumSlot;` を追加する。
-    - 既存の `drumStartIndex` と `drumTargetIndex` は、OLDスロットとNOWスロットの位置を特定するために引き続き使用する。
-    - **削除対象ハック**: バラバラに管理されていた `oldTrackTitle`, `oldTrackArtist`, `oldArtBitmap` などの変数を削除し、`DrumSlotData` へ統合する。
+### [x] タスク4: `WidgetContext.h` への `DrumSlotData` 追加と古い変数のパージ
+    - `Renderer.h` から `DrumSlotData` 定義を `WidgetContext.h` へ移動した。
+    - `WidgetContext` に `DrumSlotData oldDrumSlot;` と `DrumSlotData nowDrumSlot;` を追加した。
+    - 既存の `drumStartIndex` と `drumTargetIndex` は維持。
+    - **完了**: 不要となったバラバラの変数（`oldTrackTitle`, `oldTrackArtist`, `oldArtBitmap`）を `WidgetContext.h`, `Renderer.h`, `Renderer_Context.cpp`, `Renderer.cpp` から完全に削除した。
 
-### タスク5: `Widget_TrackInfo.cpp` での描画処理の純化
-    - **新しい実装方針**:
-      - 仮想スロットループ変数 `i` に対し、`i == ctx.drumStartIndex` なら `ctx.oldDrumSlot` のデータを描画。
-      - `i == ctx.drumTargetIndex` なら `ctx.nowDrumSlot` のデータを描画。
-      - それ以外の中間スロット（遠距離ジャンプ時）は、従来通り `ctx.shuffleMetadataList` や `ctx.shuffleIndices` を参照し、範囲内であればテキストとトラック番号を生成して描画する。範囲外（プレイリストクリア時など）の場合は安全にテキストなし（ガラスペイン）としてフォールバックする。
-      - このように、OLD/NOW（重要データ）は独立した実体コピーから確実に描画し、中間スロット（装飾データ）はプレイリストを安全に参照する「ハイブリッドなバケツリレー」を確立する。
+### [x] タスク5: `Widget_TrackInfo.cpp` での描画処理の純化
+    - **完了**:
+      - 仮想スロットループ内で、描画対象のインデックスが `ctx.currentTrackIndex` と一致するかどうかだけで単純に分岐するように修正。
+      - `i == ctx.currentTrackIndex` の場合は `ctx.nowDrumSlot` を使用し、それ以外の場合は一律で `ctx.oldDrumSlot` を使用。
+      - `ctx.shuffleMetadataList` などのプレイリストデータへのインデックスアクセスハックをすべて排除。完全に純粋なバケツリレースナップショットのみに依存する堅牢な描画方式となった。

@@ -44,7 +44,7 @@ void Renderer::DrawBackground() {
     
     if (bgMode == 0) {
         nowBitmap = m_currentArtBitmap.Get();
-        oldBitmap = m_oldArtBitmap.Get();
+        oldBitmap = m_oldDrumSlot.artBitmap.Get();
     } else if (bgMode == 2) {
         nowBitmap = m_placeholderArtBitmap.Get();
         oldBitmap = m_placeholderArtBitmap.Get();

@@ -301,7 +301,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
             title = std::filesystem::path(currentTrack).filename().wstring();
           if (artist.empty())
             artist = L"---";
-          m_renderer.SetTrackInfo(title, artist);
+          m_renderer.SetTrackInfo(title, artist, L"", DrumMoveType::Jump);
 
           const auto &artBytes = m_tagManager.GetAlbumArtBytes();
           if (!artBytes.empty()) {
@@ -321,14 +321,14 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
           } catch (...) {
             title = L"UNKNOWN";
           }
-          m_renderer.SetTrackInfo(title, L"---");
+          m_renderer.SetTrackInfo(title, L"---", L"", DrumMoveType::Jump);
           m_renderer.SetAlbumArt(nullptr);
         }
 
         float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(currentTrack, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (PlayCurrentTrack()) {
+      if (PlayCurrentTrack(DrumMoveType::Jump)) {
           played = true;
           break;
         }
@@ -339,12 +339,12 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
 
       if (!played) {
         // UIの初期表示（空状態）
-        m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+        m_renderer.SetTrackInfo(L"NO TRACK", L"---", L"", DrumMoveType::Reset);
         m_renderer.SetAlbumArt(nullptr);
       }
     } else {
       // UIの初期表示（空状態）
-      m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+      m_renderer.SetTrackInfo(L"NO TRACK", L"---", L"", DrumMoveType::Reset);
       m_renderer.SetAlbumArt(nullptr);
     }
   }

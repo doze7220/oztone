@@ -33,10 +33,7 @@ void Renderer::SetTrackInfo(const std::wstring& title, const std::wstring& artis
     }
 
     if (m_config && m_config->GetEnableTrackDrum() && m_lastCurrentTrackIndex != static_cast<size_t>(-1) && m_lastCurrentTrackIndex != static_cast<size_t>(-2)) {
-        m_oldTrackTitle = m_trackTitle;
-        m_oldTrackArtist = m_trackArtist;
         m_oldTrackIndex = m_lastCurrentTrackIndex;
-        m_oldArtBitmap = m_currentArtBitmap;
         m_oldBgOffsetX = m_bgOffsetX;
         m_oldBgOffsetY = m_bgOffsetY;
         m_oldBgScale = m_bgScale;

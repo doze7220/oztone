@@ -66,7 +66,7 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
               title = std::filesystem::path(track).filename().wstring();
             if (artist.empty())
               artist = L"---";
-            m_renderer.SetTrackInfo(title, artist);
+            m_renderer.SetTrackInfo(title, artist, L"", DrumMoveType::Jump);
 
             const auto &artBytes = m_tagManager.GetAlbumArtBytes();
             if (!artBytes.empty()) {
@@ -86,16 +86,16 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
             } catch (...) {
               title = L"UNKNOWN";
             }
-            m_renderer.SetTrackInfo(title, L"---");
+            m_renderer.SetTrackInfo(title, L"---", L"", DrumMoveType::Jump);
             m_renderer.SetAlbumArt(nullptr);
           }
 
           float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
           m_framingDb.GetFraming(track, artX, artY, artScale);
           m_renderer.SetBackgroundFraming(artX, artY, artScale);
-          PlayCurrentTrack();
+          PlayCurrentTrack(DrumMoveType::Jump);
         } else {
-          m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+          m_renderer.SetTrackInfo(L"NO TRACK", L"---", L"", DrumMoveType::Reset);
           m_renderer.SetAlbumArt(nullptr);
           m_isPrefetchReady.store(false);
         }
@@ -196,7 +196,7 @@ void Application::OnPlaylistClicked(int x, int y) {
           title = std::filesystem::path(track).filename().wstring();
         if (artist.empty())
           artist = L"---";
-        m_renderer.SetTrackInfo(title, artist);
+        m_renderer.SetTrackInfo(title, artist, L"", DrumMoveType::Jump);
 
         const auto &artBytes = m_tagManager.GetAlbumArtBytes();
         if (!artBytes.empty()) {
@@ -216,15 +216,15 @@ void Application::OnPlaylistClicked(int x, int y) {
         } catch (...) {
           title = L"UNKNOWN";
         }
-        m_renderer.SetTrackInfo(title, L"---");
+        m_renderer.SetTrackInfo(title, L"---", L"", DrumMoveType::Jump);
         m_renderer.SetAlbumArt(nullptr);
       }
 
       float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(track, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (!PlayCurrentTrack()) {
-        m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+      if (!PlayCurrentTrack(DrumMoveType::Jump)) {
+        m_renderer.SetTrackInfo(L"NO TRACK", L"---", L"", DrumMoveType::Reset);
         m_renderer.SetAlbumArt(nullptr);
       }
     }
@@ -293,7 +293,7 @@ void Application::ClearPlaylist() {
   m_audioPlayer.Stop();
 
   m_isPrefetchReady.store(false);
-  m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+  m_renderer.SetTrackInfo(L"NO TRACK", L"---", L"", DrumMoveType::Reset);
   m_renderer.SetAlbumArt(nullptr);
 }
 
@@ -329,7 +329,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
   m_audioPlayer.Stop();
   m_trackAnalyzer.ClearQueue();
   m_isPrefetchReady.store(false);
-  m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+  m_renderer.SetTrackInfo(L"NO TRACK", L"---", L"", DrumMoveType::Reset);
   m_renderer.SetAlbumArt(nullptr);
 
   m_playlistManager.Clear();
@@ -348,7 +348,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
           title = std::filesystem::path(currentTrack).filename().wstring();
         if (artist.empty())
           artist = L"---";
-        m_renderer.SetTrackInfo(title, artist);
+        m_renderer.SetTrackInfo(title, artist, L"", DrumMoveType::CrossPlaylist);
 
         const auto &artBytes = m_tagManager.GetAlbumArtBytes();
         if (!artBytes.empty()) {
@@ -368,14 +368,14 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
         } catch (...) {
           title = L"UNKNOWN";
         }
-        m_renderer.SetTrackInfo(title, L"---");
+        m_renderer.SetTrackInfo(title, L"---", L"", DrumMoveType::CrossPlaylist);
         m_renderer.SetAlbumArt(nullptr);
       }
 
       float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(currentTrack, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (PlayCurrentTrack()) {
+      if (PlayCurrentTrack(DrumMoveType::CrossPlaylist)) {
         played = true;
         break;
       }
@@ -385,7 +385,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
     }
 
     if (!played) {
-      m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+      m_renderer.SetTrackInfo(L"NO TRACK", L"---", L"", DrumMoveType::Reset);
       m_renderer.SetAlbumArt(nullptr);
     }
   }

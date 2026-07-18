@@ -28,6 +28,11 @@ void Application::HandleMediaCommand(int cmd) {
     bool played = false;
     size_t totalCount = m_playlistManager.GetCount();
 
+    DrumMoveType moveType = DrumMoveType::Next;
+    if (cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) {
+      moveType = DrumMoveType::Prev;
+    }
+
     m_audioPlayer.Stop();
 
     while (skipCount < totalCount) {
@@ -35,7 +40,7 @@ void Application::HandleMediaCommand(int cmd) {
 
       if (cmd == APPCOMMAND_MEDIA_NEXTTRACK && skipCount == 0 &&
           m_isPrefetchReady.load()) {
-        m_renderer.SetTrackInfo(m_prefetchedTitle, m_prefetchedArtist);
+        m_renderer.SetTrackInfo(m_prefetchedTitle, m_prefetchedArtist, L"", moveType);
         m_renderer.SetAlbumArt(m_prefetchedAlbumArt.Get());
       } else {
         if (m_tagManager.Load(track)) {
@@ -45,7 +50,7 @@ void Application::HandleMediaCommand(int cmd) {
             title = std::filesystem::path(track).filename().wstring();
           if (artist.empty())
             artist = L"---";
-          m_renderer.SetTrackInfo(title, artist);
+          m_renderer.SetTrackInfo(title, artist, L"", moveType);
 
           const auto &artBytes = m_tagManager.GetAlbumArtBytes();
           if (!artBytes.empty()) {
@@ -65,7 +70,7 @@ void Application::HandleMediaCommand(int cmd) {
           } catch (...) {
             title = L"Unknown";
           }
-          m_renderer.SetTrackInfo(title, L"---");
+          m_renderer.SetTrackInfo(title, L"---", L"", moveType);
           m_renderer.SetAlbumArt(nullptr);
         }
       }
@@ -73,7 +78,7 @@ void Application::HandleMediaCommand(int cmd) {
       float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
       m_framingDb.GetFraming(track, artX, artY, artScale);
       m_renderer.SetBackgroundFraming(artX, artY, artScale);
-      if (PlayCurrentTrack()) {
+      if (PlayCurrentTrack(moveType)) {
         played = true;
         break;
       }
@@ -87,7 +92,7 @@ void Application::HandleMediaCommand(int cmd) {
     }
 
     if (!played) {
-      m_renderer.SetTrackInfo(L"NO TRACK", L"---");
+      m_renderer.SetTrackInfo(L"NO TRACK", L"---", L"", DrumMoveType::Reset);
       m_renderer.SetAlbumArt(nullptr);
     }
   }
@@ -193,7 +198,7 @@ void Application::LoadCurrentTrackArtAsync() {
   });
 }
 
-bool Application::PlayCurrentTrack() {
+bool Application::PlayCurrentTrack(DrumMoveType moveType) {
   std::wstring track = m_playlistManager.GetCurrentTrack();
   if (m_audioPlayer.Play(track)) {
     UpdateTrackMetadataIfNeeded(track);
