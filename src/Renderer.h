@@ -187,6 +187,7 @@ private:
     // Track Drum States
     std::wstring m_oldTrackTitle;
     std::wstring m_oldTrackArtist;
+    size_t m_oldTrackIndex = static_cast<size_t>(-1);
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_oldArtBitmap;
     bool m_isDrumAnimating = false;
     double m_drumPosition = 0.0;

@@ -70,6 +70,7 @@ struct WidgetContext {
     double drumVelocity = 0.0;
     size_t drumTargetIndex = 0;
     size_t drumStartIndex = 0;
+    size_t oldTrackIndex = 0;
 
     std::optional<size_t> focusedPlaylistIndex;
     float logoMenuHoverAlpha = 0.0f;

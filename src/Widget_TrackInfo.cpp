@@ -65,7 +65,7 @@ void TrackInfoWidget::ReleaseResources() {
 
 void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {
   if (!ctx.isDrumAnimating) {
-    if (m_wasDrumAnimating || (!m_lastArtBitmap && ctx.currentArtBitmap)) {
+    if (!m_lastArtBitmap && ctx.currentArtBitmap) {
       m_artCrossfadeProgress = 0.0f;
     } else if (m_artCrossfadeProgress < 1.0f) {
       m_artCrossfadeProgress += ctx.deltaTime * 3.0f; // 300ms fade
@@ -160,6 +160,40 @@ void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
       }
     }
   }
+
+  if (m_dwriteFactory && m_trackCountTextFormat &&
+      (!m_oldTrackCountTextLayout || m_lastTotalTracks != ctx.totalTracks ||
+       m_lastOldTrackIndex != ctx.oldTrackIndex)) {
+    m_lastTotalTracks = ctx.totalTracks;
+    m_lastOldTrackIndex = ctx.oldTrackIndex;
+    m_oldTrackCountTextLayout.Reset();
+
+    wchar_t trackCountBuf[64];
+    if (ctx.totalTracks == 0 || ctx.oldTrackIndex == static_cast<size_t>(-1) || ctx.oldTrackIndex == static_cast<size_t>(-2)) {
+      swprintf_s(trackCountBuf, L"---");
+    } else {
+      size_t displayNo = ctx.oldTrackIndex + 1;
+      if (!ctx.shuffleIndices.empty() && ctx.oldTrackIndex < ctx.shuffleIndices.size()) {
+          displayNo = ctx.shuffleIndices[ctx.oldTrackIndex] + 1;
+      }
+      swprintf_s(trackCountBuf, L"%zu", displayNo);
+    }
+    std::wstring trackCountStr(trackCountBuf);
+
+    m_dwriteFactory->CreateTextLayout(
+        trackCountStr.c_str(), static_cast<UINT32>(trackCountStr.length()),
+        m_trackCountTextFormat.Get(), static_cast<float>(config->GetArtSize()), config->GetTrackCountBoxWidth(), &m_oldTrackCountTextLayout);
+
+    if (m_oldTrackCountTextLayout) {
+      Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
+      if (SUCCEEDED(m_oldTrackCountTextLayout.As(&textLayout1))) {
+        DWRITE_TEXT_RANGE textRange = {
+            0, static_cast<UINT32>(trackCountStr.length())};
+        textLayout1->SetCharacterSpacing(
+            0.0f, config->GetTrackCountLetterSpacing(), 0.0f, textRange);
+      }
+    }
+  }
 }
 
 void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
@@ -176,7 +210,12 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
     TrackInfoLayout layout = LayoutCalculator::CalculateTrackInfoLayout(
         logicWidth, logicHeight, config, bitmapSize);
 
-    auto drawDrumItem = [&](bool isNow, double diffOffset) {
+    D2D1_RECT_F drumClipRect = layout.clipRect;
+    drumClipRect.top = layout.fallbackArtRect.top;
+    drumClipRect.bottom = layout.fallbackArtRect.bottom;
+    context->PushAxisAlignedClip(drumClipRect, D2D1_ANTIALIAS_MODE_ALIASED);
+
+    auto drawDrumItem = [&](size_t trackIndex, double diffOffset) {
       if (std::abs(diffOffset) > 2.0) return;
 
       float offsetY = static_cast<float>(diffOffset) * config->GetArtSize();
@@ -185,36 +224,80 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       context->GetTransform(&originalTransform);
       context->SetTransform(transform * originalTransform);
 
-      ID2D1Bitmap* art = isNow ? ctx.currentArtBitmap : ctx.oldArtBitmap;
-      IDWriteTextLayout* titleLayout = isNow ? m_titleTextLayout.Get() : m_oldTitleTextLayout.Get();
-      IDWriteTextLayout* artistLayout = isNow ? m_artistTextLayout.Get() : m_oldArtistTextLayout.Get();
+      ID2D1Bitmap* art = nullptr;
+      IDWriteTextLayout* titleLayout = nullptr;
+      IDWriteTextLayout* artistLayout = nullptr;
+      IDWriteTextLayout* trackCountLayout = nullptr;
 
-      bool drawGlass = false;
-      float artOpacity = 1.0f;
-      float glassAlphaMultiplier = 1.0f;
+      Microsoft::WRL::ComPtr<IDWriteTextLayout> tempTrackCountLayout;
+      Microsoft::WRL::ComPtr<IDWriteTextLayout> tempTitleLayout;
+      Microsoft::WRL::ComPtr<IDWriteTextLayout> tempArtistLayout;
 
-      if (ctx.isDrumAnimating) {
-        drawGlass = true;
-        artOpacity = 0.0f;
+      if (trackIndex == ctx.drumStartIndex) {
+        art = ctx.oldArtBitmap;
+        titleLayout = m_oldTitleTextLayout.Get();
+        artistLayout = m_oldArtistTextLayout.Get();
+        trackCountLayout = m_oldTrackCountTextLayout.Get();
+      } else if (trackIndex == ctx.drumTargetIndex) {
+        art = ctx.currentArtBitmap;
+        titleLayout = m_titleTextLayout.Get();
+        artistLayout = m_artistTextLayout.Get();
+        trackCountLayout = m_trackCountTextLayout.Get();
       } else {
-        if (isNow) {
-          if (!art) {
-            drawGlass = true;
-            artOpacity = 0.0f;
-          } else {
-            drawGlass = true;
-            artOpacity = m_artCrossfadeProgress;
-            glassAlphaMultiplier = 1.0f - m_artCrossfadeProgress;
-          }
-        } else {
-          drawGlass = (!art);
+        // 中間スロット：メタデータからタイトル・アーティスト名と、CD帯(トラックナンバー)のテキストを生成
+        if (ctx.totalTracks > 0) {
+            std::wstring midTitle;
+            std::wstring midArtist;
+            if (ctx.shuffleMetadataList && trackIndex < ctx.shuffleMetadataList->size()) {
+                const auto& meta = (*ctx.shuffleMetadataList)[trackIndex];
+                midTitle = meta.title;
+                midArtist = meta.artist;
+            }
+
+            if (!midTitle.empty() && m_dwriteFactory && m_titleTextFormat) {
+                m_dwriteFactory->CreateTextLayout(
+                    midTitle.c_str(), static_cast<UINT32>(midTitle.length()),
+                    m_titleTextFormat.Get(), 4000.0f, 1000.0f, &tempTitleLayout);
+                titleLayout = tempTitleLayout.Get();
+            }
+            if (!midArtist.empty() && m_dwriteFactory && m_artistTextFormat) {
+                m_dwriteFactory->CreateTextLayout(
+                    midArtist.c_str(), static_cast<UINT32>(midArtist.length()),
+                    m_artistTextFormat.Get(), 4000.0f, 1000.0f, &tempArtistLayout);
+                artistLayout = tempArtistLayout.Get();
+            }
+
+            wchar_t trackCountBuf[64];
+            size_t displayNo = trackIndex + 1;
+            if (!ctx.shuffleIndices.empty() && trackIndex < ctx.shuffleIndices.size()) {
+                displayNo = ctx.shuffleIndices[trackIndex] + 1;
+            }
+            swprintf_s(trackCountBuf, L"%zu", displayNo);
+            std::wstring trackCountStr(trackCountBuf);
+
+            m_dwriteFactory->CreateTextLayout(
+                trackCountStr.c_str(), static_cast<UINT32>(trackCountStr.length()),
+                m_trackCountTextFormat.Get(), static_cast<float>(config->GetArtSize()), config->GetTrackCountBoxWidth(), &tempTrackCountLayout);
+            
+            Microsoft::WRL::ComPtr<IDWriteTextLayout1> textLayout1;
+            if (SUCCEEDED(tempTrackCountLayout.As(&textLayout1))) {
+                DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(trackCountStr.length())};
+                textLayout1->SetCharacterSpacing(0.0f, config->GetTrackCountLetterSpacing(), 0.0f, textRange);
+            }
+            trackCountLayout = tempTrackCountLayout.Get();
         }
       }
 
-      if (!art) {
-        artOpacity = 0.0f;
-        drawGlass = true;
-        glassAlphaMultiplier = 1.0f;
+      bool drawGlass = (art == nullptr);
+      float artOpacity = 1.0f;
+      float glassAlphaMultiplier = 1.0f;
+
+      if (drawGlass) {
+          artOpacity = 0.0f;
+      } else if (trackIndex == ctx.drumTargetIndex && m_artCrossfadeProgress < 1.0f) {
+          drawGlass = true;
+          artOpacity = m_artCrossfadeProgress;
+          glassAlphaMultiplier = 1.0f - m_artCrossfadeProgress;
       }
 
       if (drawGlass && m_fallbackBlackBrush) {
@@ -223,11 +306,35 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       }
 
       if (artOpacity > 0.0f && art) {
+        D2D1_RECT_F itemArtDestRect = layout.fallbackArtRect;
+        D2D1_RECT_F itemArtShadowRect = layout.fallbackArtRect;
+        D2D1_SIZE_F bitmapSize = art->GetSize();
+        if (bitmapSize.width > 0 && bitmapSize.height > 0) {
+            float size = static_cast<float>(config->GetArtSize());
+            float scaleX = size / bitmapSize.width;
+            float scaleY = size / bitmapSize.height;
+            float scale = (scaleX < scaleY) ? scaleX : scaleY;
+            
+            float drawWidth = bitmapSize.width * scale;
+            float drawHeight = bitmapSize.height * scale;
+            
+            float drawX = layout.fallbackArtRect.left + (size - drawWidth) / 2.0f;
+            float drawY = layout.fallbackArtRect.top + (size - drawHeight) / 2.0f;
+            
+            itemArtDestRect = D2D1::RectF(drawX, drawY, drawX + drawWidth, drawY + drawHeight);
+            itemArtShadowRect = D2D1::RectF(
+                drawX + config->GetShadowOffsetX(),
+                drawY + config->GetShadowOffsetY(),
+                drawX + drawWidth + config->GetShadowOffsetX(),
+                drawY + drawHeight + config->GetShadowOffsetY()
+            );
+        }
+
         if (m_shadowBrush && config->GetEnableShadow()) {
           m_shadowBrush->SetOpacity(config->GetShadowOpacity() * artOpacity);
-          context->FillRectangle(&layout.artShadowRect, m_shadowBrush.Get());
+          context->FillRectangle(&itemArtShadowRect, m_shadowBrush.Get());
         }
-        context->DrawBitmap(art, &layout.artDestRect, artOpacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+        context->DrawBitmap(art, &itemArtDestRect, artOpacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
       }
 
       if (m_textBrush && titleLayout && artistLayout) {
@@ -250,43 +357,47 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
             shadowOpacity);
       }
 
+      if (trackCountLayout && m_trackCountTextBrush && m_trackCountBoxBaseBrush) {
+        D2D1::Matrix3x2F currentTransform;
+        context->GetTransform(&currentTransform);
+
+        D2D1::Matrix3x2F rotation = D2D1::Matrix3x2F::Rotation(-90.0f, layout.trackCountOrigin);
+        context->SetTransform(rotation * currentTransform);
+
+        D2D1_RECT_F boxRect = D2D1::RectF(
+            layout.trackCountOrigin.x,
+            layout.trackCountOrigin.y,
+            layout.trackCountOrigin.x + layout.trackCountMaxWidth,
+            layout.trackCountOrigin.y + config->GetTrackCountBoxWidth()
+        );
+        context->FillRectangle(&boxRect, m_trackCountBoxBaseBrush.Get());
+
+        D2D1_RECT_F underlineRect = D2D1::RectF(
+            layout.trackCountOrigin.x,
+            layout.trackCountOrigin.y + config->GetTrackCountUnderLineX(),
+            layout.trackCountOrigin.x + layout.trackCountMaxWidth,
+            layout.trackCountOrigin.y + config->GetTrackCountUnderLineX() + config->GetTrackCountUnderLineWidth()
+        );
+        context->FillRectangle(&underlineRect, m_trackCountBoxUnderLineBrush.Get());
+
+        context->DrawTextLayout(
+            layout.trackCountOrigin, trackCountLayout, m_trackCountTextBrush.Get());
+
+        context->SetTransform(currentTransform);
+      }
+
       context->SetTransform(originalTransform);
     };
 
-    double diffOld = static_cast<double>(ctx.drumStartIndex) - ctx.drumPosition;
-    drawDrumItem(false, diffOld);
+    int startSlot = static_cast<int>(std::floor(ctx.drumPosition - 1.5));
+    int endSlot   = static_cast<int>(std::ceil(ctx.drumPosition + 1.5));
 
-    double diffNow = static_cast<double>(ctx.drumTargetIndex) - ctx.drumPosition;
-    drawDrumItem(true, diffNow);
-
-
-    if (m_trackCountTextLayout && m_trackCountTextBrush && m_trackCountBoxBaseBrush) {
-      D2D1::Matrix3x2F originalTransform;
-      context->GetTransform(&originalTransform);
-
-      D2D1::Matrix3x2F rotation = D2D1::Matrix3x2F::Rotation(-90.0f, layout.trackCountOrigin);
-      context->SetTransform(rotation * originalTransform);
-
-      D2D1_RECT_F boxRect = D2D1::RectF(
-          layout.trackCountOrigin.x,
-          layout.trackCountOrigin.y,
-          layout.trackCountOrigin.x + layout.trackCountMaxWidth,
-          layout.trackCountOrigin.y + config->GetTrackCountBoxWidth()
-      );
-      context->FillRectangle(&boxRect, m_trackCountBoxBaseBrush.Get());
-
-      D2D1_RECT_F underlineRect = D2D1::RectF(
-          layout.trackCountOrigin.x,
-          layout.trackCountOrigin.y + config->GetTrackCountUnderLineX(),
-          layout.trackCountOrigin.x + layout.trackCountMaxWidth,
-          layout.trackCountOrigin.y + config->GetTrackCountUnderLineX() + config->GetTrackCountUnderLineWidth()
-      );
-      context->FillRectangle(&underlineRect, m_trackCountBoxUnderLineBrush.Get());
-
-      context->DrawTextLayout(
-          layout.trackCountOrigin, m_trackCountTextLayout.Get(), m_trackCountTextBrush.Get());
-
-      context->SetTransform(originalTransform);
+    for (int i = startSlot; i <= endSlot; ++i) {
+        if (i < 0 || (ctx.totalTracks > 0 && i >= static_cast<int>(ctx.totalTracks))) continue;
+        double diffOffset = static_cast<double>(i) - ctx.drumPosition;
+        drawDrumItem(static_cast<size_t>(i), diffOffset);
     }
+
+    context->PopAxisAlignedClip();
   }
 }

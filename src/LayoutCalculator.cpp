@@ -143,6 +143,7 @@ TrackInfoLayout LayoutCalculator::CalculateTrackInfoLayout(float logicalWidth, f
 
     float offsetX = 0.0f;
     ApplyPinningOffset(logicalWidth, offsetX, config);
+    layout.clipRect = D2D1::RectF(offsetX, 0.0f, offsetX + logicalWidth, logicalHeight);
 
     float size = static_cast<float>(config->GetArtSize());
     float x = offsetX + static_cast<float>(config->GetBaseX() + config->GetArtOffsetX());

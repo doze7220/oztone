@@ -32,6 +32,7 @@ WidgetContext Renderer::BuildAnimationContext(float deltaTime, bool isControlHov
     
     ctx.oldTrackTitle = m_oldTrackTitle;
     ctx.oldTrackArtist = m_oldTrackArtist;
+    ctx.oldTrackIndex = m_oldTrackIndex;
     ctx.oldArtBitmap = m_oldArtBitmap.Get();
     ctx.isDrumAnimating = m_isDrumAnimating;
     ctx.drumPosition = m_drumPosition;
@@ -60,6 +61,7 @@ WidgetContext Renderer::BuildLayoutContext(const std::wstring& timeString, float
 
     ctx.oldTrackTitle = m_oldTrackTitle;
     ctx.oldTrackArtist = m_oldTrackArtist;
+    ctx.oldTrackIndex = m_oldTrackIndex;
     ctx.oldArtBitmap = m_oldArtBitmap.Get();
     ctx.isDrumAnimating = m_isDrumAnimating;
     ctx.drumPosition = m_drumPosition;
@@ -104,6 +106,7 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
 
     ctx.oldTrackTitle = m_oldTrackTitle;
     ctx.oldTrackArtist = m_oldTrackArtist;
+    ctx.oldTrackIndex = m_oldTrackIndex;
     ctx.oldArtBitmap = m_oldArtBitmap.Get();
     ctx.isDrumAnimating = m_isDrumAnimating;
     ctx.drumPosition = m_drumPosition;
