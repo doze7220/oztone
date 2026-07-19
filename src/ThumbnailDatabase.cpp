@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <wincodec.h>
+#include <thread>
 
 #define OZTHUMB_MAGIC "OZTHUMB_V1"
 
@@ -115,6 +116,108 @@ uint32_t ThumbnailDatabase::GetThumbnailId(const std::wstring& filepath) {
 bool ThumbnailDatabase::HasCookedData(uint32_t thumbId) {
     std::lock_guard<std::mutex> lock(m_ioMutex);
     return m_sectorMap.find(thumbId) != m_sectorMap.end();
+}
+
+ID2D1Bitmap* ThumbnailDatabase::GetCachedThumbnailBitmap(uint32_t thumbId) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    auto it = m_cache.find(thumbId);
+    if (it != m_cache.end()) {
+        auto listIt = std::find(m_lruList.begin(), m_lruList.end(), thumbId);
+        if (listIt != m_lruList.end()) {
+            m_lruList.erase(listIt);
+        }
+        m_lruList.push_front(thumbId);
+        return it->second.Get();
+    }
+    return nullptr;
+}
+
+void ThumbnailDatabase::RequestThumbnailLoad(uint32_t thumbId, ID2D1RenderTarget* renderTarget, IWICImagingFactory* wicFactory) {
+    if (!renderTarget || !wicFactory) return;
+
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_cache.find(thumbId) != m_cache.end()) {
+            return;
+        }
+        if (m_loadingSet.find(thumbId) != m_loadingSet.end()) {
+            return;
+        }
+        m_loadingSet.insert(thumbId);
+    }
+
+    Microsoft::WRL::ComPtr<ID2D1RenderTarget> rt(renderTarget);
+    Microsoft::WRL::ComPtr<IWICImagingFactory> wf(wicFactory);
+
+    std::thread([this, thumbId, rt, wf]() {
+        HRESULT hrInit = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
+        Microsoft::WRL::ComPtr<ID2D1Bitmap> bitmap;
+        SectorInfo sector = {0, 0};
+        {
+            std::lock_guard<std::mutex> ioLock(m_ioMutex);
+            auto it = m_sectorMap.find(thumbId);
+            if (it != m_sectorMap.end()) {
+                sector = it->second;
+            }
+        }
+
+        std::vector<BYTE> binaryData;
+        if (sector.size > 0) {
+            std::lock_guard<std::mutex> ioLock(m_ioMutex);
+            std::ifstream ifs(m_imgPath, std::ios::binary);
+            if (ifs) {
+                ifs.seekg(sector.offset, std::ios::beg);
+                binaryData.resize(sector.size);
+                ifs.read(reinterpret_cast<char*>(binaryData.data()), sector.size);
+                if (ifs.fail()) {
+                    binaryData.clear();
+                }
+            }
+        }
+
+        if (!binaryData.empty()) {
+            Microsoft::WRL::ComPtr<IWICStream> stream;
+            if (SUCCEEDED(wf->CreateStream(&stream)) &&
+                SUCCEEDED(stream->InitializeFromMemory(binaryData.data(), static_cast<DWORD>(binaryData.size())))) {
+
+                Microsoft::WRL::ComPtr<IWICBitmapDecoder> decoder;
+                if (SUCCEEDED(wf->CreateDecoderFromStream(stream.Get(), nullptr, WICDecodeMetadataCacheOnLoad, &decoder))) {
+
+                    Microsoft::WRL::ComPtr<IWICBitmapFrameDecode> frame;
+                    if (SUCCEEDED(decoder->GetFrame(0, &frame))) {
+
+                        Microsoft::WRL::ComPtr<IWICFormatConverter> converter;
+                        if (SUCCEEDED(wf->CreateFormatConverter(&converter)) &&
+                            SUCCEEDED(converter->Initialize(frame.Get(), GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeMedianCut))) {
+
+                            rt->CreateBitmapFromWicBitmap(converter.Get(), nullptr, &bitmap);
+                        }
+                    }
+                }
+            }
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            if (bitmap) {
+                m_cache[thumbId] = bitmap;
+                m_lruList.push_front(thumbId);
+
+                size_t maxCache = m_config ? m_config->GetMaxThumbnailCache() : 100;
+                while (m_lruList.size() > maxCache) {
+                    uint32_t oldestId = m_lruList.back();
+                    m_lruList.pop_back();
+                    m_cache.erase(oldestId);
+                }
+            }
+            m_loadingSet.erase(thumbId);
+        }
+
+        if (SUCCEEDED(hrInit)) {
+            CoUninitialize();
+        }
+    }).detach();
 }
 
 Microsoft::WRL::ComPtr<ID2D1Bitmap> ThumbnailDatabase::GetThumbnailBitmap(uint32_t thumbId, ID2D1RenderTarget* renderTarget, IWICImagingFactory* wicFactory) {

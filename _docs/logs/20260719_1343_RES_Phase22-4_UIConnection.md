@@ -28,7 +28,7 @@
 [x] タスク2: LayoutCalculatorの拡張 (対象: LayoutCalculator.h, LayoutCalculator.cpp)
     - `PlaylistItemLayout` に `thumbRect` を追加し、`CalculatePlaylistItemLayout` でサムネイル領域の確保とテキスト矩形のシフトを計算する。
 
-[ ] タスク3: ThumbnailDatabaseの非同期化インターフェース追加 (対象: ThumbnailDatabase.h, ThumbnailDatabase.cpp)
+[x] タスク3: ThumbnailDatabaseの非同期化インターフェース追加 (対象: ThumbnailDatabase.h, ThumbnailDatabase.cpp)
     - キャッシュのみを参照する `GetCachedThumbnailBitmap()` と、バックグラウンドでの読み込み・デコードを管理する非同期ロードの仕組みを追加する（UIスレッドでWICデコードを行わない）。
 
 [ ] タスク4: Renderer層での可視範囲計算とWidgetContextへの結線 (対象: WidgetContext.h, Renderer_Update.cpp, Renderer_Context.cpp)
@@ -46,7 +46,10 @@
     - `LayoutCalculator.h` の `PlaylistItemLayout` にサムネイル描画用の `thumbRect` を追加した。
     - `LayoutCalculator.cpp` の `CalculatePlaylistItemLayout` にて、行の左端に `thumbPadding` を考慮したサムネイル用矩形を計算し、既存のテキスト類（タイトル、アーティスト）をサムネイルの幅（`itemHeight`相当）分だけ右へシフトさせるロジックを実装した。
 ### タスク3: ThumbnailDatabaseの非同期化インターフェース追加
-    - (未実施)
+    - `ThumbnailDatabase.h` / `.cpp` にて、UIスレッドブロック防止のため `GetCachedThumbnailBitmap()` を追加。このメソッドはインメモリのキャッシュ(`m_cache`)から画像が存在すれば返し、存在しなければ即座に `nullptr` を返す。
+    - 取得ミス時に画像を非同期ロードするための `RequestThumbnailLoad()` を実装した。
+    - 重複してスレッドが立ち上がるのを防ぐため、`m_loadingSet` によるガード機構を設けた。
+    - 実際のロード処理は `std::thread` によるバックグラウンド実行（detach）で行い、WICによるデコード完了後に `m_mutex` で排他制御をかけながら `ID2D1Bitmap` を生成・キャッシュに登録するロジックを構築した。
 ### タスク4: Renderer層での可視範囲計算とWidgetContextへの結線
     - (未実施)
 ### タスク5: Widget_Playlist_DrawItemsの純粋な描画対応

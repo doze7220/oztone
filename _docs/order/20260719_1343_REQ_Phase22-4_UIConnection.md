@@ -95,3 +95,33 @@
 *   **UIスレッドの保護**: `GetCachedThumbnailBitmap` 内では絶対にファイルアクセスやWICデコード等の重い処理を行わないこと。
 *   **COMマルチスレッドとリソース生成の安全性**: 別スレッドでD2Dリソース（`ID2D1Bitmap`）を生成する際、対象のレンダ―ターゲットやファクトリがマルチスレッド対応（`D2D1_FACTORY_TYPE_MULTI_THREADED`）であることを前提とした安全な実装を行うこと。
 *   **スコープの厳守**: 本REQの目的は「非同期ロード機構の構築」のみである。UI（Widget層やRenderer層）への結線は次のフェーズで行うため、まだ書き換えないこと。
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 22-4 Task 4-5 : UIアーキテクチャの結線（第3撃：レンダラからの取得と受動態描画）
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260719_1343_RES_Phase22-4_UIConnection.md
+
+#### 【作業手順（厳守事項）】
+1. 本プロンプトはUIアーキテクチャ結線の最終フェーズである。直ちに以下の【実装要件】に従ってコードの修正を実行すること。
+2. 作業完了後、実装したコードと既存の作業レポート（20260719_1343_RES_Phase22-4_UIConnection.md）の実装要件を照らし合わせ、反映漏れがないか厳密に自己監査を行うこと。
+3. 監査完了後、作業レポートの「タスク4」および「タスク5」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+4. チャットにて「Phase 22-4の全タスクが完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+*   **タスク4: Renderer層での可視範囲計算とWidgetContextへの結線**
+    *   対象ファイル: `WidgetContext.h`, `Renderer_Update.cpp` (または更新系ファイル), `Renderer_Context.cpp`
+    *   `WidgetContext.h` にサムネイル画像を渡すためのお弁当箱として `std::unordered_map<size_t, ID2D1Bitmap*> playlistThumbnails;` を追加する。
+    *   `Renderer_Context.cpp` 等にて、プレイリストの現在の可視範囲（スクロール位置や表示可能アイテム数等から算出）に存在するインデックス範囲を割り出す。
+    *   算出した範囲の各インデックスに対して `ThumbnailDatabase::GetCachedThumbnailBitmap()` を呼び出し、画像がなければ `ThumbnailDatabase::RequestThumbnailLoad()` で非同期ロードを要求する。
+    *   取得できたビットマップのポインタを `playlistThumbnails` マップへ格納し、Widgetへ渡す準備を整える。
+*   **タスク5: Widget_Playlist_DrawItemsの純粋な描画対応**
+    *   対象ファイル: `Widget_Playlist_DrawItems.cpp`
+    *   アイテム描画ループ内にて、データ層のインターフェースを直接叩くのではなく、コンテキストから渡された `ctx.playlistThumbnails` のマップを参照する。
+    *   対象インデックスの画像が存在すれば描画し、存在しなければフォールバック（ガラス板等）を描画する。
+    *   画像やガラス板を描画する際、LayoutCalculator が事前に確保した `thumbRect` の領域に美しく収まるように描画すること。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **Widgetの完全な受動態化**: Widget層（`Widget_Playlist_DrawItems.cpp`）では絶対に `ThumbnailDatabase` 等のデータ層へ直接アクセスしたり、メソッドを呼び出したりしないこと。必要なデータは必ず Renderer が `WidgetContext` に詰めて一方的に渡すこと。
+*   **非ブロック描画の維持**: キャッシュに画像がない場合でも、絶対に描画ループを停止（ブロック）させないこと。
