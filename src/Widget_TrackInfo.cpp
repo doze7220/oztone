@@ -45,7 +45,7 @@ void TrackInfoWidget::ReleaseResources() {
 }
 
 void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {
-  bool isDrumAnimating = (ctx.drumRelativePosition != 0.0f);
+  bool isDrumAnimating = (std::abs(ctx.drumRelativePosition - static_cast<float>(ctx.animatingTargetIndex)) > 0.001f);
   auto currentArt = ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap ? ctx.drumSlots[ctx.currentDrumSlotIndex].artBitmap : nullptr;
   if (!isDrumAnimating) {
     if (!m_lastArtBitmap && currentArt) {
@@ -118,7 +118,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
     drumClipRect.bottom = layout.fallbackArtRect.top + slotHeight;
     context->PushAxisAlignedClip(drumClipRect, D2D1_ANTIALIAS_MODE_ALIASED);
 
-    auto drawDrumItem = [&](int relativeIndex, double diffOffset) {
+    auto drawDrumItem = [&](int absoluteIndex, double diffOffset) {
       if (std::abs(diffOffset) > 2.0) return;
 
       float offsetY = static_cast<float>(diffOffset) * slotHeight;
@@ -137,17 +137,11 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       std::wstring textTitle;
       std::wstring textArtist;
 
-      if (relativeIndex == ctx.animatingTargetIndex) {
-          const auto& slot = ctx.drumSlots[ctx.currentDrumSlotIndex];
-          art = slot.artBitmap.Get();
-          textTitle = slot.trackTitle;
-          textArtist = slot.trackArtist;
-      } else if (relativeIndex == ctx.animatingOldIndexOffset) {
-          const auto& slot = ctx.drumSlots[1 - ctx.currentDrumSlotIndex];
-          art = slot.artBitmap.Get();
-          textTitle = slot.trackTitle;
-          textArtist = slot.trackArtist;
-      }
+      int slotIndex = (absoluteIndex % 3 + 3) % 3;
+      const auto& slot = ctx.drumSlots[slotIndex];
+      art = slot.artBitmap.Get();
+      textTitle = slot.trackTitle;
+      textArtist = slot.trackArtist;
 
       if (textTitle == m_lastTitle && textArtist == m_lastArtist) {
           titleLayout = m_titleTextLayout.Get();
@@ -174,7 +168,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
 
       if (drawGlass) {
           artOpacity = 0.0f;
-      } else if (relativeIndex == ctx.animatingTargetIndex && m_artCrossfadeProgress < 1.0f) {
+      } else if (absoluteIndex == ctx.animatingTargetIndex && m_artCrossfadeProgress < 1.0f) {
           drawGlass = true;
           artOpacity = m_artCrossfadeProgress;
           glassAlphaMultiplier = 1.0f - m_artCrossfadeProgress;
@@ -188,15 +182,15 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       if (artOpacity > 0.0f && art) {
         D2D1_RECT_F itemArtDestRect = layout.fallbackArtRect;
         D2D1_RECT_F itemArtShadowRect = layout.fallbackArtRect;
-        D2D1_SIZE_F bitmapSize = art->GetSize();
-        if (bitmapSize.width > 0 && bitmapSize.height > 0) {
+        D2D1_SIZE_F artSize = art->GetSize();
+        if (artSize.width > 0 && artSize.height > 0) {
             float size = static_cast<float>(config->GetArtSize());
-            float scaleX = size / bitmapSize.width;
-            float scaleY = size / bitmapSize.height;
+            float scaleX = size / artSize.width;
+            float scaleY = size / artSize.height;
             float scale = (scaleX < scaleY) ? scaleX : scaleY;
             
-            float drawWidth = bitmapSize.width * scale;
-            float drawHeight = bitmapSize.height * scale;
+            float drawWidth = artSize.width * scale;
+            float drawHeight = artSize.height * scale;
             
             float drawX = layout.fallbackArtRect.left + (size - drawWidth) / 2.0f;
             float drawY = layout.fallbackArtRect.top + (size - drawHeight) / 2.0f;
@@ -247,7 +241,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
 
     for (int i = startSlot; i <= endSlot; ++i) {
         if (ctx.totalTracks == 0 && i != 0) continue;
-        double diffOffset = static_cast<double>(i) - ctx.drumRelativePosition;
+        double diffOffset = ctx.drumRelativePosition - static_cast<double>(i);
         drawDrumItem(i, diffOffset);
     }
 

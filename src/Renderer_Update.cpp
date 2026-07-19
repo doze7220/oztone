@@ -41,7 +41,7 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
 
     if (m_thumbDb) {
         auto& slots = m_trackDrum.GetDrumSlotsWritable();
-        for (int i = 0; i < 2; ++i) {
+        for (int i = 0; i < 3; ++i) {
             if (slots[i].thumbId > 0 && !slots[i].artBitmap) {
                 ID2D1Bitmap* bmp = m_thumbDb->GetCachedThumbnailBitmap(slots[i].thumbId);
                 if (bmp) {
