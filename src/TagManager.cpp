@@ -37,7 +37,7 @@ bool TagManager::Load(const std::wstring& filepath) {
     // 音声プロパティから曲の長さを取得
     TagLib::AudioProperties* properties = mpegFile.audioProperties();
     if (properties) {
-        int seconds = properties->length();
+        int seconds = properties->lengthInSeconds();
         int min = seconds / 60;
         int sec = seconds % 60;
         wchar_t buf[16];
@@ -75,4 +75,30 @@ std::wstring TagManager::GetTimeString() const {
 
 const std::vector<uint8_t>& TagManager::GetAlbumArtBytes() const {
     return m_albumArtBytes;
+}
+
+std::vector<BYTE> TagManager::ExtractAlbumArtBinary(const std::wstring& filepath) {
+    std::vector<BYTE> result;
+    if (filepath.empty()) return result;
+
+    // MPEG::File を一度だけ開き、APICを取得する (Windowsのファイルロック回避)
+    TagLib::MPEG::File mpegFile(filepath.c_str());
+    if (!mpegFile.isValid()) {
+        return result;
+    }
+
+    // アルバムアートの取得 (ID3v2 APICフレーム)
+    TagLib::ID3v2::Tag* id3v2tag = mpegFile.ID3v2Tag();
+    if (id3v2tag) {
+        const TagLib::ID3v2::FrameList& frameList = id3v2tag->frameListMap()["APIC"];
+        if (!frameList.isEmpty()) {
+            auto* picFrame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frameList.front());
+            if (picFrame) {
+                TagLib::ByteVector pictureData = picFrame->picture();
+                result.assign(pictureData.data(), pictureData.data() + pictureData.size());
+            }
+        }
+    }
+
+    return result;
 }

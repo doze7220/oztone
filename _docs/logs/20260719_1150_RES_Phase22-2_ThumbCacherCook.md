@@ -38,7 +38,7 @@
     - `ThumbnailJpegQuality` の追加と関連処理の実装。
 - [x] タスク2: ThumbnailDatabase の追記API実装
     - スレッドセーフな `StoreCookedData` の実装。
-- [ ] タスク3: TagManager のバイナリ抽出機能実装
+- [x] タスク3: TagManager のバイナリ抽出機能実装
     - 生アルバムアートバイナリ抽出メソッドの追加。
 - [ ] タスク4: ThumbCacher - WIC画像処理ヘルパーの実装
     - WICを用いたデコード・スケーリング・JPEGエンコード（品質指定）を行う純粋な画像処理メソッドの実装。
@@ -53,8 +53,11 @@
     - `src/ThumbnailDatabase.cpp` に `StoreCookedData` を実装。メソッド内でファイルハンドルを都度オープン・クローズし、imgへのバイナリ書き込み、idxへのメタデータ追記、メモリマップへの同期をアトミックに行うよう修正。
     - 【事前監査対応】後続フェーズでのファイル共有違反（クラッシュ）を防ぐためファイルハンドルは都度クローズとし、データ破損を防ぐため必ず `img` → `idx` の順で書き込む安全な設計を厳守した。
 ### タスク3: TagManager のバイナリ抽出機能実装
-    - （未実施）
+    - `TagManager::ExtractAlbumArtBinary` 静的メソッドを実装。
+    - `TagLib::MPEG::File` のみを用いてファイルを開き、二重オープンによるロック問題を回避。
+    - `APIC` フレームを検索し、生バイナリを `std::vector<BYTE>` として抽出・返却（WIC等の描画APIは不使用）。
 ### タスク4: ThumbCacher - WIC画像処理ヘルパーの実装
     - （未実施）
 ### タスク5: ThumbCacher - ワーカースレッドループの完成
     - （未実施）
+
