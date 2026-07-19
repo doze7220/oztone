@@ -402,13 +402,15 @@ PlaylistItemLayout LayoutCalculator::CalculatePlaylistItemLayout(const PlaylistL
 
     layout.hlRect = D2D1::RectF(baseLayout.playlistX, currentY, baseLayout.playlistX + baseLayout.playlistWidth, currentY + baseLayout.itemHeight);
 
-    float thumbPadding = 4.0f;
-    float thumbSize = baseLayout.itemHeight - (thumbPadding * 2.0f);
-    float thumbX = baseLayout.playlistX + thumbPadding;
-    float thumbY = currentY + thumbPadding;
+    float thumbSize = config->GetPlaylistThumbSize();
+    float thumbOffsetX = config->GetPlaylistThumbOffsetX();
+    float thumbOffsetY = config->GetPlaylistThumbOffsetY();
+
+    float thumbX = baseLayout.playlistX + thumbOffsetX;
+    float thumbY = currentY + thumbOffsetY;
     layout.thumbRect = D2D1::RectF(thumbX, thumbY, thumbX + thumbSize, thumbY + thumbSize);
 
-    float textShiftX = baseLayout.itemHeight;
+    float textShiftX = thumbSize + thumbOffsetX;
 
     float textX = baseLayout.playlistX + static_cast<float>(config->GetPlaylistTitleOffsetX()) + textShiftX;
     float textY = currentY + static_cast<float>(config->GetPlaylistTitleOffsetY());

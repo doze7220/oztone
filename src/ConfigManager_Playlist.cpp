@@ -99,6 +99,10 @@ void ConfigManager::LoadPlaylistSettings() {
     m_playlistTimeOffsetY = LoadOrWriteInt(L"Layout_Playlist", L"PlaylistTimeOffsetY");
     m_playlistTimeLetterSpacing = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistTimeLetterSpacing");
 
+    m_playlistThumbSize = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistThumbSize");
+    m_playlistThumbOffsetX = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistThumbOffsetX");
+    m_playlistThumbOffsetY = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistThumbOffsetY");
+
     m_playlistBgOpacity = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistBgOpacity");
     m_playlistGripOffset = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistGripOffset");
     m_playlistGripLineWidth = LoadOrWriteFloat(L"Layout_Playlist", L"PlaylistGripLineWidth");

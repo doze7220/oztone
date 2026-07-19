@@ -165,7 +165,32 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
       // --- Thumbnail Drawing ---
       auto thumbIt = ctx.playlistThumbnails.find(i);
       if (thumbIt != ctx.playlistThumbnails.end() && thumbIt->second != nullptr) {
-          context->DrawBitmap(thumbIt->second, &itemLayout.thumbRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+          D2D1_SIZE_F bitmapSize = thumbIt->second->GetSize();
+          D2D1_RECT_F destRect = itemLayout.thumbRect;
+          
+          if (bitmapSize.width > 0 && bitmapSize.height > 0) {
+              float thumbWidth = itemLayout.thumbRect.right - itemLayout.thumbRect.left;
+              float thumbHeight = itemLayout.thumbRect.bottom - itemLayout.thumbRect.top;
+              
+              float scaleX = thumbWidth / bitmapSize.width;
+              float scaleY = thumbHeight / bitmapSize.height;
+              float scale = (scaleX < scaleY) ? scaleX : scaleY;
+              
+              float destWidth = bitmapSize.width * scale;
+              float destHeight = bitmapSize.height * scale;
+              
+              float offsetX = (thumbWidth - destWidth) / 2.0f;
+              float offsetY = (thumbHeight - destHeight) / 2.0f;
+              
+              destRect = D2D1::RectF(
+                  itemLayout.thumbRect.left + offsetX,
+                  itemLayout.thumbRect.top + offsetY,
+                  itemLayout.thumbRect.left + offsetX + destWidth,
+                  itemLayout.thumbRect.top + offsetY + destHeight
+              );
+          }
+          
+          context->DrawBitmap(thumbIt->second, &destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
       } else {
           if (m_playlistHighlightBrush) {
               m_playlistHighlightBrush->SetOpacity(0.05f);

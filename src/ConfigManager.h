@@ -379,6 +379,10 @@ public:
     float GetPlaylistTimeLetterSpacing() const { return m_playlistTimeLetterSpacing; }
     std::wstring GetPlaylistTimeColor() const { return m_playlistTimeColor; }
 
+    float GetPlaylistThumbSize() const { return m_playlistThumbSize; }
+    float GetPlaylistThumbOffsetX() const { return m_playlistThumbOffsetX; }
+    float GetPlaylistThumbOffsetY() const { return m_playlistThumbOffsetY; }
+
     float GetPlaylistToolbarHeight() const { return m_playlistToolbarHeight; }
     float GetPlaylistToolbarIconSize() const { return m_playlistToolbarIconSize; }
     float GetPlaylistToolbarIconSpacing() const { return m_playlistToolbarIconSpacing; }
@@ -633,6 +637,10 @@ private:
     int m_playlistTimeOffsetY;
     float m_playlistTimeLetterSpacing;
     std::wstring m_playlistTimeColor;
+
+    float m_playlistThumbSize;
+    float m_playlistThumbOffsetX;
+    float m_playlistThumbOffsetY;
 
     int m_playlistHoverWidth;
 
