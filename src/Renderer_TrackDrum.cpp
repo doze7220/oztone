@@ -10,6 +10,7 @@ TrackDrum::~TrackDrum() {
 }
 
 void TrackDrum::StartDrumAnimation(int relativeDistance, 
+                                  float maxDuration, float maxSpeed,
                                   std::function<TrackMetadata(int relativeIndex, DrumSlot* slot)> dataProvider,
                                   std::function<void()> onComplete) {
     if (relativeDistance == 0) {
@@ -35,7 +36,17 @@ void TrackDrum::StartDrumAnimation(int relativeDistance,
     int startPos = static_cast<int>(std::round(m_drumAbsolutePosition));
     int direction = (relativeDistance > 0) ? 1 : -1;
 
-    m_drumTargetPosition += relativeDistance;
+    int maxFlipCount = (std::max)(1, static_cast<int>(maxDuration * maxSpeed * 60.0f));
+
+    int physicalDistance = (std::min)(std::abs(relativeDistance), maxFlipCount) * direction;
+
+    if (physicalDistance != 0) {
+        m_indexStep = static_cast<float>(relativeDistance) / physicalDistance;
+    } else {
+        m_indexStep = 1.0f;
+    }
+
+    m_drumTargetPosition += physicalDistance;
     m_currentDrumSlotIndex = (m_drumTargetPosition % 3 + 3) % 3;
     
     // 開始位置(Start)を基準とし、進行方向に向かって3スロット分を正しく連番で事前注入(Pre-fill)
@@ -99,8 +110,8 @@ void TrackDrum::PrefillAbsolute(int absolutePos) {
     // 物理的な絶対座標(absolutePos)とターゲット座標(m_drumTargetPosition)の差分を求める。
     // UI側のスクロール方向（NEXTでドラムの座標が減少）とプレイリストの進行（NEXTでインデックス増加）が
     // 逆ベクトルであるため、m_drumTargetPosition - absolutePos と符号を反転させることで
-    // 物理座標と論理インデックスを正しくマッピングする。
-    int relativeIndex = m_drumTargetPosition - absolutePos;
+    // 物理座標と論理インデックスを正しくマッピングする。スケーリングを加味して算出する。
+    int relativeIndex = static_cast<int>(std::round((m_drumTargetPosition - absolutePos) * m_indexStep));
     TrackMetadata meta = m_drumDataProvider(relativeIndex, &m_drumSlots[slotIdx]);
     m_drumSlots[slotIdx].artBitmap = nullptr;
     m_drumSlots[slotIdx].trackTitle = meta.title;

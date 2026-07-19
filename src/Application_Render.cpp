@@ -114,7 +114,7 @@ void Application::Run() {
         }
 
         if (!played) {
-          m_renderer.GetTrackDrum().StartDrumAnimation(0, nullptr, nullptr);
+          m_renderer.GetTrackDrum().StartDrumAnimation(0, 0.0f, 0.0f, nullptr, nullptr);
           m_renderer.GetTrackDrum().SetAlbumArt(nullptr);
         }
     }

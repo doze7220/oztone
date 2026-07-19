@@ -13,6 +13,7 @@ public:
     ~TrackDrum();
 
     void StartDrumAnimation(int relativeDistance, 
+                            float maxDuration, float maxSpeed,
                             std::function<TrackMetadata(int relativeIndex, DrumSlot* slot)> dataProvider,
                             std::function<void()> onComplete);
                             
@@ -34,6 +35,7 @@ private:
     void OnSlotAnimationCompleted();
     void PrefillAbsolute(int absolutePos);
 
+    float m_indexStep = 1.0f;
     float m_drumAbsolutePosition = 0.0f;
     std::array<DrumSlot, 3> m_drumSlots;
     int m_currentDrumSlotIndex = 0;
