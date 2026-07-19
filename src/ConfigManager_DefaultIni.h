@@ -32,11 +32,11 @@ ShowVolumeControl=1
 
 [TrackDrum]
 EnableTrackDrum=1
-MaxDuration=3.0
+MaxDuration=5.0
 MinSpeed=0.1
-MaxSpeed=3.0
+MaxSpeed=4.0
 Acceleration=0.5
-Deceleration=0.5
+Deceleration=0.1
 
 [UI_Common_Parm]
 FocusColor=#FFA500
