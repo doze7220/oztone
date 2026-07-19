@@ -10,6 +10,10 @@ void Renderer::SetBackgroundArt(ID2D1Bitmap* bitmap) {
     m_backgroundArtBitmap = bitmap;
 }
 
+void Renderer::SetThumbnailDatabase(ThumbnailDatabase* db) {
+    m_thumbDb = db;
+}
+
 void Renderer::SetBackgroundFraming(float offsetX, float offsetY, float scale) {
     m_bgOffsetX = offsetX;
     m_bgOffsetY = offsetY;

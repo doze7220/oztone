@@ -1,6 +1,8 @@
 #include "Renderer.h"
 #include "ConfigManager.h"
 #include "WidgetContext.h"
+#include "LayoutCalculator.h"
+#include "ThumbnailDatabase.h"
 
 WidgetContext Renderer::BuildAnimationContext(float deltaTime, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode, int playbackHoveredIndex, int playlistHoveredItemIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isLogoClicked, int clickedLogoMenuIndex, int clickedPlaybackIndex, bool* outIsPlaylistExpanded, bool* outIsLogoMenuExpanded) const {
     WidgetContext ctx = {};
@@ -102,5 +104,33 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
     ctx.osdVolumeAlpha = m_osdVolumeAlpha;
     ctx.flyTextAlpha = m_flyTextAlpha;
     ctx.flyTextString = m_flyTextString;
+
+    if (m_thumbDb && m_config && !isPlaylistListViewMode && shuffleMetadataList) {
+        float logicalWidth = ctx.logicalWidth;
+        float logicalHeight = ctx.logicalHeight;
+        float manualScrollY = GetPlaylistManualScrollY();
+        PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(logicalWidth, logicalHeight, m_config, 0.0f, manualScrollY, currentTrackIndex, totalTracks);
+        
+        float currentY = layout.startY;
+        for (size_t i = 0; i < totalTracks && i < shuffleMetadataList->size(); ++i) {
+            if (currentY + layout.itemHeight > 0 && currentY < layout.playlistHeight) {
+                const std::wstring& path = (*shuffleMetadataList)[i].filepath;
+                uint32_t thumbId = m_thumbDb->GetThumbnailId(path);
+                if (thumbId > 0) {
+                    ID2D1Bitmap* bmp = m_thumbDb->GetCachedThumbnailBitmap(thumbId);
+                    if (bmp) {
+                        ctx.playlistThumbnails[i] = bmp;
+                    } else if (m_d2dContext && m_wicFactory) {
+                        m_thumbDb->RequestThumbnailLoad(thumbId, m_d2dContext.Get(), m_wicFactory.Get());
+                    }
+                }
+            }
+            currentY += layout.itemHeight;
+            if (currentY >= layout.playlistHeight) {
+                break; // Optimization: no need to check further if beyond visible area
+            }
+        }
+    }
+
     return ctx;
 }

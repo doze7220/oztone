@@ -31,12 +31,12 @@
 [x] タスク3: ThumbnailDatabaseの非同期化インターフェース追加 (対象: ThumbnailDatabase.h, ThumbnailDatabase.cpp)
     - キャッシュのみを参照する `GetCachedThumbnailBitmap()` と、バックグラウンドでの読み込み・デコードを管理する非同期ロードの仕組みを追加する（UIスレッドでWICデコードを行わない）。
 
-[ ] タスク4: Renderer層での可視範囲計算とWidgetContextへの結線 (対象: WidgetContext.h, Renderer_Update.cpp, Renderer_Context.cpp)
+[x] タスク4: Renderer層での可視範囲計算とWidgetContextへの結線 (対象: WidgetContext.h, Renderer_Update.cpp, Renderer_Context.cpp)
     - `WidgetContext.h` に `std::unordered_map<size_t, ID2D1Bitmap*> playlistThumbnails;` を追加する。
     - `Renderer_Update.cpp` にて表示領域（スクロール位置）から可視インデックス範囲を求め、`ThumbnailDatabase` にロードを要求する。
     - `Renderer_Context.cpp` にてキャッシュ取得を行い、取得できたビットマップをマップに詰めて `WidgetContext` に渡す。
 
-[ ] タスク5: Widget_Playlist_DrawItemsの純粋な描画対応 (対象: Widget_Playlist_DrawItems.cpp)
+[x] タスク5: Widget_Playlist_DrawItemsの純粋な描画対応 (対象: Widget_Playlist_DrawItems.cpp)
     - 描画ループ内にて `WidgetContext` の `playlistThumbnails` を参照し、画像があれば描画、なければガラス板を描画する。レイアウトは `LayoutCalculator` の矩形に完全に従う。
 
 ## 4. 詳細作業内容
@@ -51,6 +51,10 @@
     - 重複してスレッドが立ち上がるのを防ぐため、`m_loadingSet` によるガード機構を設けた。
     - 実際のロード処理は `std::thread` によるバックグラウンド実行（detach）で行い、WICによるデコード完了後に `m_mutex` で排他制御をかけながら `ID2D1Bitmap` を生成・キャッシュに登録するロジックを構築した。
 ### タスク4: Renderer層での可視範囲計算とWidgetContextへの結線
-    - (未実施)
+    - `WidgetContext.h` にサムネイル画像を渡すためのお弁当箱として `std::unordered_map<size_t, ID2D1Bitmap*> playlistThumbnails;` を追加した。
+    - `Renderer.h` および `Renderer.cpp` に `ThumbnailDatabase` のポインタを受け取る `SetThumbnailDatabase()` を追加し、`Application_Initialize.cpp` で結線した。
+    - `Renderer_Context.cpp` の `BuildRenderContext()` にて、プレイリストの現在の可視範囲を割り出し、算出した範囲の各インデックスに対して `ThumbnailDatabase::GetCachedThumbnailBitmap()` で画像を取得。画像がなければ `RequestThumbnailLoad()` で非同期ロードを要求する処理を実装し、取得できたビットマップを `ctx.playlistThumbnails` マップへ格納した。
 ### タスク5: Widget_Playlist_DrawItemsの純粋な描画対応
-    - (未実施)
+    - `Widget_Playlist_DrawItems.cpp` の `DrawTrackList` 内にて、データ層のインターフェースを叩かず、コンテキストから渡された `ctx.playlistThumbnails` のマップを参照する純粋な受動態描画を実装した。
+    - 対象インデックスの画像が存在すれば `LayoutCalculator` が算出した `thumbRect` 領域に描画し、存在しなければ `m_playlistHighlightBrush` を用いたガラス板（透過度0.05f）をフォールバックとして美しく描画する処理を実装した。
+    - キャッシュに画像がない場合でも描画ループを一切ブロックしない（非ブロック描画の維持）仕様を満たした。

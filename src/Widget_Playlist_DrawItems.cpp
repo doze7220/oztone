@@ -162,6 +162,17 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
           itemLayout.artistRect.left += shift;
       }
 
+      // --- Thumbnail Drawing ---
+      auto thumbIt = ctx.playlistThumbnails.find(i);
+      if (thumbIt != ctx.playlistThumbnails.end() && thumbIt->second != nullptr) {
+          context->DrawBitmap(thumbIt->second, &itemLayout.thumbRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+      } else {
+          if (m_playlistHighlightBrush) {
+              m_playlistHighlightBrush->SetOpacity(0.05f);
+              context->FillRectangle(&itemLayout.thumbRect, m_playlistHighlightBrush.Get());
+          }
+      }
+
       m_textBrush->SetColor(GetBlendedTextColor(static_cast<int>(i), isPlaying && !m_isScanlineActive));
 
       context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),

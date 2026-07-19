@@ -6,6 +6,7 @@
 #include <optional>
 #include <array>
 #include <map>
+#include <unordered_map>
 #include <wrl/client.h>
 
 #include "PlaylistManager.h"
@@ -80,6 +81,8 @@ struct WidgetContext {
     int playlistHoveredItemIndex = -1;
 
     const std::vector<PlaylistSummary>* availablePlaylistsCache;
+    std::unordered_map<size_t, ID2D1Bitmap*> playlistThumbnails;
+
     bool* outIsPlaylistExpanded = nullptr;
     bool* outIsLogoMenuExpanded = nullptr;
 
