@@ -23,7 +23,12 @@ ThumbnailDatabase::ThumbnailDatabase(ConfigManager* config)
     }
 }
 
-ThumbnailDatabase::~ThumbnailDatabase() {}
+ThumbnailDatabase::~ThumbnailDatabase() {
+    m_isShuttingDown = true;
+    while (m_activeLoadTasks > 0) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+}
 
 void ThumbnailDatabase::Initialize() {
     if (!m_config) return;
@@ -73,7 +78,18 @@ void ThumbnailDatabase::Initialize() {
                         uint64_t offset = std::stoull(offsetStr);
                         size_t size = std::stoull(sizeStr);
                         m_sectorMap[id] = {offset, size};
-                        std::wstring wfilepath = std::filesystem::path(filepathStr).wstring();
+                        
+                        std::wstring wfilepath;
+                        if (!filepathStr.empty()) {
+                            int wLen = MultiByteToWideChar(CP_UTF8, 0, filepathStr.c_str(), -1, nullptr, 0);
+                            if (wLen > 0) {
+                                wfilepath.resize(wLen - 1);
+                                MultiByteToWideChar(CP_UTF8, 0, filepathStr.c_str(), -1, &wfilepath[0], wLen);
+                            } else {
+                                wfilepath = std::filesystem::path(filepathStr).wstring();
+                            }
+                        }
+                        
                         m_pathToId[wfilepath] = id;
                         if (id > maxId) maxId = id;
                     } catch (...) {
@@ -137,6 +153,7 @@ ID2D1Bitmap* ThumbnailDatabase::GetCachedThumbnailBitmap(uint32_t thumbId) {
 }
 
 void ThumbnailDatabase::RequestThumbnailLoad(uint32_t thumbId, ID2D1RenderTarget* renderTarget, IWICImagingFactory* wicFactory) {
+    if (m_isShuttingDown) return;
     if (!renderTarget || !wicFactory) return;
 
     {
@@ -153,76 +170,102 @@ void ThumbnailDatabase::RequestThumbnailLoad(uint32_t thumbId, ID2D1RenderTarget
     Microsoft::WRL::ComPtr<ID2D1RenderTarget> rt(renderTarget);
     Microsoft::WRL::ComPtr<IWICImagingFactory> wf(wicFactory);
 
-    std::thread([this, thumbId, rt, wf]() {
-        HRESULT hrInit = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    m_activeLoadTasks++;
+    try {
+        std::thread([this, thumbId, rt, wf]() mutable {
+            try {
+                HRESULT hrInit = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
-        Microsoft::WRL::ComPtr<ID2D1Bitmap> bitmap;
-        SectorInfo sector = {0, 0};
-        {
-            std::lock_guard<std::mutex> ioLock(m_ioMutex);
-            auto it = m_sectorMap.find(thumbId);
-            if (it != m_sectorMap.end()) {
-                sector = it->second;
-            }
-        }
-
-        std::vector<BYTE> binaryData;
-        if (sector.size > 0) {
-            std::lock_guard<std::mutex> ioLock(m_ioMutex);
-            std::ifstream ifs(m_imgPath, std::ios::binary);
-            if (ifs) {
-                ifs.clear();
-                ifs.seekg(sector.offset, std::ios::beg);
-                binaryData.resize(sector.size);
-                ifs.read(reinterpret_cast<char*>(binaryData.data()), sector.size);
-                if (ifs.fail()) {
-                    binaryData.clear();
-                }
-            }
-        }
-
-        if (!binaryData.empty()) {
-            Microsoft::WRL::ComPtr<IWICStream> stream;
-            if (SUCCEEDED(wf->CreateStream(&stream)) &&
-                SUCCEEDED(stream->InitializeFromMemory(binaryData.data(), static_cast<DWORD>(binaryData.size())))) {
-
-                Microsoft::WRL::ComPtr<IWICBitmapDecoder> decoder;
-                if (SUCCEEDED(wf->CreateDecoderFromStream(stream.Get(), nullptr, WICDecodeMetadataCacheOnLoad, &decoder))) {
-
-                    Microsoft::WRL::ComPtr<IWICBitmapFrameDecode> frame;
-                    if (SUCCEEDED(decoder->GetFrame(0, &frame))) {
-
-                        Microsoft::WRL::ComPtr<IWICFormatConverter> converter;
-                        if (SUCCEEDED(wf->CreateFormatConverter(&converter)) &&
-                            SUCCEEDED(converter->Initialize(frame.Get(), GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeMedianCut))) {
-
-                            rt->CreateBitmapFromWicBitmap(converter.Get(), nullptr, &bitmap);
+                {
+                    Microsoft::WRL::ComPtr<ID2D1Bitmap> bitmap;
+                    SectorInfo sector = {0, 0};
+                    {
+                        std::lock_guard<std::mutex> ioLock(m_ioMutex);
+                        auto it = m_sectorMap.find(thumbId);
+                        if (it != m_sectorMap.end()) {
+                            sector = it->second;
                         }
                     }
-                }
-            }
-        }
 
-        {
+                    std::vector<BYTE> binaryData;
+                    if (sector.size > 0) {
+                        std::lock_guard<std::mutex> ioLock(m_ioMutex);
+                        std::ifstream ifs(m_imgPath, std::ios::binary);
+                        if (ifs) {
+                            ifs.clear();
+                            ifs.seekg(sector.offset, std::ios::beg);
+                            binaryData.resize(sector.size);
+                            ifs.read(reinterpret_cast<char*>(binaryData.data()), sector.size);
+                            if (ifs.fail()) {
+                                binaryData.clear();
+                            }
+                        }
+                    }
+
+                    if (!binaryData.empty()) {
+                        Microsoft::WRL::ComPtr<IWICStream> stream;
+                        if (SUCCEEDED(wf->CreateStream(&stream)) &&
+                            SUCCEEDED(stream->InitializeFromMemory(binaryData.data(), static_cast<DWORD>(binaryData.size())))) {
+
+                            Microsoft::WRL::ComPtr<IWICBitmapDecoder> decoder;
+                            if (SUCCEEDED(wf->CreateDecoderFromStream(stream.Get(), nullptr, WICDecodeMetadataCacheOnLoad, &decoder))) {
+
+                                Microsoft::WRL::ComPtr<IWICBitmapFrameDecode> frame;
+                                if (SUCCEEDED(decoder->GetFrame(0, &frame))) {
+
+                                    Microsoft::WRL::ComPtr<IWICFormatConverter> converter;
+                                    if (SUCCEEDED(wf->CreateFormatConverter(&converter)) &&
+                                        SUCCEEDED(converter->Initialize(frame.Get(), GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeMedianCut))) {
+
+                                        rt->CreateBitmapFromWicBitmap(converter.Get(), nullptr, &bitmap);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    {
+                        std::lock_guard<std::mutex> lock(m_mutex);
+                        if (bitmap) {
+                            m_cache[thumbId] = bitmap;
+                            m_lruList.push_front(thumbId);
+
+                            size_t maxCache = m_config ? m_config->GetMaxThumbnailCache() : 100;
+                            while (m_lruList.size() > maxCache) {
+                                uint32_t oldestId = m_lruList.back();
+                                m_lruList.pop_back();
+                                m_cache.erase(oldestId);
+                            }
+                        }
+                        m_loadingSet.erase(thumbId);
+                    }
+                } // ここで bitmap やローカルの ComPtr がすべて破棄される
+
+                // キャプチャした ComPtr を CoUninitialize より前に明示的に解放する
+                rt.Reset();
+                wf.Reset();
+
+                if (SUCCEEDED(hrInit)) {
+                    CoUninitialize();
+                }
+            } catch (...) {
+                rt.Reset();
+                wf.Reset();
+                try {
+                    std::lock_guard<std::mutex> lock(m_mutex);
+                    m_loadingSet.erase(thumbId);
+                } catch (...) {}
+            }
+            
+            m_activeLoadTasks--;
+        }).detach();
+    } catch (...) {
+        m_activeLoadTasks--;
+        try {
             std::lock_guard<std::mutex> lock(m_mutex);
-            if (bitmap) {
-                m_cache[thumbId] = bitmap;
-                m_lruList.push_front(thumbId);
-
-                size_t maxCache = m_config ? m_config->GetMaxThumbnailCache() : 100;
-                while (m_lruList.size() > maxCache) {
-                    uint32_t oldestId = m_lruList.back();
-                    m_lruList.pop_back();
-                    m_cache.erase(oldestId);
-                }
-            }
             m_loadingSet.erase(thumbId);
-        }
-
-        if (SUCCEEDED(hrInit)) {
-            CoUninitialize();
-        }
-    }).detach();
+        } catch (...) {}
+    }
 }
 
 Microsoft::WRL::ComPtr<ID2D1Bitmap> ThumbnailDatabase::GetThumbnailBitmap(uint32_t thumbId, ID2D1RenderTarget* renderTarget, IWICImagingFactory* wicFactory) {
@@ -345,7 +388,17 @@ bool ThumbnailDatabase::StoreCookedData(uint32_t thumbId, const std::wstring& fi
     std::ofstream idxOfs(m_idxPath, std::ios::app | std::ios::binary);
     if (!idxOfs) return false;
 
-    std::string pathStr = std::filesystem::path(filepath).string();
+    std::string pathStr;
+    if (!filepath.empty()) {
+        int utf8Len = WideCharToMultiByte(CP_UTF8, 0, filepath.c_str(), -1, nullptr, 0, nullptr, nullptr);
+        if (utf8Len > 0) {
+            pathStr.resize(utf8Len - 1);
+            WideCharToMultiByte(CP_UTF8, 0, filepath.c_str(), -1, &pathStr[0], utf8Len, nullptr, nullptr);
+        } else {
+            pathStr = std::filesystem::path(filepath).string();
+        }
+    }
+
     // Use binary mode and construct the string to ensure CRLF issues don't happen, or just write it normally
     std::string idxLine = std::to_string(thumbId) + "\t" + std::to_string(offset) + "\t" + std::to_string(data.size()) + "\t" + pathStr + "\n";
     idxOfs.write(idxLine.c_str(), idxLine.size());

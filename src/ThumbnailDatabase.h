@@ -5,6 +5,7 @@
 #include <list>
 #include <vector>
 #include <unordered_set>
+#include <atomic>
 #include <d2d1_1.h>
 #include <wrl/client.h>
 #include "ConfigManager.h"
@@ -47,4 +48,6 @@ private:
     std::unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID2D1Bitmap>> m_cache;
     std::unordered_map<uint32_t, SectorInfo> m_sectorMap;
     std::unordered_set<uint32_t> m_loadingSet;
+    std::atomic<bool> m_isShuttingDown{false};
+    std::atomic<int> m_activeLoadTasks{0};
 };

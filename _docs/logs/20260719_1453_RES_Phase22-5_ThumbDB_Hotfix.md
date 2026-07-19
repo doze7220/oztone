@@ -70,3 +70,17 @@
 - `src/Renderer_Context.cpp` におけるコンパイルエラー (C2039) を修正。
 - 描画構築時にサムネイルIDを取得する箇所で、削除済みの `GetThumbnailId` 呼び出しを `GetOrGenerateThumbId` に置換した。
 - ※描画層であるため、新規発番（`isNew == true`）の場合でも `ThumbCacher` への発注処理（`EnqueueTrack`）は行わない仕様を遵守した。
+
+### HOTFIX 2: 非同期スレッドの安全保護機構の実装
+- `ThumbnailDatabase.h` に `m_isShuttingDown` および `m_activeLoadTasks` を追加し、デストラクタにて全スレッドの完了を待機する仕組みを実装した。
+- `ThumbnailDatabase.cpp` の `RequestThumbnailLoad` において、スレッド処理全体を `try { ... } catch (...) { ... }` で囲み、WICのエラーなどがスレッド外に漏れてアプリがクラッシュしないよう保護機構を追加した。
+- 常に `m_activeLoadTasks` がインクリメントおよびデクリメントされることを保証し、ダングリングクラッシュを防止する仕様を実装した。
+
+### HOTFIX 3: 非同期スレッド内COMオブジェクトの破棄順序と例外漏れの修正
+- `abort()`（`std::terminate`）が発生する致命的なバグを修正した。
+- `RequestThumbnailLoad` 内で生成するラムダ関数を `mutable` に変更し、キャプチャされた `ComPtr` (`rt`, `wf`) を `CoUninitialize()` を呼び出す前に `Reset()` で明示的に解放するよう修正。これにより、COM環境シャットダウン後の `Release()` 呼び出しによるクラッシュを防止した。
+- `std::thread` の生成自体が失敗して `std::system_error` が投げられた際に例外が漏れてアプリが終了するのを防ぐため、スレッド生成部全体を `try-catch` で保護し、失敗時も安全にタスクカウントと状態をロールバックするよう実装した。
+
+### HOTFIX 4: サムネイルDBの文字化け修正（Unicode対応）
+- `ThumbnailDatabase.cpp` の `StoreCookedData` において、`std::wstring` のファイルパスを `WideCharToMultiByte` (CP_UTF8) で UTF-8 の `std::string` に変換してから `.idx` ファイルに書き込むよう修正した。
+- `ThumbnailDatabase.cpp` の `Initialize` において、`.idx` ファイルから読み込んだ UTF-8 のファイルパス文字列を `MultiByteToWideChar` (CP_UTF8) で `std::wstring` に変換してから `m_pathToId` に登録するよう修正し、文字化けを解消した。
