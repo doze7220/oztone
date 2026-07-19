@@ -236,6 +236,8 @@ HaloParticleLifeTime=400.0
 [System]
 WatchdogInterval=1.0
 WatchdogTimeout=5.0
+MaxThumbnailCache=100
+ThumbnailSize=120.0
 
 [GlobalHotkeys]
 ShowHotkeys=0

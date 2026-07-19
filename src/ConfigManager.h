@@ -289,7 +289,11 @@ public:
     float GetWatchdogInterval() const { return m_watchdogInterval; }
     float GetWatchdogTimeout() const { return m_watchdogTimeout; }
 
-
+    int GetMaxThumbnailCache() const { return m_maxThumbnailCache; }
+    void SetMaxThumbnailCache(int cache);
+    
+    float GetThumbnailSize() const { return m_thumbnailSize; }
+    void SetThumbnailSize(float size);
 
 
     int GetBaseX() const { return m_baseX; }
@@ -691,4 +695,6 @@ private:
 
     float m_watchdogInterval;
     float m_watchdogTimeout;
+    int m_maxThumbnailCache;
+    float m_thumbnailSize;
 };

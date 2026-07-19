@@ -18,6 +18,19 @@ void ConfigManager::SetEnableOSD(bool enable) {
     WritePrivateProfileStringW(L"Layout_OSD", L"EnableOSD", value.c_str(), m_iniFilePath.c_str());
 }
 
+// [System]
+void ConfigManager::SetMaxThumbnailCache(int cache) {
+    m_maxThumbnailCache = cache;
+    std::wstring value = std::to_wstring(cache);
+    WritePrivateProfileStringW(L"System", L"MaxThumbnailCache", value.c_str(), m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetThumbnailSize(float size) {
+    m_thumbnailSize = size;
+    std::wstring value = std::to_wstring(size);
+    WritePrivateProfileStringW(L"System", L"ThumbnailSize", value.c_str(), m_iniFilePath.c_str());
+}
+
 void ConfigManager::LoadSystemSettings() {
     // Layout_GlobalHotkeys
     m_ghFontSize = LoadOrWriteFloat(L"Layout_GlobalHotkeys", L"FontSize");
@@ -38,6 +51,8 @@ void ConfigManager::LoadSystemSettings() {
     // System
     m_watchdogInterval = std::clamp(LoadOrWriteFloat(L"System", L"WatchdogInterval"), 0.5f, 1000.0f);
     m_watchdogTimeout = std::clamp(LoadOrWriteFloat(L"System", L"WatchdogTimeout"), 2.0f, 1000.0f);
+    m_maxThumbnailCache = LoadOrWriteInt(L"System", L"MaxThumbnailCache");
+    m_thumbnailSize = LoadOrWriteFloat(L"System", L"ThumbnailSize");
 
     // GlobalHotkeys
     m_showHotkeys = LoadOrWriteInt(L"GlobalHotkeys", L"ShowHotkeys") != 0;
