@@ -29,11 +29,11 @@
 ## 3. 実装タスクリスト
 - [x] タスク1: ConfigManager の拡張
     - `MaxThumbnailCache` (デフォルト: 100) と `ThumbnailSize` (デフォルト: 120) のプロパティ追加とINI連動。
-- [ ] タスク2: ThumbnailDatabase - パックファイルI/Oと自己修復ロジック
+- [x] タスク2: ThumbnailDatabase - パックファイルI/Oと自己修復ロジック
     - idx と img のストリーム管理、マジックナンバーとヘッダの比較、自己修復(Truncate)処理の実装。
-- [ ] タスク3: ThumbnailDatabase - LRUキャッシュとインターフェース構築
+- [x] タスク3: ThumbnailDatabase - LRUキャッシュとインターフェース構築
     - `std::list` と `std::unordered_map` を用いたLRU枠組みの構築。インターフェースメソッドの定義。
-- [ ] タスク4: ThumbCacher クラスの構築
+- [x] タスク4: ThumbCacher クラスの構築
     - サムネイル専用ワーカースレッドとキュー管理の構築。
 - [ ] タスク5: Application クラスへの配線とライフサイクル管理
     - `Application` 内でのインスタンス化、初期化、および安全なスレッド終了（join）処理の追加。
@@ -46,11 +46,19 @@
 ### タスク1: ConfigManager の拡張
     - `ConfigManager.h`, `ConfigManager_System.cpp`, `ConfigManager_DefaultIni.h` を修正し、`[System]` セクションに `MaxThumbnailCache` と `ThumbnailSize` の設定を追加・保存・読み込み処理を実装した。
 ### タスク2: ThumbnailDatabase - パックファイルI/Oと自己修復ロジック
-    - (未実施)
+    - `src/ThumbnailDatabase.h` と `src/ThumbnailDatabase.cpp` を新規作成。
+    - `Initialize()` メソッドを実装し、マジックナンバー (`OZTHUMB_V1`) と `ThumbnailSize` によるヘッダ検証機能を追加。
+    - 破損時・不一致時に idx/img の両ファイルを Truncate して初期化する自己修復ロジックを実装。
 ### タスク3: ThumbnailDatabase - LRUキャッシュとインターフェース構築
-    - (未実施)
+    - `ThumbnailDatabase.h` に `std::list` と `std::unordered_map` を用いたLRUデータ構造 (`m_pathToId`, `m_lruList`, `m_cache`) を追加。
+    - `GetThumbnailId` と `DrawThumbnail` を実装し、キャッシュ有無とパックファイル存在有無（TODO部分）による3分岐の描画ディスパッチロジックを構築。
+    - キャッシュヒット時はリストの先頭にIDを移動してLRUを更新し、画像を描画。未キャッシュ時は0.1の半透明白ブラシでプレースホルダーを描画するよう実装。
 ### タスク4: ThumbCacher クラスの構築
-    - (未実施)
+    - `src/ThumbCacher.h` と `src/ThumbCacher.cpp` を新規作成。
+    - コンストラクタで `ThumbnailDatabase*` を受け取り保持。
+    - `std::thread`, `std::mutex`, `std::condition_variable`, `std::queue<std::wstring>`, `std::atomic<bool>` を用いたスレッドとキュー管理基盤を実装。
+    - スレッドの起動を行う `Initialize()`、安全な停止とジョインを行う `Uninitialize()` を実装。
+    - `EnqueueTrack()` によるキューへのタスク追加とCV起床、ワーカースレッドループ(`WorkerLoop`)によるタスク取り出し処理の枠組みを構築（実処理はTODOとして記述）。
 ### タスク5: Application クラスへの配線とライフサイクル管理
     - (未実施)
 ### タスク6: CMakeLists.txt の更新
