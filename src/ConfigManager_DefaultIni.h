@@ -238,6 +238,7 @@ WatchdogInterval=1.0
 WatchdogTimeout=5.0
 MaxThumbnailCache=100
 ThumbnailSize=120.0
+ThumbnailJpegQuality=0.8
 
 [GlobalHotkeys]
 ShowHotkeys=0

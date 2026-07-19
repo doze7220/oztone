@@ -118,3 +118,35 @@ void ThumbnailDatabase::DrawThumbnail(ID2D1DeviceContext* context, uint32_t thum
         context->FillRectangle(&destRect, brush.Get());
     }
 }
+
+bool ThumbnailDatabase::StoreCookedData(uint32_t thumbId, const std::vector<BYTE>& data) {
+    if (data.empty()) return false;
+
+    std::lock_guard<std::mutex> lock(m_ioMutex);
+
+    std::ofstream imgOfs(m_imgPath, std::ios::app | std::ios::binary);
+    if (!imgOfs) return false;
+
+    uint64_t offset = static_cast<uint64_t>(imgOfs.tellp());
+    imgOfs.write(reinterpret_cast<const char*>(data.data()), data.size());
+    if (imgOfs.fail()) {
+        imgOfs.close();
+        return false;
+    }
+    imgOfs.close();
+
+    std::ofstream idxOfs(m_idxPath, std::ios::app | std::ios::binary);
+    if (!idxOfs) return false;
+
+    // Use binary mode and construct the string to ensure CRLF issues don't happen, or just write it normally
+    std::string idxLine = std::to_string(thumbId) + "\t" + std::to_string(offset) + "\t" + std::to_string(data.size()) + "\n";
+    idxOfs.write(idxLine.c_str(), idxLine.size());
+    if (idxOfs.fail()) {
+        idxOfs.close();
+        return false;
+    }
+    idxOfs.close();
+
+    m_sectorMap[thumbId] = {offset, data.size()};
+    return true;
+}

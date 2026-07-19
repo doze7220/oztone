@@ -295,6 +295,9 @@ public:
     float GetThumbnailSize() const { return m_thumbnailSize; }
     void SetThumbnailSize(float size);
 
+    float GetThumbnailJpegQuality() const { return m_thumbnailJpegQuality; }
+    void SetThumbnailJpegQuality(float quality);
+
 
     int GetBaseX() const { return m_baseX; }
     int GetBaseBottomOffset() const { return m_baseBottomOffset; }
@@ -697,4 +700,5 @@ private:
     float m_watchdogTimeout;
     int m_maxThumbnailCache;
     float m_thumbnailSize;
+    float m_thumbnailJpegQuality;
 };

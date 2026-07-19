@@ -31,6 +31,12 @@ void ConfigManager::SetThumbnailSize(float size) {
     WritePrivateProfileStringW(L"System", L"ThumbnailSize", value.c_str(), m_iniFilePath.c_str());
 }
 
+void ConfigManager::SetThumbnailJpegQuality(float quality) {
+    m_thumbnailJpegQuality = std::clamp(quality, 0.0f, 1.0f);
+    std::wstring value = std::to_wstring(m_thumbnailJpegQuality);
+    WritePrivateProfileStringW(L"System", L"ThumbnailJpegQuality", value.c_str(), m_iniFilePath.c_str());
+}
+
 void ConfigManager::LoadSystemSettings() {
     // Layout_GlobalHotkeys
     m_ghFontSize = LoadOrWriteFloat(L"Layout_GlobalHotkeys", L"FontSize");
@@ -53,6 +59,7 @@ void ConfigManager::LoadSystemSettings() {
     m_watchdogTimeout = std::clamp(LoadOrWriteFloat(L"System", L"WatchdogTimeout"), 2.0f, 1000.0f);
     m_maxThumbnailCache = LoadOrWriteInt(L"System", L"MaxThumbnailCache");
     m_thumbnailSize = LoadOrWriteFloat(L"System", L"ThumbnailSize");
+    m_thumbnailJpegQuality = std::clamp(LoadOrWriteFloat(L"System", L"ThumbnailJpegQuality"), 0.0f, 1.0f);
 
     // GlobalHotkeys
     m_showHotkeys = LoadOrWriteInt(L"GlobalHotkeys", L"ShowHotkeys") != 0;
