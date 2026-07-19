@@ -40,10 +40,12 @@
     - スレッドセーフな `StoreCookedData` の実装。
 - [x] タスク3: TagManager のバイナリ抽出機能実装
     - 生アルバムアートバイナリ抽出メソッドの追加。
-- [ ] タスク4: ThumbCacher - WIC画像処理ヘルパーの実装
+- [x] タスク4: ThumbCacher - WIC画像処理ヘルパーの実装
     - WICを用いたデコード・スケーリング・JPEGエンコード（品質指定）を行う純粋な画像処理メソッドの実装。
-- [ ] タスク5: ThumbCacher - ワーカースレッドループの完成
+- [x] タスク5: ThumbCacher - ワーカースレッドループの完成
     - COMマルチスレッド初期化と、各モジュール（DB、TagManager、画像処理、保存）の連携処理の実装。
+- [x] タスク6: アーキテクチャ資料の更新
+    - `PROJECT_ARCHITECTURE.md` に Phase 22-2 で実装したサムネイル工場の設計仕様をクラスリファレンスへ反映。
 
 ## 4. 詳細作業内容
 ### タスク1: ConfigManager の拡張
@@ -57,7 +59,29 @@
     - `TagLib::MPEG::File` のみを用いてファイルを開き、二重オープンによるロック問題を回避。
     - `APIC` フレームを検索し、生バイナリを `std::vector<BYTE>` として抽出・返却（WIC等の描画APIは不使用）。
 ### タスク4: ThumbCacher - WIC画像処理ヘルパーの実装
-    - （未実施）
+    - `ThumbCacher.h` および `ThumbCacher.cpp` に純粋な画像処理メソッド `CookThumbnailImage` を追加実装。
+    - WIC (Windows Imaging Component) を利用し、`IWICImagingFactory` などのCOMオブジェクトをすべて `Microsoft::WRL::ComPtr` で管理することでメモリリークを防止。
+    - `IWICStream` を介して生バイナリをデコードし、`IWICBitmapScaler` を用いてアスペクト比を保ったまま長辺が `targetSize` となるよう縮小するロジックを実装。
+    - `GUID_ContainerFormatJpeg` のエンコーダを構築し、`IPropertyBag2` で `ImageQuality` プロパティに引数の `jpegQuality` (0.0f〜1.0f) を設定して反映。結果を `std::vector<BYTE>` として抽出して返却するようにした。
+    - ロック制御やDB処理、キュー処理など他の責務は一切混入させず、バイナリ変換のみの単一責務を満たした。
 ### タスク5: ThumbCacher - ワーカースレッドループの完成
-    - （未実施）
+    - `ThumbCacher::WorkerLoop` の本体実装を完了。
+    - スレッド開始時に `CoInitializeEx(nullptr, COINIT_MULTITHREADED)` を呼び出し、終了時に `CoUninitialize()` を呼ぶようCOMを初期化。
+    - キューからパスを取り出し後、すぐにミューテックスを解放するようロック期間を最小化した。
+    - `ThumbnailDatabase::HasCookedData` (新規追加) と連携し、既にクック済み画像が存在する場合はスキップするようにした。
+    - `TagManager::ExtractAlbumArtBinary` を呼び出し生バイナリを取得。
+    - `ConfigManager` から設定値を取得し、`CookThumbnailImage` を呼び出して画像をリサイズ＆JPEGエンコード。
+    - 成功時のみ `ThumbnailDatabase::StoreCookedData` で永続化するパイプラインを実装した。
 
+### タスク6: アーキテクチャ資料の更新
+    - `PROJECT_ARCHITECTURE.md` を更新し、`ThumbnailDatabase`、`ThumbCacher`、`ConfigManager` クラスのリファレンスに、Phase 22-2 で実装したサムネイル工場の仕様（スレッドセーフ追記、WIC処理、JPEG品質設定など）を追記した。
+
+### HOTFIX1
+#### 原因・理由:(サムネイルDBのファイルパス構築バグ)
+    - ThumbnailDatabase.cpp 内で、実行ファイル名（OZtone.exe）の直後にDBファイル名が結合されてしまっており、ファイル名が不正（例: `OZtone.exeoztone_track_thumb_idx.odb`）になるバグが存在した。
+
+#### 対象ファイル: 
+    - src/ThumbnailDatabase.cpp
+
+#### 対応:(パス構築ロジックの修正)
+    - `std::filesystem::path` を利用し、実行ファイルのフルパスから `.parent_path()` で親ディレクトリを取得した上で、`/` 演算子を用いてファイル名を結合するように修正した。

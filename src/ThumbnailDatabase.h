@@ -21,6 +21,8 @@ public:
     void Initialize();
 
     uint32_t GetThumbnailId(const std::wstring& filepath);
+    bool HasCookedData(uint32_t thumbId);
+    ConfigManager* GetConfig() const { return m_config; }
     void DrawThumbnail(ID2D1DeviceContext* context, uint32_t thumbId, const D2D1_RECT_F& destRect, float opacity);
 
     bool StoreCookedData(uint32_t thumbId, const std::vector<BYTE>& data);

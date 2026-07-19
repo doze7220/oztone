@@ -3,6 +3,7 @@
 #include <sstream>
 #include <cmath>
 #include <algorithm>
+#include <filesystem>
 
 #define OZTHUMB_MAGIC "OZTHUMB_V1"
 
@@ -11,8 +12,9 @@ ThumbnailDatabase::ThumbnailDatabase(ConfigManager* config)
 {
     if (m_config) {
         std::wstring exeDir = m_config->GetExecutablePath();
-        m_idxPath = exeDir + L"oztone_track_thumb_idx.odb";
-        m_imgPath = exeDir + L"oztone_track_thumb_img.odb";
+        std::filesystem::path exePath(exeDir);
+        m_idxPath = (exePath.parent_path() / L"oztone_track_thumb_idx.odb").wstring();
+        m_imgPath = (exePath.parent_path() / L"oztone_track_thumb_img.odb").wstring();
     } else {
         m_idxPath = L"oztone_track_thumb_idx.odb";
         m_imgPath = L"oztone_track_thumb_img.odb";
@@ -83,6 +85,11 @@ uint32_t ThumbnailDatabase::GetThumbnailId(const std::wstring& filepath) {
     uint32_t newId = m_nextId++;
     m_pathToId[filepath] = newId;
     return newId;
+}
+
+bool ThumbnailDatabase::HasCookedData(uint32_t thumbId) {
+    std::lock_guard<std::mutex> lock(m_ioMutex);
+    return m_sectorMap.find(thumbId) != m_sectorMap.end();
 }
 
 void ThumbnailDatabase::DrawThumbnail(ID2D1DeviceContext* context, uint32_t thumbId, const D2D1_RECT_F& destRect, float opacity) {

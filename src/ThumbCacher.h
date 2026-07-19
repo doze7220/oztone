@@ -1,6 +1,8 @@
 #pragma once
 
+#include <windows.h>
 #include <string>
+#include <vector>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -19,6 +21,8 @@ public:
     void Uninitialize();
 
     void EnqueueTrack(const std::wstring& filepath);
+
+    std::vector<BYTE> CookThumbnailImage(const std::vector<BYTE>& rawBinary, UINT targetSize, float jpegQuality);
 
 private:
     void WorkerLoop();

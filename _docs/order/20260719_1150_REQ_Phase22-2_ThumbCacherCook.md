@@ -126,3 +126,104 @@
 #### 【絶対遵守ルール (Constraints)】
 *   **責務分離の原則**: 本メソッドは「バイナリデータの変換アルゴリズム」のみに専念する。スレッドのキューからのパス取得や、データベースへの保存 (`StoreCookedData`)、`std::mutex` 等のロック制御は絶対に記述しないこと。これらは後続のタスク5で行う。
 *   **COMインターフェースの適切な管理**: メモリリークを防ぐため、WICの各オブジェクトは必ず `Microsoft::WRL::ComPtr` を用いて管理すること。
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Hotfix サムネイルDBのファイルパス構築バグ修正
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260719_1150_RES_Phase22-2_ThumbCacherCook.md
+
+#### 【作業手順（厳守事項）】
+1. 本プロンプトはサムネイルDBのファイルパス構築バグの修正（Hotfix）である。直ちに以下の【実装要件】に従ってコードの修正を実行すること。
+2. 作業完了後、既存の作業レポート（20260719_1150_RES_Phase22-2_ThumbCacherCook.md）の末尾に、HOTFIXとして原因と対応内容を追記すること。
+3. チャットにて「ファイル名バグの修正が完了しました。ビルド確認をお願いします」と報告すること。
+
+#### 【実装要件】
+サムネイルエンジンのパックファイル（idx / img）のパス生成ロジックに不具合があり、実行ファイル名（`OZtone.exe`）の直後にファイル名が結合されてしまっているバグを修正する。
+
+*   **要件1: パス構築ロジックの修正**
+    *   `src/Application_Initialize.cpp` または `src/ThumbnailDatabase.cpp` など、パックファイルのパスを生成しているコード箇所を検索して特定する。
+    *   `std::filesystem::path` を利用し、実行ファイルのフルパスから `.parent_path()` で親ディレクトリを確実に取得した上で、ファイル名を結合（`/` 演算子または `append`）するように修正する。
+    *   修正例: `auto dbPath = exePath.parent_path() / L"oztone_track_thumb_idx.odb";`
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 22-2 Task 4 : ThumbCacher - WIC画像処理ヘルパーの実装
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260719_1150_RES_Phase22-2_ThumbCacherCook.md
+
+#### 【作業手順（厳守事項）】
+1. 本プロンプトはサムネイルエンジンにおけるWICを用いた画像処理ヘルパーメソッドの実装である。直ちに以下の【実装要件】に従ってコードの追加を実行すること。
+2. 作業完了後、既存の作業レポート（20260719_1150_RES_Phase22-2_ThumbCacherCook.md）の「タスク4」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+3. チャットにて「タスク4が完了しました。ビルド確認をお願いします」と報告すること。
+
+#### 【実装要件】
+`ThumbCacher` クラスに、生バイナリを受け取り、WICを用いてサムネイルサイズに縮小し、指定品質のJPEGバイナリへと再エンコードする純粋な画像処理メソッドを追加する。
+
+*   **要件1: メソッドの追加**
+    *   `src/ThumbCacher.h` と `src/ThumbCacher.cpp` に、メソッド `std::vector<BYTE> CookThumbnailImage(const std::vector<BYTE>& rawBinary, UINT targetSize, float jpegQuality)` を追加する。
+*   **要件2: WICによるデコードとスケーリング**
+    *   `IWICImagingFactory` をローカル生成（またはメンバで保持）して用いること。
+    *   `rawBinary` をもとにメモリ上に `IWICStream` を作成し、デコードする。
+    *   アスペクト比を維持しつつ、長辺が引数の `targetSize` となるように縮小（スケーリング）する `IWICBitmapScaler` を作成・適用する。
+*   **要件3: JPEGエンコードと品質指定**
+    *   スケーリング後の画像を JPEG 形式 (`GUID_ContainerFormatJpeg`) としてエンコードするためのエンコーダとメモリストリームを作成する。
+    *   エンコーダの初期化時、`IPropertyBag2` を取得し、`ImageQuality` プロパティに引数の `jpegQuality` (0.0f〜1.0f) を設定して反映させること。
+    *   エンコード結果のメモリバイナリを抽出し、`std::vector<BYTE>` として返す。失敗した場合は空のベクターを返す。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **責務分離の原則**: 本メソッドは「バイナリデータの変換アルゴリズム」のみに専念する。スレッドのキューからのパス取得や、データベースへの保存 (`StoreCookedData`)、`std::mutex` 等のロック制御は絶対に記述しないこと。これらは後続のタスク5で行う。
+*   **COMインターフェースの適切な管理**: メモリリークを防ぐため、WICの各オブジェクトは必ず `Microsoft::WRL::ComPtr` を用いて管理すること。
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 22-2 Task 5 : ThumbCacher - ワーカースレッドループの完成 (配線)
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260719_1150_RES_Phase22-2_ThumbCacherCook.md
+
+#### 【作業手順（厳守事項）】
+1. 本プロンプトはサムネイルエンジンにおけるバックグラウンドワーカースレッドの配線と完成である。直ちに以下の【実装要件】に従ってコードの修正を実行すること。
+2. 作業完了後、既存の作業レポート（20260719_1150_RES_Phase22-2_ThumbCacherCook.md）の「タスク5」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+3. チャットにて「タスク5が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+`ThumbCacher` クラスのワーカースレッドループ (`WorkerLoop`) にて、これまで作成した各コンポーネント（Config、DB、TagManager、WICヘルパー）を連携させ、キューに追加された曲パスのサムネイルを非同期でクックしてデータベースに保存する一連のパイプラインを完成させる。
+
+*   **要件1: COMのマルチスレッド初期化**
+    *   `src/ThumbCacher.cpp` の `WorkerLoop` スレッド処理の冒頭（無限ループの直前）で `CoInitializeEx(nullptr, COINIT_MULTITHREADED)` を実行し、スレッド終了直前（関数の末尾）で `CoUninitialize()` を実行する処理を追加する。
+*   **要件2: ワーカースレッドループの実装**
+    *   `WorkerLoop` 内でキューから `filepath` を取り出した後のTODO部分に以下のパイプライン処理を実装する。
+    *   1. `m_thumbnailDatabase->GetThumbnailId(filepath)` を呼び、サムネIDを取得する。
+    *   2. そのIDが既にデータベースのセクタ情報（クック済みデータ）として登録済みか確認し、登録済みであれば処理をスキップ（`continue`）する。（※もし `ThumbnailDatabase` に確認用のメソッドがなければ、追加実装して利用すること）
+    *   3. 未登録の場合、`TagManager::ExtractAlbumArtBinary(filepath)` を呼び出し、生バイナリを取得する。空であればスキップする。
+    *   4. `ConfigManager` から `GetThumbnailSize()` と `GetThumbnailJpegQuality()` を取得する。
+    *   5. `CookThumbnailImage(rawBinary, size, quality)` を呼び出し、リサイズ＆エンコード済みのJPEGバイナリを取得する。変換失敗（空）の場合はスキップする。
+    *   6. 成功した場合、`m_thumbnailDatabase->StoreCookedData(thumbId, cookedBinary)` を呼び出し、データベースへ永続化する。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **ロック期間の最小化**: `WorkerLoop` 内でキューから要素を取り出すためのミューテックスロック（`m_queueMutex`等）は、`filepath` を取り出したら直ちに解除すること。画像抽出やデコード処理、DB保存処理など時間のかかる処理をミューテックスを握ったまま絶対に実行しないこと。
+*   **UIへの非干渉**: 本タスクの責務はバックグラウンドでのサムネイル生成と保存のみである。D2D描画ロジックやUI更新処理などは一切記述しないこと。
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Hotfix Phase 22-2 アーキテクチャ資料の更新
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260719_1150_RES_Phase22-2_ThumbCacherCook.md
+
+#### 【作業手順（厳守事項）】
+1. 本プロンプトは(タスク概要)である。直ちに以下の【実装要件】に従ってコードとドキュメントの修正を実行すること。
+2. 作業完了後、実装したコードと既存の作業レポート（YYYYMMDD_HHMM_RES_Phasex-x_(taskname).md）の実装要件を照らし合わせ、反映漏れがないか厳密に自己監査を行うこと。
+3. 監査完了後、作業レポートの「タスクx」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+4. チャットにて「(tasknname)(Phase x-x)がすべて完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+`PROJECT_ARCHITECTURE.md` を更新し、Phase 22-2 で実装したサムネイル工場の設計仕様をクラスリファレンスへ反映する。極限までスリム化された資料の目的に従い、メソッドの詳細な引数などは書かず、責務と役割の概要のみを追記すること。
+
+*   **要件1: クラスリファレンスの更新**
+    *   `ThumbnailDatabase` クラスに、スレッドセーフなバイナリ追記機能と、セクタ情報（オフセットとサイズ）のメモリ同期機能が実装された旨を追記すること。
+    *   `ThumbCacher` クラスに、ワーカースレッドによる「サムネイル工場」が稼働し、`TagManager`からの生バイナリ抽出、WICを用いたサムネイルサイズへの縮小・JPEG品質指定エンコード、およびデータベースへの非同期保存パイプラインが完成した旨を追記すること。
+    *   `ConfigManager` クラスにサムネイルのJPEG品質を制御する `ThumbnailJpegQuality` が追加された旨を追記すること。
