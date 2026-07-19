@@ -7,7 +7,7 @@ DefaultPlaylistPath=playlist.ozl
 
 [Audio]
 DefaultVolume=1.0
-ShuffleMode=1
+ShuffleMode=0
 SkipSeconds=10.0
 
 [Window]
@@ -16,7 +16,7 @@ ShowWindowFrame=0
 ShowTaskbar=0
 ZOrder=0
 SavePositionOnExit=1
-EnableResize=1
+EnableResize=0
 LockWindowPosition=0
 WindowX=-2147483648
 WindowY=-2147483648
@@ -128,7 +128,7 @@ IconSize=30
 TextOffsetX=40
 TextOffsetY=-12
 FontSize=24.0
-TextLetterSpacing=-3.0
+TextLetterSpacing=-4.0
 TooltipIconSize=60
 TooltipOffsetY=-5
 TooltipBgColor=#000000
@@ -137,8 +137,8 @@ TooltipWidth=64
 TooltipHeight=50
 
 [Layout_Playlist]
-PlaylistPosition=0
-IsPlaylistPinned=1
+PlaylistPosition=1
+IsPlaylistPinned=0
 PlaylistHoverWidth=80
 PlaylistWidth=250
 PlaylistItemOffsetY=38
@@ -176,12 +176,12 @@ PlaylistLeaveDelay=0.5
 TrackCountOffsetX=1.0
 TrackCountBoxWidth=10.0
 TrackCountUnderLineX=11.0
-TrackCountUnderLineWidth=2.0
+TrackCountUnderLineWidth=1.0
 TrackCountFontSize=10.0
 TrackCountLetterSpacing=-1.0
 TrackCountBoxFontColor=#000000
 TrackCountBoxBaseColor=#FFFFFF
-TrackCountBoxBaseOpacity=0.4
+TrackCountBoxBaseOpacity=0.6
 
 [Layout_GlobalHotkeys]
 FontSize=15.0
@@ -223,16 +223,16 @@ BaseRadiusRatio=0.35
 GraphLengthRatio=0.25
 HaloGlowOpacity=0.3
 HaloGlowThickness=2.0
-HaloLaserBaseOpacity=0.15
+HaloLaserBaseOpacity=0.3
 HaloLaserLengthRatio=0.2
 HaloLaserThickness=1.0
 HaloLaserSpeed=0.02
 HaloLaserSpawnRate=0.15
 HaloLaserLifeTime=400.0
-HaloParticleBaseOpacity=0.3
+HaloParticleBaseOpacity=0.6
 HaloParticleSizeRatio=0.02
 HaloParticleSpeed=0.015
-HaloParticleSpawnRate=0.025
+HaloParticleSpawnRate=0.02
 HaloParticleLifeTime=400.0
 HaloDustFixedColor=#0066FF
 
