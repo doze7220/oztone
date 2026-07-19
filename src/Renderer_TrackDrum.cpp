@@ -96,7 +96,12 @@ void TrackDrum::UpdateCurrentDrumSlot(const TrackMetadata& meta) {
 void TrackDrum::PrefillAbsolute(int absolutePos) {
     if (!m_drumDataProvider) return;
     int slotIdx = (absolutePos % 3 + 3) % 3;
-    TrackMetadata meta = m_drumDataProvider(absolutePos, &m_drumSlots[slotIdx]);
+    // 物理的な絶対座標(absolutePos)とターゲット座標(m_drumTargetPosition)の差分を求める。
+    // UI側のスクロール方向（NEXTでドラムの座標が減少）とプレイリストの進行（NEXTでインデックス増加）が
+    // 逆ベクトルであるため、m_drumTargetPosition - absolutePos と符号を反転させることで
+    // 物理座標と論理インデックスを正しくマッピングする。
+    int relativeIndex = m_drumTargetPosition - absolutePos;
+    TrackMetadata meta = m_drumDataProvider(relativeIndex, &m_drumSlots[slotIdx]);
     m_drumSlots[slotIdx].artBitmap = nullptr;
     m_drumSlots[slotIdx].trackTitle = meta.title;
     m_drumSlots[slotIdx].trackArtist = meta.artist;
