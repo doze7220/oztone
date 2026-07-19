@@ -10,21 +10,13 @@ DefaultVolume=1.0
 ShuffleMode=1
 SkipSeconds=10.0
 
-[TrackDrum]
-EnableTrackDrum=1
-MaxDuration=10.0
-MinSpeed=0.5
-MaxSpeed=2.0
-Acceleration=0.5
-Deceleration=0.5
-
 [Window]
 ShowTitleBar=0
 ShowWindowFrame=0
 ShowTaskbar=0
 ZOrder=0
 SavePositionOnExit=1
-EnableResize=0
+EnableResize=1
 LockWindowPosition=0
 WindowX=-2147483648
 WindowY=-2147483648
@@ -37,6 +29,14 @@ ShowNowPlaying=1
 ShowSeekBar=1
 ShowPlaybackControls=1
 ShowVolumeControl=1
+
+[TrackDrum]
+EnableTrackDrum=1
+MaxDuration=3.0
+MinSpeed=0.1
+MaxSpeed=3.0
+Acceleration=0.5
+Deceleration=0.5
 
 [UI_Common_Parm]
 FocusColor=#FFA500
@@ -53,7 +53,7 @@ ShadowOffsetY=2.0
 ShadowOpacity=0.7
 
 [Layout_Window]
-BgOpacity=0.6
+BgOpacity=0.8
 BgDarkenOpacity=0.4
 BackgroundArtMode=0
 
@@ -142,15 +142,15 @@ IsPlaylistPinned=1
 PlaylistHoverWidth=80
 PlaylistWidth=250
 PlaylistItemOffsetY=38
-PlaylistThumbSize=32.0
-PlaylistThumbOffsetX=5.0
-PlaylistThumbOffsetY=5.0
+PlaylistThumbSize=37.0
+PlaylistThumbOffsetX=14.0
+PlaylistThumbOffsetY=1.0
 PlaylistTitleFontSize=15.0
-PlaylistTitleOffsetX=20
+PlaylistTitleOffsetX=2
 PlaylistTitleOffsetY=2
 PlaylistArtistFontSize=12.0
 PlaylistArtistColor=#888888
-PlaylistArtistOffsetX=20
+PlaylistArtistOffsetX=2
 PlaylistArtistOffsetY=20
 PlaylistTimeFontSize=12.0
 PlaylistTimeColor=#888888
@@ -219,7 +219,6 @@ PrismGlow2Opacity=0.2
 
 [Visualizer_HaloDust]
 HaloDustColorMode=2
-HaloDustFixedColor=#00FFFF
 BaseRadiusRatio=0.35
 GraphLengthRatio=0.25
 HaloGlowOpacity=0.3
@@ -235,6 +234,7 @@ HaloParticleSizeRatio=0.02
 HaloParticleSpeed=0.015
 HaloParticleSpawnRate=0.025
 HaloParticleLifeTime=400.0
+HaloDustFixedColor=#0066FF
 
 [System]
 WatchdogInterval=1.0
