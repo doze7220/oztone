@@ -8,6 +8,8 @@
 #include <wrl/client.h>
 #include "ConfigManager.h"
 
+struct IWICImagingFactory;
+
 struct SectorInfo {
     uint64_t offset;
     size_t size;
@@ -23,7 +25,8 @@ public:
     uint32_t GetThumbnailId(const std::wstring& filepath);
     bool HasCookedData(uint32_t thumbId);
     ConfigManager* GetConfig() const { return m_config; }
-    void DrawThumbnail(ID2D1DeviceContext* context, uint32_t thumbId, const D2D1_RECT_F& destRect, float opacity);
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> GetThumbnailBitmap(uint32_t thumbId, ID2D1RenderTarget* renderTarget, IWICImagingFactory* wicFactory);
+    void DrawThumbnail(ID2D1DeviceContext* context, IWICImagingFactory* wicFactory, uint32_t thumbId, const D2D1_RECT_F& destRect, float opacity);
 
     bool StoreCookedData(uint32_t thumbId, const std::vector<BYTE>& data);
 

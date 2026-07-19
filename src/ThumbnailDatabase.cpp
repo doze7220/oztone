@@ -4,6 +4,7 @@
 #include <cmath>
 #include <algorithm>
 #include <filesystem>
+#include <wincodec.h>
 
 #define OZTHUMB_MAGIC "OZTHUMB_V1"
 
@@ -56,6 +57,30 @@ void ThumbnailDatabase::Initialize() {
                 }
             }
         }
+        
+        if (!needReset) {
+            uint32_t maxId = 0;
+            while (std::getline(ifs, line)) {
+                if (line.empty()) continue;
+                if (line.back() == '\r') line.pop_back();
+                
+                std::stringstream ss(line);
+                std::string idStr, offsetStr, sizeStr;
+                if (std::getline(ss, idStr, '\t') && std::getline(ss, offsetStr, '\t') && std::getline(ss, sizeStr)) {
+                    try {
+                        uint32_t id = std::stoul(idStr);
+                        uint64_t offset = std::stoull(offsetStr);
+                        size_t size = std::stoull(sizeStr);
+                        m_sectorMap[id] = {offset, size};
+                        if (id > maxId) maxId = id;
+                    } catch (...) {
+                        // パース失敗行は無視
+                    }
+                }
+            }
+            m_nextId = maxId + 1;
+        }
+
         ifs.close();
     }
 
@@ -92,37 +117,102 @@ bool ThumbnailDatabase::HasCookedData(uint32_t thumbId) {
     return m_sectorMap.find(thumbId) != m_sectorMap.end();
 }
 
-void ThumbnailDatabase::DrawThumbnail(ID2D1DeviceContext* context, uint32_t thumbId, const D2D1_RECT_F& destRect, float opacity) {
-    if (!context) return;
-    std::lock_guard<std::mutex> lock(m_mutex);
+Microsoft::WRL::ComPtr<ID2D1Bitmap> ThumbnailDatabase::GetThumbnailBitmap(uint32_t thumbId, ID2D1RenderTarget* renderTarget, IWICImagingFactory* wicFactory) {
+    if (!renderTarget || !wicFactory) return nullptr;
 
-    // 1. LRUキャッシュに存在する場合
-    auto cacheIt = m_cache.find(thumbId);
-    if (cacheIt != m_cache.end()) {
-        // リストの先頭（最近使われた）に移動させる
-        auto listIt = std::find(m_lruList.begin(), m_lruList.end(), thumbId);
-        if (listIt != m_lruList.end()) {
-            m_lruList.erase(listIt);
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        // 1. キャッシュヒット
+        auto cacheIt = m_cache.find(thumbId);
+        if (cacheIt != m_cache.end()) {
+            auto listIt = std::find(m_lruList.begin(), m_lruList.end(), thumbId);
+            if (listIt != m_lruList.end()) {
+                m_lruList.erase(listIt);
+            }
+            m_lruList.push_front(thumbId);
+            return cacheIt->second;
         }
+    }
+
+    // 2. キャッシュミス時は sectorMap を確認
+    SectorInfo sector = {0, 0};
+    {
+        std::lock_guard<std::mutex> ioLock(m_ioMutex);
+        auto it = m_sectorMap.find(thumbId);
+        if (it == m_sectorMap.end()) {
+            return nullptr; // まだクックされていないか存在しない
+        }
+        sector = it->second;
+    }
+
+    // IOロック取得してファイル読み込み
+    std::vector<BYTE> binaryData;
+    if (sector.size > 0) {
+        std::lock_guard<std::mutex> ioLock(m_ioMutex);
+        std::ifstream ifs(m_imgPath, std::ios::binary);
+        if (ifs) {
+            ifs.seekg(sector.offset, std::ios::beg);
+            binaryData.resize(sector.size);
+            ifs.read(reinterpret_cast<char*>(binaryData.data()), sector.size);
+            if (ifs.fail()) {
+                binaryData.clear();
+            }
+        }
+    }
+
+    if (binaryData.empty()) return nullptr;
+
+    // ミューテックス外で重い処理 (WICデコード)
+    Microsoft::WRL::ComPtr<IWICStream> stream;
+    if (FAILED(wicFactory->CreateStream(&stream))) return nullptr;
+
+    if (FAILED(stream->InitializeFromMemory(binaryData.data(), static_cast<DWORD>(binaryData.size())))) return nullptr;
+
+    Microsoft::WRL::ComPtr<IWICBitmapDecoder> decoder;
+    if (FAILED(wicFactory->CreateDecoderFromStream(stream.Get(), nullptr, WICDecodeMetadataCacheOnLoad, &decoder))) return nullptr;
+
+    Microsoft::WRL::ComPtr<IWICBitmapFrameDecode> frame;
+    if (FAILED(decoder->GetFrame(0, &frame))) return nullptr;
+
+    Microsoft::WRL::ComPtr<IWICFormatConverter> converter;
+    if (FAILED(wicFactory->CreateFormatConverter(&converter))) return nullptr;
+
+    if (FAILED(converter->Initialize(frame.Get(), GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeMedianCut))) return nullptr;
+
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> bitmap;
+    if (FAILED(renderTarget->CreateBitmapFromWicBitmap(converter.Get(), nullptr, &bitmap))) return nullptr;
+
+    // キャッシュへ登録
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_cache[thumbId] = bitmap;
         m_lruList.push_front(thumbId);
 
-        // 指定された矩形へ描画する
-        context->DrawBitmap(cacheIt->second.Get(), &destRect, opacity, D2D1_INTERPOLATION_MODE_LINEAR, nullptr);
-        return;
+        // 最大キャッシュサイズ超過時の押し出し
+        size_t maxCache = m_config ? m_config->GetMaxThumbnailCache() : 100;
+        while (m_lruList.size() > maxCache) {
+            uint32_t oldestId = m_lruList.back();
+            m_lruList.pop_back();
+            m_cache.erase(oldestId);
+        }
     }
 
-    // 2. キャッシュには無いが、idx（セクタ情報）には存在する場合
-    bool existsInIdx = false; // TODO: idxに存在するか判定する処理
-    if (existsInIdx) {
-        // TODO: パックファイルからデコードしてLRUへ登録
-        return;
-    }
+    return bitmap;
+}
 
-    // 3. まだ解析・クック中（どちらにも無い）場合
-    // ガラス板（プレースホルダー）を描画
-    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> brush;
-    if (SUCCEEDED(context->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.1f), &brush))) {
-        context->FillRectangle(&destRect, brush.Get());
+void ThumbnailDatabase::DrawThumbnail(ID2D1DeviceContext* context, IWICImagingFactory* wicFactory, uint32_t thumbId, const D2D1_RECT_F& destRect, float opacity) {
+    if (!context || !wicFactory) return;
+
+    auto bitmap = GetThumbnailBitmap(thumbId, context, wicFactory);
+    if (bitmap) {
+        context->DrawBitmap(bitmap.Get(), &destRect, opacity, D2D1_INTERPOLATION_MODE_LINEAR, nullptr);
+    } else {
+        // まだ解析・クック中（どちらにも無い）場合
+        // ガラス板（プレースホルダー）を描画
+        Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> brush;
+        if (SUCCEEDED(context->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.1f), &brush))) {
+            context->FillRectangle(&destRect, brush.Get());
+        }
     }
 }
 
