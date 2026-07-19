@@ -54,3 +54,4 @@
 ### HOTFIX (2026-07-19)
 * **原因**: `ThumbnailDatabase.cpp` にてWIC関連の識別子（`IWICStream`、`IWICImagingFactory`、`GUID_WICPixelFormat32bppPBGRA` 等）を使用しているにもかかわらず、`<wincodec.h>` のインクルードが漏れていたためビルドエラーが発生していた。
 * **対応内容**: `src/ThumbnailDatabase.cpp` に `#include <wincodec.h>` を追加し、`src/ThumbnailDatabase.h` に `IWICImagingFactory` の前方宣言を追加してビルドエラーを修正した。
+* **HOTFIX (アーキテクチャ更新)**: Phase 22-3 実装に伴い、`PROJECT_ARCHITECTURE.md` の `ThumbnailDatabase` クラスリファレンスを更新。必要な時にのみパックファイルからJPEGバイナリを吸い出してWICデコードする「オンデマンド読み出し機能」と、VRAM使用量を管理して古い画像を破棄する「LRUキャッシュ機構」が備わっている旨を追記した。
