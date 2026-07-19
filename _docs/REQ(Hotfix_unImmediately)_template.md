@@ -1,15 +1,17 @@
 ### 作業指示書 REQ: (Hotfix名 / 作業名) (実装実行)
 
-以下のプロジェクトルールと開発資料を熟読すること。
-* D:\ozlab\oztone\PROJECT_CONSTITUTION.md
-* D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
-* D:\ozlab\oztone\_docs\logs\YYYYMMDD_HHMM_RES_Phasex-x_(taskname).md（該当不具合を実装した作業レポート)
+*  ルール: `D:\ozlab\oztone\PROJECT_CONSTITUTION.md`
+*  開発資料:`D:\ozlab\oztone\PROJECT_ARCHITECTURE.md`
+*  実装計画書:`D:\ozlab\oztone\_docs\logs\（実装計画書ファイル名）.md`
 
 #### 【作業手順（厳守事項）】
-1. 本プロンプトはHotfixの「実装実行」である。事前のレポート作成や計画立案は不要なので、直ちに以下の【実装要件】に従ってコードの修正を実行すること。
-2. コード修正が完全に終わった後、既存の作業レポート（`D:\ozlab\oztone\_docs\logs\YYYYMMDD_HHMM_RES_PhaseXX-X_XXXX.md`）の末尾に、既存実装Hotfix追記対応時テンプレート（`RES(AddHotfix)_template.md`）を用いて作業の詳細を追記すること。
-3. `D:\ozlab\oztone\PROJECT_ARCHITECTURE.md` を確認し、作業内容が記載に影響のある場合は資料の修正を行うこと。
-4. チャットにて「実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
+本プロンプトは(機能概要・作業レポート名)のHotfixである。必ず以下の順序で作業を行うこと。
+1. ルール（`PROJECT_CONSTITUTION.md`）および開発資料（`PROJECT_ARCHITECTURE.md`）を熟読・把握すること。
+2. 実装計画書（`（実装計画書ファイル名）.md`）を読み、現在の状況と今回の修正スコープを確認すること。
+3. 上記を確認した後、以下の【実装要件】に従って実装を開始し、ソースコードの修正を実行すること。
+4. コード修正が完全に終わった後、既存の作業レポート（`(実装計画書ファイル名).md`）の末尾に、既存実装Hotfix追記対応時テンプレート（`D:\ozlab\oztone\_docs\RES(AddHotfix)_template.md`）を用いて作業の詳細を追記すること。
+5. 開発資料（`PROJECT_ARCHITECTURE.md`）を確認し、作業内容が記載に影響のある場合は資料の修正を行うこと。
+6. チャットにて「実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
 
 #### 【実装要件】
 * (ここにバグの修正内容や、追加したい処理のロジックを具体的に書く)

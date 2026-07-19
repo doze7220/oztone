@@ -1,13 +1,16 @@
 # 作業指示書 REQ: Phase x-x Task x : (task名)
 
-*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
-*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
-*  D:\ozlab\oztone\_docs\logs\YYYYMMDD_HHMM_RES_Phasex-x_(taskname).md（生成したRESファイル名)
+*  ルール: `D:\ozlab\oztone\PROJECT_CONSTITUTION.md`
+*  開発資料:`D:\ozlab\oztone\PROJECT_ARCHITECTURE.md`
+*  実装計画書:`D:\ozlab\oztone\_docs\logs\（実装計画書ファイル名）.md`
 
 ## 【作業手順（厳守事項）】
-1. 本プロンプトは(タスク概要)である。直ちに以下の【実装要件】に従ってコードとドキュメントの修正を実行すること。
-2. 作業完了後、既存の作業レポート（`YYYYMMDD_HHMM_RES_PhaseX-X_(taskname).md`）の「タスクx」のチェックボックスを完了 `[x]` にし、詳細作業内容を追記すること。
-3. チャットにて「(tasknname)(Phase x-x)がすべて完了しました。ビルド・動作確認をお願いします」と報告すること。
+本プロンプトは(タスクナンバー・タスク概要)である。必ず以下の順序で作業を行うこと。
+1. ルール（`PROJECT_CONSTITUTION.md`）および開発資料（`PROJECT_ARCHITECTURE.md`）を熟読・把握すること。
+2. 実装計画書（`（実装計画書ファイル名）.md`）を読み、今回の自分のスコープが「(該当タスク)」のみであることを確認すること。
+3. 上記を確認した後、以下の【実装要件】に従って実装を開始し、ソースコードの修正を実行すること。
+4. 作業完了後、既存の作業レポート（`（実装計画書ファイル名）.md`）の「タスクx」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+5. チャットにて「(tasknname)(Phase x-x)がすべて完了しました。ビルド・動作確認をお願いします」と報告すること。
 
 ## 【実装要件】
 (概要説明)
