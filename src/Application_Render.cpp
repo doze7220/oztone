@@ -355,6 +355,15 @@ void Application::UpdatePlaylistSummaries() {
           std::wstring token;
           std::getline(wss, token, L'\t'); // token is filepath
 
+          if (count == 1) {
+            summary.firstTrackPath = token;
+            bool isNew = false;
+            summary.firstTrackThumbId = m_thumbnailDatabase.GetOrGenerateThumbId(token, isNew);
+            if (isNew) {
+                m_thumbCacher.EnqueueTrack(summary.firstTrackThumbId, token);
+            }
+          }
+
           TrackMetadata meta;
           if (m_trackDatabase.GetMetadata(token, meta) && meta.isMetaLoaded) {
             totalSeconds += parseTime(meta.timeString);

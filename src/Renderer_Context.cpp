@@ -131,6 +131,41 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
                 break; // Optimization: no need to check further if beyond visible area
             }
         }
+    } else if (m_thumbDb && m_config && isPlaylistListViewMode && availablePlaylistsCache) {
+        float logicalWidth = ctx.logicalWidth;
+        float logicalHeight = ctx.logicalHeight;
+        float manualScrollY = GetPlaylistManualScrollY();
+        size_t totalPlaylists = availablePlaylistsCache->size();
+        
+        std::wstring currentPlaylist = m_config->GetDefaultPlaylistPath();
+        int currentIndex = 0;
+        for (size_t i = 0; i < totalPlaylists; ++i) {
+            if ((*availablePlaylistsCache)[i].filepath == currentPlaylist) {
+                currentIndex = static_cast<int>(i);
+                break;
+            }
+        }
+
+        PlaylistLayout layout = LayoutCalculator::CalculatePlaylistLayout(logicalWidth, logicalHeight, m_config, 0.0f, manualScrollY, currentIndex, static_cast<int>(totalPlaylists));
+        
+        float currentY = layout.startY;
+        for (size_t i = 0; i < totalPlaylists; ++i) {
+            if (currentY + layout.itemHeight > 0 && currentY < layout.playlistHeight) {
+                uint32_t thumbId = (*availablePlaylistsCache)[i].firstTrackThumbId;
+                if (thumbId > 0) {
+                    ID2D1Bitmap* bmp = m_thumbDb->GetCachedThumbnailBitmap(thumbId);
+                    if (bmp) {
+                        ctx.playlistThumbnails[i] = bmp;
+                    } else if (m_d2dContext && m_wicFactory) {
+                        m_thumbDb->RequestThumbnailLoad(thumbId, m_d2dContext.Get(), m_wicFactory.Get());
+                    }
+                }
+            }
+            currentY += layout.itemHeight;
+            if (currentY >= layout.playlistHeight) {
+                break;
+            }
+        }
     }
 
     return ctx;

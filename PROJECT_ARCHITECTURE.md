@@ -121,7 +121,7 @@ UI要素ごとの独立した描画・状態管理を担うコンポーネント
     *   `Widget_Playlist_Resources.cpp`: リソースの生成と解放
     *   `Widget_Playlist_Update.cpp`: アニメーションやレイアウトの状態更新
     *   `Widget_Playlist_Toolbar.cpp`: ツールバーやピン留めボタンの描画
-    *   `Widget_Playlist_DrawItems.cpp`: プレイリストの曲一覧およびリスト一覧のアイテム描画（アスペクト比を維持したサムネイルのフィット描画を含む）
+    *   `Widget_Playlist_DrawItems.cpp`: プレイリストの曲一覧およびリスト一覧のアイテム描画（アスペクト比を維持したサムネイルのフィット描画を含む。プレイリスト一覧モードでは1曲目のサムネイルがアルバムジャケットとして表示され、デザインの統一感を出すための数字なしCD帯が追加された）
     *   `Widget_Playlist_Draw.cpp`: 大元の描画ループと背景などのベース描画
     *   `Widget_Playlist.cpp` (本体): コンストラクタや最小限の窓口機能
 *   `ResizeGripWidget` (src/Widget_ResizeGrip.h/cpp): リサイズグリップの描画

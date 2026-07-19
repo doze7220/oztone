@@ -20,6 +20,8 @@ struct PlaylistSummary {
     std::wstring displayName;
     size_t trackCount = 0;
     std::wstring totalTimeString = L"---";
+    std::wstring firstTrackPath;
+    uint32_t firstTrackThumbId = 0;
 };
 
 struct DrumSlot {

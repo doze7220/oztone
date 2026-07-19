@@ -63,6 +63,53 @@ void PlaylistWidget::DrawPlaylistList(ID2D1DeviceContext* context, const WidgetC
         std::wstring info = std::to_wstring((*ctx.availablePlaylistsCache)[i].trackCount) + L" tracks";
         std::wstring timeStr = (*ctx.availablePlaylistsCache)[i].totalTimeString;
 
+        // --- Layout Adjustment for CD Band ---
+        float bandRightEdge = itemLayout.hlRect.left + config->GetPlaylistTrackCountOffsetX() + config->GetPlaylistTrackCountBoxWidth();
+        if (itemLayout.titleRect.left < bandRightEdge) {
+            float shift = bandRightEdge - itemLayout.titleRect.left + 5.0f;
+            itemLayout.titleRect.left += shift;
+        }
+        if (itemLayout.artistRect.left < bandRightEdge) {
+            float shift = bandRightEdge - itemLayout.artistRect.left + 5.0f;
+            itemLayout.artistRect.left += shift;
+        }
+
+        // --- Thumbnail Drawing ---
+        auto thumbIt = ctx.playlistThumbnails.find(i);
+        if (thumbIt != ctx.playlistThumbnails.end() && thumbIt->second != nullptr) {
+            D2D1_SIZE_F bitmapSize = thumbIt->second->GetSize();
+            D2D1_RECT_F destRect = itemLayout.thumbRect;
+            
+            if (bitmapSize.width > 0 && bitmapSize.height > 0) {
+                float thumbWidth = itemLayout.thumbRect.right - itemLayout.thumbRect.left;
+                float thumbHeight = itemLayout.thumbRect.bottom - itemLayout.thumbRect.top;
+                
+                float scaleX = thumbWidth / bitmapSize.width;
+                float scaleY = thumbHeight / bitmapSize.height;
+                float scale = (scaleX < scaleY) ? scaleX : scaleY;
+                
+                float destWidth = bitmapSize.width * scale;
+                float destHeight = bitmapSize.height * scale;
+                
+                float offsetX = (thumbWidth - destWidth) / 2.0f;
+                float offsetY = (thumbHeight - destHeight) / 2.0f;
+                
+                destRect = D2D1::RectF(
+                    itemLayout.thumbRect.left + offsetX,
+                    itemLayout.thumbRect.top + offsetY,
+                    itemLayout.thumbRect.left + offsetX + destWidth,
+                    itemLayout.thumbRect.top + offsetY + destHeight
+                );
+            }
+            
+            context->DrawBitmap(thumbIt->second, &destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+        } else {
+            if (m_playlistHighlightBrush) {
+                m_playlistHighlightBrush->SetOpacity(0.05f);
+                context->FillRectangle(&itemLayout.thumbRect, m_playlistHighlightBrush.Get());
+            }
+        }
+
         m_textBrush->SetColor(GetBlendedTextColor(static_cast<int>(i), isPlaying));
 
         context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
@@ -87,6 +134,43 @@ void PlaylistWidget::DrawPlaylistList(ID2D1DeviceContext* context, const WidgetC
                             m_playlistTimeTextFormat.Get(), &timeRect,
                             m_playlistTimeBrush ? m_playlistTimeBrush.Get()
                                                 : m_textBrush.Get());
+        }
+
+        // --- CD Band Drawing ---
+        if (m_trackCountBoxBrush) {
+            float boxX = itemLayout.hlRect.left + config->GetPlaylistTrackCountOffsetX();
+            float boxWidth = config->GetPlaylistTrackCountBoxWidth();
+            
+            float boxStartY = currentY + 1.0f;
+            float boxHeight = layout.itemHeight - 1.0f;
+
+            D2D1_RECT_F boxRect = D2D1::RectF(boxX, boxStartY, boxX + boxWidth, boxStartY + boxHeight);
+            
+            if (isPlaying) {
+                m_trackCountBoxBrush->SetColor(WidgetCommon::HexToColorF(config->GetFocusColor()));
+            } else {
+                m_trackCountBoxBrush->SetColor(WidgetCommon::HexToColorF(config->GetPlaylistTrackCountBoxBaseColor()));
+            }
+            m_trackCountBoxBrush->SetOpacity(config->GetPlaylistTrackCountBoxBaseOpacity());
+            
+            context->FillRectangle(&boxRect, m_trackCountBoxBrush.Get());
+
+            D2D1::Matrix3x2F originalTransform;
+            context->GetTransform(&originalTransform);
+
+            D2D1_POINT_2F origin = D2D1::Point2F(boxX, boxStartY + boxHeight);
+            D2D1::Matrix3x2F rotation = D2D1::Matrix3x2F::Rotation(-90.0f, origin);
+            context->SetTransform(rotation * originalTransform);
+
+            D2D1_RECT_F underlineRect = D2D1::RectF(
+                origin.x,
+                origin.y + config->GetPlaylistTrackCountUnderLineX(),
+                origin.x + boxHeight,
+                origin.y + config->GetPlaylistTrackCountUnderLineX() + config->GetPlaylistTrackCountUnderLineWidth()
+            );
+            context->FillRectangle(&underlineRect, m_trackCountBoxBrush.Get());
+
+            context->SetTransform(originalTransform);
         }
       }
       currentY += layout.itemHeight;
