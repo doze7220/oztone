@@ -248,17 +248,7 @@ void Application::ForceRender() {
       &m_window.GetLogoMenuItems(), logoClicked, logoMenuClicked,
       playbackClicked, &isPlaylistExpanded, &isLogoMenuExpanded);
 
-  if (wasDrumAnimating && !m_renderer.GetTrackDrum().IsDrumAnimating()) {
-      LoadCurrentTrackArtAsync();
-  }
-
-  if (m_isCurrentArtLoadReady.load()) {
-      m_isCurrentArtLoadReady.store(false);
-      if (m_currentArtThread.joinable()) {
-          m_currentArtThread.join();
-      }
-      m_renderer.GetTrackDrum().SetAlbumArt(m_loadedCurrentArt.Get());
-  }
+  std::wstring currentTrackPath = m_playlistManager.GetCurrentTrack();
 
   m_window.SetPlaylistExpanded(isPlaylistExpanded);
   m_window.SetLogoMenuExpanded(isLogoMenuExpanded);

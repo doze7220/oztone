@@ -29,6 +29,7 @@ struct DrumSlot {
     std::wstring trackArtist;
     std::wstring trackNumber;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
+    uint32_t thumbId = 0;
 };
 
 /**

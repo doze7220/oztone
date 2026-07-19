@@ -13,7 +13,7 @@ public:
     ~TrackDrum();
 
     void StartDrumAnimation(int relativeDistance, 
-                            std::function<TrackMetadata(int relativeIndex)> dataProvider,
+                            std::function<TrackMetadata(int relativeIndex, DrumSlot* slot)> dataProvider,
                             std::function<void()> onComplete);
                             
     void Update(float deltaTime, const ConfigManager* config);
@@ -24,6 +24,7 @@ public:
     bool IsDrumAnimating() const { return m_drumRelativePosition != 0.0f; }
 
     const std::array<DrumSlot, 2>& GetDrumSlots() const { return m_drumSlots; }
+    std::array<DrumSlot, 2>& GetDrumSlotsWritable() { return m_drumSlots; }
     int GetCurrentDrumSlotIndex() const { return m_currentDrumSlotIndex; }
     float GetDrumRelativePosition() const { return m_drumRelativePosition; }
     int GetAnimatingTargetIndex() const { return m_animatingTargetIndex; }
@@ -38,6 +39,6 @@ private:
     int m_animatingTargetIndex = 0;
     int m_animatingOldIndexOffset = 0;
     
-    std::function<TrackMetadata(int)> m_drumDataProvider;
+    std::function<TrackMetadata(int, DrumSlot*)> m_drumDataProvider;
     std::function<void()> m_drumOnComplete;
 };

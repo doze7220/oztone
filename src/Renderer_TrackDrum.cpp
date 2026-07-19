@@ -10,15 +10,17 @@ TrackDrum::~TrackDrum() {
 }
 
 void TrackDrum::StartDrumAnimation(int relativeDistance, 
-                                  std::function<TrackMetadata(int relativeIndex)> dataProvider,
+                                  std::function<TrackMetadata(int relativeIndex, DrumSlot* slot)> dataProvider,
                                   std::function<void()> onComplete) {
     if (relativeDistance == 0) {
         if (dataProvider) {
-            TrackMetadata meta = dataProvider(0);
+            TrackMetadata meta = dataProvider(0, &m_drumSlots[m_currentDrumSlotIndex]);
             m_drumSlots[m_currentDrumSlotIndex].artBitmap = nullptr;
             m_drumSlots[m_currentDrumSlotIndex].trackTitle = meta.title;
             m_drumSlots[m_currentDrumSlotIndex].trackArtist = meta.artist;
             m_drumSlots[m_currentDrumSlotIndex].trackNumber = meta.timeString;
+        } else {
+            m_drumSlots[m_currentDrumSlotIndex].thumbId = 0;
         }
         if (onComplete) {
             onComplete();
@@ -85,8 +87,8 @@ void TrackDrum::OnSlotAnimationCompleted() {
         }
     } else {
         if (m_drumDataProvider) {
-            TrackMetadata meta = m_drumDataProvider(m_animatingTargetIndex);
             m_currentDrumSlotIndex = 1 - m_currentDrumSlotIndex;
+            TrackMetadata meta = m_drumDataProvider(m_animatingTargetIndex, &m_drumSlots[m_currentDrumSlotIndex]);
             m_drumSlots[m_currentDrumSlotIndex].artBitmap = nullptr;
             m_drumSlots[m_currentDrumSlotIndex].trackTitle = meta.title;
             m_drumSlots[m_currentDrumSlotIndex].trackArtist = meta.artist;

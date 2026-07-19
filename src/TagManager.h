@@ -15,9 +15,10 @@ public:
     /**
      * @brief ファイルを読み込み、タグ情報を解析する
      * @param filepath ファイルパス(UTF-8)
+     * @param skipImage 画像の抽出をスキップするかどうか
      * @return 成功ならtrue
      */
-    bool Load(const std::wstring& filepath);
+    bool Load(const std::wstring& filepath, bool skipImage = false);
 
     /**
      * @brief 曲名を取得する

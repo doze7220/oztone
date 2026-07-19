@@ -59,49 +59,22 @@ void Application::HandleMediaCommand(int cmd) {
   }
 }
 
-void Application::LoadCurrentTrackArtAsync() {
-  m_isCurrentArtLoadReady.store(false);
-
-  if (m_currentArtThread.joinable()) {
-    m_currentArtThread.join();
-  }
-
-  m_currentArtThread = std::thread([this]() {
-    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-    m_loadedCurrentArt.Reset();
-
-    std::wstring currentFile = m_playlistManager.GetCurrentTrack();
-    if (!currentFile.empty()) {
-      bool loadSuccess = false;
-      try {
-        if (std::filesystem::exists(std::filesystem::path(currentFile))) {
-          TagManager localTag;
-          if (localTag.Load(currentFile)) {
-            const auto &artBytes = localTag.GetAlbumArtBytes();
-            if (!artBytes.empty()) {
-              m_renderer.LoadBitmapFromMemory(artBytes, &m_loadedCurrentArt);
-            }
-          }
-        }
-      } catch (...) {}
-    }
-
-    m_isCurrentArtLoadReady.store(true);
-    if (SUCCEEDED(hr)) {
-      CoUninitialize();
-    }
-  });
-}
 
 bool Application::PlayCurrentTrack(int relativeDistance) {
   std::wstring track = m_playlistManager.GetCurrentTrack();
   if (m_audioPlayer.Play(track)) {
-    auto dataProvider = [this](int relativeIndex) -> TrackMetadata {
+    auto dataProvider = [this](int relativeIndex, DrumSlot* slot) -> TrackMetadata {
       size_t currentIdx = m_playlistManager.GetCurrentIndex();
       size_t total = m_playlistManager.GetCount();
       size_t targetIdx = (currentIdx + relativeIndex + total) % total;
       
       std::wstring path = m_playlistManager.GetShuffleList()[targetIdx];
+      
+      if (slot) {
+          bool isNew = false;
+          slot->thumbId = m_thumbnailDatabase.GetOrGenerateThumbId(path, isNew);
+      }
+
       TrackMetadata meta;
       if (m_trackDatabase.GetMetadata(path, meta) && meta.isMetaLoaded) {
         return meta;
@@ -137,8 +110,17 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
     m_framingDb.GetFraming(track, artX, artY, artScale);
     m_renderer.SetBackgroundFraming(artX, artY, artScale);
 
-    auto onComplete = [this, track, artBitmap]() {
-      m_renderer.GetTrackDrum().SetAlbumArt(artBitmap.Get());
+    auto onComplete = [this, track]() {
+      bool isNew = false;
+      uint32_t thumbId = m_thumbnailDatabase.GetOrGenerateThumbId(track, isNew);
+      ID2D1Bitmap* thumbBmp = m_thumbnailDatabase.GetCachedThumbnailBitmap(thumbId);
+      
+      m_renderer.GetTrackDrum().SetAlbumArt(thumbBmp);
+
+      if (!thumbBmp) {
+        m_thumbnailDatabase.RequestThumbnailLoad(thumbId, m_renderer.GetD2DContext(), m_renderer.GetWicFactory());
+      }
+
       UpdateTrackMetadataIfNeeded(track);
     };
 
@@ -150,7 +132,7 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
 
 void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
   TagManager localTagManager;
-  if (localTagManager.Load(filepath)) {
+  if (localTagManager.Load(filepath, true)) { // 画像抽出をスキップしてテキスト情報のみ取得
     std::wstring title = localTagManager.GetTitle();
     std::wstring artist = localTagManager.GetArtist();
     if (title.empty()) {

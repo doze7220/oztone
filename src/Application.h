@@ -116,7 +116,7 @@ private:
      */
     void UpdatePlaylistSummaries();
 
-    void LoadCurrentTrackArtAsync();
+
 
     /**
      * @brief ファイルがドロップされた時の処理
@@ -134,10 +134,6 @@ private:
     AudioPlayer m_audioPlayer;
     TagManager m_tagManager;
     PlaylistManager m_playlistManager;
-
-    std::thread m_currentArtThread;
-    std::atomic<bool> m_isCurrentArtLoadReady{false};
-    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_loadedCurrentArt;
 
     // バックグラウンド解析データ
     TrackAnalyzer m_trackAnalyzer;

@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "ConfigManager.h"
 #include "WidgetContext.h"
+#include "ThumbnailDatabase.h"
 #include <cmath>
 
 void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode, int playbackHoveredIndex, int playlistHoveredItemIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isLogoClicked, int clickedLogoMenuIndex, int clickedPlaybackIndex, bool* outIsPlaylistExpanded, bool* outIsLogoMenuExpanded) {
@@ -37,6 +38,18 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
     }
 
     m_trackDrum.Update(deltaTime, m_config);
+
+    if (m_thumbDb) {
+        auto& slots = m_trackDrum.GetDrumSlotsWritable();
+        for (int i = 0; i < 2; ++i) {
+            if (slots[i].thumbId > 0 && !slots[i].artBitmap) {
+                ID2D1Bitmap* bmp = m_thumbDb->GetCachedThumbnailBitmap(slots[i].thumbId);
+                if (bmp) {
+                    slots[i].artBitmap = bmp;
+                }
+            }
+        }
+    }
 
     WidgetContext ctx = BuildAnimationContext(deltaTime, isControlHovered, isVolumeHovered, isPlaylistHovered, isLogoMenuHovered, logoMenuHoveredIndex, currentTrackIndex, totalTracks, isPlaylistListViewMode, playbackHoveredIndex, playlistHoveredItemIndex, logoMenuItems, isLogoClicked, clickedLogoMenuIndex, clickedPlaybackIndex, outIsPlaylistExpanded, outIsLogoMenuExpanded);
 

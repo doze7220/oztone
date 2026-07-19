@@ -11,7 +11,7 @@ TagManager::TagManager() {}
 
 TagManager::~TagManager() {}
 
-bool TagManager::Load(const std::wstring& filepath) {
+bool TagManager::Load(const std::wstring& filepath, bool skipImage) {
     m_title.clear();
     m_artist.clear();
     m_timeString.clear();
@@ -45,15 +45,17 @@ bool TagManager::Load(const std::wstring& filepath) {
         m_timeString = buf;
     }
 
-    // アルバムアートの取得 (ID3v2 APICフレーム)
-    TagLib::ID3v2::Tag* id3v2tag = mpegFile.ID3v2Tag();
-    if (id3v2tag) {
-        const TagLib::ID3v2::FrameList& frameList = id3v2tag->frameListMap()["APIC"];
-        if (!frameList.isEmpty()) {
-            auto* picFrame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frameList.front());
-            if (picFrame) {
-                TagLib::ByteVector pictureData = picFrame->picture();
-                m_albumArtBytes.assign(pictureData.data(), pictureData.data() + pictureData.size());
+    if (!skipImage) {
+        // アルバムアートの取得 (ID3v2 APICフレーム)
+        TagLib::ID3v2::Tag* id3v2tag = mpegFile.ID3v2Tag();
+        if (id3v2tag) {
+            const TagLib::ID3v2::FrameList& frameList = id3v2tag->frameListMap()["APIC"];
+            if (!frameList.isEmpty()) {
+                auto* picFrame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frameList.front());
+                if (picFrame) {
+                    TagLib::ByteVector pictureData = picFrame->picture();
+                    m_albumArtBytes.assign(pictureData.data(), pictureData.data() + pictureData.size());
+                }
             }
         }
     }
