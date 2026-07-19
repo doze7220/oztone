@@ -1,9 +1,13 @@
 #include "Application.h"
 #include <filesystem>
 
-Application::Application() {}
+Application::Application() 
+    : m_thumbnailDatabase(&m_config), 
+      m_thumbCacher(&m_thumbnailDatabase) 
+{}
 
 Application::~Application() {
+  m_thumbCacher.Uninitialize();
   m_trackAnalyzer.Uninitialize();
 
   m_audioPlayer.Uninitialize();

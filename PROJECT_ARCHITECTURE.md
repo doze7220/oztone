@@ -153,3 +153,9 @@ UI要素ごとの独立した描画・状態管理を担うコンポーネント
 
 #### `TrackAnalyzer` クラス (src/TrackAnalyzer.h, cpp)
 タグ解析およびFFT波形事前スキャンをバックグラウンドスレッドで非同期実行し、完了データを `TrackDatabase` へ自律的に書き込むクラス。
+
+#### `ThumbnailDatabase` クラス (src/ThumbnailDatabase.h, cpp)
+サムネイル画像のバイナリデータ（パックファイル）の読み書きと、LRUアルゴリズムに基づくオンメモリキャッシュ管理を行うデータベースクラス。
+
+#### `ThumbCacher` クラス (src/ThumbCacher.h, cpp)
+バックグラウンドスレッドで非同期にサムネイル画像を生成・リサイズし、キューイングされたタスクを順次処理する専用のエンジンクラス。

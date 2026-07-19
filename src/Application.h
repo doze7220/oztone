@@ -16,6 +16,8 @@
 #include "TrackAnalyzer.h"
 #include "TrackDatabase.h"
 #include "ArtFramingDatabase.h"
+#include "ThumbnailDatabase.h"
+#include "ThumbCacher.h"
 
 enum class WatchdogState {
     Normal,
@@ -142,6 +144,9 @@ private:
     TrackDatabase m_trackDatabase;
     ArtFramingDatabase m_framingDb;
     std::wstring m_framingDbPath;
+
+    ThumbnailDatabase m_thumbnailDatabase;
+    ThumbCacher m_thumbCacher;
 
     bool m_isPlaylistListViewMode = false;
     ULONGLONG m_lastConfigCheckTime = 0;

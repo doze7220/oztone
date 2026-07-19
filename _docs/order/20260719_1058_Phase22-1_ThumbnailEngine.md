@@ -180,3 +180,29 @@
 *   **責務分離の原則**: 本タスクでは「スレッドとキューの安全な運用ロジック」のみを実装すること。WIC関連のCOM初期化や画像処理は記述しない。
 *   **スレッドセーフな設計**: キューの読み書きや終了フラグの制御において、データ競合やデッドロックが絶対に発生しないように排他制御を徹底すること。
 
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 22-1 Task 5 - 7 : Application配線とビルド環境・ドキュメント更新
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\_docs\logs\20260719_1101_RES_Phase22-1_ThumbnailEngine.md
+
+#### 【作業手順（厳守事項）】
+1. 本プロンプトはサムネイルエンジンのApplicationへの結合およびビルド環境等の更新である。直ちに以下の【実装要件】に従ってコードの追加・修正を実行すること。
+2. 作業完了後、既存の作業レポート（20260719_1101_RES_Phase22-1_ThumbnailEngine.md）の「タスク5」「タスク6」「タスク7」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+3. チャットにて「Phase 22-1 の全タスクが完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+構築した `ThumbnailDatabase` と `ThumbCacher` を `Application` クラスに組み込み、ライフサイクルを管理する。さらにビルド環境とドキュメントを更新する。
+
+*   **要件1: Application クラスへの配線 (タスク5)**
+    *   `src/Application.h` に `ThumbnailDatabase` と `ThumbCacher` のインスタンス（または `std::unique_ptr`）を追加する。
+    *   `src/Application_Initialize.cpp` (または `Application.cpp` の初期化部) の `Initialize()` にて、両クラスの生成と初期化（`Initialize()`）を行うこと。`ThumbnailDatabase` には `ConfigManager` のポインタを、`ThumbCacher` には `ThumbnailDatabase` のポインタを正しく渡すこと。
+    *   `Application` のデストラクタ（`Application.cpp`）にて、`ThumbCacher` の `Uninitialize()` を明示的に呼び出し、スレッドを安全に終了させる処理を追加すること。
+*   **要件2: CMakeLists.txt の更新 (タスク6)**
+    *   新規作成した `src/ThumbnailDatabase.cpp` と `src/ThumbCacher.cpp`（およびヘッダ）をビルド対象として追加すること。
+*   **要件3: PROJECT_ARCHITECTURE.md の更新 (タスク7)**
+    *   「5. 実装済みクラス・関数リファレンス」に、新設した `ThumbnailDatabase` クラスと `ThumbCacher` クラスの責務（概要1〜2行と物理ファイル名）を追記すること。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スレッドの安全な終了**: ウィンドウを閉じた際に例外終了やクラッシュが発生しないよう、必ず `Application` 破棄時に `ThumbCacher` の終了処理を完了させること。

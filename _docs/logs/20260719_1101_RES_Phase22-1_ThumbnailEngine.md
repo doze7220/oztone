@@ -35,11 +35,11 @@
     - `std::list` と `std::unordered_map` を用いたLRU枠組みの構築。インターフェースメソッドの定義。
 - [x] タスク4: ThumbCacher クラスの構築
     - サムネイル専用ワーカースレッドとキュー管理の構築。
-- [ ] タスク5: Application クラスへの配線とライフサイクル管理
+- [x] タスク5: Application クラスへの配線とライフサイクル管理
     - `Application` 内でのインスタンス化、初期化、および安全なスレッド終了（join）処理の追加。
-- [ ] タスク6: CMakeLists.txt の更新
+- [x] タスク6: CMakeLists.txt の更新
     - 新規ファイル2つをビルド対象に追加。
-- [ ] タスク7: PROJECT_ARCHITECTURE.md の更新
+- [x] タスク7: PROJECT_ARCHITECTURE.md の更新
     - `ThumbnailDatabase` と `ThumbCacher` の説明を追記。
 
 ## 4. 詳細作業内容
@@ -60,8 +60,11 @@
     - スレッドの起動を行う `Initialize()`、安全な停止とジョインを行う `Uninitialize()` を実装。
     - `EnqueueTrack()` によるキューへのタスク追加とCV起床、ワーカースレッドループ(`WorkerLoop`)によるタスク取り出し処理の枠組みを構築（実処理はTODOとして記述）。
 ### タスク5: Application クラスへの配線とライフサイクル管理
-    - (未実施)
+    - `src/Application.h` に `ThumbnailDatabase` と `ThumbCacher` をメンバ変数として追加。
+    - `Application.cpp` のコンストラクタ初期化子リストで各クラスへ参照を注入し、デストラクタで明示的に `m_thumbCacher.Uninitialize()` を呼び出してスレッドを安全に終了させる処理を追加。
+    - `Application_Initialize.cpp` 内で両クラスの `Initialize()` を呼び出し、アプリケーション起動時にサムネイルエンジンが稼働するよう配線。
 ### タスク6: CMakeLists.txt の更新
-    - (未実施)
+    - `src/ThumbnailDatabase.cpp`, `src/ThumbCacher.cpp` をビルド対象に追加。
+    - ヘッダファイルも追加し、正常にコンパイルできるよう構成。
 ### タスク7: PROJECT_ARCHITECTURE.md の更新
-    - (未実施)
+    - 「5. 実装済みクラス・関数リファレンス」に、新設した `ThumbnailDatabase` クラスと `ThumbCacher` クラスの責務と概要を追記。

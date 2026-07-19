@@ -317,6 +317,9 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
 
   m_trackAnalyzer.Initialize(&m_trackDatabase, &m_config);
 
+  m_thumbnailDatabase.Initialize();
+  m_thumbCacher.Initialize();
+
   std::vector<std::wstring> unparsed = m_playlistManager.GetShuffleList();
   if (!unparsed.empty()) {
     for (const auto &path : unparsed) {

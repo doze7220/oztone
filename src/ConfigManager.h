@@ -412,6 +412,8 @@ public:
 
     void LoadSettings();
 
+    std::wstring GetExecutablePath() const;
+
 private:
     int LoadOrWriteInt(const std::wstring& section, const std::wstring& key);
     float LoadOrWriteFloat(const std::wstring& section, const std::wstring& key);
@@ -591,8 +593,6 @@ private:
     std::wstring m_osdTextColor;
     float m_osdFadeSpeed;
     float m_osdFadeWait;
-
-    std::wstring GetExecutablePath() const;
 
     float m_defaultVolume;
     float m_controlHoverHeight;
