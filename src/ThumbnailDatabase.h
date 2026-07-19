@@ -23,7 +23,7 @@ public:
 
     void Initialize();
 
-    uint32_t GetThumbnailId(const std::wstring& filepath);
+    uint32_t GetOrGenerateThumbId(const std::wstring& filepath, bool& out_isNew);
     bool HasCookedData(uint32_t thumbId);
     ConfigManager* GetConfig() const { return m_config; }
     Microsoft::WRL::ComPtr<ID2D1Bitmap> GetThumbnailBitmap(uint32_t thumbId, ID2D1RenderTarget* renderTarget, IWICImagingFactory* wicFactory);
@@ -32,7 +32,7 @@ public:
     ID2D1Bitmap* GetCachedThumbnailBitmap(uint32_t thumbId);
     void RequestThumbnailLoad(uint32_t thumbId, ID2D1RenderTarget* renderTarget, IWICImagingFactory* wicFactory);
 
-    bool StoreCookedData(uint32_t thumbId, const std::vector<BYTE>& data);
+    bool StoreCookedData(uint32_t thumbId, const std::wstring& filepath, const std::vector<BYTE>& data);
 
 private:
     ConfigManager* m_config;

@@ -66,13 +66,15 @@ void ThumbnailDatabase::Initialize() {
                 if (line.back() == '\r') line.pop_back();
                 
                 std::stringstream ss(line);
-                std::string idStr, offsetStr, sizeStr;
-                if (std::getline(ss, idStr, '\t') && std::getline(ss, offsetStr, '\t') && std::getline(ss, sizeStr)) {
+                std::string idStr, offsetStr, sizeStr, filepathStr;
+                if (std::getline(ss, idStr, '\t') && std::getline(ss, offsetStr, '\t') && std::getline(ss, sizeStr, '\t') && std::getline(ss, filepathStr)) {
                     try {
                         uint32_t id = std::stoul(idStr);
                         uint64_t offset = std::stoull(offsetStr);
                         size_t size = std::stoull(sizeStr);
                         m_sectorMap[id] = {offset, size};
+                        std::wstring wfilepath = std::filesystem::path(filepathStr).wstring();
+                        m_pathToId[wfilepath] = id;
                         if (id > maxId) maxId = id;
                     } catch (...) {
                         // パース失敗行は無視
@@ -101,15 +103,17 @@ void ThumbnailDatabase::Initialize() {
     }
 }
 
-uint32_t ThumbnailDatabase::GetThumbnailId(const std::wstring& filepath) {
+uint32_t ThumbnailDatabase::GetOrGenerateThumbId(const std::wstring& filepath, bool& out_isNew) {
     std::lock_guard<std::mutex> lock(m_mutex);
     auto it = m_pathToId.find(filepath);
     if (it != m_pathToId.end()) {
+        out_isNew = false;
         return it->second;
     }
     
     uint32_t newId = m_nextId++;
     m_pathToId[filepath] = newId;
+    out_isNew = true;
     return newId;
 }
 
@@ -167,6 +171,7 @@ void ThumbnailDatabase::RequestThumbnailLoad(uint32_t thumbId, ID2D1RenderTarget
             std::lock_guard<std::mutex> ioLock(m_ioMutex);
             std::ifstream ifs(m_imgPath, std::ios::binary);
             if (ifs) {
+                ifs.clear();
                 ifs.seekg(sector.offset, std::ios::beg);
                 binaryData.resize(sector.size);
                 ifs.read(reinterpret_cast<char*>(binaryData.data()), sector.size);
@@ -254,6 +259,7 @@ Microsoft::WRL::ComPtr<ID2D1Bitmap> ThumbnailDatabase::GetThumbnailBitmap(uint32
         std::lock_guard<std::mutex> ioLock(m_ioMutex);
         std::ifstream ifs(m_imgPath, std::ios::binary);
         if (ifs) {
+            ifs.clear();
             ifs.seekg(sector.offset, std::ios::beg);
             binaryData.resize(sector.size);
             ifs.read(reinterpret_cast<char*>(binaryData.data()), sector.size);
@@ -319,7 +325,7 @@ void ThumbnailDatabase::DrawThumbnail(ID2D1DeviceContext* context, IWICImagingFa
     }
 }
 
-bool ThumbnailDatabase::StoreCookedData(uint32_t thumbId, const std::vector<BYTE>& data) {
+bool ThumbnailDatabase::StoreCookedData(uint32_t thumbId, const std::wstring& filepath, const std::vector<BYTE>& data) {
     if (data.empty()) return false;
 
     std::lock_guard<std::mutex> lock(m_ioMutex);
@@ -327,6 +333,7 @@ bool ThumbnailDatabase::StoreCookedData(uint32_t thumbId, const std::vector<BYTE
     std::ofstream imgOfs(m_imgPath, std::ios::app | std::ios::binary);
     if (!imgOfs) return false;
 
+    imgOfs.seekp(0, std::ios::end);
     uint64_t offset = static_cast<uint64_t>(imgOfs.tellp());
     imgOfs.write(reinterpret_cast<const char*>(data.data()), data.size());
     if (imgOfs.fail()) {
@@ -338,8 +345,9 @@ bool ThumbnailDatabase::StoreCookedData(uint32_t thumbId, const std::vector<BYTE
     std::ofstream idxOfs(m_idxPath, std::ios::app | std::ios::binary);
     if (!idxOfs) return false;
 
+    std::string pathStr = std::filesystem::path(filepath).string();
     // Use binary mode and construct the string to ensure CRLF issues don't happen, or just write it normally
-    std::string idxLine = std::to_string(thumbId) + "\t" + std::to_string(offset) + "\t" + std::to_string(data.size()) + "\n";
+    std::string idxLine = std::to_string(thumbId) + "\t" + std::to_string(offset) + "\t" + std::to_string(data.size()) + "\t" + pathStr + "\n";
     idxOfs.write(idxLine.c_str(), idxLine.size());
     if (idxOfs.fail()) {
         idxOfs.close();

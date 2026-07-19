@@ -325,7 +325,11 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
   if (!unparsed.empty()) {
     for (const auto &path : unparsed) {
       m_trackAnalyzer.AddTrackToQueue(path);
-      m_thumbCacher.EnqueueTrack(path);
+      bool isNew = false;
+      uint32_t thumbId = m_thumbnailDatabase.GetOrGenerateThumbId(path, isNew);
+      if (isNew) {
+        m_thumbCacher.EnqueueTrack(thumbId, path);
+      }
     }
   }
 

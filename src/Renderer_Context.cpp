@@ -115,7 +115,8 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
         for (size_t i = 0; i < totalTracks && i < shuffleMetadataList->size(); ++i) {
             if (currentY + layout.itemHeight > 0 && currentY < layout.playlistHeight) {
                 const std::wstring& path = (*shuffleMetadataList)[i].filepath;
-                uint32_t thumbId = m_thumbDb->GetThumbnailId(path);
+                bool isNew = false;
+                uint32_t thumbId = m_thumbDb->GetOrGenerateThumbId(path, isNew);
                 if (thumbId > 0) {
                     ID2D1Bitmap* bmp = m_thumbDb->GetCachedThumbnailBitmap(thumbId);
                     if (bmp) {

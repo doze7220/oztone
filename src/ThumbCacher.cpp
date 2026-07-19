@@ -40,11 +40,11 @@ void ThumbCacher::Uninitialize()
     }
 }
 
-void ThumbCacher::EnqueueTrack(const std::wstring& filepath)
+void ThumbCacher::EnqueueTrack(uint32_t thumbId, const std::wstring& filepath)
 {
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-        m_taskQueue.push(filepath);
+        m_taskQueue.push({thumbId, filepath});
     }
     m_cv.notify_one();
 }
@@ -55,7 +55,7 @@ void ThumbCacher::WorkerLoop()
 
     while (true)
     {
-        std::wstring filepath;
+        std::pair<uint32_t, std::wstring> task;
         {
             std::unique_lock<std::mutex> lock(m_mutex);
             m_cv.wait(lock, [this]() { return m_stopFlag || !m_taskQueue.empty(); });
@@ -66,16 +66,18 @@ void ThumbCacher::WorkerLoop()
                 break;
             }
 
-            filepath = m_taskQueue.front();
+            task = m_taskQueue.front();
             m_taskQueue.pop();
         }
+
+        uint32_t thumbId = task.first;
+        std::wstring filepath = task.second;
 
         if (filepath.empty())
         {
             continue;
         }
 
-        uint32_t thumbId = m_db->GetThumbnailId(filepath);
         if (m_db->HasCookedData(thumbId))
         {
             continue;
@@ -102,7 +104,7 @@ void ThumbCacher::WorkerLoop()
             continue;
         }
 
-        m_db->StoreCookedData(thumbId, cookedBinary);
+        m_db->StoreCookedData(thumbId, filepath, cookedBinary);
     }
 
     if (SUCCEEDED(hrInit))

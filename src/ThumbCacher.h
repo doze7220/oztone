@@ -20,7 +20,7 @@ public:
     void Initialize();
     void Uninitialize();
 
-    void EnqueueTrack(const std::wstring& filepath);
+    void EnqueueTrack(uint32_t thumbId, const std::wstring& filepath);
 
     std::vector<BYTE> CookThumbnailImage(const std::vector<BYTE>& rawBinary, UINT targetSize, float jpegQuality);
 
@@ -31,6 +31,6 @@ private:
     std::thread m_workerThread;
     std::mutex m_mutex;
     std::condition_variable m_cv;
-    std::queue<std::wstring> m_taskQueue;
+    std::queue<std::pair<uint32_t, std::wstring>> m_taskQueue;
     std::atomic<bool> m_stopFlag;
 };
