@@ -287,6 +287,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
   if (!unparsed.empty()) {
     for (const auto &path : unparsed) {
       m_trackAnalyzer.AddTrackToQueue(path);
+      m_thumbCacher.EnqueueTrack(path);
     }
   }
 }

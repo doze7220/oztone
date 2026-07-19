@@ -22,10 +22,10 @@
     - `Widget_Playlist_DrawItems.cpp` では、`LayoutCalculator` から受け取った `thumbRect` に従い、渡されたマップ内に画像ポインタが存在すれば無条件で描画し、無ければフォールバック（ガラス板）を描画するだけの純粋な受動態処理に徹する。
 
 ## 3. 実装タスクリスト
-[ ] タスク1: Application層のエンキュー処理の実装 (対象: Application_Initialize.cpp, Application_Playlist.cpp, Application_FileDrop.cpp)
+[x] タスク1: Application層のエンキュー処理の実装 (対象: Application_Initialize.cpp, Application_Playlist.cpp, Application_FileDrop.cpp)
     - プレイリストへ楽曲が追加されるタイミングで `m_thumbCacher.EnqueueTrack()` を追加。
 
-[ ] タスク2: LayoutCalculatorの拡張 (対象: LayoutCalculator.h, LayoutCalculator.cpp)
+[x] タスク2: LayoutCalculatorの拡張 (対象: LayoutCalculator.h, LayoutCalculator.cpp)
     - `PlaylistItemLayout` に `thumbRect` を追加し、`CalculatePlaylistItemLayout` でサムネイル領域の確保とテキスト矩形のシフトを計算する。
 
 [ ] タスク3: ThumbnailDatabaseの非同期化インターフェース追加 (対象: ThumbnailDatabase.h, ThumbnailDatabase.cpp)
@@ -41,9 +41,10 @@
 
 ## 4. 詳細作業内容
 ### タスク1: Application層のエンキュー処理の実装
-    - (未実施)
+    - 起動時のプレイリスト復元時（`Application_Initialize.cpp`）、プレイリスト切り替え時（`Application_Playlist.cpp`）、およびドラッグ＆ドロップによるファイル追加時（`Application_FileDrop.cpp`）において、追加されたトラックを `m_trackAnalyzer.AddTrackToQueue()` と同時に `m_thumbCacher.EnqueueTrack()` でキューへ流し込むように処理を追加した。
 ### タスク2: LayoutCalculatorの拡張
-    - (未実施)
+    - `LayoutCalculator.h` の `PlaylistItemLayout` にサムネイル描画用の `thumbRect` を追加した。
+    - `LayoutCalculator.cpp` の `CalculatePlaylistItemLayout` にて、行の左端に `thumbPadding` を考慮したサムネイル用矩形を計算し、既存のテキスト類（タイトル、アーティスト）をサムネイルの幅（`itemHeight`相当）分だけ右へシフトさせるロジックを実装した。
 ### タスク3: ThumbnailDatabaseの非同期化インターフェース追加
     - (未実施)
 ### タスク4: Renderer層での可視範囲計算とWidgetContextへの結線

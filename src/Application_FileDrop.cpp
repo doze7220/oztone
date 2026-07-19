@@ -119,6 +119,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
     if (!unparsed.empty()) {
       for (const auto &path : unparsed) {
         m_trackAnalyzer.AddTrackToQueue(path);
+        m_thumbCacher.EnqueueTrack(path);
       }
     }
 

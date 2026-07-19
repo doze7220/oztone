@@ -402,11 +402,19 @@ PlaylistItemLayout LayoutCalculator::CalculatePlaylistItemLayout(const PlaylistL
 
     layout.hlRect = D2D1::RectF(baseLayout.playlistX, currentY, baseLayout.playlistX + baseLayout.playlistWidth, currentY + baseLayout.itemHeight);
 
-    float textX = baseLayout.playlistX + static_cast<float>(config->GetPlaylistTitleOffsetX());
+    float thumbPadding = 4.0f;
+    float thumbSize = baseLayout.itemHeight - (thumbPadding * 2.0f);
+    float thumbX = baseLayout.playlistX + thumbPadding;
+    float thumbY = currentY + thumbPadding;
+    layout.thumbRect = D2D1::RectF(thumbX, thumbY, thumbX + thumbSize, thumbY + thumbSize);
+
+    float textShiftX = baseLayout.itemHeight;
+
+    float textX = baseLayout.playlistX + static_cast<float>(config->GetPlaylistTitleOffsetX()) + textShiftX;
     float textY = currentY + static_cast<float>(config->GetPlaylistTitleOffsetY());
     layout.titleRect = D2D1::RectF(textX, textY, baseLayout.playlistX + baseLayout.playlistWidth - 10.0f, textY + 30.0f);
 
-    float artistX = baseLayout.playlistX + static_cast<float>(config->GetPlaylistArtistOffsetX());
+    float artistX = baseLayout.playlistX + static_cast<float>(config->GetPlaylistArtistOffsetX()) + textShiftX;
     float artistY = currentY + static_cast<float>(config->GetPlaylistArtistOffsetY());
     layout.artistRect = D2D1::RectF(artistX, artistY, baseLayout.playlistX + baseLayout.playlistWidth - 100.0f, artistY + 20.0f);
 

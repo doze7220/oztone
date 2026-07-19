@@ -108,6 +108,7 @@ struct OsdLayout {
 
 struct PlaylistItemLayout {
     D2D1_RECT_F hlRect;
+    D2D1_RECT_F thumbRect;
     D2D1_RECT_F titleRect;
     D2D1_RECT_F artistRect;
     D2D1_POINT_2F timeOrigin;
