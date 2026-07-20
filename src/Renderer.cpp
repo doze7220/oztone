@@ -16,7 +16,11 @@ void Renderer::SetThumbnailManager(ThumbnailManager* manager) {
     m_thumbnailManager = manager;
 }
 
-// [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (SetBackgroundFraming)
+void Renderer::SetBackgroundFraming(float offsetX, float offsetY, float scale) {
+    m_bgOffsetX = offsetX;
+    m_bgOffsetY = offsetY;
+    m_bgScale = scale;
+}
 
 // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (ClampArtFraming)
 

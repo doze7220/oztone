@@ -96,8 +96,13 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
     };
 
 
-    // [Phase23-1] 背景画像読み込み・デコード処理および
-    // 背景フレーミングの設定伝達処理をパージ
+    // 背景フレーミングの設定伝達処理を復活
+    float framingX = 0.0f;
+    float framingY = 0.0f;
+    float framingScale = 1.0f;
+    m_framingDb.GetFraming(track, framingX, framingY, framingScale);
+    m_renderer.SetBackgroundFraming(framingX, framingY, framingScale);
+
     m_backgroundManager.RequestLoad(track);
 
     auto onComplete = [this, track]() {

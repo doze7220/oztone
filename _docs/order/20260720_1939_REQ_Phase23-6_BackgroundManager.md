@@ -228,3 +228,30 @@
     *   「5. 実装済みクラス・関数リファレンス」に `BackgroundManager` クラスの項目を新設する。
     *   記載内容は「背景アートの保持、クロスフェード、および描画層への連携を統括する空間の司令塔。Rendererから背景画像の管理責務が完全に分離され、FileManagerを用いた非同期画像抽出とWICデコードを担当する」といった旨を簡潔に記載すること。
     *   Renderer クラスの記述において、背景描画が BackgroundManager からの情報に基づくようになった旨を（もし必要であれば）微調整すること。
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 23-6 Hotfix : 背景描画パイプラインの完全開通とフレーミング再結線 (実装実行)
+*  ルール: D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  開発資料:D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  実装計画書:D:\ozlab\oztone\_docs\logs\20260720_1939_RES_Phase23-6_BackgroundManager.md
+
+#### 【作業手順（厳守事項）】
+本プロンプトは Phase 23-6 BackgroundManager 新設に伴う描画不良の Hotfix である。必ず以下の順序で作業を行うこと。
+1. ルールおよび開発資料を熟読・把握すること。
+2. 以下の【不具合の調査と実装要件】に従ってソースコードの修正を実行すること。
+3. コード修正が完全に終わった後、Hotfix作業レポートテンプレートを元に、作業レポート（D:\ozlab\oztone\_docs\logs\20260720_RES_Hotfix_BackgroundPipeline.md）として新規作成し、原因と対応内容を追記すること。
+4. チャットにて「背景パイプラインのHotfix実装が完了しました。再度ビルド・動作確認をお願いします」と報告すること。
+
+#### 【不具合の調査と実装要件】
+BackgroundManager は稼働しているが、背景画像およびデフォルト背景が表示されない不具合が発生している。以下の3つの「切断されたパイプ」を再結線・修復すること。
+*   **要件1: ワーカースレッドのCOM初期化（デコード失敗の修復）**
+    *   `src/BackgroundManager.cpp` のワーカースレッド（`WorkerLoop`）内の先頭にて、確実に `CoInitializeEx(nullptr, COINIT_MULTITHREADED)` を呼び出し、スレッド終了時に `CoUninitialize()` を呼ぶように保護すること。これにより別スレッドでの WIC ファクトリ生成エラーを解消する。
+*   **要件2: ArtFramingDatabase の再結線（フレーミング情報の復活）**
+    *   `src/Application_Playback.cpp` 内の `PlayCurrentTrack` 等において、曲決定時に `m_framingDb.GetFraming` で取得したフレーミング情報を、再び `Renderer` 側へ渡せるように結線を復活させること（必要に応じて `Renderer.h/cpp` にセッター `SetBackgroundFraming` 等を復活させる）。
+    *   `src/Renderer_Draw.cpp` の `DrawBackground` 内で描画する際、`LayoutCalculator::CalculateBackgroundLayout` にそのフレーミング情報を正しく渡して描画矩形を算出し直すこと。
+*   **要件3: デフォルト背景（プレースホルダー）描画の復活**
+    *   `DrawBackground` 内にて、`BackgroundManager` から取得した現在のWIC画像（および過去画像）が `nullptr` または無効であった場合、Phase 23-1 で削除された `IDI_PLACEHOLDER_ART`（デフォルト背景）をフォールバックとしてフェード描画するロジックを完全に復活させること。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **D2Dキャッシュの適正化** : `Renderer` 側でWICからD2Dビットマップへ変換（`CreateBitmapFromWicBitmap`）する際、毎フレーム無駄に生成しないよう、WIC画像のポインタが変更されたタイミングでのみキャッシュを更新する仕組みを確実に組み込むこと。

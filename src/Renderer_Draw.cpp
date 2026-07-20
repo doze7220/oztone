@@ -45,33 +45,39 @@ void Renderer::DrawBackground() {
 
     if (m_backgroundManager) {
         auto currentWic = m_backgroundManager->GetCurrentWicImage();
-        if (currentWic != m_lastCurrentWicImage) {
+        if (currentWic != m_lastCurrentWicImage || !m_currentBgBitmap) {
             m_lastCurrentWicImage = currentWic;
             m_currentBgBitmap.Reset();
             if (currentWic) {
                 m_d2dContext->CreateBitmapFromWicBitmap(currentWic.Get(), &m_currentBgBitmap);
             }
+            if (!m_currentBgBitmap && m_placeholderArtBitmap) {
+                m_currentBgBitmap = m_placeholderArtBitmap;
+            }
         }
 
         auto oldWic = m_backgroundManager->GetOldWicImage();
-        if (oldWic != m_lastOldWicImage) {
+        if (oldWic != m_lastOldWicImage || !m_oldBgBitmap) {
             m_lastOldWicImage = oldWic;
             m_oldBgBitmap.Reset();
             if (oldWic) {
                 m_d2dContext->CreateBitmapFromWicBitmap(oldWic.Get(), &m_oldBgBitmap);
+            }
+            if (!m_oldBgBitmap && m_placeholderArtBitmap) {
+                m_oldBgBitmap = m_placeholderArtBitmap;
             }
         }
     }
 
     if (m_oldBgBitmap) {
         D2D1_SIZE_F size = m_oldBgBitmap->GetSize();
-        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, size);
+        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, size, m_bgOffsetX, m_bgOffsetY, m_bgScale);
         m_d2dContext->DrawBitmap(m_oldBgBitmap.Get(), &layout.destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &layout.srcRect);
     }
 
     if (m_currentBgBitmap) {
         D2D1_SIZE_F size = m_currentBgBitmap->GetSize();
-        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, size);
+        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, size, m_bgOffsetX, m_bgOffsetY, m_bgScale);
         float opacity = m_backgroundManager ? m_backgroundManager->GetFadeProgress() : 1.0f;
         m_d2dContext->DrawBitmap(m_currentBgBitmap.Get(), &layout.destRect, opacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &layout.srcRect);
     }

@@ -79,7 +79,8 @@ void BackgroundManager::UpdateAnimation(float deltaTime)
 void BackgroundManager::WorkerLoop()
 {
     // WICデコード等のため、バックグラウンドスレッドでもCOMを初期化する
-    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    HRESULT hrInit = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    HRESULT hr = S_OK;
     
     while (true) {
         std::wstring filePath;
@@ -171,7 +172,7 @@ void BackgroundManager::WorkerLoop()
         }
     }
 
-    if (SUCCEEDED(hr)) {
+    if (SUCCEEDED(hrInit)) {
         CoUninitialize();
     }
 }

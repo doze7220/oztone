@@ -84,7 +84,9 @@ public:
 
     ID2D1DeviceContext* GetD2DContext() const { return m_d2dContext.Get(); }
     IWICImagingFactory* GetWicFactory() const { return m_wicFactory.Get(); }
-    // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (SetBackgroundFraming, ClampArtFraming)
+    
+    // 背景フレーミング情報の受け渡し
+    void SetBackgroundFraming(float offsetX, float offsetY, float scale);
 
     /**
      * @brief フォーカスされているプレイリストインデックスを設定する
@@ -176,7 +178,11 @@ private:
     HWND m_hwnd;
     const ConfigManager* m_config;
     float m_dpiScale = 1.0f;
-    // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (m_bgOffsetX, m_bgOffsetY, m_bgScale)
+    
+    float m_bgOffsetX = 0.0f;
+    float m_bgOffsetY = 0.0f;
+    float m_bgScale = 1.0f;
+    
     float m_controlAlpha = 0.0f;
     float m_controlLeaveTimer = 0.0f;
     float m_osdVolumeAlpha = 0.0f;
