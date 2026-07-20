@@ -81,11 +81,13 @@ void TrackAnalyzer::ParseThreadFunc() {
         if (!isMetaLoaded) {
             std::wstring title, artist, timeString;
             try {
-                FileManager::TextMetadata fmMeta;
-                if (FileManager::ExtractTextMetadata(targetPath, fmMeta)) {
+                AudioMetadata fmMeta = FileManager::ExtractTextMetadata(targetPath);
+                if (!fmMeta.title.empty() || !fmMeta.artist.empty()) {
                     title = fmMeta.title;
                     artist = fmMeta.artist;
-                    timeString = fmMeta.durationStr;
+                    wchar_t buf[32];
+                    swprintf_s(buf, 32, L"%02d:%02d", fmMeta.durationSeconds / 60, fmMeta.durationSeconds % 60);
+                    timeString = buf;
                     if (title.empty()) {
                         try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
                     }

@@ -27,7 +27,7 @@
     - `src/FileManager.cpp` を新規作成し、既存のTagLibを用いたメタデータ抽出ロジックをここに移植・カプセル化する。
 [x] タスク3: 外部クラスの配線の付け替え
     - `Application` クラスや `TrackAnalyzer` クラスなどを開き、既存の `TagManager` へのアクセスを新設した `FileManager` へと綺麗に結線し直す。
-[ ] タスク4: TagManagerの完全パージとビルド環境の更新
+[x] タスク4: TagManagerの完全パージとビルド環境の更新
     - 不要になった `src/TagManager.h` および `src/TagManager.cpp` をファイルシステムから物理削除する。
     - `CMakeLists.txt` を更新してビルドを通す。
 [ ] タスク5: ドキュメントの更新
@@ -94,6 +94,19 @@
         - `Application_Playback.cpp` および `TrackAnalyzer.cpp` のメタデータ抽出処理を、`TagManager` のインスタンスメソッドによる処理から `FileManager::ExtractTextMetadata` の静的メソッド呼び出しに変更し、`FileManager::TextMetadata` 構造体を受け取るように修正した。
 
 ### タスク4: TagManagerの完全パージとビルド環境の更新
-    - （未着手）
+    - `src/TagManager.h` および `src/TagManager.cpp` を物理的に削除した。
+    - `CMakeLists.txt` において `TagManager` の記述を削除し、`FileManager` に差し替え、ビルドが通るようにした。
+
+    #### 原因・理由:Phase 23-2 タスク4実装
+        - 旧クラスの完全除去と新しいクラスのビルドへの統合を行い、プロジェクト構成を浄化するため。
+
+    #### 対象ファイル: 
+        - src/TagManager.h (削除)
+        - src/TagManager.cpp (削除)
+        - CMakeLists.txt
+
+    #### 対応:不要ファイルのパージとビルド環境更新
+        - `src/TagManager.h` と `src/TagManager.cpp` をファイルシステムから削除。
+        - `CMakeLists.txt` 内のソースファイルリストおよびヘッダファイルリストから上記2ファイルを削除し、代わりに `src/FileManager.cpp` と `src/FileManager.h` を追加した。
 ### タスク5: ドキュメントの更新
     - （未着手）

@@ -79,8 +79,8 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
       if (m_trackDatabase.GetMetadata(path, meta) && meta.isMetaLoaded) {
         return meta;
       } else {
-          FileManager::TextMetadata fmMeta;
-          if (FileManager::ExtractTextMetadata(path, fmMeta)) {
+          AudioMetadata fmMeta = FileManager::ExtractTextMetadata(path);
+          if (!fmMeta.title.empty() || !fmMeta.artist.empty()) {
             meta.title = fmMeta.title;
             meta.artist = fmMeta.artist;
             if (meta.title.empty()) {
@@ -120,8 +120,8 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
 }
 
 void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
-  FileManager::TextMetadata fmMeta;
-  if (FileManager::ExtractTextMetadata(filepath, fmMeta)) {
+  AudioMetadata fmMeta = FileManager::ExtractTextMetadata(filepath);
+  if (!fmMeta.title.empty() || !fmMeta.artist.empty()) {
     std::wstring title = fmMeta.title;
     std::wstring artist = fmMeta.artist;
     if (title.empty()) {
@@ -147,7 +147,9 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
       if (needsUpdate) {
         currentMeta.title = title;
         currentMeta.artist = artist;
-        currentMeta.timeString = fmMeta.durationStr;
+        wchar_t buf[32];
+        swprintf_s(buf, 32, L"%02d:%02d", fmMeta.durationSeconds / 60, fmMeta.durationSeconds % 60);
+        currentMeta.timeString = buf;
         currentMeta.isMetaLoaded = true;
         m_trackDatabase.UpdateMetadata(filepath, currentMeta);
         std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
@@ -160,7 +162,9 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
         currentMeta.filepath = filepath;
         currentMeta.title = title;
         currentMeta.artist = artist;
-        currentMeta.timeString = fmMeta.durationStr;
+        wchar_t buf[32];
+        swprintf_s(buf, 32, L"%02d:%02d", fmMeta.durationSeconds / 60, fmMeta.durationSeconds % 60);
+        currentMeta.timeString = buf;
         currentMeta.isMetaLoaded = true;
         m_trackDatabase.UpdateMetadata(filepath, currentMeta);
         std::wstring defaultPath = m_config.GetDefaultPlaylistPath();

@@ -1,9 +1,9 @@
 #include "FileManager.h"
-#include <taglib/tag.h>
-#include <taglib/mpegfile.h>
-#include <taglib/audioproperties.h>
-#include <taglib/id3v2tag.h>
-#include <taglib/attachedpictureframe.h>
+#include <tag.h>
+#include <mpegfile.h>
+#include <audioproperties.h>
+#include <id3v2tag.h>
+#include <attachedpictureframe.h>
 #include <vector>
 #include <string>
 
