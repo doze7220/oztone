@@ -72,7 +72,7 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
       
       if (slot) {
           bool isNew = false;
-          slot->thumbId = m_thumbnailDatabase.GetOrGenerateThumbId(path, isNew);
+          slot->thumbId = m_thumbnailManager.GetOrGenerateThumbId(path, isNew);
       }
 
       TrackMetadata meta;
@@ -101,13 +101,13 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
 
     auto onComplete = [this, track]() {
       bool isNew = false;
-      uint32_t thumbId = m_thumbnailDatabase.GetOrGenerateThumbId(track, isNew);
-      ID2D1Bitmap* thumbBmp = m_thumbnailDatabase.GetCachedThumbnailBitmap(thumbId);
+      uint32_t thumbId = m_thumbnailManager.GetOrGenerateThumbId(track, isNew);
+      ID2D1Bitmap* thumbBmp = m_thumbnailManager.GetCachedThumbnailBitmap(thumbId);
       
       m_renderer.GetTrackDrum().SetAlbumArt(thumbBmp);
 
       if (!thumbBmp) {
-        m_thumbnailDatabase.RequestThumbnailLoad(thumbId, m_renderer.GetD2DContext(), m_renderer.GetWicFactory());
+        m_thumbnailManager.RequestThumbnailLoad(thumbId, m_renderer.GetD2DContext(), m_renderer.GetWicFactory());
       }
 
       UpdateTrackMetadataIfNeeded(track);

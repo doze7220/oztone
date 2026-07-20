@@ -96,3 +96,39 @@
 #### 【絶対遵守ルール (Constraints)】
 *   **スコープの厳守** : 本タスクは初期化周りの配線切り替えのみを行う。再生、プレイリスト、レンダリング等の処理におけるメソッド呼び出しの置き換え（タスク3）や Renderer の配線切り替え（タスク4）は絶対にフライングで行わないこと。
 *   **段階的なコンパイル** : 本タスク完了時点では、タスク3以降のコード（Application_*.cpp の他ファイル等）がコンパイルエラーになることが予想されるが、それで正常である。まずは初期化の配線のみを確実に完了させること。
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 23-4 Task 3 : Applicationクラスの配線付け替え (再生・プレイリスト・ファイル・レンダリング)
+*  ルール: D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  開発資料:D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  実装計画書:D:\ozlab\oztone\_docs\logs\20260720_1810_RES_Phase23-4_ThumbnailManager.md
+
+#### 【作業手順（厳守事項）】
+本プロンプトはPhase 23-4 Task 3: Applicationクラスの配線付け替え (再生・プレイリスト・ファイル・レンダリング)である。必ず以下の順序で作業を行うこと。
+1. ルール（PROJECT_CONSTITUTION.md）および開発資料（PROJECT_ARCHITECTURE.md）を熟読・把握すること。
+2. 実装計画書（20260720_1810_RES_Phase23-4_ThumbnailManager.md）を読み、今回の自分のスコープが「タスク3」のみであることを確認すること。
+3. 上記を確認した後、以下の【実装要件】に従って **「タスク3のみ」** の実装を開始し、ソースコードの修正を実行すること。絶対にタスク4以降をフライングで実行しないこと。
+4. 作業完了後、既存の作業レポート（20260720_1810_RES_Phase23-4_ThumbnailManager.md）の「タスク3」のチェックボックスを完了 [x] にし、必ず以下のフォーマットで詳細作業内容を追記すること。
+    ### タスク3: Applicationクラスの配線付け替え (再生・プレイリスト・ファイル・レンダリング)
+    **【作業ファイル】**
+    - `ファイル名` (編集)
+    **【作業内容】**
+    - 詳細な作業内容
+5. チャットにて「タスク3の実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+`Application` クラスの各種処理（再生、リスト操作、レンダリング等）で発生しているサムネイル操作を、新設した `ThumbnailManager` 経由に置き換える。
+*   **要件1: Application_Playback.cpp の修正**
+    *   `src/Application_Playback.cpp` において、`m_thumbnailDatabase` や `m_thumbCacher` を呼び出している箇所（`GetCachedThumbnailBitmap` や `RequestThumbnailLoad` 等）を `m_thumbnailManager` 経由に置き換えること。
+*   **要件2: Application_Playlist.cpp の修正**
+    *   `src/Application_Playlist.cpp` において、プレイリスト切り替え時のバックグラウンド読み込み発注等の処理を `m_thumbnailManager` 経由に置き換えること。
+*   **要件3: Application_FileDrop.cpp の修正**
+    *   `src/Application_FileDrop.cpp` における、ファイル追加時のサムネイル生成発注（エンキュー処理）を `m_thumbnailManager` 経由に置き換えること。
+*   **要件4: Application_Render.cpp の修正**
+    *   `src/Application_Render.cpp` における、毎フレームのポーリング（`CheckForUpdates` や `GetCachedThumbnailBitmap`）等の処理を `m_thumbnailManager` 経由に置き換えること。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スコープの厳守** : 本タスクは `Application_*.cpp` (Playback, Playlist, FileDrop, Render) の配線切り替えのみを行う。`Renderer` クラスや `Renderer_*.cpp` への配線切り替え（タスク4）は絶対にフライングで行わないこと。
+*   **段階的なコンパイル** : 本タスク完了時点で `Application` クラス側のコンパイルエラーは解消されるはずだが、`Renderer` クラス側ではまだポインタ渡し等のエラーが残る可能性がある。それで正常である。
+

@@ -120,9 +120,9 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
       for (const auto &path : unparsed) {
         m_trackAnalyzer.AddTrackToQueue(path);
         bool isNew = false;
-        uint32_t thumbId = m_thumbnailDatabase.GetOrGenerateThumbId(path, isNew);
+        uint32_t thumbId = m_thumbnailManager.GetOrGenerateThumbId(path, isNew);
         if (isNew) {
-          m_thumbCacher.EnqueueTrack(thumbId, path);
+          m_thumbnailManager.EnqueueTrack(thumbId, path);
         }
       }
     }

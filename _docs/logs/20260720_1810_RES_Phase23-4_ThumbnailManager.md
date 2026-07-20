@@ -25,7 +25,7 @@
     - `CMakeLists.txt` への追加。
 - [x] タスク2: Applicationクラスの配線付け替え (ヘッダ・コンストラクタ・初期化)
     - `src/Application.h`, `src/Application.cpp`, `src/Application_Initialize.cpp` のメンバ変数統合と初期化ルーチン修正。
-- [ ] タスク3: Applicationクラスの配線付け替え (再生・プレイリスト・ファイル・レンダリング)
+- [x] タスク3: Applicationクラスの配線付け替え (再生・プレイリスト・ファイル・レンダリング)
     - `src/Application_Playback.cpp`, `src/Application_Playlist.cpp`, `src/Application_FileDrop.cpp`, `src/Application_Render.cpp` の呼び出しを修正。
 - [ ] タスク4: Rendererクラスの配線付け替え
     - `src/Renderer.h`, `src/Renderer.cpp`, `src/Renderer_Context.cpp`, `src/Renderer_Update.cpp` のポインタおよび呼び出しを修正。
@@ -60,7 +60,8 @@
     - `src/Application_FileDrop.cpp` : 更新
     - `src/Application_Render.cpp` : 更新
     **【作業内容】**
-    - 未実行
+    - `src/Application_Playback.cpp` 内で `m_thumbnailDatabase` からIDやビットマップを取得している処理、サムネイルロード発注処理を `m_thumbnailManager` 経由に置き換えました。
+    - `src/Application_Playlist.cpp`、`src/Application_FileDrop.cpp`、`src/Application_Render.cpp` 内でバックグラウンドキャッシュのための `m_thumbCacher.EnqueueTrack()` や、ID取得の `m_thumbnailDatabase.GetOrGenerateThumbId()` 呼び出しをすべて `m_thumbnailManager` 経由に置き換えました。
 
 ### タスク4: Rendererクラスの配線付け替え
     **【対象ファイル】**

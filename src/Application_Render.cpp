@@ -363,9 +363,9 @@ void Application::UpdatePlaylistSummaries() {
           if (count == 1) {
             summary.firstTrackPath = token;
             bool isNew = false;
-            summary.firstTrackThumbId = m_thumbnailDatabase.GetOrGenerateThumbId(token, isNew);
+            summary.firstTrackThumbId = m_thumbnailManager.GetOrGenerateThumbId(token, isNew);
             if (isNew) {
-                m_thumbCacher.EnqueueTrack(summary.firstTrackThumbId, token);
+                m_thumbnailManager.EnqueueTrack(summary.firstTrackThumbId, token);
             }
           }
 
