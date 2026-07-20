@@ -1,7 +1,7 @@
 #include "TrackAnalyzer.h"
 #include "PlaylistManager.h"
 #include "ConfigManager.h"
-#include "AudioPlayer.h"
+#include "AudioManager.h"
 #include "FileManager.h"
 #include <windows.h>
 #include <filesystem>
@@ -113,7 +113,7 @@ void TrackAnalyzer::ParseThreadFunc() {
                 float peakAmplitude = 0.0f;
                 float maxFrequency = 0.0f;
                 float noiseThreshold = m_configManager->GetHighFreqNoiseThreshold();
-                if (AudioPlayer::ScanAudioData(targetPath, noiseThreshold, peakAmplitude, maxFrequency)) {
+                if (AudioManager::ScanAudioData(targetPath, noiseThreshold, peakAmplitude, maxFrequency)) {
                     currentMeta.peakAmplitude = peakAmplitude;
                     currentMeta.maxFrequency = maxFrequency;
                 } else {

@@ -56,7 +56,7 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
         m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
         UpdatePlaylistSummaries();
 
-        m_audioPlayer.Stop();
+        m_audioManager.Stop();
         if (!m_playlistManager.IsEmpty()) {
           PlayCurrentTrack();
         } else {
@@ -147,7 +147,7 @@ void Application::OnPlaylistClicked(int x, int y) {
         static_cast<float>(index - oldIndex) * itemHeight;
     m_renderer.AddPlaylistScroll(offsetCorrection);
 
-    m_audioPlayer.Stop();
+    m_audioManager.Stop();
 
     auto list = m_playlistManager.GetShuffleList();
     if (index < list.size()) {
@@ -219,7 +219,7 @@ void Application::ClearPlaylist() {
   }
   UpdatePlaylistSummaries();
 
-  m_audioPlayer.Stop();
+  m_audioManager.Stop();
 
   m_renderer.GetTrackDrum().StartDrumAnimation(0, 0.0f, 0.0f, nullptr, nullptr);
   m_renderer.GetTrackDrum().SetAlbumArt(nullptr);
@@ -254,7 +254,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
 
   // 既存の再生やキューをクリアする（ClearPlaylist()
   // はファイルを空にしてしまうので呼ばない）
-  m_audioPlayer.Stop();
+  m_audioManager.Stop();
   m_trackAnalyzer.ClearQueue();
   m_renderer.GetTrackDrum().StartDrumAnimation(0, 0.0f, 0.0f, nullptr, nullptr);
   m_renderer.GetTrackDrum().SetAlbumArt(nullptr);

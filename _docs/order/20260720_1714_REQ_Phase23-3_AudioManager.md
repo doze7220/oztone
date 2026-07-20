@@ -144,3 +144,31 @@
 
 #### 【絶対遵守ルール (Constraints)】
 *   **スコープの厳守** : 本タスクの対象は、既存クラスから `AudioManager` への呼び出し（結線）の書き換えのみである。ドキュメントの更新や、タスク5（CMakeLists.txtとアーキテクチャ資料の最終整理）は絶対にフライングで実行しないこと。
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 23-3 Task 5 : CMakeLists.txt および PROJECT_ARCHITECTURE.md の更新
+*  ルール: D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  開発資料:D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  実装計画書:D:\ozlab\oztone\_docs\logs\20260720_1717_RES_Phase23-3_AudioManager.md
+
+#### 【作業手順（厳守事項）】
+本プロンプトはPhase 23-3 Task 5: CMakeLists.txt および PROJECT_ARCHITECTURE.md の更新である。必ず以下の順序で作業を行うこと。
+1. ルール（PROJECT_CONSTITUTION.md）および開発資料（PROJECT_ARCHITECTURE.md）を熟読・把握すること。
+2. 実装計画書（20260720_1717_RES_Phase23-3_AudioManager.md）を読み、今回の自分のスコープが「タスク5」のみであることを確認すること。
+3. 上記を確認した後、以下の【実装要件】に従って **「タスク5のみ」** の実装を開始し、ファイルの修正を実行すること。
+4. 作業完了後、既存の作業レポート（20260720_1717_RES_Phase23-3_AudioManager.md）の「タスク5」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+5. チャットにて「AudioManagerの新設(Phase 23-3)がすべて完了しました。確認をお願いします」と報告すること。
+
+#### 【実装要件】
+今回の `AudioManager` の新設および旧 `AudioPlayer` のカプセル化に伴い、プロジェクトの設計図を最新状態へ更新する。
+*   **要件1: テンポラリファイルの削除と CMakeLists.txt のクリーンアップ**
+    *  タスク2で名前を変更した旧ファイル `src/AudioPlayer.cpp` と `src/AudioPlayer.h` を、ファイルシステム上で `src/AudioPlaybackEngine.cpp` および `src/AudioPlaybackEngine.h` に正しくリネーム（物理変更）すること。
+    *  `CMakeLists.txt` を開き、ソースリストおよびヘッダリストを上記のリネームに合わせて修正（`AudioPlayer` を削除し `AudioPlaybackEngine` を追加）し、ビルドが通ることを確認すること。
+*   **要件2: PROJECT_ARCHITECTURE.md の更新**
+    *  「5. 実装済みクラス・関数リファレンス」に記載されている `AudioPlayer` の項目を `AudioManager` クラスのものへとアップデートする。
+    *  記載内容は「音声処理ライブラリ miniaudio をラップし、音声に関わるすべての操作（再生・停止・シーク・音量制御・FFT解析・事前スキャン等）の窓口となるファサードクラス。内部に `AudioPlaybackEngine`（再生担当）と `AudioAnalyzer`（解析担当）をカプセル化している」といった旨を簡潔に記載すること。
+    *  物理分割ファイル一覧として、`AudioManager.h/cpp`, `AudioPlaybackEngine.h/cpp`, `AudioAnalyzer.h/cpp` が存在することを示すこと。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **ノイズの排除** : `PROJECT_ARCHITECTURE.md` はAIへの「見取り図」であるため、メソッド名や引数の詳細、実装の内部ロジックなどは絶対に記載しないこと（Phase 21-4でのスリム化方針を厳守）。

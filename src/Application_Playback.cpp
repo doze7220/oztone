@@ -5,10 +5,10 @@
 
 void Application::HandleMediaCommand(int cmd) {
   if (cmd == APPCOMMAND_MEDIA_PLAY_PAUSE) {
-    m_audioPlayer.TogglePlayPause();
+    m_audioManager.TogglePlayPause();
     m_renderer.TriggerFlyText(L"PLAY/PUASE");
   } else if (cmd == APPCOMMAND_MEDIA_STOP) {
-    m_audioPlayer.Stop();
+    m_audioManager.Stop();
     m_renderer.TriggerFlyText(L"STOP");
   } else if (cmd == APPCOMMAND_MEDIA_NEXTTRACK ||
              cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) {
@@ -30,14 +30,14 @@ void Application::HandleMediaCommand(int cmd) {
     bool played = false;
     size_t totalCount = m_playlistManager.GetCount();
 
-    m_audioPlayer.Stop();
+    m_audioManager.Stop();
 
     int totalDistance = 0;
     while (skipCount < totalCount) {
       int distance = (cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) ? 1 : -1;
       totalDistance += distance;
       std::wstring track = m_playlistManager.GetCurrentTrack();
-      if (m_audioPlayer.Play(track)) {
+      if (m_audioManager.Play(track)) {
         played = true;
         break;
       }
@@ -62,7 +62,7 @@ void Application::HandleMediaCommand(int cmd) {
 
 bool Application::PlayCurrentTrack(int relativeDistance) {
   std::wstring track = m_playlistManager.GetCurrentTrack();
-  if (m_audioPlayer.Play(track)) {
+  if (m_audioManager.Play(track)) {
     auto dataProvider = [this](int relativeIndex, DrumSlot* slot) -> TrackMetadata {
       size_t currentIdx = m_playlistManager.GetCurrentIndex();
       size_t total = m_playlistManager.GetCount();

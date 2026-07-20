@@ -127,8 +127,8 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
       }
     }
 
-    if (!isShiftPressed || (wasEmpty && !m_audioPlayer.IsPlaying())) {
-      m_audioPlayer.Stop();
+    if (!isShiftPressed || (wasEmpty && !m_audioManager.IsPlaying())) {
+      m_audioManager.Stop();
 
       size_t skipCount = 0;
       bool played = false;

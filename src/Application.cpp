@@ -10,7 +10,7 @@ Application::~Application() {
   m_thumbCacher.Uninitialize();
   m_trackAnalyzer.Uninitialize();
 
-  m_audioPlayer.Uninitialize();
+  m_audioManager.Uninitialize();
 
   m_config.SetDefaultPlaylistPath(m_config.GetDefaultPlaylistPath());
 
@@ -51,9 +51,9 @@ void Application::ResetAllSettings() {
 }
 
 void Application::OnPowerSuspend() {
-  m_suspendIsPlaying = m_audioPlayer.IsPlaying();
-  m_suspendPosition = m_audioPlayer.GetPositionSeconds();
-  m_audioPlayer.Uninitialize();
+  m_suspendIsPlaying = m_audioManager.IsPlaying();
+  m_suspendPosition = m_audioManager.GetPositionSeconds();
+  m_audioManager.Uninitialize();
 }
 
 void Application::OnPowerResume() {

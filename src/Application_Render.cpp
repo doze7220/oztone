@@ -9,16 +9,16 @@
 void Application::Run() {
   while (m_window.ProcessMessages()) {
     if (m_isWaitingForDevice) {
-      if (m_audioPlayer.HasValidOutputDevice()) {
+      if (m_audioManager.HasValidOutputDevice()) {
         m_isWaitingForDevice = false;
-        if (m_audioPlayer.Initialize()) {
-          m_audioPlayer.SetVolume(m_config.GetDefaultVolume());
+        if (m_audioManager.Initialize()) {
+          m_audioManager.SetVolume(m_config.GetDefaultVolume());
           std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
           if (!currentTrack.empty()) {
-            if (m_audioPlayer.Play(currentTrack)) {
-              m_audioPlayer.Seek(m_suspendPosition);
+            if (m_audioManager.Play(currentTrack)) {
+              m_audioManager.Seek(m_suspendPosition);
               if (!m_suspendIsPlaying) {
-                m_audioPlayer.TogglePlayPause();
+                m_audioManager.TogglePlayPause();
               }
             }
           }
@@ -31,8 +31,8 @@ void Application::Run() {
 
     ULONGLONG currentTime = GetTickCount64();
 
-    if (!m_isWaitingForDevice && m_audioPlayer.IsPlaying()) {
-      float currentPos = m_audioPlayer.GetPositionSeconds();
+    if (!m_isWaitingForDevice && m_audioManager.IsPlaying()) {
+      float currentPos = m_audioManager.GetPositionSeconds();
       if (m_watchdogState == WatchdogState::Normal) {
         float intervalMs = m_config.GetWatchdogInterval() * 1000.0f;
         if (currentTime - m_lastWatchdogPollTime >= static_cast<ULONGLONG>(intervalMs)) {
@@ -53,7 +53,7 @@ void Application::Run() {
           if (currentTime - m_watchdogWarningStartTime >= static_cast<ULONGLONG>(timeoutMs)) {
             m_suspendPosition = currentPos;
             m_suspendIsPlaying = true;
-            m_audioPlayer.Uninitialize();
+            m_audioManager.Uninitialize();
             m_isWaitingForDevice = true;
             m_watchdogState = WatchdogState::Normal;
             m_lastWatchdogPosition = -1.0f;
@@ -83,18 +83,18 @@ void Application::Run() {
         std::wstring currentPlaylistPath = m_config.GetDefaultPlaylistPath();
         if (!std::filesystem::exists(currentPlaylistPath)) {
           m_playlistManager.Clear();
-          m_audioPlayer.Stop();
+          m_audioManager.Stop();
           m_renderer.GetTrackDrum().StartDrumAnimation(0, 0.0f, 0.0f, nullptr, nullptr);
           m_renderer.GetTrackDrum().SetAlbumArt(nullptr);
         }
       }
     }
 
-    if (m_audioPlayer.IsAtEnd()) {
+    if (m_audioManager.IsAtEnd()) {
       std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
-      if (m_audioPlayer.IsLearningValid()) {
-          float learnedPeak = m_audioPlayer.GetLearningPeakAmplitude();
-          float learnedFreq = m_audioPlayer.GetLearningMaxFrequency();
+      if (m_audioManager.IsLearningValid()) {
+          float learnedPeak = m_audioManager.GetLearningPeakAmplitude();
+          float learnedFreq = m_audioManager.GetLearningMaxFrequency();
           TrackMetadata meta;
           if (m_trackDatabase.GetMetadata(currentTrack, meta)) {
             if (learnedPeak > meta.peakAmplitude || meta.peakAmplitude == 0.0f) {
@@ -144,8 +144,8 @@ void Application::ForceRender() {
   m_renderer.SetShuffleIndices(m_playlistManager.GetShuffleIndices());
 
   // 1. 時間と進行度の計算
-  float posSec = m_audioPlayer.GetPositionSeconds();
-  float lenSec = m_audioPlayer.GetLengthSeconds();
+  float posSec = m_audioManager.GetPositionSeconds();
+  float lenSec = m_audioManager.GetLengthSeconds();
 
   int posM = static_cast<int>(posSec) / 60;
   int posS = static_cast<int>(posSec) % 60;
@@ -169,7 +169,7 @@ void Application::ForceRender() {
 
 
   std::vector<float> spectrum;
-  m_audioPlayer.GetSpectrumData(spectrum);
+  m_audioManager.GetSpectrumData(spectrum);
 
   // 3. アニメーションと状態の更新
   int playlistHoveredItemIndex = -1;
@@ -286,7 +286,7 @@ void Application::ForceRender() {
   }
 
   // 4. レイアウトキャッシュの更新
-  m_renderer.UpdateTextLayouts(timeString, m_audioPlayer.GetVolume(),
+  m_renderer.UpdateTextLayouts(timeString, m_audioManager.GetVolume(),
                                m_playlistManager.GetCurrentIndex(),
                                m_playlistManager.GetCount(),
                                metadataList);
@@ -296,7 +296,7 @@ void Application::ForceRender() {
       m_window.IsVolumeHovered(), m_window.IsPlaylistHovered(),
       m_window.IsLogoMenuHovered(), m_window.GetLogoMenuHoveredIndex(),
       &m_window.GetLogoMenuItems(), m_isPlaylistListViewMode,
-      m_audioPlayer.IsPlaying(), progress, spectrum, m_audioPlayer.GetVolume(),
+      m_audioManager.IsPlaying(), progress, spectrum, m_audioManager.GetVolume(),
       m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount(),
       metadataList,
       m_window.GetPlaylistToolbarHoveredIndex(), &m_playlistSummaries);

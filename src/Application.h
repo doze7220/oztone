@@ -10,7 +10,7 @@
 #include "Window.h"
 #include "ConfigManager.h"
 #include "Renderer.h"
-#include "AudioPlayer.h"
+#include "AudioManager.h"
 #include "FileManager.h"
 #include "PlaylistManager.h"
 #include "TrackAnalyzer.h"
@@ -131,7 +131,7 @@ private:
     ConfigManager m_config;
     Window m_window;
     Renderer m_renderer;
-    AudioPlayer m_audioPlayer;
+    AudioManager m_audioManager;
 
     PlaylistManager m_playlistManager;
 

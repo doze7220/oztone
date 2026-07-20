@@ -24,7 +24,7 @@ void Application::SetupCallbacks() {
   });
 
   m_window.SetVolumeSetCallback([this](float vol) {
-    m_audioPlayer.SetVolume(vol);
+    m_audioManager.SetVolume(vol);
     m_config.SetDefaultVolume(vol);
     m_renderer.TriggerVolumeOsd();
   });
@@ -69,10 +69,10 @@ void Application::SetupCallbacks() {
       this->HandleMediaCommand(APPCOMMAND_MEDIA_STOP);
       break;
     case Window::HK_VOL_UP_5: {
-      float vol = m_audioPlayer.GetVolume() + 0.05f;
+      float vol = m_audioManager.GetVolume() + 0.05f;
       if (vol > 1.0f)
         vol = 1.0f;
-      m_audioPlayer.SetVolume(vol);
+      m_audioManager.SetVolume(vol);
       m_config.SetDefaultVolume(vol);
       m_renderer.TriggerVolumeOsd();
       m_renderer.TriggerFlyText(
@@ -81,10 +81,10 @@ void Application::SetupCallbacks() {
       break;
     }
     case Window::HK_VOL_DOWN_5: {
-      float vol = m_audioPlayer.GetVolume() - 0.05f;
+      float vol = m_audioManager.GetVolume() - 0.05f;
       if (vol < 0.0f)
         vol = 0.0f;
-      m_audioPlayer.SetVolume(vol);
+      m_audioManager.SetVolume(vol);
       m_config.SetDefaultVolume(vol);
       m_renderer.TriggerVolumeOsd();
       m_renderer.TriggerFlyText(
@@ -93,10 +93,10 @@ void Application::SetupCallbacks() {
       break;
     }
     case Window::HK_VOL_UP_25: {
-      float vol = m_audioPlayer.GetVolume() + 0.25f;
+      float vol = m_audioManager.GetVolume() + 0.25f;
       if (vol > 1.0f)
         vol = 1.0f;
-      m_audioPlayer.SetVolume(vol);
+      m_audioManager.SetVolume(vol);
       m_config.SetDefaultVolume(vol);
       m_renderer.TriggerVolumeOsd();
       m_renderer.TriggerFlyText(
@@ -105,10 +105,10 @@ void Application::SetupCallbacks() {
       break;
     }
     case Window::HK_VOL_DOWN_25: {
-      float vol = m_audioPlayer.GetVolume() - 0.25f;
+      float vol = m_audioManager.GetVolume() - 0.25f;
       if (vol < 0.0f)
         vol = 0.0f;
-      m_audioPlayer.SetVolume(vol);
+      m_audioManager.SetVolume(vol);
       m_config.SetDefaultVolume(vol);
       m_renderer.TriggerVolumeOsd();
       m_renderer.TriggerFlyText(
@@ -169,8 +169,8 @@ void Application::SetupCallbacks() {
   });
 
   m_window.SetSkipCommandCallback([this](float offset) {
-    float pos = m_audioPlayer.GetPositionSeconds();
-    m_audioPlayer.Seek(pos + offset);
+    float pos = m_audioManager.GetPositionSeconds();
+    m_audioManager.Seek(pos + offset);
   });
 
   m_window.SetPlaylistScrollCallback([this](int delta) {
@@ -232,7 +232,7 @@ void Application::SetupCallbacks() {
   });
 
   m_window.SetVolumeScrollCallback([this](int delta) {
-    float vol = m_audioPlayer.GetVolume();
+    float vol = m_audioManager.GetVolume();
     if (delta > 0) {
       vol += 0.05f;
     } else if (delta < 0) {
@@ -242,7 +242,7 @@ void Application::SetupCallbacks() {
       vol = 1.0f;
     if (vol < 0.0f)
       vol = 0.0f;
-    m_audioPlayer.SetVolume(vol);
+    m_audioManager.SetVolume(vol);
     m_config.SetDefaultVolume(vol);
     m_renderer.TriggerVolumeOsd();
     if (delta != 0) {
@@ -289,8 +289,8 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
   m_thumbnailDatabase.Initialize();
   m_thumbCacher.Initialize();
 
-  if (m_audioPlayer.Initialize()) {
-    m_audioPlayer.SetVolume(m_config.GetDefaultVolume());
+  if (m_audioManager.Initialize()) {
+    m_audioManager.SetVolume(m_config.GetDefaultVolume());
     std::wstring defPlaylist = m_config.GetDefaultPlaylistPath();
     m_playlistManager.LoadFromFile(defPlaylist, &m_framingDb);
     m_playlistManager.RebuildQueue(m_config.GetShuffleMode());
