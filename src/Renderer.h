@@ -73,10 +73,7 @@ public:
      */
     void ReloadResources();
 
-    /**
-     * @brief 背景アートを設定する。
-     */
-    void SetBackgroundArt(ID2D1Bitmap* bitmap);
+    // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (SetBackgroundArt)
 
     void SetThumbnailDatabase(ThumbnailDatabase* db);
 
@@ -84,15 +81,7 @@ public:
 
     ID2D1DeviceContext* GetD2DContext() const { return m_d2dContext.Get(); }
     IWICImagingFactory* GetWicFactory() const { return m_wicFactory.Get(); }
-    /**
-     * @brief 背景アートのフレーミング情報を設定する
-     */
-    void SetBackgroundFraming(float offsetX, float offsetY, float scale);
-
-    /**
-     * @brief 指定されたスケールと現在の描画対象を元に、オフセットを有効範囲内にクランプする
-     */
-    void ClampArtFraming(float scale, float& offsetX, float& offsetY);
+    // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (SetBackgroundFraming, ClampArtFraming)
 
     /**
      * @brief フォーカスされているプレイリストインデックスを設定する
@@ -173,7 +162,7 @@ private:
 
     Microsoft::WRL::ComPtr<IWICImagingFactory> m_wicFactory;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_placeholderArtBitmap;
-    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_backgroundArtBitmap;
+    // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (m_backgroundArtBitmap)
 
 
 
@@ -185,9 +174,7 @@ private:
     HWND m_hwnd;
     const ConfigManager* m_config;
     float m_dpiScale = 1.0f;
-    float m_bgOffsetX = 0.0f;
-    float m_bgOffsetY = 0.0f;
-    float m_bgScale = 1.0f;
+    // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (m_bgOffsetX, m_bgOffsetY, m_bgScale)
     float m_controlAlpha = 0.0f;
     float m_controlLeaveTimer = 0.0f;
     float m_osdVolumeAlpha = 0.0f;

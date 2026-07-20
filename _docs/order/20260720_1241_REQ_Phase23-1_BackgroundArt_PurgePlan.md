@@ -80,3 +80,28 @@
 #### 【絶対遵守ルール (Constraints)】
 *   **コンテキストの厳守**: 本タスクでは `Application` 層のロードおよび伝達処理のパージのみを行うこと。他ファイル（`Renderer` や `ThumbCacher` など）の修正は後続のタスクで行うため、この段階では絶対に触れないこと[2, 3]。
 
+-------------------------------------------------------------------------------
+
+##### 作業指示書 REQ: Phase 23-1 タスク3: Renderer層の背景アート機構の完全パージ (実装実行)
+*  ルール: D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  開発資料:D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  実装計画書:D:\ozlab\oztone\_docs\logs\20260720_1246_RES_Phase23-1_BackgroundArt_PurgePlan.md
+
+###### 【作業手順（厳守事項）】
+本プロンプトは(Phase 23-1 タスク3: Renderer層の背景アート機構の完全パージ)のHotfixである。必ず以下の順序で作業を行うこと。
+1. ルール（PROJECT_CONSTITUTION.md）および開発資料（PROJECT_ARCHITECTURE.md）を熟読・把握すること。
+2. 実装計画書（20260720_1246_RES_Phase23-1_BackgroundArt_PurgePlan.md）を読み、現在の状況と今回の修正スコープを確認すること。
+3. 上記を確認した後、以下の【実装要件】に従って **「タスク3のみ」** の実装を開始し、ソースコードの修正を実行すること。絶対にタスク4以降をフライングで実行しないこと。
+4. コード修正が完全に終わった後、既存の作業レポート（20260720_1246_RES_Phase23-1_BackgroundArt_PurgePlan.md）のタスク3の項目に、既存実装Hotfix追記対応時テンプレート（D:\ozlab\oztone\_docs\RES(AddHotfix)_template.md）を用いて作業の詳細を追記すること。
+5. チャットにて「実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+###### 【実装要件】
+*   **対象ファイル**: `src/Renderer.h`, `src/Renderer.cpp`, `src/Renderer_Draw.cpp`
+*   `Renderer.h` および `Renderer.cpp` から `SetBackgroundArt`, `SetBackgroundFraming`, `ClampArtFraming` メソッドの定義と実装を完全に削除する。
+*   `Renderer.h` から `m_backgroundArtBitmap` （背景画像保持用）, `m_bgOffsetX`, `m_bgOffsetY`, `m_bgScale` メンバ変数を完全に削除する。
+*   `Renderer_Draw.cpp` の `DrawBackground` メソッド内において、`ID2D1Bitmap` を用いた画像描画ロジックとそれに伴うレイアウト取得処理を削除・無効化する。
+    *   ※指示通り、`m_config->GetBgDarkenOpacity()` と `m_bgDarkenBrush` を用いた**ダークオーバーレイ（FillRectangle）の描画処理のみはそのまま残す**こと。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **未来への結線マーカーの徹底**: 後続のフェーズで新設する「背景マネージャ」へ容易に再結線できるようにするため、メソッドを削除した箇所や `DrawBackground` 内の画像描画処理を削除・無効化した箇所には、必ず `// [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること` といった明確なマーカー付きコメントを残すこと。完全に跡形もなく消し去るのではなく、コードの「接点（配線跡）」を明示すること。
+*   **コンテキストの厳守**: 本タスクでは `Renderer` 層のパージのみを行うこと。他ファイルの修正は後続のタスクで行うため、絶対に触れないこと。

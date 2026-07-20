@@ -38,35 +38,11 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isVolumeHovere
 void Renderer::DrawBackground() {
     if (!m_config) return;
 
-    int bgMode = m_config->GetBackgroundArtMode();
-    ID2D1Bitmap* nowBitmap = nullptr;
-    
-    if (bgMode == 0) {
-        nowBitmap = m_backgroundArtBitmap ? m_backgroundArtBitmap.Get() : nullptr;
-    } else if (bgMode == 2) {
-        nowBitmap = m_placeholderArtBitmap.Get();
-    }
-
     D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
     float logicWidth = renderTargetSize.width / m_dpiScale;
     float logicHeight = renderTargetSize.height / m_dpiScale;
-    float bgOpacity = m_config->GetBgOpacity();
 
-    ID2D1Bitmap* bmpNow = nowBitmap;
-    if (!bmpNow && bgMode == 0) {
-        bmpNow = m_placeholderArtBitmap.Get();
-    }
-    
-    if (bmpNow) {
-        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, bmpNow->GetSize(), m_bgOffsetX, m_bgOffsetY, m_bgScale);
-        m_d2dContext->DrawBitmap(
-            bmpNow,
-            &layout.destRect,
-            bgOpacity,
-            D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
-            &layout.srcRect
-        );
-    }
+    // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (画像描画ロジック)
 
     if (m_config->GetBgDarkenOpacity() > 0.0f && m_bgDarkenBrush) {
         m_bgDarkenBrush->SetOpacity(m_config->GetBgDarkenOpacity());

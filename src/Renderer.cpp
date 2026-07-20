@@ -6,43 +6,15 @@ Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_c
 
 Renderer::~Renderer() {}
 
-void Renderer::SetBackgroundArt(ID2D1Bitmap* bitmap) {
-    m_backgroundArtBitmap = bitmap;
-}
+// [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (SetBackgroundArt)
 
 void Renderer::SetThumbnailDatabase(ThumbnailDatabase* db) {
     m_thumbDb = db;
 }
 
-void Renderer::SetBackgroundFraming(float offsetX, float offsetY, float scale) {
-    m_bgOffsetX = offsetX;
-    m_bgOffsetY = offsetY;
-    m_bgScale = scale;
-}
+// [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (SetBackgroundFraming)
 
-void Renderer::ClampArtFraming(float scale, float& offsetX, float& offsetY) {
-    if (!m_d2dContext) return;
-    int bgMode = m_config ? m_config->GetBackgroundArtMode() : 0;
-    ID2D1Bitmap* artBitmap = nullptr;
-    if (bgMode == 0) {
-        artBitmap = m_backgroundArtBitmap ? m_backgroundArtBitmap.Get() : m_placeholderArtBitmap.Get();
-    } else if (bgMode == 2) {
-        artBitmap = m_placeholderArtBitmap.Get();
-    }
-    if (!artBitmap) return;
-
-    D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
-    float logicWidth = renderTargetSize.width / m_dpiScale;
-    float logicHeight = renderTargetSize.height / m_dpiScale;
-    
-    float maxOffsetX, maxOffsetY;
-    LayoutCalculator::CalculateArtFramingBounds(logicWidth, logicHeight, artBitmap->GetSize(), scale, maxOffsetX, maxOffsetY);
-
-    if (offsetX > maxOffsetX) offsetX = maxOffsetX;
-    if (offsetX < -maxOffsetX) offsetX = -maxOffsetX;
-    if (offsetY > maxOffsetY) offsetY = maxOffsetY;
-    if (offsetY < -maxOffsetY) offsetY = -maxOffsetY;
-}
+// [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (ClampArtFraming)
 
 void Renderer::SetFocusedPlaylistIndex(std::optional<size_t> idx) {
     m_focusedPlaylistIndex = idx;

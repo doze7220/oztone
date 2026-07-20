@@ -24,7 +24,7 @@
 ## 3. 実装タスクリスト
 - [x] タスク1: TagManagerの純化（画像抽出のパージ）
 - [x] タスク2: Application層のロード処理のパージ
-- [ ] タスク3: Renderer層の背景アート機構の完全パージ
+- [x] タスク3: Renderer層の背景アート機構の完全パージ
 - [ ] タスク4: 潜在的な背景読み込みロジックのパージ
 - [ ] タスク5: ThumbCacher内のサムネイル生成時画像抽出処理のパージ
 
@@ -77,6 +77,20 @@
 - `Renderer.h` から `m_backgroundArtBitmap` （背景画像保持用）, `m_bgOffsetX`, `m_bgOffsetY`, `m_bgScale` メンバ変数を削除する。
 - `Renderer_Draw.cpp` の `DrawBackground` メソッド内において、`ID2D1Bitmap` を用いた画像描画ロジックとそれに伴うレイアウト取得処理を完全削除する。
 - 指示に従い、同メソッド内の `m_config->GetBgDarkenOpacity()` と `m_bgDarkenBrush` を用いたダークオーバーレイ（`FillRectangle`）の描画処理のみは残す。
+
+    #### HOTFIX3 (タスク3完了報告)
+    ##### 原因・理由: Renderer層からの背景アート描画・関連機能の完全パージ
+        - 将来の「背景マネージャ」への移譲に備え、現行のRenderer層におけるフル解像度アルバムアートの直接保持・描画、フレーミング設定の各種メソッドおよびメンバ変数を完全に解体し、接点マーカーを残すため。
+
+    ##### 対象ファイル: 
+        - `src/Renderer.h`
+        - `src/Renderer.cpp`
+        - `src/Renderer_Draw.cpp`
+
+    ##### 対応: 背景画像描画ロジックおよび関連メンバ・メソッドのパージと結線マーカー付与
+        - `Renderer.h`: `SetBackgroundArt`, `SetBackgroundFraming`, `ClampArtFraming` の定義、および `m_backgroundArtBitmap`, `m_bgOffsetX`, `m_bgOffsetY`, `m_bgScale` を削除し、後日結線用のマーカーコメントを付与。
+        - `Renderer.cpp`: `SetBackgroundArt`, `SetBackgroundFraming`, `ClampArtFraming` の実装を完全に削除し、後日結線用のマーカーコメントを付与。
+        - `Renderer_Draw.cpp`: `DrawBackground` メソッド内において、画像描画ロジック（`DrawBitmap` など）とレイアウト計算処理を削除し結線用のマーカーコメントを付与。ダークオーバーレイ描画の処理のみ残存させた。
 
 ### タスク4: 潜在的な背景読み込みロジックのパージ
 #### 対象ファイル: `src/Renderer.h`, `src/Renderer_Image.cpp`
