@@ -45,8 +45,15 @@ void ConfigManager::SetLockWindowPosition(bool lock) {
 
 void ConfigManager::SetBackgroundArtMode(int mode) {
   m_backgroundArtMode = mode;
-  WritePrivateProfileStringW(L"Layout_Window", L"BackgroundArtMode",
+  WritePrivateProfileStringW(L"Background", L"BackgroundArtMode",
                              std::to_wstring(mode).c_str(),
+                             m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetCrossfadeDuration(float duration) {
+  m_crossfadeDuration = duration;
+  WritePrivateProfileStringW(L"Background", L"CrossfadeDuration",
+                             std::to_wstring(duration).c_str(),
                              m_iniFilePath.c_str());
 }
 
@@ -64,7 +71,8 @@ void ConfigManager::LoadWindowSettings() {
   m_windowWidth = LoadOrWriteInt(L"Window", L"WindowWidth");
   m_windowHeight = LoadOrWriteInt(L"Window", L"WindowHeight");
 
-  m_bgOpacity = LoadOrWriteFloat(L"Layout_Window", L"BgOpacity");
-  m_bgDarkenOpacity = LoadOrWriteFloat(L"Layout_Window", L"BgDarkenOpacity");
-  m_backgroundArtMode = LoadOrWriteInt(L"Layout_Window", L"BackgroundArtMode");
+  m_bgOpacity = LoadOrWriteFloat(L"Background", L"BgOpacity");
+  m_bgDarkenOpacity = LoadOrWriteFloat(L"Background", L"BgDarkenOpacity");
+  m_backgroundArtMode = LoadOrWriteInt(L"Background", L"BackgroundArtMode");
+  m_crossfadeDuration = LoadOrWriteFloat(L"Background", L"CrossfadeDuration");
 }

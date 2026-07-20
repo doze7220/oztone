@@ -52,10 +52,11 @@ ShadowOffsetX=2.0
 ShadowOffsetY=2.0
 ShadowOpacity=0.7
 
-[Layout_Window]
+[Background]
 BgOpacity=0.8
 BgDarkenOpacity=0.4
 BackgroundArtMode=0
+CrossfadeDuration=0.5
 
 [Layout_AppLogo]
 X=16

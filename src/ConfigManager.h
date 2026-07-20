@@ -46,6 +46,9 @@ public:
     float GetBgOpacity() const { return m_bgOpacity; }
     int GetBackgroundArtMode() const { return m_backgroundArtMode; }
     void SetBackgroundArtMode(int mode);
+    
+    float GetCrossfadeDuration() const { return m_crossfadeDuration; }
+    void SetCrossfadeDuration(float duration);
 
     int GetVisualizerMode() const { return m_visualizerMode; }
     void SetVisualizerMode(int mode);
@@ -484,6 +487,7 @@ private:
     float m_bgDarkenOpacity;
     float m_bgOpacity;
     int m_backgroundArtMode;
+    float m_crossfadeDuration;
     int m_visualizerMode;
     bool m_enablePreScan = true;
     float m_highFreqNoiseThreshold;
