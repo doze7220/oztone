@@ -26,7 +26,7 @@
 ## 3. 実装タスクリスト
 [x] タスク1: INI設定の `[Background]` セクション昇格と新規パラメータ追加
     - ConfigManagerにおけるパース/保存処理の更新、DefaultIniの書き換え。
-[ ] タスク2: `BackgroundLayer` 構造体の定義と `BackgroundManager` レイヤー構築ロジック追加
+[x] タスク2: `BackgroundLayer` 構造体の定義と `BackgroundManager` レイヤー構築ロジック追加
     - BackgroundLayerの定義と、`GetLayers()` による4層構築ロジックの実装。
 [ ] タスク3: スワップ式クロスフェードのロジック実装とフレーミング管理の移行
     - UpdateAnimationの改修、OLD/NEW独立のフレーミング保持、1.0f到達時のスワップ処理の実装。
@@ -48,9 +48,14 @@
 
 ### タスク2: `BackgroundLayer` 構造体の定義と `BackgroundManager` レイヤー構築ロジック追加
     **【対象ファイル】**
-    - 
+    - `src/BackgroundManager.h`
+    - `src/BackgroundManager.cpp`
+    - `src/Application_Initialize.cpp`
     **【作業内容】**
-    - 
+    - `BackgroundManager.h` にて、描画レイヤーの種類を示す `BackgroundLayerType` 列挙型と、画像・不透明度・カラー・座標・拡大率を保持する `BackgroundLayer` 構造体を定義（Doxygenスタイルのコメントを付与）。
+    - `BackgroundManager` が `ConfigManager` の設定を参照できるように、`Initialize` メソッドの引数に `const ConfigManager*` を追加。
+    - `Application_Initialize.cpp` にて、`BackgroundManager::Initialize` の呼び出し時に `&m_config` を渡すよう修正。
+    - `BackgroundManager.cpp` にて `GetLayers()` メソッドを実装。現在の `BackgroundArtMode` と `BgDarkenOpacity` の設定、および `m_fadeProgress` に基づき、下敷き（Black）、OLD画像（Opacity: 1.0f）、NEW画像（Opacity: fadeProgress）、ポストエフェクト（Black、Opacity: BgDarkenOpacity）の最大4層からなるレイヤーリストを動的構築して返却するロジックを追加。
 
 ### タスク3: スワップ式クロスフェードのロジック実装とフレーミング管理の移行
     **【対象ファイル】**

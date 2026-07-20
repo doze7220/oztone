@@ -6,8 +6,33 @@
 #include <mutex>
 #include <condition_variable>
 #include <queue>
+#include <vector>
 #include <wincodec.h>
 #include <wrl/client.h>
+#include <d2d1.h>
+
+class ConfigManager;
+
+/**
+ * @brief 背景レイヤーの描画種別
+ */
+enum class BackgroundLayerType {
+    SolidColor, ///< 単色塗りつぶし
+    Image,      ///< 画像描画
+};
+
+/**
+ * @brief Rendererに渡すための1層分の描画指示データ
+ */
+struct BackgroundLayer {
+    BackgroundLayerType type = BackgroundLayerType::Image;
+    Microsoft::WRL::ComPtr<IWICFormatConverter> image;
+    float x = 0.0f;
+    float y = 0.0f;
+    float scale = 1.0f;
+    float opacity = 1.0f;
+    D2D1_COLOR_F color = { 0.0f, 0.0f, 0.0f, 1.0f };
+};
 
 /**
  * @brief 背景画像のロードおよびクロスフェードアニメーションを統括する司令塔
@@ -23,7 +48,7 @@ public:
     /**
      * @brief 初期化処理。ワーカー・スレッドを起動する
      */
-    void Initialize();
+    void Initialize(const ConfigManager* config);
 
     /**
      * @brief 終了処理。ワーカー・スレッドを安全に停止・破棄する
@@ -46,6 +71,11 @@ public:
     Microsoft::WRL::ComPtr<IWICFormatConverter> GetOldWicImage() const { return m_oldWicImage; }
     float GetFadeProgress() const { return m_fadeProgress; }
 
+    /**
+     * @brief 現在の描画状態に応じたレイヤーリストを取得する
+     */
+    std::vector<BackgroundLayer> GetLayers() const;
+
 private:
     /**
      * @brief 非同期画像ロードを行うワーカー・スレッドのメインループ
@@ -53,6 +83,8 @@ private:
     void WorkerLoop();
 
 private:
+    const ConfigManager* m_config = nullptr;
+
     std::thread m_workerThread;
     std::mutex m_mutex;
     std::condition_variable m_cv;

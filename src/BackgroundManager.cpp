@@ -1,4 +1,5 @@
 #include "BackgroundManager.h"
+#include "ConfigManager.h"
 #include "FileManager.h"
 #include <objbase.h>
 #include <vector>
@@ -15,12 +16,13 @@ BackgroundManager::~BackgroundManager()
     Uninitialize();
 }
 
-void BackgroundManager::Initialize()
+void BackgroundManager::Initialize(const ConfigManager* config)
 {
     if (m_isRunning) {
         return;
     }
 
+    m_config = config;
     m_isRunning = true;
     m_workerThread = std::thread(&BackgroundManager::WorkerLoop, this);
 }
@@ -64,16 +66,73 @@ void BackgroundManager::UpdateAnimation(float deltaTime)
         }
     }
 
+
     if (m_fadeProgress < 1.0f) {
-        // クロスフェード完了までの時間（秒）
-        const float FADE_DURATION = 0.5f;
-        m_fadeProgress += deltaTime / FADE_DURATION;
+        // クロスフェード完了までの時間（秒）を ConfigManager から取得
+        float fadeDuration = 0.5f;
+        if (m_config) {
+            fadeDuration = m_config->GetCrossfadeDuration();
+        }
+        if (fadeDuration <= 0.0f) {
+            m_fadeProgress = 1.0f;
+        } else {
+            m_fadeProgress += deltaTime / fadeDuration;
+        }
+
         if (m_fadeProgress >= 1.0f) {
             m_fadeProgress = 1.0f;
             // フェード完了時に古い画像を解放する
             m_oldWicImage.Reset();
         }
     }
+}
+
+std::vector<BackgroundLayer> BackgroundManager::GetLayers() const {
+    std::vector<BackgroundLayer> layers;
+    if (!m_config) return layers;
+
+    // 1. 下敷き
+    BackgroundLayer baseLayer;
+    baseLayer.type = BackgroundLayerType::SolidColor;
+    baseLayer.color = { 0.0f, 0.0f, 0.0f, 1.0f }; // Black
+    baseLayer.opacity = 1.0f;
+    layers.push_back(baseLayer);
+
+    int bgMode = m_config->GetBackgroundArtMode();
+
+    if (bgMode == 0) {
+        // 2. OLD画像
+        if (m_oldWicImage) {
+            BackgroundLayer oldLayer;
+            oldLayer.type = BackgroundLayerType::Image;
+            oldLayer.image = m_oldWicImage;
+            oldLayer.opacity = 1.0f;
+            layers.push_back(oldLayer);
+        }
+
+        // 3. NEW画像
+        if (m_currentWicImage) {
+            BackgroundLayer newLayer;
+            newLayer.type = BackgroundLayerType::Image;
+            newLayer.image = m_currentWicImage;
+            newLayer.opacity = m_fadeProgress;
+            layers.push_back(newLayer);
+        }
+    }
+    // Note: Playback mode (bgMode == 2) is handled by Renderer with placeholder,
+    // or can be added here if BackgroundManager manages the placeholder image later.
+
+    // 4. ポストエフェクト (カラーフィル)
+    float darken = m_config->GetBgDarkenOpacity();
+    if (darken > 0.0f) {
+        BackgroundLayer overlay;
+        overlay.type = BackgroundLayerType::SolidColor;
+        overlay.color = { 0.0f, 0.0f, 0.0f, 1.0f }; // Black
+        overlay.opacity = darken;
+        layers.push_back(overlay);
+    }
+
+    return layers;
 }
 
 void BackgroundManager::WorkerLoop()
