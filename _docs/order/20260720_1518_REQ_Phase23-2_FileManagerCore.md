@@ -107,3 +107,53 @@
 
 #### 【絶対遵守ルール (Constraints)】
 *   **スコープの厳守** : 本タスクの対象は `src/FileManager.cpp` の新規作成および実装のみである。`Application` 等の外部クラスの配線付け替え（タスク3）や、旧 `TagManager` ファイルの削除・CMakeの更新（タスク4）などは次以降のタスクで行うため、絶対に実行しないこと。
+
+-------------------------------------------------------------------------------
+
+##### 作業指示書 REQ: Phase 23-2 Task 3 : 外部クラスの配線の付け替え (実装実行)
+*  ルール: D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  開発資料:D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  実装計画書:D:\ozlab\oztone\_docs\logs\20260720_1558_RES_Phase23-2_FileManager_and_TagManager.md
+
+###### 【作業手順（厳守事項）】
+本プロンプトはPhase 23-2 Task 3: 外部クラスの配線の付け替えである。必ず以下の順序で作業を行うこと。
+1. ルール（PROJECT_CONSTITUTION.md）および開発資料（PROJECT_ARCHITECTURE.md）を熟読・把握すること。
+2. 実装計画書（20260720_1558_RES_Phase23-2_FileManager_and_TagManager.md）を読み、今回の自分のスコープが「タスク3」のみであることを確認すること。
+3. 上記を確認した後、以下の【実装要件】に従って **「タスク3のみ」** の実装を開始し、ソースコードの修正を実行すること。絶対にタスク4以降をフライングで実行しないこと。
+4. 作業完了後、既存の作業レポート（20260720_1558_RES_Phase23-2_FileManager_and_TagManager.md）の末尾に、既存実装Hotfix追記対応時テンプレート（D:\ozlab\oztone\_docs\RES(AddHotfix)_template.md）を用いて作業の詳細を追記すること。
+5. チャットにて「タスク3の実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+###### 【実装要件】
+*  `src/Application.h` および各 `src/Application_*.cpp` (主に `Application_Playback.cpp` 等)、`src/TrackAnalyzer.cpp` など、現在 `TagManager` を利用してメタデータや画像を取得している箇所を調査・修正すること。
+*  旧 `TagManager` のインスタンスやポインタを介したメソッド呼び出しを、タスク1・2で実装した `FileManager::ExtractTextMetadata` および `FileManager::ExtractAlbumArtBinary` などの静的メソッドの呼び出しへと綺麗に結線し直すこと。
+*  各呼び出し元のファイルにおいて、不要となった `#include "TagManager.h"` を削除し、新たに `#include "FileManager.h"` を追加すること。
+*  旧 `TagManager` のインスタンス変数（`m_tagManager` など）が宣言されている場合は削除すること。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スコープの厳守** : 本タスクの対象は、既存クラスから `FileManager` への呼び出し（結線）の書き換えのみである。旧 `TagManager` クラスのファイル (`.h`/`.cpp`) 自体の物理的な削除や、`CMakeLists.txt` の更新（タスク4）は絶対にフライングで実行しないこと。
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 23-2 Task 4 : TagManagerの完全パージとビルド環境の更新
+*  ルール: D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  開発資料:D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  実装計画書:D:\ozlab\oztone\_docs\logs\20260720_1558_RES_Phase23-2_FileManager_and_TagManager.md
+
+#### 【作業手順（厳守事項）】
+本プロンプトはTask 4: TagManagerの完全パージとビルド環境の更新である。必ず以下の順序で作業を行うこと。
+1. ルール（PROJECT_CONSTITUTION.md）および開発資料（PROJECT_ARCHITECTURE.md）を熟読・把握すること。
+2. 実装計画書（20260720_1558_RES_Phase23-2_FileManager_and_TagManager.md）を読み、今回の自分のスコープが「タスク4」のみであることを確認すること。
+3. 上記を確認した後、以下の【実装要件】に従って **「タスク4のみ」** の実装を開始し、ソースコードおよびCMakeの修正を実行すること。絶対にタスク5以降をフライングで実行しないこと。
+4. 作業完了後、既存の作業レポート（20260720_1558_RES_Phase23-2_FileManager_and_TagManager.md）の「タスク4」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+5. チャットにて「TagManagerの完全パージとビルド環境の更新(Phase 23-2)がすべて完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+これまでメタデータ抽出を担っていた旧クラスのファイル `src/TagManager.h` および `src/TagManager.cpp` をプロジェクトディレクトリから物理的に削除し、ビルド環境を更新する。
+*   **要件1: TagManagerの完全パージ**
+    *  `src/TagManager.h` および `src/TagManager.cpp` をファイルシステムから物理的に削除（パージ）すること。
+*   **要件2: ビルド環境の更新**
+    *  `CMakeLists.txt` を開き、ソースリストおよびヘッダリストから `src/TagManager.cpp` および `src/TagManager.h` を削除すること。
+    *  同 `CMakeLists.txt` に、タスク1・2で新設した `src/FileManager.cpp` および `src/FileManager.h` が確実に追加されていることを確認（なければ追加）し、`TagLib` のリンク設定（`TAGLIB_STATIC` 等）が維持された状態で正常にビルドが通るように構成すること。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スコープの厳守** : 本タスクの対象は旧ファイルの削除と `CMakeLists.txt` の更新のみである。ドキュメントの更新（タスク5）などは次以降のタスクで行うため、絶対に実行しないこと。

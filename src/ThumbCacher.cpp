@@ -1,6 +1,6 @@
 #include "ThumbCacher.h"
 #include "ThumbnailDatabase.h"
-#include "TagManager.h"
+#include "FileManager.h"
 #include <wincodec.h>
 #include <wrl/client.h>
 #include <cmath>

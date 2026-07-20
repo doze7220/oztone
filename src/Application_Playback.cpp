@@ -79,23 +79,23 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
       if (m_trackDatabase.GetMetadata(path, meta) && meta.isMetaLoaded) {
         return meta;
       } else {
-        TagManager tempTag;
-        if (tempTag.Load(path)) {
-          meta.title = tempTag.GetTitle();
-          meta.artist = tempTag.GetArtist();
-          if (meta.title.empty()) {
+          FileManager::TextMetadata fmMeta;
+          if (FileManager::ExtractTextMetadata(path, fmMeta)) {
+            meta.title = fmMeta.title;
+            meta.artist = fmMeta.artist;
+            if (meta.title.empty()) {
+              try { meta.title = std::filesystem::path(path).filename().wstring(); } catch (...) { meta.title = L"UNKNOWN"; }
+            }
+            if (meta.artist.empty()) meta.artist = L"---";
+          } else {
             try { meta.title = std::filesystem::path(path).filename().wstring(); } catch (...) { meta.title = L"UNKNOWN"; }
+            meta.artist = L"---";
           }
-          if (meta.artist.empty()) meta.artist = L"---";
-        } else {
-          try { meta.title = std::filesystem::path(path).filename().wstring(); } catch (...) { meta.title = L"UNKNOWN"; }
-          meta.artist = L"---";
-        }
         return meta;
       }
     };
 
-    m_tagManager.Load(track);
+
     // [Phase23-1] 背景画像読み込み・デコード処理および
     // 背景フレーミングの設定伝達処理をパージ
 
@@ -120,10 +120,10 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
 }
 
 void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
-  TagManager localTagManager;
-  if (localTagManager.Load(filepath)) { // 画像抽出をスキップしてテキスト情報のみ取得
-    std::wstring title = localTagManager.GetTitle();
-    std::wstring artist = localTagManager.GetArtist();
+  FileManager::TextMetadata fmMeta;
+  if (FileManager::ExtractTextMetadata(filepath, fmMeta)) {
+    std::wstring title = fmMeta.title;
+    std::wstring artist = fmMeta.artist;
     if (title.empty()) {
       try {
         title = std::filesystem::path(filepath).filename().wstring();
@@ -147,7 +147,7 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
       if (needsUpdate) {
         currentMeta.title = title;
         currentMeta.artist = artist;
-        currentMeta.timeString = localTagManager.GetTimeString();
+        currentMeta.timeString = fmMeta.durationStr;
         currentMeta.isMetaLoaded = true;
         m_trackDatabase.UpdateMetadata(filepath, currentMeta);
         std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
@@ -160,7 +160,7 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
         currentMeta.filepath = filepath;
         currentMeta.title = title;
         currentMeta.artist = artist;
-        currentMeta.timeString = localTagManager.GetTimeString();
+        currentMeta.timeString = fmMeta.durationStr;
         currentMeta.isMetaLoaded = true;
         m_trackDatabase.UpdateMetadata(filepath, currentMeta);
         std::wstring defaultPath = m_config.GetDefaultPlaylistPath();

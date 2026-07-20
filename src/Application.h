@@ -11,7 +11,7 @@
 #include "ConfigManager.h"
 #include "Renderer.h"
 #include "AudioPlayer.h"
-#include "TagManager.h"
+#include "FileManager.h"
 #include "PlaylistManager.h"
 #include "TrackAnalyzer.h"
 #include "TrackDatabase.h"
@@ -132,7 +132,7 @@ private:
     Window m_window;
     Renderer m_renderer;
     AudioPlayer m_audioPlayer;
-    TagManager m_tagManager;
+
     PlaylistManager m_playlistManager;
 
     // バックグラウンド解析データ

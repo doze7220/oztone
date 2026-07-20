@@ -25,7 +25,7 @@
     - `src/FileManager.h` を新規作成し、TagLib依存を隠蔽する窓口を定義する。
 [x] タスク2: FileManagerの実装（TagManagerロジックの移植）
     - `src/FileManager.cpp` を新規作成し、既存のTagLibを用いたメタデータ抽出ロジックをここに移植・カプセル化する。
-[ ] タスク3: 外部クラスの配線の付け替え
+[x] タスク3: 外部クラスの配線の付け替え
     - `Application` クラスや `TrackAnalyzer` クラスなどを開き、既存の `TagManager` へのアクセスを新設した `FileManager` へと綺麗に結線し直す。
 [ ] タスク4: TagManagerの完全パージとビルド環境の更新
     - 不要になった `src/TagManager.h` および `src/TagManager.cpp` をファイルシステムから物理削除する。
@@ -49,6 +49,20 @@
         - 抽出したメタデータをまとめる専用の構造体 `AudioMetadata` を定義した。
         - `FileManager` クラスを静的ユーティリティクラスとして設計し、`ExtractMetadata` メソッドを宣言した。
 
+    #### HOTFIX
+    ##### 原因・理由:FileManagerインターフェースの責務分離
+        - 解析スレッドが多数の曲を処理する際、重い画像バイナリを全てメモリにロードしてしまうとパフォーマンス低下を引き起こすため。
+        - 画像バイナリは必要な時にのみオンデマンドで取得すべきであるため、テキスト抽出と画像抽出の責務を分離した。
+
+    ##### 対象ファイル: 
+        - src/FileManager.h
+
+    ##### 対応:テキスト抽出と画像抽出のメソッド分割
+        - `AudioMetadata` 構造体から `coverArt` フィールドを削除し、軽量なテキスト情報のみを保持するように変更した。
+        - 既存の `ExtractMetadata` メソッドを `ExtractTextMetadata` にリネームした。
+        - 画像バイナリのみを抽出する専用メソッド `ExtractAlbumArtBinary` を新たに追加した。
+        - クラス外からの TagLib 依存隠蔽（Adapterパターン）は維持している。
+
 ### タスク2: FileManagerの実装（TagManagerロジックの移植）
     - `src/FileManager.cpp` を新規作成し、`ExtractTextMetadata` および `ExtractAlbumArtBinary` メソッドの実装を行った。
 
@@ -65,22 +79,21 @@
         - `ExtractAlbumArtBinary` で `TagLib::ID3v2::AttachedPictureFrame` からバイナリデータを取得し、`std::vector<BYTE>` として返却するように実装した。それぞれ必要な情報だけを抽出するストイックな処理とした。
 
 ### タスク3: 外部クラスの配線の付け替え
-    - （未着手）
+    #### 原因・理由:Phase 23-2 タスク3実装
+        - `TagManager` の廃止に向け、`Application`, `TrackAnalyzer`, `ThumbCacher` 等での `TagManager` 依存を `FileManager` に置き換えるため。
+
+    #### 対象ファイル: 
+        - src/Application.h
+        - src/Application_Playback.cpp
+        - src/TrackAnalyzer.cpp
+        - src/ThumbCacher.cpp
+
+    #### 対応:外部クラスの配線の付け替え
+        - 各ファイルの `#include "TagManager.h"` を `#include "FileManager.h"` に変更した。
+        - `Application.h` のメンバ変数 `m_tagManager` を削除した。
+        - `Application_Playback.cpp` および `TrackAnalyzer.cpp` のメタデータ抽出処理を、`TagManager` のインスタンスメソッドによる処理から `FileManager::ExtractTextMetadata` の静的メソッド呼び出しに変更し、`FileManager::TextMetadata` 構造体を受け取るように修正した。
+
 ### タスク4: TagManagerの完全パージとビルド環境の更新
     - （未着手）
 ### タスク5: ドキュメントの更新
     - （未着手）
-
-### HOTFIX1
-#### 原因・理由:FileManagerインターフェースの責務分離
-    - 解析スレッドが多数の曲を処理する際、重い画像バイナリを全てメモリにロードしてしまうとパフォーマンス低下を引き起こすため。
-    - 画像バイナリは必要な時にのみオンデマンドで取得すべきであるため、テキスト抽出と画像抽出の責務を分離した。
-
-#### 対象ファイル: 
-    - src/FileManager.h
-
-#### 対応:テキスト抽出と画像抽出のメソッド分割
-    - `AudioMetadata` 構造体から `coverArt` フィールドを削除し、軽量なテキスト情報のみを保持するように変更した。
-    - 既存の `ExtractMetadata` メソッドを `ExtractTextMetadata` にリネームした。
-    - 画像バイナリのみを抽出する専用メソッド `ExtractAlbumArtBinary` を新たに追加した。
-    - クラス外からの TagLib 依存隠蔽（Adapterパターン）は維持している。

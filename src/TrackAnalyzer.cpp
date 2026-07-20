@@ -2,7 +2,7 @@
 #include "PlaylistManager.h"
 #include "ConfigManager.h"
 #include "AudioPlayer.h"
-#include "TagManager.h"
+#include "FileManager.h"
 #include <windows.h>
 #include <filesystem>
 
@@ -44,7 +44,7 @@ void TrackAnalyzer::ClearQueue() {
 
 void TrackAnalyzer::ParseThreadFunc() {
     HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-    TagManager localTagManager;
+
 
     while (m_parseThreadRunning.load()) {
         std::wstring targetPath;
@@ -81,10 +81,11 @@ void TrackAnalyzer::ParseThreadFunc() {
         if (!isMetaLoaded) {
             std::wstring title, artist, timeString;
             try {
-                if (localTagManager.Load(targetPath)) {
-                    title = localTagManager.GetTitle();
-                    artist = localTagManager.GetArtist();
-                    timeString = localTagManager.GetTimeString();
+                FileManager::TextMetadata fmMeta;
+                if (FileManager::ExtractTextMetadata(targetPath, fmMeta)) {
+                    title = fmMeta.title;
+                    artist = fmMeta.artist;
+                    timeString = fmMeta.durationStr;
                     if (title.empty()) {
                         try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
                     }
