@@ -438,6 +438,7 @@ private:
 
     void LoadCommonSettings();
     void LoadWindowSettings();
+    void LoadBackgroundSettings();
     void LoadPlaylistSettings();
     void LoadPlaybackSettings();
     void LoadLogoMenuSettings();

@@ -157,6 +157,7 @@ void ConfigManager::LoadSettings() {
 
   LoadCommonSettings();
   LoadWindowSettings();
+  LoadBackgroundSettings();
   LoadPlaylistSettings();
   LoadPlaybackSettings();
   LoadLogoMenuSettings();

@@ -36,6 +36,7 @@ set(SOURCES
     src/Window_System.cpp
     src/ConfigManager.cpp
     src/ConfigManager_Window.cpp
+    src/ConfigManager_Background.cpp
     src/ConfigManager_Playlist.cpp
     src/ConfigManager_Playback.cpp
     src/ConfigManager_LogoMenu.cpp
