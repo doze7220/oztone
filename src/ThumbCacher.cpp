@@ -83,28 +83,7 @@ void ThumbCacher::WorkerLoop()
             continue;
         }
 
-        std::vector<BYTE> rawBinary = TagManager::ExtractAlbumArtBinary(filepath);
-        if (rawBinary.empty())
-        {
-            continue;
-        }
 
-        ConfigManager* config = m_db->GetConfig();
-        if (!config)
-        {
-            continue;
-        }
-
-        float size = config->GetThumbnailSize();
-        float quality = config->GetThumbnailJpegQuality();
-
-        std::vector<BYTE> cookedBinary = CookThumbnailImage(rawBinary, static_cast<UINT>(size), quality);
-        if (cookedBinary.empty())
-        {
-            continue;
-        }
-
-        m_db->StoreCookedData(thumbId, filepath, cookedBinary);
     }
 
     if (SUCCEEDED(hrInit))
