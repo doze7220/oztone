@@ -13,6 +13,23 @@ void TrackDrum::StartDrumAnimation(int relativeDistance,
                                   float maxDuration, float maxSpeed,
                                   std::function<TrackMetadata(int relativeIndex, DrumSlot* slot)> dataProvider,
                                   std::function<void()> onComplete) {
+    if (!m_isDrumInitialized) {
+        m_drumTargetPosition = 0;
+        m_drumAbsolutePosition = 0.0f;
+        if (dataProvider) {
+            TrackMetadata meta = dataProvider(0, &m_drumSlots[m_currentDrumSlotIndex]);
+            m_drumSlots[m_currentDrumSlotIndex].artBitmap = nullptr;
+            m_drumSlots[m_currentDrumSlotIndex].trackTitle = meta.title;
+            m_drumSlots[m_currentDrumSlotIndex].trackArtist = meta.artist;
+            m_drumSlots[m_currentDrumSlotIndex].trackNumber = meta.timeString;
+        }
+        m_isDrumInitialized = true;
+        if (onComplete) {
+            onComplete();
+        }
+        return;
+    }
+
     if (relativeDistance == 0) {
         if (dataProvider) {
             int slotIdx = (m_drumTargetPosition % 3 + 3) % 3;

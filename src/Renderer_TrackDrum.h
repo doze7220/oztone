@@ -35,6 +35,7 @@ private:
     void OnSlotAnimationCompleted();
     void PrefillAbsolute(int absolutePos);
 
+    bool m_isDrumInitialized = false;
     float m_indexStep = 1.0f;
     float m_drumAbsolutePosition = 0.0f;
     std::array<DrumSlot, 3> m_drumSlots;

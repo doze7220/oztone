@@ -19,7 +19,10 @@ struct SectorInfo {
 
 class ThumbnailDatabase {
 public:
+    static constexpr uint32_t NO_ART_THUMB_ID = 0;
+
     ThumbnailDatabase(ConfigManager* config);
+
     ~ThumbnailDatabase();
 
     void Initialize();

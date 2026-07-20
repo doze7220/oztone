@@ -97,7 +97,7 @@ void ThumbnailDatabase::Initialize() {
                     }
                 }
             }
-            m_nextId = maxId + 1;
+            m_nextId = (std::max)(1u, maxId + 1);
         }
 
         ifs.close();
@@ -134,11 +134,13 @@ uint32_t ThumbnailDatabase::GetOrGenerateThumbId(const std::wstring& filepath, b
 }
 
 bool ThumbnailDatabase::HasCookedData(uint32_t thumbId) {
+    if (thumbId == NO_ART_THUMB_ID) return false;
     std::lock_guard<std::mutex> lock(m_ioMutex);
     return m_sectorMap.find(thumbId) != m_sectorMap.end();
 }
 
 ID2D1Bitmap* ThumbnailDatabase::GetCachedThumbnailBitmap(uint32_t thumbId) {
+    if (thumbId == NO_ART_THUMB_ID) return nullptr;
     std::lock_guard<std::mutex> lock(m_mutex);
     auto it = m_cache.find(thumbId);
     if (it != m_cache.end()) {
@@ -153,6 +155,7 @@ ID2D1Bitmap* ThumbnailDatabase::GetCachedThumbnailBitmap(uint32_t thumbId) {
 }
 
 void ThumbnailDatabase::RequestThumbnailLoad(uint32_t thumbId, ID2D1RenderTarget* renderTarget, IWICImagingFactory* wicFactory) {
+    if (thumbId == NO_ART_THUMB_ID) return;
     if (m_isShuttingDown) return;
     if (!renderTarget || !wicFactory) return;
 
@@ -269,6 +272,7 @@ void ThumbnailDatabase::RequestThumbnailLoad(uint32_t thumbId, ID2D1RenderTarget
 }
 
 Microsoft::WRL::ComPtr<ID2D1Bitmap> ThumbnailDatabase::GetThumbnailBitmap(uint32_t thumbId, ID2D1RenderTarget* renderTarget, IWICImagingFactory* wicFactory) {
+    if (thumbId == NO_ART_THUMB_ID) return nullptr;
     if (!renderTarget || !wicFactory) return nullptr;
 
     {
