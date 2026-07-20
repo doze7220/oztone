@@ -69,6 +69,7 @@ set(SOURCES
     src/Widget_LogoMenu.cpp
     src/Widget_Osd.cpp
     src/AudioPlayer.cpp
+    src/AudioAnalyzer.cpp
     src/FileManager.cpp
     src/TrackDatabase.cpp
     src/TrackAnalyzer.cpp
@@ -103,6 +104,7 @@ set(HEADERS
     src/Widget_LogoMenu.h
     src/Widget_Osd.h
     src/AudioPlayer.h
+    src/AudioAnalyzer.h
     src/FileManager.h
     src/TrackDatabase.h
     src/TrackAnalyzer.h

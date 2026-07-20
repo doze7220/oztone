@@ -3,54 +3,12 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "AudioPlayer.h"
 #pragma warning(pop)
+#include "AudioAnalyzer.h"
 #include <complex>
 #include <cmath>
 #include <algorithm>
 
 namespace {
-    const size_t FFT_SIZE = 4096;
-    const double PI = 3.14159265358979323846;
-
-    size_t ReverseBits(size_t n, int bits) {
-        size_t reversed = 0;
-        for (int i = 0; i < bits; ++i) {
-            if (n & (1ULL << i)) {
-                reversed |= (1ULL << ((bits - 1) - i));
-            }
-        }
-        return reversed;
-    }
-
-    void PerformFFT(std::vector<std::complex<float>>& x) {
-        const size_t N = x.size();
-        if (N <= 1) return;
-        
-        int bits = 0;
-        while ((1ULL << bits) < N) bits++;
-        
-        for (size_t i = 0; i < N; ++i) {
-            size_t j = ReverseBits(i, bits);
-            if (j > i) {
-                std::swap(x[i], x[j]);
-            }
-        }
-        
-        for (size_t len = 2; len <= N; len <<= 1) {
-            float angle = -2.0f * static_cast<float>(PI) / len;
-            std::complex<float> wlen(std::cos(angle), std::sin(angle));
-            for (size_t i = 0; i < N; i += len) {
-                std::complex<float> w(1.0f, 0.0f);
-                for (size_t j = 0; j < len / 2; ++j) {
-                    std::complex<float> u = x[i + j];
-                    std::complex<float> v = x[i + j + len / 2] * w;
-                    x[i + j] = u + v;
-                    x[i + j + len / 2] = u - v;
-                    w *= wlen;
-                }
-            }
-        }
-    }
-
     void AudioPlayerOnProcess(void* pUserData, float* pFramesOut, ma_uint64 frameCount) {
         if (pUserData) {
             AudioPlayer* player = static_cast<AudioPlayer*>(pUserData);
@@ -81,7 +39,7 @@ bool AudioPlayer::Initialize() {
         return false;
     }
 
-    m_spectrumData.resize(FFT_SIZE / 2, 0.0f);
+    m_spectrumData.resize(AudioAnalyzer::FFT_SIZE / 2, 0.0f);
     m_initialized = true;
     return true;
 }
@@ -253,20 +211,20 @@ void AudioPlayer::ProcessAudioFrames(const float* pFrames, ma_uint64 frameCount,
         m_audioBuffer.push_back(monoSample);
     }
     
-    while (m_audioBuffer.size() >= FFT_SIZE) {
-        std::vector<std::complex<float>> fftData(FFT_SIZE);
-        for (size_t i = 0; i < FFT_SIZE; ++i) {
-            float window = 0.5f * (1.0f - std::cos(static_cast<float>(2.0 * PI * i / (FFT_SIZE - 1))));
+    while (m_audioBuffer.size() >= AudioAnalyzer::FFT_SIZE) {
+        std::vector<std::complex<float>> fftData(AudioAnalyzer::FFT_SIZE);
+        for (size_t i = 0; i < AudioAnalyzer::FFT_SIZE; ++i) {
+            float window = 0.5f * (1.0f - std::cos(static_cast<float>(2.0 * AudioAnalyzer::PI * i / (AudioAnalyzer::FFT_SIZE - 1))));
             fftData[i] = std::complex<float>(m_audioBuffer[i] * window, 0.0f);
         }
         
-        m_audioBuffer.erase(m_audioBuffer.begin(), m_audioBuffer.begin() + FFT_SIZE / 2);
+        m_audioBuffer.erase(m_audioBuffer.begin(), m_audioBuffer.begin() + AudioAnalyzer::FFT_SIZE / 2);
         
-        PerformFFT(fftData);
+        AudioAnalyzer::PerformFFT(fftData);
         
-        std::vector<float> spectrum(FFT_SIZE / 2);
+        std::vector<float> spectrum(AudioAnalyzer::FFT_SIZE / 2);
         float localMaxFreqIdx = 0.0f;
-        for (size_t i = 0; i < FFT_SIZE / 2; ++i) {
+        for (size_t i = 0; i < AudioAnalyzer::FFT_SIZE / 2; ++i) {
             spectrum[i] = std::abs(fftData[i]);
             if (m_isLearningValid) {
                 if (spectrum[i] > m_learningPeakAmplitude) {
@@ -295,76 +253,6 @@ void AudioPlayer::GetSpectrumData(std::vector<float>& outSpectrum) {
 }
 
 bool AudioPlayer::ScanAudioData(const std::wstring& filepath, float noiseThreshold, float& outPeakAmplitude, float& outMaxFrequency) {
-    ma_decoder decoder;
-    ma_result result = ma_decoder_init_file_w(filepath.c_str(), NULL, &decoder);
-    if (result != MA_SUCCESS) {
-        OutputDebugStringW((L"AudioPlayer::ScanAudioData failed to open file: " + filepath + L"\n").c_str());
-        return false;
-    }
-
-    float peakAmplitude = 0.0f;
-    ma_uint32 channels = decoder.outputChannels;
-    if (channels == 0) channels = 2;
-
-    const size_t CHUNK_SIZE = 4096;
-    std::vector<float> pcmBuffer(CHUNK_SIZE * channels);
-    std::vector<float> maxSpectrum(FFT_SIZE / 2, 0.0f);
-    
-    std::vector<float> audioWindow(FFT_SIZE);
-    size_t windowIdx = 0;
-
-    while (true) {
-        ma_uint64 framesRead = 0;
-        result = ma_decoder_read_pcm_frames(&decoder, pcmBuffer.data(), CHUNK_SIZE, &framesRead);
-        if (framesRead == 0) {
-            break;
-        }
-
-        for (ma_uint64 i = 0; i < framesRead; ++i) {
-            float monoSample = 0.0f;
-            for (ma_uint32 c = 0; c < channels; ++c) {
-                monoSample += pcmBuffer[i * channels + c];
-            }
-            monoSample /= static_cast<float>(channels);
-            
-
-            audioWindow[windowIdx++] = monoSample;
-            
-            if (windowIdx >= FFT_SIZE) {
-                std::vector<std::complex<float>> fftData(FFT_SIZE);
-                for (size_t j = 0; j < FFT_SIZE; ++j) {
-                    float window = 0.5f * (1.0f - std::cos(static_cast<float>(2.0 * PI * j / (FFT_SIZE - 1))));
-                    fftData[j] = std::complex<float>(audioWindow[j] * window, 0.0f);
-                }
-                
-                PerformFFT(fftData);
-                
-                for (size_t j = 0; j < FFT_SIZE / 2; ++j) {
-                    float mag = std::abs(fftData[j]);
-                    if (mag > peakAmplitude) {
-                        peakAmplitude = mag;
-                    }
-                    if (mag > maxSpectrum[j]) {
-                        maxSpectrum[j] = mag;
-                    }
-                }
-                
-                windowIdx = 0;
-            }
-        }
-    }
-
-    ma_decoder_uninit(&decoder);
-
-    outPeakAmplitude = peakAmplitude;
-
-    outMaxFrequency = static_cast<float>(FFT_SIZE / 2 - 1);
-    for (int i = static_cast<int>(FFT_SIZE / 2) - 1; i >= 0; --i) {
-        if (maxSpectrum[i] > noiseThreshold) {
-            outMaxFrequency = static_cast<float>(i);
-            break;
-        }
-    }
-
-    return true;
+    return AudioAnalyzer::ScanAudioData(filepath, noiseThreshold, outPeakAmplitude, outMaxFrequency);
 }
+

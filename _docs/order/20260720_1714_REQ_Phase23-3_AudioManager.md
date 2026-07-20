@@ -31,3 +31,31 @@
 
 ###### 【実装作業での絶対遵守ルール (Constraints)】
 *   **スコープの厳守**: 今回は `AudioManager` の新設と、既存音声クラス（AudioPlayer, TrackAnalyzerの音声部分）のカプセル化・配線付け替えのみを行う。将来的な「メモリ再生への移行（FileManagerとの結線）」などは後続フェーズで行うため、ファイルパスから再生している現在の miniaudio の挙動自体は無理に変更しなくてよい。
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 23-3 Task 1 : AudioAnalyzer の新設と ScanAudioData 処理の移管
+*  ルール: D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  開発資料:D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  実装計画書:D:\ozlab\oztone\_docs\logs\20260720_1717_RES_Phase23-3_AudioManager.md
+
+#### 【作業手順（厳守事項）】
+本プロンプトはPhase 23-3 Task 1: AudioAnalyzer の新設と ScanAudioData 処理の移管である。必ず以下の順序で作業を行うこと。
+1. ルール（PROJECT_CONSTITUTION.md）および開発資料（PROJECT_ARCHITECTURE.md）を熟読・把握すること。
+2. 実装計画書（20260720_1717_RES_Phase23-3_AudioManager.md）を読み、今回の自分のスコープが「タスク1」のみであることを確認すること。
+3. 上記を確認した後、以下の【実装要件】に従って **「タスク1のみ」** の実装を開始し、ソースコードの修正を実行すること。絶対にタスク2以降をフライングで実行しないこと。
+4. 作業完了後、既存の作業レポート（20260720_1717_RES_Phase23-3_AudioManager.md）の「タスク1」のチェックボックスを完了 [x] にし、詳細作業内容を追記すること。
+5. チャットにて「タスク1の実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+現在 `AudioPlayer` クラスが抱え込んでしまっている「波形スキャン（事前解析）」の責務を、専用のコンポーネントとして分離・独立させる。
+*   **要件1: AudioAnalyzer クラスの新設**
+    *   `src/AudioAnalyzer.h` および `src/AudioAnalyzer.cpp` を新規作成すること。
+*   **要件2: ScanAudioData 処理の移管**
+    *   現在 `src/AudioPlayer.h` / `.cpp` に実装されている `ScanAudioData` メソッド（およびそれに付随するFFT処理やヘルパー関数）を `AudioAnalyzer` に移植すること。
+    *   `AudioPlayer` 側からは該当のコードを完全に削除（カット）し、再生エンジンとしての純度を高める準備をすること。
+*   **要件3: CMakeLists.txt の更新**
+    *   新設した `src/AudioAnalyzer.cpp` および `src/AudioAnalyzer.h` を CMakeLists.txt に追加し、ビルドを通すこと。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スコープの厳守** : 本タスクは部品の切り離し（`AudioAnalyzer` の新設と `AudioPlayer` からのコード移動）のみを行う。`AudioPlayer` のリネーム（タスク2）や、他の外部クラスからの呼び出し箇所の修正（タスク4）は絶対にフライングで行わないこと。
