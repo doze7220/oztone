@@ -116,3 +116,31 @@
 
 #### 【絶対遵守ルール (Constraints)】
 *   **スコープの厳守** : 本タスクは `AudioManager` の新設（枠組み作り）のみを行う。`Application` や `TrackAnalyzer` など、他の外部クラスからの呼び出し箇所の書き換え（タスク4）は絶対にフライングで行わないこと。
+
+-------------------------------------------------------------------------------
+### 作業指示書 REQ: Phase 23-3 Task 4 : 外部クラスの配線付け替え
+*  ルール: D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  開発資料:D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  実装計画書:D:\ozlab\oztone\_docs\logs\20260720_1717_RES_Phase23-3_AudioManager.md
+
+#### 【作業手順（厳守事項）】
+本プロンプトはPhase 23-3 Task 4: 外部クラスの配線付け替えである。必ず以下の順序で作業を行うこと。
+1. ルール（PROJECT_CONSTITUTION.md）および開発資料（PROJECT_ARCHITECTURE.md）を熟読・把握すること。
+2. 実装計画書（20260720_1717_RES_Phase23-3_AudioManager.md）を読み、今回の自分のスコープが「タスク4」のみであることを確認すること。
+3. 上記を確認した後、以下の【実装要件】に従って **「タスク4のみ」** の実装を開始し、ソースコードの修正を実行すること。絶対にタスク5以降をフライングで実行しないこと。
+4. 作業完了後、既存の作業レポート（20260720_1717_RES_Phase23-3_AudioManager.md）の「タスク4」のチェックボックスを完了 [x] にし、今回追加された新しいテンプレート書式（対象ファイルの列挙含む）に従って詳細作業内容を追記すること。
+5. チャットにて「タスク4の実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+外部クラス（主に `Application` と `TrackAnalyzer`）からの音声操作要求を、すべて新設した `AudioManager` 経由に置き換える。
+*   **要件1: Application クラスの配線付け替え**
+    *  `src/Application.h` のメンバ変数を `AudioPlayer m_audioPlayer;` から `AudioManager m_audioManager;` へ変更すること。
+    *  各 `src/Application_*.cpp` (Playback, Render, Initialize等) において、`m_audioPlayer` を呼び出している箇所（`Play`, `Stop`, `Pause`, `Seek`, `SetVolume`, `GetSpectrumData` など）をすべて `m_audioManager` へと置き換えること。
+    *  `#include "AudioPlayer.h"` を削除し、`#include "AudioManager.h"` に置き換えること。
+*   **要件2: TrackAnalyzer クラスの配線付け替え**
+    *  `src/TrackAnalyzer.cpp` のバックグラウンド解析（FFT波形事前スキャン等）において `AudioPlayer::ScanAudioData` を呼び出している箇所を、`AudioManager` の静的メソッド（または適切に提供されたインターフェース）へと置き換えること。
+*   **要件3: 一時エイリアスの削除 (クリーンアップ)**
+    *  タスク2で安全のために `src/AudioPlayer.h` に追加した `using AudioPlayer = AudioPlaybackEngine;` を削除し、外部からの直接利用を完全に遮断すること。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スコープの厳守** : 本タスクの対象は、既存クラスから `AudioManager` への呼び出し（結線）の書き換えのみである。ドキュメントの更新や、タスク5（CMakeLists.txtとアーキテクチャ資料の最終整理）は絶対にフライングで実行しないこと。
