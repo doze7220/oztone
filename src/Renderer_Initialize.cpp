@@ -158,6 +158,9 @@ bool Renderer::Initialize(HWND hwnd, const ConfigManager& config) {
     hr = m_d2dContext->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f), &m_fallbackBlackBrush);
     if (FAILED(hr)) return false;
     
+    hr = m_d2dContext->CreateLayer(nullptr, &m_backgroundLayer);
+    if (FAILED(hr)) return false;
+    
     m_visualizer.SetConfig(m_config);
     m_widgets.clear();
     m_widgets.push_back(std::make_unique<AppLogoWidget>());

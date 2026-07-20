@@ -21,8 +21,8 @@
 ## 3. 実装タスクリスト
 - [x] タスク1: ConfigManager_Background.cpp の分離 (データ層の純化)
 - [x] タスク2: ウィンドウ透過の維持とレイヤーグループ機構の定義
-- [ ] タスク3: Renderer のレイヤーグループ描画対応
-- [ ] タスク4: ドキュメントの更新 (PROJECT_ARCHITECTURE.md)
+- [x] タスク3: Renderer のレイヤーグループ描画対応
+- [x] タスク4: ドキュメントの更新 (PROJECT_ARCHITECTURE.md)
 
 ## 4. 詳細作業内容
 ### タスク1: ConfigManager_Background.cpp の分離 (データ層の純化)
@@ -55,11 +55,11 @@
 **【作業内容】**
 - `Renderer` に `ID2D1Layer* m_backgroundLayer` メンバ変数を追加し、`CreateDeviceDependentResources` 内で `CreateLayer` を用いて生成、解放処理も追加する。
 - `Renderer_Draw.cpp` の背景レイヤー描画ループ内で `LayerGroupBegin` に応じて `PushLayer` を呼び出し（`layer.opacity` から不透明度取得）、`LayerGroupEnd` で `PopLayer` を呼び出す。
-- （未着手）
+- （完了）指定通り `Renderer.h` に `Microsoft::WRL::ComPtr<ID2D1Layer> m_backgroundLayer;` を追加し、`Renderer_Initialize.cpp` にて `CreateLayer` を実装した。`Renderer_Draw.cpp` の `DrawBackground` メソッドで `LayerGroupBegin` と `LayerGroupEnd` の分岐を追加し、レイヤーのPush/Popを適用した。
 
 ### タスク4: ドキュメントの更新 (PROJECT_ARCHITECTURE.md)
 **【対象ファイル】**
 - `PROJECT_ARCHITECTURE.md` : 更新
 **【作業内容】**
 - ConfigManager の物理分割ファイル一覧などに影響があるため、`ConfigManager_Background.cpp` の内容を追記する。
-- （未着手）
+- （完了）`PROJECT_ARCHITECTURE.md` において、`BackgroundManager` から黒塗り下敷きをパージしたこと、および `Renderer` がレイヤーグループを用いて `BgOpacity` を一括適用する仕組みへ進化した旨を追記した。なお、`ConfigManager_Background.cpp` については先行タスクにて既に記載済みであることを確認した。

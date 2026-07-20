@@ -144,6 +144,7 @@ private:
 
     Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
 
+    Microsoft::WRL::ComPtr<ID2D1Layer> m_backgroundLayer;
 
     // キャッシュ済みブラシ群
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_bgDarkenBrush;

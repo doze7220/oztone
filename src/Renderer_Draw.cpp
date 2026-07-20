@@ -47,7 +47,19 @@ void Renderer::DrawBackground() {
     std::map<IWICFormatConverter*, Microsoft::WRL::ComPtr<ID2D1Bitmap>> nextCache;
 
     for (const auto& layer : layers) {
-        if (layer.type == BackgroundLayerType::Image) {
+        if (layer.type == BackgroundLayerType::LayerGroupBegin) {
+            D2D1_LAYER_PARAMETERS layerParams = D2D1::LayerParameters(
+                D2D1::InfiniteRect(), nullptr,
+                D2D1_ANTIALIAS_MODE_PER_PRIMITIVE,
+                D2D1::IdentityMatrix(),
+                layer.opacity,
+                nullptr,
+                D2D1_LAYER_OPTIONS_NONE
+            );
+            m_d2dContext->PushLayer(layerParams, m_backgroundLayer.Get());
+        } else if (layer.type == BackgroundLayerType::LayerGroupEnd) {
+            m_d2dContext->PopLayer();
+        } else if (layer.type == BackgroundLayerType::Image) {
             ID2D1Bitmap* bmp = nullptr;
             if (layer.image) {
                 IWICFormatConverter* wic = layer.image.Get();
