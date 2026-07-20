@@ -28,7 +28,7 @@
     - ConfigManagerにおけるパース/保存処理の更新、DefaultIniの書き換え。
 [x] タスク2: `BackgroundLayer` 構造体の定義と `BackgroundManager` レイヤー構築ロジック追加
     - BackgroundLayerの定義と、`GetLayers()` による4層構築ロジックの実装。
-[ ] タスク3: スワップ式クロスフェードのロジック実装とフレーミング管理の移行
+[x] タスク3: スワップ式クロスフェードのロジック実装とフレーミング管理の移行
     - UpdateAnimationの改修、OLD/NEW独立のフレーミング保持、1.0f到達時のスワップ処理の実装。
 [ ] タスク4: `Renderer` からの背景状態・INI参照の完全パージとレイヤー描画処理の実装
     - Renderer内部のフレーミング変数の削除、DrawBackgroundのレイヤー反復描画化。マウスコールバックからの通知先をBackgroundManagerへ変更。
@@ -59,9 +59,14 @@
 
 ### タスク3: スワップ式クロスフェードのロジック実装とフレーミング管理の移行
     **【対象ファイル】**
-    - 
+    - `src/BackgroundManager.h`
+    - `src/BackgroundManager.cpp`
     **【作業内容】**
-    - 
+    - `BackgroundManager.h` に OLD用およびNEW用のフレーミング状態を保持するメンバ変数 (`m_oldScale`, `m_oldOffsetX`, `m_oldOffsetY`, `m_currentScale`, `m_currentOffsetX`, `m_currentOffsetY`) を追加。
+    - フレーミング状態を外部から更新するためのセッターメソッド (`SetArtFramingScale`, `SetArtFramingScroll`) を追加。
+    - `UpdateAnimation` メソッドを改修し、新規画像が設定された瞬間に現在のNEW画像・フレーミング情報をOLDへスワップし、NEW側のフレーミングを初期値にリセットする処理を実装。
+    - `ConfigManager` から `CrossfadeDuration` を取得し、`m_fadeProgress` を進行させるロジックを実装。1.0f到達時にOLD画像およびOLDのフレーミング状態を解放・リセット。
+    - `GetLayers` メソッドにて、構築する各レイヤーに対して個別のフレーミング状態 (`x`, `y`, `scale`) を適用するように修正。
 
 ### タスク4: `Renderer` からの背景状態・INI参照の完全パージとレイヤー描画処理の実装
     **【対象ファイル】**

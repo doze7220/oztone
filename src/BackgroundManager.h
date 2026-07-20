@@ -67,6 +67,16 @@ public:
      */
     void UpdateAnimation(float deltaTime);
 
+    /**
+     * @brief 現在表示中（またはフェード先）の背景アートのスケールを更新する
+     */
+    void SetArtFramingScale(float scale);
+
+    /**
+     * @brief 現在表示中（またはフェード先）の背景アートのスクロールオフセットを更新する
+     */
+    void SetArtFramingScroll(float offsetX, float offsetY);
+
     Microsoft::WRL::ComPtr<IWICFormatConverter> GetCurrentWicImage() const { return m_currentWicImage; }
     Microsoft::WRL::ComPtr<IWICFormatConverter> GetOldWicImage() const { return m_oldWicImage; }
     float GetFadeProgress() const { return m_fadeProgress; }
@@ -100,4 +110,14 @@ private:
     Microsoft::WRL::ComPtr<IWICFormatConverter> m_currentWicImage;
     Microsoft::WRL::ComPtr<IWICFormatConverter> m_oldWicImage;
     float m_fadeProgress;
+
+    // フレーミング状態（OLD）
+    float m_oldScale;
+    float m_oldOffsetX;
+    float m_oldOffsetY;
+
+    // フレーミング状態（NEW）
+    float m_currentScale;
+    float m_currentOffsetX;
+    float m_currentOffsetY;
 };

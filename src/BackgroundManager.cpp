@@ -8,6 +8,12 @@ BackgroundManager::BackgroundManager()
     : m_isRunning(false)
     , m_hasNewImage(false)
     , m_fadeProgress(1.0f)
+    , m_oldScale(1.0f)
+    , m_oldOffsetX(0.0f)
+    , m_oldOffsetY(0.0f)
+    , m_currentScale(1.0f)
+    , m_currentOffsetX(0.0f)
+    , m_currentOffsetY(0.0f)
 {
 }
 
@@ -60,7 +66,16 @@ void BackgroundManager::UpdateAnimation(float deltaTime)
         std::lock_guard<std::mutex> lock(m_mutex);
         if (m_hasNewImage) {
             m_oldWicImage = m_currentWicImage;
+            m_oldScale = m_currentScale;
+            m_oldOffsetX = m_currentOffsetX;
+            m_oldOffsetY = m_currentOffsetY;
+
             m_currentWicImage = m_nextWicImage;
+            // NEWのフレーミングは初期値にリセット
+            m_currentScale = 1.0f;
+            m_currentOffsetX = 0.0f;
+            m_currentOffsetY = 0.0f;
+
             m_hasNewImage = false;
             m_fadeProgress = 0.0f; // フェード開始
         }
@@ -81,10 +96,26 @@ void BackgroundManager::UpdateAnimation(float deltaTime)
 
         if (m_fadeProgress >= 1.0f) {
             m_fadeProgress = 1.0f;
-            // フェード完了時に古い画像を解放する
+            // フェード完了時に古い画像と情報を解放・リセットする
             m_oldWicImage.Reset();
+            m_oldScale = 1.0f;
+            m_oldOffsetX = 0.0f;
+            m_oldOffsetY = 0.0f;
         }
     }
+}
+
+void BackgroundManager::SetArtFramingScale(float scale)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_currentScale = scale;
+}
+
+void BackgroundManager::SetArtFramingScroll(float offsetX, float offsetY)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_currentOffsetX = offsetX;
+    m_currentOffsetY = offsetY;
 }
 
 std::vector<BackgroundLayer> BackgroundManager::GetLayers() const {
@@ -107,6 +138,9 @@ std::vector<BackgroundLayer> BackgroundManager::GetLayers() const {
             oldLayer.type = BackgroundLayerType::Image;
             oldLayer.image = m_oldWicImage;
             oldLayer.opacity = 1.0f;
+            oldLayer.x = m_oldOffsetX;
+            oldLayer.y = m_oldOffsetY;
+            oldLayer.scale = m_oldScale;
             layers.push_back(oldLayer);
         }
 
@@ -116,6 +150,9 @@ std::vector<BackgroundLayer> BackgroundManager::GetLayers() const {
             newLayer.type = BackgroundLayerType::Image;
             newLayer.image = m_currentWicImage;
             newLayer.opacity = m_fadeProgress;
+            newLayer.x = m_currentOffsetX;
+            newLayer.y = m_currentOffsetY;
+            newLayer.scale = m_currentScale;
             layers.push_back(newLayer);
         }
     }
