@@ -15,10 +15,9 @@ public:
     /**
      * @brief ファイルを読み込み、タグ情報を解析する
      * @param filepath ファイルパス(UTF-8)
-     * @param skipImage 画像の抽出をスキップするかどうか
      * @return 成功ならtrue
      */
-    bool Load(const std::wstring& filepath, bool skipImage = false);
+    bool Load(const std::wstring& filepath);
 
     /**
      * @brief 曲名を取得する
@@ -35,21 +34,10 @@ public:
      */
     std::wstring GetTimeString() const;
 
-    /**
-     * @brief アルバムアートのバイナリデータを取得する
-     */
-    const std::vector<uint8_t>& GetAlbumArtBytes() const;
 
-    /**
-     * @brief 曲ファイルから直接アルバムアートの生バイナリを抽出して返す
-     * @param filepath ファイルパス
-     * @return 生バイナリデータ(見つからない場合は空)
-     */
-    static std::vector<BYTE> ExtractAlbumArtBinary(const std::wstring& filepath);
 
 private:
     std::wstring m_title;
     std::wstring m_artist;
     std::wstring m_timeString;
-    std::vector<uint8_t> m_albumArtBytes;
 };
