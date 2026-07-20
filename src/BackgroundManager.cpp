@@ -1,6 +1,7 @@
 #include "BackgroundManager.h"
 #include "ConfigManager.h"
 #include "FileManager.h"
+#include "resource.h"
 #include <objbase.h>
 #include <vector>
 
@@ -29,6 +30,65 @@ void BackgroundManager::Initialize(const ConfigManager* config)
     }
 
     m_config = config;
+
+    Microsoft::WRL::ComPtr<IWICImagingFactory> factory;
+    HRESULT hr = CoCreateInstance(
+        CLSID_WICImagingFactory,
+        nullptr,
+        CLSCTX_INPROC_SERVER,
+        IID_PPV_ARGS(&factory)
+    );
+
+    if (SUCCEEDED(hr)) {
+        HMODULE hModule = GetModuleHandle(nullptr);
+        HRSRC hRes = FindResource(hModule, MAKEINTRESOURCE(IDI_PLACEHOLDER_ART), RT_RCDATA);
+        if (hRes) {
+            DWORD resSize = SizeofResource(hModule, hRes);
+            HGLOBAL hMem = LoadResource(hModule, hRes);
+            if (hMem) {
+                void* pResData = LockResource(hMem);
+                if (pResData) {
+                    Microsoft::WRL::ComPtr<IWICStream> stream;
+                    hr = factory->CreateStream(&stream);
+                    if (SUCCEEDED(hr)) {
+                        hr = stream->InitializeFromMemory(static_cast<WICInProcPointer>(pResData), resSize);
+                        if (SUCCEEDED(hr)) {
+                            Microsoft::WRL::ComPtr<IWICBitmapDecoder> decoder;
+                            hr = factory->CreateDecoderFromStream(
+                                stream.Get(),
+                                nullptr,
+                                WICDecodeMetadataCacheOnDemand,
+                                &decoder
+                            );
+                            if (SUCCEEDED(hr)) {
+                                Microsoft::WRL::ComPtr<IWICBitmapFrameDecode> frame;
+                                hr = decoder->GetFrame(0, &frame);
+                                if (SUCCEEDED(hr)) {
+                                    Microsoft::WRL::ComPtr<IWICFormatConverter> converter;
+                                    hr = factory->CreateFormatConverter(&converter);
+                                    if (SUCCEEDED(hr)) {
+                                        hr = converter->Initialize(
+                                            frame.Get(),
+                                            GUID_WICPixelFormat32bppPBGRA,
+                                            WICBitmapDitherTypeNone,
+                                            nullptr,
+                                            0.f,
+                                            WICBitmapPaletteTypeMedianCut
+                                        );
+                                        if (SUCCEEDED(hr)) {
+                                            m_placeholderWic = converter;
+                                            m_placeholderWic.As(&m_oldWicImage); // スタートアップ演出
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     m_isRunning = true;
     m_workerThread = std::thread(&BackgroundManager::WorkerLoop, this);
 }
@@ -53,6 +113,15 @@ void BackgroundManager::Uninitialize()
 
 void BackgroundManager::RequestLoad(const std::wstring& filePath)
 {
+    if (filePath.empty()) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_placeholderWic) {
+            m_placeholderWic.As(&m_nextWicImage);
+            m_hasNewImage = true;
+        }
+        return;
+    }
+
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_requestQueue.push(filePath);
@@ -295,6 +364,10 @@ void BackgroundManager::WorkerLoop()
                     }
                 }
             }
+        }
+
+        if (!decodedImage && m_placeholderWic) {
+            m_placeholderWic.As(&decodedImage);
         }
 
         // スレッドセーフにクラス内部へ保持する

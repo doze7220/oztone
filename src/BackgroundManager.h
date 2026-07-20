@@ -132,4 +132,7 @@ private:
     float m_currentScale;
     float m_currentOffsetX;
     float m_currentOffsetY;
+
+    // プレースホルダ画像
+    Microsoft::WRL::ComPtr<IWICBitmapSource> m_placeholderWic;
 };
