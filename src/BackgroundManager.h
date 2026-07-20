@@ -42,6 +42,10 @@ public:
      */
     void UpdateAnimation(float deltaTime);
 
+    Microsoft::WRL::ComPtr<IWICFormatConverter> GetCurrentWicImage() const { return m_currentWicImage; }
+    Microsoft::WRL::ComPtr<IWICFormatConverter> GetOldWicImage() const { return m_oldWicImage; }
+    float GetFadeProgress() const { return m_fadeProgress; }
+
 private:
     /**
      * @brief 非同期画像ロードを行うワーカー・スレッドのメインループ

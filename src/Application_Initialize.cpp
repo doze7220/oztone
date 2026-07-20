@@ -282,6 +282,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
   }
 
   m_renderer.SetThumbnailManager(&m_thumbnailManager);
+  m_renderer.SetBackgroundManager(&m_backgroundManager);
   if (!m_renderer.Initialize(m_window.GetHandle(), m_config)) {
     return false;
   }

@@ -167,3 +167,38 @@
 
 #### 【絶対遵守ルール (Constraints)】
 *   **スコープの厳守** : 本タスクは `Application` クラスの配線のみを行う。`Renderer` 側への結線・画像渡し（タスク5）は絶対にフライングで行わないこと。
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 23-6 Task 5 : Rendererクラスとの結線
+*  ルール: D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  開発資料:D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  実装計画書:D:\ozlab\oztone\_docs\logs\20260720_1939_RES_Phase23-6_BackgroundManager.md
+
+#### 【作業手順（厳守事項）】
+本プロンプトはPhase 23-6 Task 5: Rendererクラスとの結線である。必ず以下の順序で作業を行うこと。
+1. ルール（PROJECT_CONSTITUTION.md）および開発資料（PROJECT_ARCHITECTURE.md）を熟読・把握すること。
+2. 実装計画書（20260720_1939_RES_Phase23-6_BackgroundManager.md）を読み、今回の自分のスコープが「タスク5」のみであることを確認すること。
+3. 上記を確認した後、以下の【実装要件】に従って **「タスク5のみ」** の実装を開始し、ソースコードの修正を実行すること。絶対にタスク6（ドキュメント更新）をフライングで実行しないこと。
+4. 作業完了後、既存の作業レポート（20260720_1939_RES_Phase23-6_BackgroundManager.md）の「タスク5」のチェックボックスを完了 [x] にし、必ず以下のフォーマットで詳細作業内容を追記すること。
+    ### タスク5: Rendererクラスとの結線
+    **【作業ファイル】**
+    - `ファイル名` (編集)
+    **【作業内容】**
+    - 詳細な作業内容
+5. チャットにて「タスク5の実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+`Renderer` クラスが背景を描画する際、直接 `BackgroundManager` から情報を取得し、クロスフェードを伴う美しい背景描画を行うよう結線・復元する。
+*   **要件1: Renderer への BackgroundManager の参照渡し**
+    *   `src/Renderer.h` および `src/Renderer.cpp` に `SetBackgroundManager(BackgroundManager* bgManager)` 等を追加し、`Application` 側から初期化時にポインタを渡せるように配線すること。（またはコンテキスト経由で受け取る）
+*   **要件2: WIC から D2D ビットマップへの動的変換と保持**
+    *   `Renderer` 側で、`BackgroundManager` が保持している「現在のWIC画像」と「過去のWIC画像」を取得し、D2Dビットマップ（`ID2D1Bitmap`）へ変換して描画用にキャッシュするロジックを実装すること。UIスレッド（描画スレッド）で `CreateBitmapFromWicBitmap` を呼ぶ必要があるため。
+*   **要件3: Renderer_Draw.cpp (DrawBackground) の描画復活とクロスフェード**
+    *   Phase 23-1 で削除された背景アルバムアートの全画面フィット・トリミング描画ロジックを復活させること。
+    *   過去画像が存在する場合はそれを下地に描画し、その上に `BackgroundManager` から取得したブレンド率（`fadeProgress`）を不透明度として適用した「現在画像」を描画することで、美しいクロスフェードを実現すること。
+    *   背景アートを描画した後、既存のダークオーバーレイ（黒半透明矩形）を描画する処理は維持すること。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スコープの厳守** : 本タスクは `Renderer` 層での背景描画の復元と結線のみを行う。ドキュメントの更新（タスク6）は絶対に行わないこと。
+*   **状態分離の原則** : フェードの進行度や過去画像のライフサイクル管理は `BackgroundManager` が行っているため、`Renderer` 側は「取得したWIC画像をD2Dに変換し、指定された不透明度で描画するだけ」の受動態に徹すること。

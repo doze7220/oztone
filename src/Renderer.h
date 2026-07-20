@@ -24,6 +24,7 @@
 
 class ConfigManager;
 class ThumbnailManager;
+class BackgroundManager;
 
 /**
  * @brief Direct3D 11 と Direct2D を用いたハイブリッド描画エンジン
@@ -74,6 +75,8 @@ public:
     void ReloadResources();
 
     // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (SetBackgroundArt)
+
+    void SetBackgroundManager(BackgroundManager* manager);
 
     void SetThumbnailManager(ThumbnailManager* manager);
 
@@ -164,6 +167,11 @@ private:
     std::vector<size_t> m_shuffleIndices;
 
     ThumbnailManager* m_thumbnailManager = nullptr;
+    BackgroundManager* m_backgroundManager = nullptr;
+    Microsoft::WRL::ComPtr<IWICFormatConverter> m_lastCurrentWicImage;
+    Microsoft::WRL::ComPtr<IWICFormatConverter> m_lastOldWicImage;
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_currentBgBitmap;
+    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_oldBgBitmap;
 
     HWND m_hwnd;
     const ConfigManager* m_config;

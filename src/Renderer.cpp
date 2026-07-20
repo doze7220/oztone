@@ -8,6 +8,10 @@ Renderer::~Renderer() {}
 
 // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (SetBackgroundArt)
 
+void Renderer::SetBackgroundManager(BackgroundManager* manager) {
+    m_backgroundManager = manager;
+}
+
 void Renderer::SetThumbnailManager(ThumbnailManager* manager) {
     m_thumbnailManager = manager;
 }

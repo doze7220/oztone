@@ -2,6 +2,7 @@
 #include "ConfigManager.h"
 #include "LayoutCalculator.h"
 #include "WidgetContext.h"
+#include "BackgroundManager.h"
 
 void Renderer::Render(bool isHovered, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isPlaylistListViewMode, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList, int playlistToolbarHoveredIndex, const std::vector<PlaylistSummary>* availablePlaylistsCache) {
     if (!m_d2dContext) return;
@@ -42,7 +43,38 @@ void Renderer::DrawBackground() {
     float logicWidth = renderTargetSize.width / m_dpiScale;
     float logicHeight = renderTargetSize.height / m_dpiScale;
 
-    // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (画像描画ロジック)
+    if (m_backgroundManager) {
+        auto currentWic = m_backgroundManager->GetCurrentWicImage();
+        if (currentWic != m_lastCurrentWicImage) {
+            m_lastCurrentWicImage = currentWic;
+            m_currentBgBitmap.Reset();
+            if (currentWic) {
+                m_d2dContext->CreateBitmapFromWicBitmap(currentWic.Get(), &m_currentBgBitmap);
+            }
+        }
+
+        auto oldWic = m_backgroundManager->GetOldWicImage();
+        if (oldWic != m_lastOldWicImage) {
+            m_lastOldWicImage = oldWic;
+            m_oldBgBitmap.Reset();
+            if (oldWic) {
+                m_d2dContext->CreateBitmapFromWicBitmap(oldWic.Get(), &m_oldBgBitmap);
+            }
+        }
+    }
+
+    if (m_oldBgBitmap) {
+        D2D1_SIZE_F size = m_oldBgBitmap->GetSize();
+        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, size);
+        m_d2dContext->DrawBitmap(m_oldBgBitmap.Get(), &layout.destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &layout.srcRect);
+    }
+
+    if (m_currentBgBitmap) {
+        D2D1_SIZE_F size = m_currentBgBitmap->GetSize();
+        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, size);
+        float opacity = m_backgroundManager ? m_backgroundManager->GetFadeProgress() : 1.0f;
+        m_d2dContext->DrawBitmap(m_currentBgBitmap.Get(), &layout.destRect, opacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &layout.srcRect);
+    }
 
     if (m_config->GetBgDarkenOpacity() > 0.0f && m_bgDarkenBrush) {
         m_bgDarkenBrush->SetOpacity(m_config->GetBgDarkenOpacity());
