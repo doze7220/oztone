@@ -74,7 +74,7 @@ public:
      */
     void ReloadResources();
 
-    // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (SetBackgroundArt)
+
 
     void SetBackgroundManager(BackgroundManager* manager);
 
@@ -161,7 +161,7 @@ private:
 
     Microsoft::WRL::ComPtr<IWICImagingFactory> m_wicFactory;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_placeholderArtBitmap;
-    // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (m_backgroundArtBitmap)
+
 
 
 

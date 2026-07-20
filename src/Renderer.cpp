@@ -6,7 +6,7 @@ Renderer::Renderer() : m_hwnd(nullptr), m_config(nullptr), m_dpiScale(1.0f), m_c
 
 Renderer::~Renderer() {}
 
-// [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (SetBackgroundArt)
+
 
 void Renderer::SetBackgroundManager(BackgroundManager* manager) {
     m_backgroundManager = manager;
@@ -22,7 +22,7 @@ void Renderer::SetBackgroundFraming(float offsetX, float offsetY, float scale) {
     m_bgScale = scale;
 }
 
-// [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (ClampArtFraming)
+
 
 void Renderer::SetFocusedPlaylistIndex(std::optional<size_t> idx) {
     m_focusedPlaylistIndex = idx;
