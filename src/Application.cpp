@@ -2,12 +2,11 @@
 #include <filesystem>
 
 Application::Application() 
-    : m_thumbnailDatabase(&m_config), 
-      m_thumbCacher(&m_thumbnailDatabase) 
+    : m_thumbnailManager(&m_config) 
 {}
 
 Application::~Application() {
-  m_thumbCacher.Uninitialize();
+  m_thumbnailManager.Uninitialize();
   m_trackAnalyzer.Uninitialize();
 
   m_audioManager.Uninitialize();

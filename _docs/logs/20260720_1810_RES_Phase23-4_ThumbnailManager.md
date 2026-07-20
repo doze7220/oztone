@@ -23,7 +23,7 @@
 - [x] タスク1: ThumbnailManagerのクラス定義と実装作成
     - `src/ThumbnailManager.h` および `src/ThumbnailManager.cpp` の新規作成。
     - `CMakeLists.txt` への追加。
-- [ ] タスク2: Applicationクラスの配線付け替え (ヘッダ・コンストラクタ・初期化)
+- [x] タスク2: Applicationクラスの配線付け替え (ヘッダ・コンストラクタ・初期化)
     - `src/Application.h`, `src/Application.cpp`, `src/Application_Initialize.cpp` のメンバ変数統合と初期化ルーチン修正。
 - [ ] タスク3: Applicationクラスの配線付け替え (再生・プレイリスト・ファイル・レンダリング)
     - `src/Application_Playback.cpp`, `src/Application_Playlist.cpp`, `src/Application_FileDrop.cpp`, `src/Application_Render.cpp` の呼び出しを修正。
@@ -49,7 +49,9 @@
     - `src/Application.cpp` : 更新
     - `src/Application_Initialize.cpp` : 更新
     **【作業内容】**
-    - 未実行
+    - `src/Application.h`のメンバ変数`m_thumbnailDatabase`と`m_thumbCacher`を削除し、`m_thumbnailManager`に統合しました。
+    - `src/Application.cpp`のコンストラクタ初期化子リストおよびデストラクタから古いコンポーネントを削除し、`m_thumbnailManager`の初期化と`Uninitialize()`呼び出しに修正しました。
+    - `src/Application_Initialize.cpp`内の初期化ルーチンにて、個別のInitialize()呼び出しを`m_thumbnailManager.Initialize()`に置き換え、初期トラックのキュー投入処理もManager経由へ変更しました。※Rendererへのポインタ渡しなどの配線変更はタスク4で実施するため本タスクのスコープ外としてそのまま残しています。
 
 ### タスク3: Applicationクラスの配線付け替え (再生・プレイリスト・ファイル・レンダリング)
     **【対象ファイル】**

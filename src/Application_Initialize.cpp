@@ -286,8 +286,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     return false;
   }
 
-  m_thumbnailDatabase.Initialize();
-  m_thumbCacher.Initialize();
+  m_thumbnailManager.Initialize();
 
   if (m_audioManager.Initialize()) {
     m_audioManager.SetVolume(m_config.GetDefaultVolume());
@@ -329,9 +328,9 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     for (const auto &path : unparsed) {
       m_trackAnalyzer.AddTrackToQueue(path);
       bool isNew = false;
-      uint32_t thumbId = m_thumbnailDatabase.GetOrGenerateThumbId(path, isNew);
+      uint32_t thumbId = m_thumbnailManager.GetOrGenerateThumbId(path, isNew);
       if (isNew) {
-        m_thumbCacher.EnqueueTrack(thumbId, path);
+        m_thumbnailManager.EnqueueTrack(thumbId, path);
       }
     }
   }
