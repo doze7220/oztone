@@ -1,24 +1,27 @@
-# 作業指示書 REQ: Phase X-X: (作業概要)
-
+### 作業指示書 REQ: Phase X-X: (作業概要)
 以下のプロジェクトルールと開発資料を熟読すること。
-* D:\ozlab\oztone\PROJECT_CONSTITUTION.md
-* D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
 
-## 【作業手順（厳守事項）】
-1. 本プロンプトでは **絶対にコードの修正（ファイルの書き換え）を行わない** こと。計画立案のみに留めること。
-2. 以下の【実装要件】を満たすための高度なアーキテクチャ設計と実装計画、兼作業レポート（`D:\ozlab\oztone\_docs\logs\YYYYMMDD_HHMM_RES_PhaseX-X_(taskname).md`）として新規作成すること。
-3. レポートのフォーマットは、`PROJECT_CONSTITUTION.md` の指示に従い、テンプレートファイル `D:\ozlab\oztone\_docs\RES(ImpretonPlan)_template.md` を参照し、それに完全に準拠して出力すること。細かなタスクリストを含めること。
-4. チャットにて「計画書の作成が完了しました。タスクを実行するための新しいチャットへ移行してください」と報告すること。
+#### 【作業手順（厳守事項）】
+本プロンプトでは **絶対にコードの修正（ファイルの書き換え）を行わない** こと。計画立案のみに留めること。
+1. ルール（PROJECT_CONSTITUTION.md）および開発資料（PROJECT_ARCHITECTURE.md）を熟読・把握すること。
+2. 以下の【実装要件】を満たすための高度なアーキテクチャ設計と実装計画を立案し、AIがハルシネーションを起こさない適切なスコープを持つ細かなタスクリストを構築すること。
+3. 計画を出力する前に内部で自己監査を行い、ルール・開発資料の責務違反（Managerの巨大化、Rendererへの状態混入など）がないか確認して計画を純化すること。（※監査プロセスのテキスト出力は不要）
+4. 監査を通過した純度100%の計画書を、PROJECT_CONSTITUTION.md の「3.3. 実装計画、兼作業レポート (RES) 標準出力フォーマット」に完全に準拠した作業レポート（D:\ozlab\oztone\_docs\logs\YYYYMMDD_HHMM_RES_PhaseX-X_(taskname).md）として新規作成（出力）すること。
+5. チャットにて「計画書の作成が完了しました。タスクを実行するための新しいチャットへ移行してください」と報告すること。
 
-## 【実装要件】
+#### 【実装要件】
 (概要説明)
+*   **要件1: (要件概要)**
+    *  (詳細説明)
 
-* **要件1: (要件概要)**
-  * (詳細説明)
+##### 【タスクごとの終了後作業】
+1. 作業レポート（D:\ozlab\oztone\_docs\logs\YYYYMMDD_HHMM_RES_PhaseX-X_(taskname).md）に、詳細作業内容を記載する（タスクリストに含める）こと。
 
-## 【作業終了後】
-1. 作業レポート（`D:\ozlab\oztone\_docs\logs\YYYYMMDD_HHMM_RES_PhaseX-X_(taskname).md`）に、詳細作業内容を記載する（タスクリストに含める）こと。
-2. `D:\ozlab\oztone\PROJECT_ARCHITECTURE.md` を確認し、作業内容が記載に影響のある場合は修正を行う（タスクリストに含める）こと。
+##### 【全タスク終了後の作業】
+1. D:\ozlab\oztone\PROJECT_ARCHITECTURE.md を確認し、作業内容が記載に影響のある場合は修正を行う（タスクリストに含める）こと。
 
-## 【絶対遵守ルール (Constraints)】
-* **(ルール名)**: (必要に応じて詳細)
+##### 【実装作業での絶対遵守ルール (Constraints)】
+*   **メモリリークの防止** : (必要に応じて詳細)
+*   **スコープの厳守** : (必要に応じて詳細)

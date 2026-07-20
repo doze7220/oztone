@@ -47,7 +47,7 @@ std::vector<std::wstring> ConfigManager::GetAvailablePlaylists() const {
         if (entry.is_regular_file()) {
           std::wstring ext = entry.path().extension().wstring();
           std::transform(ext.begin(), ext.end(), ext.begin(), ::towlower);
-          if (ext == L".ozl" || ext == L".lst") {
+          if (ext == L".ozl") {
             playlists.push_back(entry.path().wstring());
           }
         }
