@@ -86,9 +86,7 @@ public:
     ID2D1DeviceContext* GetD2DContext() const { return m_d2dContext.Get(); }
     IWICImagingFactory* GetWicFactory() const { return m_wicFactory.Get(); }
     
-    // 背景フレーミング情報の受け渡し
-    void SetBackgroundFraming(float offsetX, float offsetY, float scale);
-    void ClampArtFraming(float& scale, float& offsetX, float& offsetY);
+    // 背景フレーミング情報の受け渡しメソッドはBackgroundManagerへ移行したため削除
 
     /**
      * @brief フォーカスされているプレイリストインデックスを設定する
@@ -172,18 +170,10 @@ private:
 
     ThumbnailManager* m_thumbnailManager = nullptr;
     BackgroundManager* m_backgroundManager = nullptr;
-    Microsoft::WRL::ComPtr<IWICFormatConverter> m_lastCurrentWicImage;
-    Microsoft::WRL::ComPtr<IWICFormatConverter> m_lastOldWicImage;
-    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_currentBgBitmap;
-    Microsoft::WRL::ComPtr<ID2D1Bitmap> m_oldBgBitmap;
-
-    HWND m_hwnd;
-    const ConfigManager* m_config;
+    std::map<IWICFormatConverter*, Microsoft::WRL::ComPtr<ID2D1Bitmap>> m_bgBitmapCache;
+    HWND m_hwnd = nullptr;
+    const ConfigManager* m_config = nullptr;
     float m_dpiScale = 1.0f;
-    
-    float m_bgOffsetX = 0.0f;
-    float m_bgOffsetY = 0.0f;
-    float m_bgScale = 1.0f;
     
     float m_controlAlpha = 0.0f;
     float m_controlLeaveTimer = 0.0f;

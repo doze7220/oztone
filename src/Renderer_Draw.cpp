@@ -37,66 +37,50 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isVolumeHovere
 }
 
 void Renderer::DrawBackground() {
-    if (!m_config) return;
+    if (!m_backgroundManager || !m_d2dContext) return;
 
     D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
     float logicWidth = renderTargetSize.width / m_dpiScale;
     float logicHeight = renderTargetSize.height / m_dpiScale;
 
-    if (m_backgroundManager) {
-        auto currentWic = m_backgroundManager->GetCurrentWicImage();
-        if (currentWic != m_lastCurrentWicImage || !m_currentBgBitmap) {
-            m_lastCurrentWicImage = currentWic;
-            m_currentBgBitmap.Reset();
-            if (currentWic) {
-                m_d2dContext->CreateBitmapFromWicBitmap(currentWic.Get(), &m_currentBgBitmap);
-            }
-            if (!m_currentBgBitmap && m_placeholderArtBitmap) {
-                m_currentBgBitmap = m_placeholderArtBitmap;
-            }
-        }
+    auto layers = m_backgroundManager->GetLayers();
+    std::map<IWICFormatConverter*, Microsoft::WRL::ComPtr<ID2D1Bitmap>> nextCache;
 
-        auto oldWic = m_backgroundManager->GetOldWicImage();
-        if (oldWic != m_lastOldWicImage || !m_oldBgBitmap) {
-            m_lastOldWicImage = oldWic;
-            m_oldBgBitmap.Reset();
-            if (oldWic) {
-                m_d2dContext->CreateBitmapFromWicBitmap(oldWic.Get(), &m_oldBgBitmap);
+    for (const auto& layer : layers) {
+        if (layer.type == BackgroundLayerType::Image) {
+            ID2D1Bitmap* bmp = nullptr;
+            if (layer.image) {
+                IWICFormatConverter* wic = layer.image.Get();
+                if (m_bgBitmapCache.find(wic) != m_bgBitmapCache.end()) {
+                    bmp = m_bgBitmapCache[wic].Get();
+                    nextCache[wic] = m_bgBitmapCache[wic];
+                } else {
+                    Microsoft::WRL::ComPtr<ID2D1Bitmap> newBmp;
+                    if (SUCCEEDED(m_d2dContext->CreateBitmapFromWicBitmap(wic, &newBmp))) {
+                        bmp = newBmp.Get();
+                        nextCache[wic] = newBmp;
+                    }
+                }
+            } else if (m_placeholderArtBitmap) {
+                bmp = m_placeholderArtBitmap.Get();
             }
-            if (!m_oldBgBitmap && m_placeholderArtBitmap) {
-                m_oldBgBitmap = m_placeholderArtBitmap;
+
+            if (bmp) {
+                D2D1_SIZE_F size = bmp->GetSize();
+                BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, size, layer.x, layer.y, layer.scale);
+                m_d2dContext->DrawBitmap(bmp, &layout.destRect, layer.opacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &layout.srcRect);
+            }
+        } else if (layer.type == BackgroundLayerType::SolidColor) {
+            if (m_fallbackBlackBrush) {
+                m_fallbackBlackBrush->SetColor(layer.color);
+                m_fallbackBlackBrush->SetOpacity(layer.opacity);
+                BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, D2D1::SizeF(0.0f, 0.0f));
+                m_d2dContext->FillRectangle(&layout.overlayRect, m_fallbackBlackBrush.Get());
             }
         }
     }
-
-    int bgMode = m_config->GetBackgroundArtMode();
-
-    if (bgMode == 0) {
-        if (m_oldBgBitmap) {
-            D2D1_SIZE_F size = m_oldBgBitmap->GetSize();
-            BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, size, m_bgOffsetX, m_bgOffsetY, m_bgScale);
-            m_d2dContext->DrawBitmap(m_oldBgBitmap.Get(), &layout.destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &layout.srcRect);
-        }
-
-        if (m_currentBgBitmap) {
-            D2D1_SIZE_F size = m_currentBgBitmap->GetSize();
-            BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, size, m_bgOffsetX, m_bgOffsetY, m_bgScale);
-            float opacity = m_backgroundManager ? m_backgroundManager->GetFadeProgress() : 1.0f;
-            m_d2dContext->DrawBitmap(m_currentBgBitmap.Get(), &layout.destRect, opacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &layout.srcRect);
-        }
-    } else if (bgMode == 2) {
-        if (m_placeholderArtBitmap) {
-            D2D1_SIZE_F size = m_placeholderArtBitmap->GetSize();
-            BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, size, m_bgOffsetX, m_bgOffsetY, m_bgScale);
-            m_d2dContext->DrawBitmap(m_placeholderArtBitmap.Get(), &layout.destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &layout.srcRect);
-        }
-    }
-
-    if (m_config->GetBgDarkenOpacity() > 0.0f && m_bgDarkenBrush) {
-        m_bgDarkenBrush->SetOpacity(m_config->GetBgDarkenOpacity());
-        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, D2D1::SizeF(0.0f, 0.0f));
-        m_d2dContext->FillRectangle(&layout.overlayRect, m_bgDarkenBrush.Get());
-    }
+    
+    m_bgBitmapCache = std::move(nextCache);
 }
 
 void Renderer::DrawVisualizer(const std::vector<float>& spectrum, const TrackMetadata* currentMeta) {

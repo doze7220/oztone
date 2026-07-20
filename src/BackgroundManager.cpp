@@ -155,9 +155,17 @@ std::vector<BackgroundLayer> BackgroundManager::GetLayers() const {
             newLayer.scale = m_currentScale;
             layers.push_back(newLayer);
         }
+    } else if (bgMode == 2) {
+        // プレイバックモード：プレースホルダー画像を描画させる指示
+        BackgroundLayer placeholderLayer;
+        placeholderLayer.type = BackgroundLayerType::Image;
+        placeholderLayer.image = nullptr;
+        placeholderLayer.opacity = 1.0f;
+        placeholderLayer.x = m_currentOffsetX;
+        placeholderLayer.y = m_currentOffsetY;
+        placeholderLayer.scale = m_currentScale;
+        layers.push_back(placeholderLayer);
     }
-    // Note: Playback mode (bgMode == 2) is handled by Renderer with placeholder,
-    // or can be added here if BackgroundManager manages the placeholder image later.
 
     // 4. ポストエフェクト (カラーフィル)
     float darken = m_config->GetBgDarkenOpacity();

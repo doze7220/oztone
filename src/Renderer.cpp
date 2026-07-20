@@ -16,37 +16,7 @@ void Renderer::SetThumbnailManager(ThumbnailManager* manager) {
     m_thumbnailManager = manager;
 }
 
-void Renderer::SetBackgroundFraming(float offsetX, float offsetY, float scale) {
-    m_bgOffsetX = offsetX;
-    m_bgOffsetY = offsetY;
-    m_bgScale = scale;
-}
 
-void Renderer::ClampArtFraming(float& scale, float& offsetX, float& offsetY) {
-    scale = (std::max)(1.0f, scale);
-    if (!m_d2dContext || !m_currentBgBitmap) return;
-
-    D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
-    float logicWidth = rtSize.width / m_dpiScale;
-    float logicHeight = rtSize.height / m_dpiScale;
-
-    D2D1_SIZE_F bmpSize = m_currentBgBitmap->GetSize();
-    if (bmpSize.width <= 0 || bmpSize.height <= 0) return;
-
-    float scaleX = logicWidth / bmpSize.width;
-    float scaleY = logicHeight / bmpSize.height;
-    float baseScale = (std::max)(scaleX, scaleY);
-    float finalScale = baseScale * scale;
-
-    float drawWidth = bmpSize.width * finalScale;
-    float drawHeight = bmpSize.height * finalScale;
-
-    float limitX = (std::max)(0.0f, (drawWidth - logicWidth) / 2.0f);
-    float limitY = (std::max)(0.0f, (drawHeight - logicHeight) / 2.0f);
-
-    offsetX = std::clamp(offsetX, -limitX, limitX);
-    offsetY = std::clamp(offsetY, -limitY, limitY);
-}
 
 
 

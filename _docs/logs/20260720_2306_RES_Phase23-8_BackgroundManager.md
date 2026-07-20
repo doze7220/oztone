@@ -30,7 +30,7 @@
     - BackgroundLayerの定義と、`GetLayers()` による4層構築ロジックの実装。
 [x] タスク3: スワップ式クロスフェードのロジック実装とフレーミング管理の移行
     - UpdateAnimationの改修、OLD/NEW独立のフレーミング保持、1.0f到達時のスワップ処理の実装。
-[ ] タスク4: `Renderer` からの背景状態・INI参照の完全パージとレイヤー描画処理の実装
+[x] タスク4: `Renderer` からの背景状態・INI参照の完全パージとレイヤー描画処理の実装
     - Renderer内部のフレーミング変数の削除、DrawBackgroundのレイヤー反復描画化。マウスコールバックからの通知先をBackgroundManagerへ変更。
 [ ] タスク5: アーキテクチャドキュメントの更新
     - PROJECT_ARCHITECTURE.md への反映確認と更新。
@@ -70,12 +70,18 @@
 
 ### タスク4: `Renderer` からの背景状態・INI参照の完全パージとレイヤー描画処理の実装
     **【対象ファイル】**
-    - 
+    - `src/Renderer.h`
+    - `src/Renderer.cpp`
+    - `src/Renderer_Draw.cpp`
+    - `src/Application_Initialize.cpp`
     **【作業内容】**
-    - 
+    - `Renderer.h` から `m_bgOffsetX`, `m_bgOffsetY`, `m_bgScale` などのフレーミング用メンバ変数、および不要になったメソッド（`SetBackgroundScale`, `SetBackgroundOffset`, `ClampArtFraming` 等）を完全に削除。
+    - `Renderer.cpp` の各種処理から、上記変数へのアクセスや初期化処理を削除。
+    - `Renderer_Draw.cpp` の `DrawBackground` メソッドを改修。独自の設定（BackgroundArtMode等）参照や分岐を廃止し、`BackgroundManager::GetLayers()` が返す `BackgroundLayer` の配列を受け取って、その指定通りに反復描画するロジックへ純化。
+    - `Application_Initialize.cpp` 内のマウス等によるフレーミング操作コールバック（`SetArtFramingZoomCallback`, `SetArtFramingScrollCallback`）の接続先を `Renderer` から `BackgroundManager` へ変更。
 
 ### タスク5: アーキテクチャドキュメントの更新
     **【対象ファイル】**
-    - 
+    - `PROJECT_ARCHITECTURE.md`
     **【作業内容】**
-    - 
+    - `BackgroundManager` の項目へ、「4層レイヤー構造の採用」「スワップ式クロスフェード機能の実装」、および「Rendererから背景状態管理を完全に引き継いだ空間の司令塔としての役割」を追記し、最新のアーキテクチャ定義へ更新する。

@@ -73,7 +73,8 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
     float framingY = 0.0f;
     float framingScale = 1.0f;
     m_framingDb.GetFraming(track, framingX, framingY, framingScale);
-    m_renderer.SetBackgroundFraming(framingX, framingY, framingScale);
+    m_backgroundManager.SetArtFramingScale(framingScale);
+    m_backgroundManager.SetArtFramingScroll(framingX, framingY);
 
     m_backgroundManager.RequestLoad(track);
 

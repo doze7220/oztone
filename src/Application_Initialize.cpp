@@ -199,9 +199,9 @@ void Application::SetupCallbacks() {
     m_framingDb.GetFraming(currentTrack, artX, artY, artScale);
     artX -= dx;
     artY -= dy;
-    m_renderer.ClampArtFraming(artScale, artX, artY);
     m_framingDb.SetFraming(currentTrack, artX, artY, artScale);
-    m_renderer.SetBackgroundFraming(artX, artY, artScale);
+    m_backgroundManager.SetArtFramingScale(artScale);
+    m_backgroundManager.SetArtFramingScroll(artX, artY);
     this->ForceRender();
   });
 
@@ -231,9 +231,9 @@ void Application::SetupCallbacks() {
         artX = artX - relX * (artScale / oldScale - 1.0f);
         artY = artY - relY * (artScale / oldScale - 1.0f);
     }
-    m_renderer.ClampArtFraming(artScale, artX, artY);
     m_framingDb.SetFraming(currentTrack, artX, artY, artScale);
-    m_renderer.SetBackgroundFraming(artX, artY, artScale);
+    m_backgroundManager.SetArtFramingScale(artScale);
+    m_backgroundManager.SetArtFramingScroll(artX, artY);
     this->ForceRender();
   });
 
@@ -241,7 +241,8 @@ void Application::SetupCallbacks() {
     if (m_playlistManager.IsEmpty()) return;
     std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
     m_framingDb.SetFraming(currentTrack, 0.0f, 0.0f, 1.0f);
-    m_renderer.SetBackgroundFraming(0.0f, 0.0f, 1.0f);
+    m_backgroundManager.SetArtFramingScale(1.0f);
+    m_backgroundManager.SetArtFramingScroll(0.0f, 0.0f);
     m_renderer.TriggerFlyText(L"FRAMING RESET");
     this->ForceRender();
   });
