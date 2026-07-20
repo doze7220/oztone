@@ -17,7 +17,7 @@
 
 ## 4. 実装タスクリスト
 [x] タスク1: 旧プレイリスト(.lst)サポートの完全パージ
-[ ] タスク2: ConfigManager へのスナップショット監視機構の追加
+[x] タスク2: ConfigManager へのスナップショット監視機構の追加
 [ ] タスク3: Application メインループへの毎秒ポーリングフックとキャッシュ再構築・フェイルセーフ機構の実装
 [ ] タスク4: PROJECT_ARCHITECTURE.md の更新
 
@@ -36,6 +36,16 @@
 * タスク2: ConfigManager へのスナップショット監視機構の追加
     - `src/ConfigManager.h` に、前回走査時の状態を保持するメンバ変数 `std::vector<std::pair<std::wstring, std::filesystem::file_time_type>> m_playlistSnapshot;` と、監視メソッド `bool CheckPlaylistSnapshotChanged();` を追加する。
     - `src/ConfigManager_Playlist.cpp` に `CheckPlaylistSnapshotChanged()` の実装を追加。対象ディレクトリ内の `.ozl` ファイルに限定して走査し、パスと更新日時のリストを取得。前回の `m_playlistSnapshot` と比較して差異（ファイルの増減、または日時の変化）があればリストを更新し `true` を返す。
+
+    ### HOTFIX2
+    #### 原因・理由: プレイリストファイルのスナップショット監視機構の実装
+        - .ozl ファイルの増減や変更を検知し、アプリケーション再起動なしに反映させるホットリロード機構の基盤となるため。
+    #### 対象ファイル:
+        - src/ConfigManager.h
+        - src/ConfigManager_Playlist.cpp
+    #### 対応: ConfigManager へのスナップショット監視機構の追加
+        - `ConfigManager.h` に `m_playlistSnapshot` と `CheckPlaylistSnapshotChanged()` メソッドの宣言を追加した。
+        - `ConfigManager_Playlist.cpp` に `CheckPlaylistSnapshotChanged()` の実装を追加し、ディレクトリ内の .ozl ファイルのパスと更新日時を走査して前回との差異を検出するロジックを実装した。ファイルI/Oの例外発生時にはフェイルセーフとして false を返すように安全なエラーハンドリングを導入した。
 * タスク3: Application メインループへの毎秒ポーリングフックとキャッシュ再構築・フェイルセーフ機構の実装
     - `src/Application.h` に、前回監視時刻を保持する `ULONGLONG m_lastPlaylistSnapshotTime = 0;` を追加。
     - `src/Application_Render.cpp` の `Application::Run()` 内メインループにて、`GetTickCount64()` を用いて1秒ごとに `m_config.CheckPlaylistSnapshotChanged()` を呼び出すノンブロッキングなフック処理を追加する。

@@ -335,6 +335,12 @@ public:
     void SetDefaultPlaylistPath(const std::wstring& path);
     std::vector<std::wstring> GetAvailablePlaylists() const;
 
+    /**
+     * @brief プレイリストファイルのスナップショットを更新し、変更があったかチェックする
+     * @return 変更があった場合は true
+     */
+    bool CheckPlaylistSnapshotChanged();
+
     int GetPlaybackBaseBottomOffset() const { return m_playbackBaseBottomOffset; }
     int GetPlaybackCenterOffsetX() const { return m_playbackCenterOffsetX; }
     int GetPlaybackButtonSpacing() const { return m_playbackButtonSpacing; }
@@ -564,6 +570,7 @@ private:
 
 
     std::wstring m_defaultPlaylistPath;
+    std::vector<std::pair<std::wstring, std::filesystem::file_time_type>> m_playlistSnapshot;
 
     int m_playbackBaseBottomOffset;
     int m_playbackCenterOffsetX;
