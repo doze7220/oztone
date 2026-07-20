@@ -5,6 +5,8 @@
 
 BackgroundManager::BackgroundManager()
     : m_isRunning(false)
+    , m_hasNewImage(false)
+    , m_fadeProgress(1.0f)
 {
 }
 
@@ -48,6 +50,30 @@ void BackgroundManager::RequestLoad(const std::wstring& filePath)
         m_requestQueue.push(filePath);
     }
     m_cv.notify_one();
+}
+
+void BackgroundManager::UpdateAnimation(float deltaTime)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_hasNewImage) {
+            m_oldWicImage = m_currentWicImage;
+            m_currentWicImage = m_nextWicImage;
+            m_hasNewImage = false;
+            m_fadeProgress = 0.0f; // フェード開始
+        }
+    }
+
+    if (m_fadeProgress < 1.0f) {
+        // クロスフェード完了までの時間（秒）
+        const float FADE_DURATION = 0.5f;
+        m_fadeProgress += deltaTime / FADE_DURATION;
+        if (m_fadeProgress >= 1.0f) {
+            m_fadeProgress = 1.0f;
+            // フェード完了時に古い画像を解放する
+            m_oldWicImage.Reset();
+        }
+    }
 }
 
 void BackgroundManager::WorkerLoop()
@@ -140,7 +166,8 @@ void BackgroundManager::WorkerLoop()
         // スレッドセーフにクラス内部へ保持する
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_currentWicImage = decodedImage;
+            m_nextWicImage = decodedImage;
+            m_hasNewImage = true;
         }
     }
 

@@ -36,6 +36,12 @@ public:
      */
     void RequestLoad(const std::wstring& filePath);
 
+    /**
+     * @brief アニメーションの状態を更新する
+     * @param deltaTime 前回フレームからの経過時間（秒）
+     */
+    void UpdateAnimation(float deltaTime);
+
 private:
     /**
      * @brief 非同期画像ロードを行うワーカー・スレッドのメインループ
@@ -49,5 +55,13 @@ private:
     bool m_isRunning;
 
     std::queue<std::wstring> m_requestQueue;
+    
+    // ワーカーからの受け渡し用
+    Microsoft::WRL::ComPtr<IWICFormatConverter> m_nextWicImage;
+    bool m_hasNewImage;
+
+    // メインスレッド（描画・状態管理）用
     Microsoft::WRL::ComPtr<IWICFormatConverter> m_currentWicImage;
+    Microsoft::WRL::ComPtr<IWICFormatConverter> m_oldWicImage;
+    float m_fadeProgress;
 };
