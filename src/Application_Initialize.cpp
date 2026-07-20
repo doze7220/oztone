@@ -199,10 +199,10 @@ void Application::SetupCallbacks() {
     m_framingDb.GetFraming(currentTrack, artX, artY, artScale);
     artX -= dx;
     artY -= dy;
-    // [Phase23-1] Renderer層の背景アートパージに伴いコメントアウト
-    // m_renderer.ClampArtFraming(artScale, artX, artY);
+    m_renderer.ClampArtFraming(artScale, artX, artY);
     m_framingDb.SetFraming(currentTrack, artX, artY, artScale);
-    // m_renderer.SetBackgroundFraming(artX, artY, artScale);
+    m_renderer.SetBackgroundFraming(artX, artY, artScale);
+    this->ForceRender();
   });
 
   m_window.SetArtFramingScrollCallback([this](float delta) {
@@ -212,19 +212,19 @@ void Application::SetupCallbacks() {
     m_framingDb.GetFraming(currentTrack, artX, artY, artScale);
     artScale += delta * 0.001f;
     if (artScale < 1.0f) artScale = 1.0f;
-    // [Phase23-1] Renderer層の背景アートパージに伴いコメントアウト
-    // m_renderer.ClampArtFraming(artScale, artX, artY);
+    m_renderer.ClampArtFraming(artScale, artX, artY);
     m_framingDb.SetFraming(currentTrack, artX, artY, artScale);
-    // m_renderer.SetBackgroundFraming(artX, artY, artScale);
+    m_renderer.SetBackgroundFraming(artX, artY, artScale);
+    this->ForceRender();
   });
 
   m_window.SetArtFramingResetCallback([this]() {
     if (m_playlistManager.IsEmpty()) return;
     std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
     m_framingDb.SetFraming(currentTrack, 0.0f, 0.0f, 1.0f);
-    // [Phase23-1] Renderer層の背景アートパージに伴いコメントアウト
-    // m_renderer.SetBackgroundFraming(0.0f, 0.0f, 1.0f);
+    m_renderer.SetBackgroundFraming(0.0f, 0.0f, 1.0f);
     m_renderer.TriggerFlyText(L"FRAMING RESET");
+    this->ForceRender();
   });
 
   m_window.SetPlaylistPinnedToggleCallback([this](bool pinned) {

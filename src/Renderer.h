@@ -87,6 +87,7 @@ public:
     
     // 背景フレーミング情報の受け渡し
     void SetBackgroundFraming(float offsetX, float offsetY, float scale);
+    void ClampArtFraming(float& scale, float& offsetX, float& offsetY);
 
     /**
      * @brief フォーカスされているプレイリストインデックスを設定する

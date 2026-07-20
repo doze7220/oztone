@@ -22,6 +22,37 @@ void Renderer::SetBackgroundFraming(float offsetX, float offsetY, float scale) {
     m_bgScale = scale;
 }
 
+void Renderer::ClampArtFraming(float& scale, float& offsetX, float& offsetY) {
+    if (!m_d2dContext || !m_currentBgBitmap) return;
+
+    D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
+    float logicWidth = rtSize.width / m_dpiScale;
+    float logicHeight = rtSize.height / m_dpiScale;
+
+    D2D1_SIZE_F imgSize = m_currentBgBitmap->GetSize();
+    if (imgSize.width <= 0.0f || imgSize.height <= 0.0f) return;
+
+    float baseScaleX = logicWidth / imgSize.width;
+    float baseScaleY = logicHeight / imgSize.height;
+    float baseScale = (std::max)(baseScaleX, baseScaleY);
+
+    float actualScale = baseScale * scale;
+    float scaledWidth = imgSize.width * actualScale;
+    float scaledHeight = imgSize.height * actualScale;
+
+    float maxOffsetX = (scaledWidth - logicWidth) / 2.0f;
+    float maxOffsetY = (scaledHeight - logicHeight) / 2.0f;
+
+    if (maxOffsetX < 0.0f) maxOffsetX = 0.0f;
+    if (maxOffsetY < 0.0f) maxOffsetY = 0.0f;
+
+    if (offsetX > maxOffsetX) offsetX = maxOffsetX;
+    if (offsetX < -maxOffsetX) offsetX = -maxOffsetX;
+
+    if (offsetY > maxOffsetY) offsetY = maxOffsetY;
+    if (offsetY < -maxOffsetY) offsetY = -maxOffsetY;
+}
+
 
 
 void Renderer::SetFocusedPlaylistIndex(std::optional<size_t> idx) {
