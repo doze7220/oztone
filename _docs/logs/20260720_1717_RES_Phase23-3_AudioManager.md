@@ -29,7 +29,7 @@
 
 ## 4. 実装タスクリスト
 - [x] タスク1: AudioAnalyzer の新設と ScanAudioData 処理の移管
-- [ ] タスク2: AudioPlayer を AudioPlaybackEngine へリネーム・純化
+- [x] タスク2: AudioPlayer を AudioPlaybackEngine へリネーム・純化
 - [ ] タスク3: AudioManager の新設（Facadeクラスの構築）
 - [ ] タスク4: 外部クラス (Application, TrackAnalyzer) の配線付け替え
 - [ ] タスク5: CMakeLists.txt および PROJECT_ARCHITECTURE.md の更新
@@ -42,7 +42,10 @@
 - `CMakeLists.txt` を更新してビルド成功を確認。
 
 ### タスク2: AudioPlayer を AudioPlaybackEngine へリネーム・純化
-- (実行後記載)
+**【作業内容】**
+- `src/AudioPlayer.h` と `src/AudioPlayer.cpp` 内のクラス定義を `AudioPlayer` から `AudioPlaybackEngine` にリネーム。
+- 既存の外部ファイル (Application 等) のコンパイルエラーを回避するため、`src/AudioPlayer.h` の末尾に `using AudioPlayer = AudioPlaybackEngine;` のエイリアスを追記。
+- ファイル名 (`AudioPlayer.h/cpp`) は現状のまま維持し、影響範囲を最小限に抑制。
 
 ### タスク3: AudioManager の新設（Facadeクラスの構築）
 - (実行後記載)

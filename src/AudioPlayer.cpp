@@ -11,18 +11,18 @@
 namespace {
     void AudioPlayerOnProcess(void* pUserData, float* pFramesOut, ma_uint64 frameCount) {
         if (pUserData) {
-            AudioPlayer* player = static_cast<AudioPlayer*>(pUserData);
+            AudioPlaybackEngine* player = static_cast<AudioPlaybackEngine*>(pUserData);
             player->ProcessAudioFrames(pFramesOut, frameCount, 0);
         }
     }
 }
-AudioPlayer::AudioPlayer() : m_engine(nullptr), m_initialized(false), m_isSoundLoaded(false), m_cachedLengthSeconds(0.0f), m_learningPeakAmplitude(0.0f), m_learningMaxFrequency(0.0f), m_isLearningValid(false) {}
+AudioPlaybackEngine::AudioPlaybackEngine() : m_engine(nullptr), m_initialized(false), m_isSoundLoaded(false), m_cachedLengthSeconds(0.0f), m_learningPeakAmplitude(0.0f), m_learningMaxFrequency(0.0f), m_isLearningValid(false) {}
 
-AudioPlayer::~AudioPlayer() {
+AudioPlaybackEngine::~AudioPlaybackEngine() {
     Uninitialize();
 }
 
-bool AudioPlayer::Initialize() {
+bool AudioPlaybackEngine::Initialize() {
     if (m_initialized) {
         return true;
     }
@@ -44,7 +44,7 @@ bool AudioPlayer::Initialize() {
     return true;
 }
 
-void AudioPlayer::Uninitialize() {
+void AudioPlaybackEngine::Uninitialize() {
     if (m_isSoundLoaded) {
         ma_sound_uninit(&m_sound);
         m_isSoundLoaded = false;
@@ -58,7 +58,7 @@ void AudioPlayer::Uninitialize() {
     }
 }
 
-bool AudioPlayer::HasValidOutputDevice() {
+bool AudioPlaybackEngine::HasValidOutputDevice() {
     ma_context context;
     if (ma_context_init(NULL, 0, NULL, &context) != MA_SUCCESS) {
         return false;
@@ -79,7 +79,7 @@ bool AudioPlayer::HasValidOutputDevice() {
     return playbackDeviceCount > 0;
 }
 
-void AudioPlayer::TogglePlayPause() {
+void AudioPlaybackEngine::TogglePlayPause() {
     if (!m_isSoundLoaded) return;
     if (ma_sound_is_playing(&m_sound) == MA_TRUE) {
         ma_sound_stop(&m_sound);
@@ -88,13 +88,13 @@ void AudioPlayer::TogglePlayPause() {
     }
 }
 
-void AudioPlayer::Stop() {
+void AudioPlaybackEngine::Stop() {
     if (!m_isSoundLoaded) return;
     ma_sound_stop(&m_sound);
     ma_sound_seek_to_pcm_frame(&m_sound, 0);
 }
 
-void AudioPlayer::Seek(float targetSeconds) {
+void AudioPlaybackEngine::Seek(float targetSeconds) {
     if (!m_isSoundLoaded) return;
     if (targetSeconds < 0.0f) targetSeconds = 0.0f;
     if (targetSeconds > m_cachedLengthSeconds) targetSeconds = m_cachedLengthSeconds;
@@ -109,7 +109,7 @@ void AudioPlayer::Seek(float targetSeconds) {
     ma_sound_seek_to_pcm_frame(&m_sound, targetFrame);
 }
 
-bool AudioPlayer::Play(const std::wstring& filepath) {
+bool AudioPlaybackEngine::Play(const std::wstring& filepath) {
     if (!m_initialized || !m_engine) {
         return false;
     }
@@ -137,21 +137,21 @@ bool AudioPlayer::Play(const std::wstring& filepath) {
     return (result == MA_SUCCESS);
 }
 
-void AudioPlayer::SetVolume(float volume) {
+void AudioPlaybackEngine::SetVolume(float volume) {
     if (m_initialized && m_engine) {
         volume = std::clamp(volume, 0.0002f, 1.0f);
         ma_engine_set_volume(m_engine, volume);
     }
 }
 
-float AudioPlayer::GetVolume() const {
+float AudioPlaybackEngine::GetVolume() const {
     if (m_initialized && m_engine) {
         return ma_engine_get_volume(m_engine);
     }
     return 1.0f;
 }
 
-float AudioPlayer::GetPositionSeconds() {
+float AudioPlaybackEngine::GetPositionSeconds() {
     if (!m_isSoundLoaded) {
         return 0.0f;
     }
@@ -161,28 +161,28 @@ float AudioPlayer::GetPositionSeconds() {
 
 }
 
-float AudioPlayer::GetLengthSeconds() {
+float AudioPlaybackEngine::GetLengthSeconds() {
     if (!m_isSoundLoaded) {
         return 0.0f;
     }
     return m_cachedLengthSeconds;
 }
 
-bool AudioPlayer::IsPlaying() {
+bool AudioPlaybackEngine::IsPlaying() {
     if (!m_isSoundLoaded) {
         return false;
     }
     return ma_sound_is_playing(&m_sound) == MA_TRUE;
 }
 
-bool AudioPlayer::IsAtEnd() {
+bool AudioPlaybackEngine::IsAtEnd() {
     if (!m_isSoundLoaded) {
         return false;
     }
     return ma_sound_at_end(&m_sound) == MA_TRUE;
 }
 
-void AudioPlayer::ProcessAudioFrames(const float* pFrames, ma_uint64 frameCount, ma_uint32 channels) {
+void AudioPlaybackEngine::ProcessAudioFrames(const float* pFrames, ma_uint64 frameCount, ma_uint32 channels) {
     if (!m_initialized || !m_engine) return;
     
     if (channels == 0) {
@@ -247,12 +247,12 @@ void AudioPlayer::ProcessAudioFrames(const float* pFrames, ma_uint64 frameCount,
     }
 }
 
-void AudioPlayer::GetSpectrumData(std::vector<float>& outSpectrum) {
+void AudioPlaybackEngine::GetSpectrumData(std::vector<float>& outSpectrum) {
     std::lock_guard<std::mutex> lock(m_spectrumMutex);
     outSpectrum = m_spectrumData;
 }
 
-bool AudioPlayer::ScanAudioData(const std::wstring& filepath, float noiseThreshold, float& outPeakAmplitude, float& outMaxFrequency) {
+bool AudioPlaybackEngine::ScanAudioData(const std::wstring& filepath, float noiseThreshold, float& outPeakAmplitude, float& outMaxFrequency) {
     return AudioAnalyzer::ScanAudioData(filepath, noiseThreshold, outPeakAmplitude, outMaxFrequency);
 }
 

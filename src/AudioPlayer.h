@@ -7,10 +7,10 @@
 /**
  * @brief 音声再生（バックグラウンドMP3再生）を管理するクラス
  */
-class AudioPlayer {
+class AudioPlaybackEngine {
 public:
-    AudioPlayer();
-    ~AudioPlayer();
+    AudioPlaybackEngine();
+    ~AudioPlaybackEngine();
 
     /**
      * @brief miniaudioエンジンの初期化
@@ -124,3 +124,5 @@ private:
     float m_learningMaxFrequency;
     bool m_isLearningValid;
 };
+
+using AudioPlayer = AudioPlaybackEngine;

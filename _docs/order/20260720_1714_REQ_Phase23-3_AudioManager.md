@@ -59,3 +59,60 @@
 
 #### 【絶対遵守ルール (Constraints)】
 *   **スコープの厳守** : 本タスクは部品の切り離し（`AudioAnalyzer` の新設と `AudioPlayer` からのコード移動）のみを行う。`AudioPlayer` のリネーム（タスク2）や、他の外部クラスからの呼び出し箇所の修正（タスク4）は絶対にフライングで行わないこと。
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 23-3 Task 2 : AudioPlayer の純化とリネーム
+*  ルール: D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  開発資料:D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  実装計画書:D:\ozlab\oztone\_docs\logs\20260720_1717_RES_Phase23-3_AudioManager.md
+
+#### 【作業手順（厳守事項）】
+本プロンプトはPhase 23-3 Task 2: AudioPlayer の純化とリネームである。必ず以下の順序で作業を行うこと。
+1. ルール（PROJECT_CONSTITUTION.md）および開発資料（PROJECT_ARCHITECTURE.md）を熟読・把握すること。
+2. 実装計画書（20260720_1717_RES_Phase23-3_AudioManager.md）を読み、今回の自分のスコープが「タスク2」のみであることを確認すること。
+3. 上記を確認した後、以下の【実装要件】に従って **「タスク2のみ」** の実装を開始し、ソースコードの修正を実行すること。絶対にタスク3以降をフライングで実行しないこと。
+4. 作業完了後、既存の作業レポート（20260720_1717_RES_Phase23-3_AudioManager.md）の「タスク2」のチェックボックスを完了 [x] にし、今回追加された新しいテンプレート書式（対象ファイルの列挙含む）に従って詳細作業内容を追記すること。
+5. チャットにて「タスク2の実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+現在「神クラス」になりかけている `AudioPlayer` を、再生機能に特化した `AudioPlaybackEngine` へとリネームし、内部コンポーネントとして純化させる。
+*   **要件1: クラスのリネームと純化**
+    *  `src/AudioPlayer.h` および `src/AudioPlayer.cpp` 内のクラス定義名 `AudioPlayer` を `AudioPlaybackEngine` へ変更すること。
+    *  コンストラクタやデストラクタなどのメソッドシグネチャもすべて新しいクラス名に合わせて変更し、不要なコードが残っていないか純化すること。
+    *  ※影響範囲を最小限にするため、ファイル名自体のリネーム（`AudioPlaybackEngine.h/cpp` への変更）は今回は絶対に行わないこと。
+*   **要件2: 既存クラス向けのビルド維持（一時的エイリアス）**
+    *  クラス名のみを変更すると `Application` などの外部クラスでコンパイルエラーが発生してしまうため、配線切り替え（タスク4）までの安全な「つなぎ」として、`src/AudioPlayer.h` の末尾（クラス定義の直後など）に `using AudioPlayer = AudioPlaybackEngine;` を追記し、既存のコードがそのままビルドを通る状態を死守すること。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スコープの厳守** : 本タスクは `AudioPlayer` クラスの純化と内部リネームのみを行う。`AudioManager` の新規作成（タスク3）や外部クラスでの呼び出し名の書き換え（タスク4）は絶対にフライングで行わないこと。
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 23-3 Task 3 : AudioManager の新設
+*  ルール: D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  開発資料:D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  実装計画書:D:\ozlab\oztone\_docs\logs\20260720_1717_RES_Phase23-3_AudioManager.md
+
+#### 【作業手順（厳守事項）】
+本プロンプトはPhase 23-3 Task 3: AudioManager の新設である。必ず以下の順序で作業を行うこと。
+1. ルール（PROJECT_CONSTITUTION.md）および開発資料（PROJECT_ARCHITECTURE.md）を熟読・把握すること。
+2. 実装計画書（20260720_1717_RES_Phase23-3_AudioManager.md）を読み、今回の自分のスコープが「タスク3」のみであることを確認すること。
+3. 上記を確認した後、以下の【実装要件】に従って **「タスク3のみ」** の実装を開始し、ソースコードの修正を実行すること。絶対にタスク4以降をフライングで実行しないこと。
+4. 作業完了後、既存の作業レポート（20260720_1717_RES_Phase23-3_AudioManager.md）の「タスク3」のチェックボックスを完了 [x] にし、今回追加された新しいテンプレート書式（対象ファイルの列挙含む）に従って詳細作業内容を追記すること。
+5. チャットにて「タスク3の実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+「音に関すること」をすべて統括する司令塔となる `AudioManager` クラスを新規に構築する。
+*   **要件1: AudioManagerクラスの新設**
+    *  `src/AudioManager.h` および `src/AudioManager.cpp` を新規作成すること。
+    *  クラスのメンバとして、タスク1・2で分離・純化させた `AudioPlaybackEngine` (旧AudioPlayer) と `AudioAnalyzer` を保持（包含またはポインタ管理）すること。
+*   **要件2: Facade（窓口）メソッドの定義と委譲**
+    *  外部（Application等）からの音声操作要求を一手に引き受けるため、`Play`, `Stop`, `Pause`, `Seek`, `SetVolume`, `GetSpectrumData` など、既存の音声関連メソッドと同等のパブリックメソッドを定義すること。
+    *  定義したメソッドの内部では、実際の処理をメンバである `AudioPlaybackEngine` や `AudioAnalyzer` へとルーティング（委譲）すること。
+    *  ※ このファイル内で必要なインクルードのみを行い、`Application` など外部のクラスに `miniaudio` などの依存が漏れないようカプセル化を徹底すること。
+*   **要件3: CMakeLists.txtの更新**
+    *  新規作成した `src/AudioManager.cpp` および `src/AudioManager.h` を CMakeLists.txt に追加し、ビルドが通る状態を維持すること。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スコープの厳守** : 本タスクは `AudioManager` の新設（枠組み作り）のみを行う。`Application` や `TrackAnalyzer` など、他の外部クラスからの呼び出し箇所の書き換え（タスク4）は絶対にフライングで行わないこと。
