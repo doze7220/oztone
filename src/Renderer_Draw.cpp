@@ -69,17 +69,27 @@ void Renderer::DrawBackground() {
         }
     }
 
-    if (m_oldBgBitmap) {
-        D2D1_SIZE_F size = m_oldBgBitmap->GetSize();
-        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, size, m_bgOffsetX, m_bgOffsetY, m_bgScale);
-        m_d2dContext->DrawBitmap(m_oldBgBitmap.Get(), &layout.destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &layout.srcRect);
-    }
+    int bgMode = m_config->GetBackgroundArtMode();
 
-    if (m_currentBgBitmap) {
-        D2D1_SIZE_F size = m_currentBgBitmap->GetSize();
-        BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, size, m_bgOffsetX, m_bgOffsetY, m_bgScale);
-        float opacity = m_backgroundManager ? m_backgroundManager->GetFadeProgress() : 1.0f;
-        m_d2dContext->DrawBitmap(m_currentBgBitmap.Get(), &layout.destRect, opacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &layout.srcRect);
+    if (bgMode == 0) {
+        if (m_oldBgBitmap) {
+            D2D1_SIZE_F size = m_oldBgBitmap->GetSize();
+            BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, size, m_bgOffsetX, m_bgOffsetY, m_bgScale);
+            m_d2dContext->DrawBitmap(m_oldBgBitmap.Get(), &layout.destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &layout.srcRect);
+        }
+
+        if (m_currentBgBitmap) {
+            D2D1_SIZE_F size = m_currentBgBitmap->GetSize();
+            BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, size, m_bgOffsetX, m_bgOffsetY, m_bgScale);
+            float opacity = m_backgroundManager ? m_backgroundManager->GetFadeProgress() : 1.0f;
+            m_d2dContext->DrawBitmap(m_currentBgBitmap.Get(), &layout.destRect, opacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &layout.srcRect);
+        }
+    } else if (bgMode == 2) {
+        if (m_placeholderArtBitmap) {
+            D2D1_SIZE_F size = m_placeholderArtBitmap->GetSize();
+            BackgroundLayout layout = LayoutCalculator::CalculateBackgroundLayout(logicWidth, logicHeight, size, m_bgOffsetX, m_bgOffsetY, m_bgScale);
+            m_d2dContext->DrawBitmap(m_placeholderArtBitmap.Get(), &layout.destRect, 1.0f, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &layout.srcRect);
+        }
     }
 
     if (m_config->GetBgDarkenOpacity() > 0.0f && m_bgDarkenBrush) {
