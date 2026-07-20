@@ -83,7 +83,17 @@ void ThumbCacher::WorkerLoop()
             continue;
         }
 
-
+        std::vector<BYTE> rawBinary = FileManager::ExtractAlbumArtBinary(filepath);
+        if (!rawBinary.empty())
+        {
+            const UINT THUMBNAIL_SIZE = 160;
+            const float JPEG_QUALITY = 0.85f;
+            std::vector<BYTE> cookedBinary = CookThumbnailImage(rawBinary, THUMBNAIL_SIZE, JPEG_QUALITY);
+            if (!cookedBinary.empty())
+            {
+                m_db->StoreCookedData(thumbId, filepath, cookedBinary);
+            }
+        }
     }
 
     if (SUCCEEDED(hrInit))
