@@ -17,11 +17,23 @@ void TrackDrum::StartDrumAnimation(int relativeDistance,
         m_drumTargetPosition = 0;
         m_drumAbsolutePosition = 0.0f;
         if (dataProvider) {
-            TrackMetadata meta = dataProvider(0, &m_drumSlots[m_currentDrumSlotIndex]);
-            m_drumSlots[m_currentDrumSlotIndex].artBitmap = nullptr;
-            m_drumSlots[m_currentDrumSlotIndex].trackTitle = meta.title;
-            m_drumSlots[m_currentDrumSlotIndex].trackArtist = meta.artist;
-            m_drumSlots[m_currentDrumSlotIndex].trackNumber = meta.timeString;
+            TrackMetadata meta0 = dataProvider(0, &m_drumSlots[0]);
+            m_drumSlots[0].artBitmap = nullptr;
+            m_drumSlots[0].trackTitle = meta0.title;
+            m_drumSlots[0].trackArtist = meta0.artist;
+            m_drumSlots[0].trackNumber = meta0.timeString;
+
+            TrackMetadata meta1 = dataProvider(1, &m_drumSlots[1]);
+            m_drumSlots[1].artBitmap = nullptr;
+            m_drumSlots[1].trackTitle = meta1.title;
+            m_drumSlots[1].trackArtist = meta1.artist;
+            m_drumSlots[1].trackNumber = meta1.timeString;
+
+            TrackMetadata meta2 = dataProvider(-1, &m_drumSlots[2]);
+            m_drumSlots[2].artBitmap = nullptr;
+            m_drumSlots[2].trackTitle = meta2.title;
+            m_drumSlots[2].trackArtist = meta2.artist;
+            m_drumSlots[2].trackNumber = meta2.timeString;
         }
         m_isDrumInitialized = true;
         if (onComplete) {
