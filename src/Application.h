@@ -146,6 +146,7 @@ private:
 
     bool m_isPlaylistListViewMode = false;
     ULONGLONG m_lastConfigCheckTime = 0;
+    ULONGLONG m_lastPlaylistSnapshotTime = 0;
     std::optional<size_t> m_focusedPlaylistIndex;
 
     std::vector<PlaylistSummary> m_playlistSummaries;

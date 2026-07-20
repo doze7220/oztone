@@ -75,6 +75,21 @@ void Application::Run() {
       }
     }
 
+    if (currentTime - m_lastPlaylistSnapshotTime >= 1000) {
+      m_lastPlaylistSnapshotTime = currentTime;
+      if (m_config.CheckPlaylistSnapshotChanged()) {
+        UpdatePlaylistSummaries();
+        
+        std::wstring currentPlaylistPath = m_config.GetDefaultPlaylistPath();
+        if (!std::filesystem::exists(currentPlaylistPath)) {
+          m_playlistManager.Clear();
+          m_audioPlayer.Stop();
+          m_renderer.GetTrackDrum().StartDrumAnimation(0, 0.0f, 0.0f, nullptr, nullptr);
+          m_renderer.GetTrackDrum().SetAlbumArt(nullptr);
+        }
+      }
+    }
+
     if (m_audioPlayer.IsAtEnd()) {
       std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
       if (m_audioPlayer.IsLearningValid()) {

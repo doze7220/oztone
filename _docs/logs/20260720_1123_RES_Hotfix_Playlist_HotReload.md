@@ -18,8 +18,8 @@
 ## 4. 実装タスクリスト
 [x] タスク1: 旧プレイリスト(.lst)サポートの完全パージ
 [x] タスク2: ConfigManager へのスナップショット監視機構の追加
-[ ] タスク3: Application メインループへの毎秒ポーリングフックとキャッシュ再構築・フェイルセーフ機構の実装
-[ ] タスク4: PROJECT_ARCHITECTURE.md の更新
+[x] タスク3: Application メインループへの毎秒ポーリングフックとキャッシュ再構築・フェイルセーフ機構の実装
+[x] タスク4: PROJECT_ARCHITECTURE.md の更新
 
 ## 5. 詳細作業内容
 * タスク1: 旧プレイリスト(.lst)サポートの完全パージ
@@ -51,5 +51,24 @@
     - `src/Application_Render.cpp` の `Application::Run()` 内メインループにて、`GetTickCount64()` を用いて1秒ごとに `m_config.CheckPlaylistSnapshotChanged()` を呼び出すノンブロッキングなフック処理を追加する。
     - 変更が検知された場合（`true` が返された場合）、`UpdatePlaylistSummaries()` を呼び出してUIのメタデータキャッシュを最新状態に同期させる（要件2）。
     - **フェイルセーフ（要件3）**: 変更検知時、現在アクティブなプレイリストパス（`m_config.GetDefaultPlaylistPath()`）がディスク上に存在しない場合、`m_playlistManager.Clear()` や `m_audioPlayer.Stop()` などを呼び出し、安全に再生を停止して空のプレイリスト状態（No Track）へフォールバックさせる。
+
+    ### HOTFIX3
+    #### 原因・理由: メインループでのプレイリストの自動更新（スナップショット監視）
+        - 1秒ごとのノンブロッキングなポーリングにより、ファイル変更をUIへ自動的に反映させ、アクティブなプレイリストが削除された際のクラッシュや不正な状態を防ぐため。
+    #### 対象ファイル: 
+        - src/Application.h
+        - src/Application_Render.cpp
+    #### 対応: メインループへのフックとフェイルセーフ処理の追加
+        - `Application.h` に `m_lastPlaylistSnapshotTime` を追加。
+        - `Application_Render.cpp` の `Application::Run()` に、1秒ごとに `m_config.CheckPlaylistSnapshotChanged()` を呼び出す処理を追加。変更を検知した場合は `UpdatePlaylistSummaries()` を呼び出し、アクティブなプレイリストが存在しない場合は `m_playlistManager.Clear()`、`m_audioPlayer.Stop()`、およびドラムアニメーションの停止を行って安全な空状態にフォールバックさせるフェイルセーフ機構を実装した。
 * タスク4: PROJECT_ARCHITECTURE.md の更新
     - `PROJECT_ARCHITECTURE.md` の記述を見直し、`ConfigManager` によるプレイリストのホットリロード機能（スナップショット監視）が追加されたこと、および旧 `.lst` フォーマットが完全に廃止されたことを追記・修正する。
+
+    ### HOTFIX4
+    #### 原因・理由: アーキテクチャ資料の現状同期
+        - 直前のタスクで行ったスナップショット監視の実装と.lstフォーマットの完全廃止を、今後のAI開発向けインデックスであるアーキテクチャ資料へ反映させるため。
+    #### 対象ファイル: 
+        - PROJECT_ARCHITECTURE.md
+    #### 対応: PROJECT_ARCHITECTURE.md の更新
+        - `ConfigManager` の項に、プレイリストディレクトリのスナップショット監視によるホットリロード機能の追加、および `.lst` 廃止による `.ozl` 統一について追記。
+        - `Application` の項に、メインループ内での毎秒ポーリング機構と、アクティブファイル消失時のフェイルセーフ機構について追記。過剰な実装詳細は省き、仕様変更の要点のみを簡潔に記載した。
