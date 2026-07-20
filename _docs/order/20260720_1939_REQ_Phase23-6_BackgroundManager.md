@@ -66,3 +66,36 @@
 
 #### 【絶対遵守ルール (Constraints)】
 *   **スコープの厳守** : 本タスクはクラスの骨組みと非同期ワーカーの基盤作成のみを行う。`FileManager` との連携（タスク2）や、`Application` / `Renderer` への結線（タスク4, 5）は絶対にフライングで行わないこと。
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 23-6 Task 2 : FileManager連携とWICデコードの実装
+*  ルール: D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  開発資料:D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  実装計画書:D:\ozlab\oztone\_docs\logs\20260720_1939_RES_Phase23-6_BackgroundManager.md
+
+#### 【作業手順（厳守事項）】
+本プロンプトはPhase 23-6 Task 2: FileManager連携とWICデコードの実装である。必ず以下の順序で作業を行うこと。
+1. ルール（PROJECT_CONSTITUTION.md）および開発資料（PROJECT_ARCHITECTURE.md）を熟読・把握すること。
+2. 実装計画書（20260720_1939_RES_Phase23-6_BackgroundManager.md）を読み、今回の自分のスコープが「タスク2」のみであることを確認すること。
+3. 上記を確認した後、以下の【実装要件】に従って **「タスク2のみ」** の実装を開始し、ソースコードの修正を実行すること。絶対にタスク3以降をフライングで実行しないこと。
+4. 作業完了後、既存の作業レポート（20260720_1939_RES_Phase23-6_BackgroundManager.md）の「タスク2」のチェックボックスを完了 [x] にし、必ず以下のフォーマットで詳細作業内容を追記すること。
+    ### タスク2: FileManager連携とWICデコードの実装
+    **【作業ファイル】**
+    - `ファイル名` (編集)
+    **【作業内容】**
+    - 詳細な作業内容
+5. チャットにて「タスク2の実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+新設した `BackgroundManager` のワーカースレッド内にて、画像バイナリの非同期抽出とWICデコード処理を実装する。
+*   **要件1: 画像ロード要求（発注）インターフェースの追加**
+    *   `src/BackgroundManager.h` に、外部から背景画像のロードを要求するためのメソッド（例: `RequestLoad` 等）を追加すること。
+    *   要求されたファイルパス（`std::wstring` 等）をキューへスレッドセーフにエンキューし、条件変数（`condition_variable`）でワーカーを起床させる処理を実装すること。
+*   **要件2: FileManagerからのバイナリ抽出とWICデコード (WorkerLoopの実装)**
+    *   `src/BackgroundManager.cpp` のワーカースレッドループ内にて、キューから取り出したファイルパスに対して `FileManager::ExtractAlbumArtBinary` を静的呼び出しし、画像バイナリを抽出すること。
+    *   抽出したバイナリデータが存在する場合、WIC (`IWICImagingFactory` 等) を用いてデコードし、`IWICFormatConverter`（PBGRA形式等）の状態でスレッドセーフにクラス内部へ保持する処理を実装すること。（※D2D1Bitmapの生成はUIスレッドを持つRendererで行う必要があるため、ここではWICレベルまでのデコード・保持に留めること）
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スコープの厳守** : 本タスクはFileManagerを用いた非同期画像抽出とWICデコードの処理実装のみを行う。クロスフェード状態の管理（タスク3）や、Application / Renderer への結線（タスク4, 5）は絶対にフライングで行わないこと。
+*   **D2D非依存の原則** : ワーカースレッド内では `ID2D1Bitmap` の生成は行わず、必ずWICリソースとして保持すること。

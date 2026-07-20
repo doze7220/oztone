@@ -5,6 +5,9 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <queue>
+#include <wincodec.h>
+#include <wrl/client.h>
 
 /**
  * @brief 背景画像のロードおよびクロスフェードアニメーションを統括する司令塔
@@ -27,6 +30,12 @@ public:
      */
     void Uninitialize();
 
+    /**
+     * @brief 背景画像のロードを非同期で要求する
+     * @param filePath 画像を抽出するファイルパス
+     */
+    void RequestLoad(const std::wstring& filePath);
+
 private:
     /**
      * @brief 非同期画像ロードを行うワーカー・スレッドのメインループ
@@ -38,4 +47,7 @@ private:
     std::mutex m_mutex;
     std::condition_variable m_cv;
     bool m_isRunning;
+
+    std::queue<std::wstring> m_requestQueue;
+    Microsoft::WRL::ComPtr<IWICFormatConverter> m_currentWicImage;
 };
