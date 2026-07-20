@@ -30,7 +30,7 @@
 [x] タスク4: TagManagerの完全パージとビルド環境の更新
     - 不要になった `src/TagManager.h` および `src/TagManager.cpp` をファイルシステムから物理削除する。
     - `CMakeLists.txt` を更新してビルドを通す。
-[ ] タスク5: ドキュメントの更新
+[x] タスク5: ドキュメントの更新
     - `PROJECT_ARCHITECTURE.md` 等を更新する。
 
 ## 4. 詳細作業内容
@@ -109,4 +109,16 @@
         - `src/TagManager.h` と `src/TagManager.cpp` をファイルシステムから削除。
         - `CMakeLists.txt` 内のソースファイルリストおよびヘッダファイルリストから上記2ファイルを削除し、代わりに `src/FileManager.cpp` と `src/FileManager.h` を追加した。
 ### タスク5: ドキュメントの更新
-    - （未着手）
+    - `PROJECT_ARCHITECTURE.md` の記述を更新し、`FileManager` クラスの追加と `TagManager` クラスの削除を反映した。
+    - また、資料冒頭の特記事項にて、`FileManager` がファイルI/Oとメタデータ抽出の単一門番として稼働開始し、旧処理がパージされた旨を記載した。
+
+    #### 原因・理由:Phase 23-2 タスク5実装
+        - `FileManager` の新設および `TagManager` のパージに伴うアーキテクチャの変更を、AI向けのシステム見取り図（設計書）に反映するため。
+
+    #### 対象ファイル:
+        - PROJECT_ARCHITECTURE.md
+
+    #### 対応:アーキテクチャ資料の更新
+        - 資料冒頭の「特記事項」を更新し、`FileManager` が TagLib の機能を完全に吸収し稼働を開始した旨と、`TagManager` がパージされた旨を記載した。
+        - 「5. 実装済みクラス・関数リファレンス」から `TagManager` クラスの項目を完全に削除した。
+        - 同項目に `FileManager` クラスのリファレンスを新規追加（`src/FileManager.h, cpp`）し、Adapterパターンとして外部ライブラリを隠蔽する門番の役割を簡潔に記載した。内部ロジックや引数の詳細などのノイズは排除するルールを厳守した。
