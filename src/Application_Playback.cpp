@@ -95,20 +95,9 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
       }
     };
 
-    bool tagLoaded = m_tagManager.Load(track);
-    Microsoft::WRL::ComPtr<ID2D1Bitmap> artBitmap;
-    if (tagLoaded) {
-      const auto &artBytes = m_tagManager.GetAlbumArtBytes();
-      if (!artBytes.empty()) {
-        m_renderer.LoadBitmapFromMemory(artBytes, &artBitmap);
-      }
-    }
-
-    m_renderer.SetBackgroundArt(artBitmap.Get());
-
-    float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
-    m_framingDb.GetFraming(track, artX, artY, artScale);
-    m_renderer.SetBackgroundFraming(artX, artY, artScale);
+    m_tagManager.Load(track);
+    // [Phase23-1] 背景画像読み込み・デコード処理および
+    // 背景フレーミングの設定伝達処理をパージ
 
     auto onComplete = [this, track]() {
       bool isNew = false;
