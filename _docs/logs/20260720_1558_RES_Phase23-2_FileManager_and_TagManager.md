@@ -36,6 +36,19 @@
 ## 4. 詳細作業内容
 ### タスク1: FileManagerのインターフェース設計と作成
     - `src/FileManager.h` を新規作成し、TagLib依存を隠蔽する窓口を定義した。抽出したメタデータをまとめる専用構造体 `AudioMetadata` を定義し、静的メソッド `ExtractMetadata` を宣言した。
+
+    #### 原因・理由:Phase 23-2 タスク1実装
+        - FileManagerのインターフェース設計と作成の要求に対応するため。
+
+    #### 対象ファイル: 
+        - src/FileManager.h (新規作成)
+
+    #### 対応:FileManagerインターフェースの設計と作成
+        - `src/FileManager.h` を新規作成した。
+        - TagLibへの依存を隠蔽するため、ヘッダ内でTagLib関連のインクルードを行わず、`std::wstring`, `std::vector<BYTE>` などの標準型および `windows.h` のみを使用。
+        - 抽出したメタデータをまとめる専用の構造体 `AudioMetadata` を定義した。
+        - `FileManager` クラスを静的ユーティリティクラスとして設計し、`ExtractMetadata` メソッドを宣言した。
+
 ### タスク2: FileManagerの実装（TagManagerロジックの移植）
     - （未着手）
 ### タスク3: 外部クラスの配線の付け替え
@@ -45,15 +58,3 @@
 ### タスク5: ドキュメントの更新
     - （未着手）
 
-### HOTFIX1
-#### 原因・理由:Phase 23-2 タスク1実装
-    - FileManagerのインターフェース設計と作成の要求に対応するため。
-
-#### 対象ファイル: 
-    - src/FileManager.h (新規作成)
-
-#### 対応:FileManagerインターフェースの設計と作成
-    - `src/FileManager.h` を新規作成した。
-    - TagLibへの依存を隠蔽するため、ヘッダ内でTagLib関連のインクルードを行わず、`std::wstring`, `std::vector<BYTE>` などの標準型および `windows.h` のみを使用。
-    - 抽出したメタデータをまとめる専用の構造体 `AudioMetadata` を定義した。
-    - `FileManager` クラスを静的ユーティリティクラスとして設計し、`ExtractMetadata` メソッドを宣言した。
