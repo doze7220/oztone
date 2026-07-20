@@ -25,7 +25,12 @@ void ThumbnailManager::Uninitialize()
 
 uint32_t ThumbnailManager::GetOrGenerateThumbId(const std::wstring& filepath, bool& out_isNew)
 {
-    return m_database->GetOrGenerateThumbId(filepath, out_isNew);
+    uint32_t id = m_database->GetOrGenerateThumbId(filepath, out_isNew);
+    if (out_isNew)
+    {
+        m_cacher->EnqueueTrack(id, filepath);
+    }
+    return id;
 }
 
 bool ThumbnailManager::HasCookedData(uint32_t thumbId)

@@ -166,3 +166,32 @@
 
 #### 【絶対遵守ルール (Constraints)】
 *   **スコープの厳守** : 本タスクは `Renderer` 層（および初期化のポインタ渡し）の配線切り替えのみを行う。タスク5（アーキテクチャ資料の更新）は絶対に行わないこと。
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 23-4 Hotfix : ThumbnailManagerの内部結線・委譲漏れの修復 (実装実行)
+*  ルール: D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  開発資料:D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  実装計画書:D:\ozlab\oztone\_docs\logs\20260720_1810_RES_Phase23-4_ThumbnailManager.md
+
+#### 【作業手順（厳守事項）】
+本プロンプトはPhase 23-4 ThumbnailManager新設に伴う不具合のHotfixである。必ず以下の順序で作業を行うこと。
+1. ルール（PROJECT_CONSTITUTION.md）および開発資料（PROJECT_ARCHITECTURE.md）を熟読・把握すること。
+2. 以下の【不具合の調査と実装要件】に従って `src/ThumbnailManager.cpp` を中心に原因を調査し、ソースコードの修正を実行すること。
+3. コード修正が完全に終わった後、Hotfix作業レポートテンプレート（D:\ozlab\oztone\_docs\RES(Hotfix)_template.md）を元に、作業レポート（D:\ozlab\oztone\_docs\logs\20260720_RES_Hotfix_ThumbnailManager_Delegation.md）として新規作成すること。作業レポートに原因と対応内容を【作業ファイル】と【作業内容】のフォーマットを用いて追記すること。
+4. チャットにて「内部結線のHotfix実装が完了しました。再度ビルド・動作確認をお願いします」と報告すること。
+
+#### 【不具合の調査と実装要件】
+ビルドは通るものの、実行時にサムネイルが生成・表示されない不具合が発生している。`ThumbnailManager` 内部の委譲漏れが原因と考えられるため、以下の点検と修正を行うこと。
+*   **要件1: 初期化の委譲確認と修正**
+    *   `src/ThumbnailManager.cpp` の `Initialize` メソッド内にて、確実に内部の `ThumbnailDatabase::Initialize()` と `ThumbCacher::Initialize()` を呼び出しているか確認し、漏れていれば追加すること。
+    *   同様に `Uninitialize` メソッドでも内部コンポーネントの終了処理（スレッドの待機等）を正しく呼び出しているか確認すること。
+*   **要件2: コンストラクタでの依存関係解決の確認**
+    *   `ThumbnailManager` のコンストラクタ（または初期化時）において、`ThumbCacher` に `ThumbnailDatabase` のポインタが正しく渡されているか確認し、修正すること。
+*   **要件3: EnqueueTrack (新規発注) ロジックの確認と修正**
+    *   サムネイルの新規発番時（`isNew == true`）に、正しく `ThumbCacher::EnqueueTrack` が呼び出されるロジックが維持されているか確認すること。
+    *   `ThumbnailManager::GetOrGenerateThumbId` などの窓口メソッド内部で `isNew` を判定し、`isNew == true` の場合のみ自身で `ThumbCacher` へ `EnqueueTrack` するように隠蔽（カプセル化）を強化し、確実な発注ルートを構築すること。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **Facadeパターンの維持** : `ThumbnailManager` は外部に対する窓口である。外部クラス（Application等）に再び `isNew` の判定や `ThumbCacher` の存在を意識させるような逆行した修正は行わず、極力 `ThumbnailManager` 内部でロジックを完結させること。
+
