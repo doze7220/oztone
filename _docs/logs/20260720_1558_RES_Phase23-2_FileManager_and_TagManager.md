@@ -23,7 +23,7 @@
 ## 3. 実装タスクリスト
 [x] タスク1: FileManagerのインターフェース設計と作成
     - `src/FileManager.h` を新規作成し、TagLib依存を隠蔽する窓口を定義する。
-[ ] タスク2: FileManagerの実装（TagManagerロジックの移植）
+[x] タスク2: FileManagerの実装（TagManagerロジックの移植）
     - `src/FileManager.cpp` を新規作成し、既存のTagLibを用いたメタデータ抽出ロジックをここに移植・カプセル化する。
 [ ] タスク3: 外部クラスの配線の付け替え
     - `Application` クラスや `TrackAnalyzer` クラスなどを開き、既存の `TagManager` へのアクセスを新設した `FileManager` へと綺麗に結線し直す。
@@ -50,7 +50,20 @@
         - `FileManager` クラスを静的ユーティリティクラスとして設計し、`ExtractMetadata` メソッドを宣言した。
 
 ### タスク2: FileManagerの実装（TagManagerロジックの移植）
-    - （未着手）
+    - `src/FileManager.cpp` を新規作成し、`ExtractTextMetadata` および `ExtractAlbumArtBinary` メソッドの実装を行った。
+
+    #### 原因・理由:Phase 23-2 タスク2実装
+        - 旧TagManagerの責務（テキストメタデータ・画像バイナリ抽出）をFileManagerへ移植し、カプセル化するため。
+
+    #### 対象ファイル:
+        - src/FileManager.cpp (新規作成)
+
+    #### 対応:TagManagerロジックの移植
+        - `src/FileManager.cpp` を新規作成した。
+        - `<taglib/mpegfile.h>`, `<taglib/id3v2tag.h>`, `<taglib/attachedpictureframe.h>` 等のTagLibインクルードをこのファイル内でのみ行い、ヘッダ側への依存漏出を防ぐことでAdapterパターンを完成させた。
+        - `ExtractTextMetadata` で曲名、アーティスト名、曲の長さのテキスト情報を効率的に取得するように実装した。
+        - `ExtractAlbumArtBinary` で `TagLib::ID3v2::AttachedPictureFrame` からバイナリデータを取得し、`std::vector<BYTE>` として返却するように実装した。それぞれ必要な情報だけを抽出するストイックな処理とした。
+
 ### タスク3: 外部クラスの配線の付け替え
     - （未着手）
 ### タスク4: TagManagerの完全パージとビルド環境の更新
