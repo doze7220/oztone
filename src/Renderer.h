@@ -118,13 +118,7 @@ public:
      */
     void TriggerFlyText(const std::wstring& text);
 
-    /**
-     * @brief メモリ上のバイナリデータからID2D1Bitmapを生成する
-     */
-    /**
-     * @brief メモリ上のバイナリデータからID2D1Bitmapを生成する
-     */
-    bool LoadBitmapFromMemory(const std::vector<uint8_t>& data, ID2D1Bitmap** ppBitmap);
+
 
 private:
     // D3D11 リソース

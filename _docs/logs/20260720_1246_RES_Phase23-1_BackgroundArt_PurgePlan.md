@@ -25,7 +25,7 @@
 - [x] タスク1: TagManagerの純化（画像抽出のパージ）
 - [x] タスク2: Application層のロード処理のパージ
 - [x] タスク3: Renderer層の背景アート機構の完全パージ
-- [ ] タスク4: 潜在的な背景読み込みロジックのパージ
+- [x] タスク4: 潜在的な背景読み込みロジックのパージ
 - [ ] タスク5: ThumbCacher内のサムネイル生成時画像抽出処理のパージ
 
 ## 4. 詳細作業内容
@@ -96,6 +96,18 @@
 #### 対象ファイル: `src/Renderer.h`, `src/Renderer_Image.cpp`
 #### 対応:
 - 全コード検索の結果、背景画像のオンメモリロード用途専用として `LoadBitmapFromMemory` が存在している。これを `Renderer.h` および `Renderer_Image.cpp` から完全に削除する。
+
+    #### HOTFIX4 (タスク4完了報告)
+    ##### 原因・理由: 潜在的な背景読み込みロジックのパージ
+        - 背景画像のオンメモリロード用途としてのみ利用されていた `LoadBitmapFromMemory` を不要コードとして安全に削除するため。
+
+    ##### 対象ファイル: 
+        - `src/Renderer.h`
+        - `src/Renderer_Image.cpp`
+
+    ##### 対応: 未使用のデコードメソッドの削除
+        - `Renderer.h`: `LoadBitmapFromMemory` の定義を削除。
+        - `Renderer_Image.cpp`: WICを用いたメモリストリームからのデコード処理である `LoadBitmapFromMemory` の実装本体を完全に削除。
 
 ### タスク5: ThumbCacher内のサムネイル生成時画像抽出処理のパージ
 #### 対象ファイル: `src/ThumbCacher.cpp`
