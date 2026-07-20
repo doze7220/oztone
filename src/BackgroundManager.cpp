@@ -65,22 +65,12 @@ void BackgroundManager::UpdateAnimation(float deltaTime)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (m_hasNewImage) {
-            m_oldWicImage = m_currentWicImage;
-            m_oldScale = m_currentScale;
-            m_oldOffsetX = m_currentOffsetX;
-            m_oldOffsetY = m_currentOffsetY;
-
+            // 要件1: OLDへのスワップ処理やNEWのフレーミングリセットを禁止
             m_currentWicImage = m_nextWicImage;
-            // NEWのフレーミングは初期値にリセット
-            m_currentScale = 1.0f;
-            m_currentOffsetX = 0.0f;
-            m_currentOffsetY = 0.0f;
-
             m_hasNewImage = false;
             m_fadeProgress = 0.0f; // フェード開始
         }
     }
-
 
     if (m_fadeProgress < 1.0f) {
         // クロスフェード完了までの時間（秒）を ConfigManager から取得
@@ -96,11 +86,15 @@ void BackgroundManager::UpdateAnimation(float deltaTime)
 
         if (m_fadeProgress >= 1.0f) {
             m_fadeProgress = 1.0f;
-            // フェード完了時に古い画像と情報を解放・リセットする
-            m_oldWicImage.Reset();
-            m_oldScale = 1.0f;
-            m_oldOffsetX = 0.0f;
-            m_oldOffsetY = 0.0f;
+            
+            std::lock_guard<std::mutex> lock(m_mutex);
+            // 要件2: 1.0f 到達時に NEW を OLD へスワップ（格上げ）し、NEW を解放
+            m_oldWicImage = m_currentWicImage;
+            m_oldScale = m_currentScale;
+            m_oldOffsetX = m_currentOffsetX;
+            m_oldOffsetY = m_currentOffsetY;
+            
+            m_currentWicImage.Reset();
         }
     }
 }
@@ -108,14 +102,45 @@ void BackgroundManager::UpdateAnimation(float deltaTime)
 void BackgroundManager::SetArtFramingScale(float scale)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    m_currentScale = scale;
+    // 要件2: フェード中はユーザー操作を無効化
+    if (m_currentWicImage && m_fadeProgress < 1.0f) {
+        return;
+    }
+    // 平常時のみOLDを更新
+    m_oldScale = scale;
 }
 
 void BackgroundManager::SetArtFramingScroll(float offsetX, float offsetY)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+    if (m_currentWicImage && m_fadeProgress < 1.0f) {
+        return;
+    }
+    m_oldOffsetX = offsetX;
+    m_oldOffsetY = offsetY;
+}
+
+void BackgroundManager::SetBackgroundFraming(float scale, float offsetX, float offsetY)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    // 要件1: ロード時の絶対値はNEWのみを更新する
+    m_currentScale = scale;
     m_currentOffsetX = offsetX;
     m_currentOffsetY = offsetY;
+}
+
+void BackgroundManager::GetFraming(float& x, float& y, float& scale) const
+{
+    // 要件3: ゲッターのステート対応
+    if (m_currentWicImage && m_fadeProgress < 1.0f) {
+        x = m_currentOffsetX;
+        y = m_currentOffsetY;
+        scale = m_currentScale;
+    } else {
+        x = m_oldOffsetX;
+        y = m_oldOffsetY;
+        scale = m_oldScale;
+    }
 }
 
 std::vector<BackgroundLayer> BackgroundManager::GetLayers() const {

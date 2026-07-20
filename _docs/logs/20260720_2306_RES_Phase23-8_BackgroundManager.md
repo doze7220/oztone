@@ -32,7 +32,7 @@
     - UpdateAnimationの改修、OLD/NEW独立のフレーミング保持、1.0f到達時のスワップ処理の実装。
 [x] タスク4: `Renderer` からの背景状態・INI参照の完全パージとレイヤー描画処理の実装
     - Renderer内部のフレーミング変数の削除、DrawBackgroundのレイヤー反復描画化。マウスコールバックからの通知先をBackgroundManagerへ変更。
-[ ] タスク5: アーキテクチャドキュメントの更新
+[x] タスク5: アーキテクチャドキュメントの更新
     - PROJECT_ARCHITECTURE.md への反映確認と更新。
 
 ## 4. 詳細作業内容
@@ -85,3 +85,29 @@
     - `PROJECT_ARCHITECTURE.md`
     **【作業内容】**
     - `BackgroundManager` の項目へ、「4層レイヤー構造の採用」「スワップ式クロスフェード機能の実装」、および「Rendererから背景状態管理を完全に引き継いだ空間の司令塔としての役割」を追記し、最新のアーキテクチャ定義へ更新する。
+
+### HOTFIX1
+#### 原因・理由: スワップ式フェードのステートマシン完全修復
+    - `UpdateAnimation` における旧来の誤った画像スワップ処理（新規画像セット時にOLDを即時上書きし、NEWのフレーミングをリセットしてしまう等）および、1.0f到達時の単なるOLD解放処理に起因する、NEWフレーミングの意図しない初期化とスワップタイミングの誤り。
+
+#### 対象ファイル: 
+    - `src/BackgroundManager.cpp`
+
+#### 対応: 画像セットおよびアニメーション更新ロジックを正しい「スワップ式ステートマシン」へ改修
+    - 新規画像セット時はNEW画像にセットするのみとし、OLDへの即時スワップやフレーミング情報の初期値リセットを完全に禁止（削除）した。
+    - `m_fadeProgress` が 1.0f に到達した瞬間に、NEWの画像およびフレーミング情報（Scale, OffsetX, OffsetY）をOLDへコピー（上書き格上げ）し、NEW側を解放・空状態にするよう改修した。
+    - さらに、フェード完了後（`!m_currentWicImage` 時）に Application 側からのフレーミング更新（`SetArtFramingScale`, `SetArtFramingScroll`）が正しく OLD（アクティブレイヤー）へ適用されるよう、セッターのロジックを修正した。
+
+### HOTFIX2
+#### 原因・理由: 背景フレーミング変数のステート分離と操作ロック
+    - OLDとNEWのフレーミング変数が同時に上書きされ、フェード中のOLD画像がワープするバグの修正、およびフェード中の操作ロックを実装。
+
+#### 対象ファイル: 
+    - `src/BackgroundManager.h`
+    - `src/BackgroundManager.cpp`
+    - `src/Application_Playback.cpp`
+
+#### 対応: フレーミング設定セッターの純化とロック実装
+    - `BackgroundManager` にロード時用の絶対値セッター `SetBackgroundFraming` を新設し、`Application_Playback` 側の呼び出しを置換。NEW変数の更新のみに純化した。
+    - マウス操作用セッター (`SetArtFramingScale`, `SetArtFramingScroll`) について、フェード中（NEW画像が存在しフェード完了前）の呼び出しを即座に `return` で弾き返す操作ロック機構を実装し、平常時のみOLD変数を更新するようにした。
+    - 現在のフレーミング状態を適切に返すゲッター `GetFraming` を追加し、フェード進行中はNEW、平常時はOLDのステートを返却するようにした。

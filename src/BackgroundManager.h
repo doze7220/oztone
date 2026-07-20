@@ -77,6 +77,16 @@ public:
      */
     void SetArtFramingScroll(float offsetX, float offsetY);
 
+    /**
+     * @brief 曲ロード時にDBから絶対値を受け取り、NEWレイヤーのみを更新する
+     */
+    void SetBackgroundFraming(float scale, float offsetX, float offsetY);
+
+    /**
+     * @brief 現在のフレーミング状態を取得する（セーブ用など）
+     */
+    void GetFraming(float& x, float& y, float& scale) const;
+
     Microsoft::WRL::ComPtr<IWICFormatConverter> GetCurrentWicImage() const { return m_currentWicImage; }
     Microsoft::WRL::ComPtr<IWICFormatConverter> GetOldWicImage() const { return m_oldWicImage; }
     float GetFadeProgress() const { return m_fadeProgress; }
