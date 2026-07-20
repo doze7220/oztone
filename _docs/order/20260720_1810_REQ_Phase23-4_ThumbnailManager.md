@@ -132,3 +132,37 @@
 *   **スコープの厳守** : 本タスクは `Application_*.cpp` (Playback, Playlist, FileDrop, Render) の配線切り替えのみを行う。`Renderer` クラスや `Renderer_*.cpp` への配線切り替え（タスク4）は絶対にフライングで行わないこと。
 *   **段階的なコンパイル** : 本タスク完了時点で `Application` クラス側のコンパイルエラーは解消されるはずだが、`Renderer` クラス側ではまだポインタ渡し等のエラーが残る可能性がある。それで正常である。
 
+-------------------------------------------------------------------------------
+
+【Phase 23-4 タスク4: Rendererクラスの配線付け替え】 の実行用 REQ プロンプトを錬成いたしました！
+### 作業指示書 REQ: Phase 23-4 Task 4 : Rendererクラスの配線付け替え
+*  ルール: D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  開発資料:D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  実装計画書:D:\ozlab\oztone\_docs\logs\20260720_1810_RES_Phase23-4_ThumbnailManager.md
+
+#### 【作業手順（厳守事項）】
+本プロンプトはPhase 23-4 Task 4: Rendererクラスの配線付け替えである。必ず以下の順序で作業を行うこと。
+1. ルール（PROJECT_CONSTITUTION.md）および開発資料（PROJECT_ARCHITECTURE.md）を熟読・把握すること。
+2. 実装計画書（20260720_1810_RES_Phase23-4_ThumbnailManager.md）を読み、今回の自分のスコープが「タスク4」のみであることを確認すること。
+3. 上記を確認した後、以下の【実装要件】に従って **「タスク4のみ」** の実装を開始し、ソースコードの修正を実行すること。絶対にタスク5以降をフライングで実行しないこと。
+4. 作業完了後、既存の作業レポート（20260720_1810_RES_Phase23-4_ThumbnailManager.md）の「タスク4」のチェックボックスを完了 [x] にし、必ず以下のフォーマットで詳細作業内容を追記すること。
+    ### タスク4: Rendererクラスの配線付け替え
+    **【作業ファイル】**
+    - `ファイル名` (編集)
+    **【作業内容】**
+    - 詳細な作業内容
+5. チャットにて「タスク4の実装が完了しました。ビルド・動作確認をお願いします」と報告すること。
+
+#### 【実装要件】
+現在、`Renderer` クラスおよび関連する更新コンテキスト層が直接保持・参照している `ThumbnailDatabase` のポインタ等を、新設した `ThumbnailManager` 経由に置き換える。
+*   **要件1: Renderer.h のポインタ変更**
+    *   `src/Renderer.h` において、`Initialize` 等で受け取る引数、およびメンバ変数として保持している `ThumbnailDatabase*` を `ThumbnailManager*` に変更すること。
+*   **要件2: Renderer.cpp / Renderer_Update.cpp / Renderer_Context.cpp の修正**
+    *   `src/Renderer.cpp` の初期化処理において、受け取るポインタを `ThumbnailManager*` に変更すること。
+    *   `src/Renderer_Update.cpp` における可視範囲ロード等の呼び出し先を `ThumbnailManager` に変更すること。
+    *   `src/Renderer_Context.cpp` におけるキャッシュ取得等の呼び出し先を `ThumbnailManager` に変更すること。
+*   **要件3: Application.cpp 等からのポインタ渡し修正**
+    *   `src/Application_Initialize.cpp` (または `Application.cpp`) 内で `m_renderer.Initialize` 等に渡している引数を、`&m_thumbnailDatabase` から `&m_thumbnailManager` に変更すること。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スコープの厳守** : 本タスクは `Renderer` 層（および初期化のポインタ渡し）の配線切り替えのみを行う。タスク5（アーキテクチャ資料の更新）は絶対に行わないこと。

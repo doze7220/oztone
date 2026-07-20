@@ -27,9 +27,9 @@
     - `src/Application.h`, `src/Application.cpp`, `src/Application_Initialize.cpp` のメンバ変数統合と初期化ルーチン修正。
 - [x] タスク3: Applicationクラスの配線付け替え (再生・プレイリスト・ファイル・レンダリング)
     - `src/Application_Playback.cpp`, `src/Application_Playlist.cpp`, `src/Application_FileDrop.cpp`, `src/Application_Render.cpp` の呼び出しを修正。
-- [ ] タスク4: Rendererクラスの配線付け替え
+- [x] タスク4: Rendererクラスの配線付け替え
     - `src/Renderer.h`, `src/Renderer.cpp`, `src/Renderer_Context.cpp`, `src/Renderer_Update.cpp` のポインタおよび呼び出しを修正。
-- [ ] タスク5: アーキテクチャ資料の更新
+- [x] タスク5: アーキテクチャ資料の更新
     - `PROJECT_ARCHITECTURE.md` に `ThumbnailManager` の説明を追記し、カプセル化の事実を明記する。
 
 ## 4. 詳細作業内容
@@ -69,11 +69,16 @@
     - `src/Renderer.cpp` : 更新
     - `src/Renderer_Context.cpp` : 更新
     - `src/Renderer_Update.cpp` : 更新
+    - `src/Application_Initialize.cpp` : 更新
     **【作業内容】**
-    - 未実行
+    - `src/Renderer.h` 内で保持していた `m_thumbDb` (ThumbnailDatabaseのポインタ) を `m_thumbnailManager` に置き換え、セッター名も `SetThumbnailManager` に変更しました。
+    - `src/Renderer.cpp` のセッター実装を `ThumbnailManager` を受け取るよう修正しました。
+    - `src/Renderer_Context.cpp` および `src/Renderer_Update.cpp` におけるサムネイル取得等の呼び出し (`GetOrGenerateThumbId`, `GetCachedThumbnailBitmap`, `RequestThumbnailLoad`) をすべて `m_thumbnailManager` 経由に置き換え、インクルードを修正しました。
+    - `src/Application_Initialize.cpp` 内でRendererの初期化時に渡すポインタを `&m_thumbnailDatabase` から `&m_thumbnailManager` へ修正しました。
 
 ### タスク5: アーキテクチャ資料の更新
-    **【対象ファイル】**
-    - `PROJECT_ARCHITECTURE.md` : 更新
+    **【作業ファイル】**
+    - `PROJECT_ARCHITECTURE.md` (編集)
     **【作業内容】**
-    - 未実行
+    - 「5. 実装済みクラス・関数リファレンス」に `ThumbnailManager` クラスの項目を新設し、サムネイルに関する処理を統括する視覚の司令塔（ファサード）であることを記載しました。
+    - 既存の `ThumbCacher` と `ThumbnailDatabase` の説明文を修正し、これらが `ThumbnailManager` の配下で稼働する内部コンポーネントとなったことを明記しました。

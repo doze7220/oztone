@@ -8,8 +8,8 @@ Renderer::~Renderer() {}
 
 // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (SetBackgroundArt)
 
-void Renderer::SetThumbnailDatabase(ThumbnailDatabase* db) {
-    m_thumbDb = db;
+void Renderer::SetThumbnailManager(ThumbnailManager* manager) {
+    m_thumbnailManager = manager;
 }
 
 // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (SetBackgroundFraming)

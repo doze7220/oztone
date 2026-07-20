@@ -2,7 +2,7 @@
 #include "ConfigManager.h"
 #include "WidgetContext.h"
 #include "LayoutCalculator.h"
-#include "ThumbnailDatabase.h"
+#include "ThumbnailManager.h"
 
 WidgetContext Renderer::BuildAnimationContext(float deltaTime, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode, int playbackHoveredIndex, int playlistHoveredItemIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isLogoClicked, int clickedLogoMenuIndex, int clickedPlaybackIndex, bool* outIsPlaylistExpanded, bool* outIsLogoMenuExpanded) const {
     WidgetContext ctx = {};
@@ -105,7 +105,7 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
     ctx.flyTextAlpha = m_flyTextAlpha;
     ctx.flyTextString = m_flyTextString;
 
-    if (m_thumbDb && m_config && !isPlaylistListViewMode && shuffleMetadataList) {
+    if (m_thumbnailManager && m_config && !isPlaylistListViewMode && shuffleMetadataList) {
         float logicalWidth = ctx.logicalWidth;
         float logicalHeight = ctx.logicalHeight;
         float manualScrollY = GetPlaylistManualScrollY();
@@ -116,13 +116,13 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
             if (currentY + layout.itemHeight > 0 && currentY < layout.playlistHeight) {
                 const std::wstring& path = (*shuffleMetadataList)[i].filepath;
                 bool isNew = false;
-                uint32_t thumbId = m_thumbDb->GetOrGenerateThumbId(path, isNew);
+                uint32_t thumbId = m_thumbnailManager->GetOrGenerateThumbId(path, isNew);
                 if (thumbId > 0) {
-                    ID2D1Bitmap* bmp = m_thumbDb->GetCachedThumbnailBitmap(thumbId);
+                    ID2D1Bitmap* bmp = m_thumbnailManager->GetCachedThumbnailBitmap(thumbId);
                     if (bmp) {
                         ctx.playlistThumbnails[i] = bmp;
                     } else if (m_d2dContext && m_wicFactory) {
-                        m_thumbDb->RequestThumbnailLoad(thumbId, m_d2dContext.Get(), m_wicFactory.Get());
+                        m_thumbnailManager->RequestThumbnailLoad(thumbId, m_d2dContext.Get(), m_wicFactory.Get());
                     }
                 }
             }
@@ -131,7 +131,7 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
                 break; // Optimization: no need to check further if beyond visible area
             }
         }
-    } else if (m_thumbDb && m_config && isPlaylistListViewMode && availablePlaylistsCache) {
+    } else if (m_thumbnailManager && m_config && isPlaylistListViewMode && availablePlaylistsCache) {
         float logicalWidth = ctx.logicalWidth;
         float logicalHeight = ctx.logicalHeight;
         float manualScrollY = GetPlaylistManualScrollY();
@@ -153,11 +153,11 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
             if (currentY + layout.itemHeight > 0 && currentY < layout.playlistHeight) {
                 uint32_t thumbId = (*availablePlaylistsCache)[i].firstTrackThumbId;
                 if (thumbId > 0) {
-                    ID2D1Bitmap* bmp = m_thumbDb->GetCachedThumbnailBitmap(thumbId);
+                    ID2D1Bitmap* bmp = m_thumbnailManager->GetCachedThumbnailBitmap(thumbId);
                     if (bmp) {
                         ctx.playlistThumbnails[i] = bmp;
                     } else if (m_d2dContext && m_wicFactory) {
-                        m_thumbDb->RequestThumbnailLoad(thumbId, m_d2dContext.Get(), m_wicFactory.Get());
+                        m_thumbnailManager->RequestThumbnailLoad(thumbId, m_d2dContext.Get(), m_wicFactory.Get());
                     }
                 }
             }

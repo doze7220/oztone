@@ -281,7 +281,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     }
   }
 
-  m_renderer.SetThumbnailDatabase(&m_thumbnailDatabase);
+  m_renderer.SetThumbnailManager(&m_thumbnailManager);
   if (!m_renderer.Initialize(m_window.GetHandle(), m_config)) {
     return false;
   }

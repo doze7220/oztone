@@ -23,7 +23,7 @@
 #include "Renderer_TrackDrum.h"
 
 class ConfigManager;
-class ThumbnailDatabase;
+class ThumbnailManager;
 
 /**
  * @brief Direct3D 11 と Direct2D を用いたハイブリッド描画エンジン
@@ -75,7 +75,7 @@ public:
 
     // [Phase23-1] 背景アートパージに伴い削除。後日BackgroundManagerを結線すること (SetBackgroundArt)
 
-    void SetThumbnailDatabase(ThumbnailDatabase* db);
+    void SetThumbnailManager(ThumbnailManager* manager);
 
     TrackDrum& GetTrackDrum() { return m_trackDrum; }
 
@@ -163,7 +163,7 @@ private:
     std::optional<size_t> m_focusedPlaylistIndex;
     std::vector<size_t> m_shuffleIndices;
 
-    ThumbnailDatabase* m_thumbDb = nullptr;
+    ThumbnailManager* m_thumbnailManager = nullptr;
 
     HWND m_hwnd;
     const ConfigManager* m_config;
