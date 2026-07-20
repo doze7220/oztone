@@ -25,6 +25,8 @@ void Renderer::SetBackgroundFraming(float offsetX, float offsetY, float scale) {
 void Renderer::ClampArtFraming(float& scale, float& offsetX, float& offsetY) {
     if (!m_d2dContext || !m_currentBgBitmap) return;
 
+    scale = (std::max)(1.0f, scale);
+
     D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
     float logicWidth = rtSize.width / m_dpiScale;
     float logicHeight = rtSize.height / m_dpiScale;

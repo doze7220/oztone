@@ -588,7 +588,7 @@ bool Window::HandleMouseWheel(HWND hwnd, WPARAM wParam, LPARAM lParam) {
       if ((GetAsyncKeyState(VK_SHIFT) & 0x8000) || (wParam & MK_RBUTTON)) {
         if (m_onArtFramingScroll) {
           int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-          m_onArtFramingScroll(static_cast<float>(zDelta));
+          m_onArtFramingScroll(static_cast<float>(zDelta), pt.x, pt.y);
         }
         return true;
       }

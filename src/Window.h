@@ -245,7 +245,7 @@ public:
     /**
      * @brief 背景フレーミングのスクロール（マウスホイール・キーボード）コールバック
      */
-    void SetArtFramingScrollCallback(std::function<void(float)> cb) {
+    void SetArtFramingScrollCallback(std::function<void(float, int, int)> cb) {
         m_onArtFramingScroll = cb;
     }
 
@@ -406,7 +406,7 @@ private:
     std::function<void(int)> m_onPlaylistToolbarClick;
     std::function<void(int)> m_onHotkey;
     std::function<void(int, int)> m_onResize;
-    std::function<void(float)> m_onArtFramingScroll;
+    std::function<void(float, int, int)> m_onArtFramingScroll;
     std::function<void(float, float)> m_onArtFramingMove;
     std::function<void()> m_onArtFramingReset;
     std::function<void()> m_onResetAllCallback;

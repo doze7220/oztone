@@ -159,11 +159,19 @@ bool Window::HandleKeyDown(WPARAM wParam, LPARAM lParam) {
           return true;
       }
       if (wParam == VK_PRIOR) { // PAGEUP
-          if (m_onArtFramingScroll) m_onArtFramingScroll(120.0f);
+          if (m_onArtFramingScroll) {
+              RECT rect;
+              GetClientRect(m_hwnd, &rect);
+              m_onArtFramingScroll(120.0f, rect.right / 2, rect.bottom / 2);
+          }
           return true;
       }
       if (wParam == VK_NEXT) { // PAGEDOWN
-          if (m_onArtFramingScroll) m_onArtFramingScroll(-120.0f);
+          if (m_onArtFramingScroll) {
+              RECT rect;
+              GetClientRect(m_hwnd, &rect);
+              m_onArtFramingScroll(-120.0f, rect.right / 2, rect.bottom / 2);
+          }
           return true;
       }
   }

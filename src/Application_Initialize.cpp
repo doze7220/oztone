@@ -205,13 +205,27 @@ void Application::SetupCallbacks() {
     this->ForceRender();
   });
 
-  m_window.SetArtFramingScrollCallback([this](float delta) {
+  m_window.SetArtFramingScrollCallback([this](float delta, int x, int y) {
     if (m_playlistManager.IsEmpty()) return;
     std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
     float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
     m_framingDb.GetFraming(currentTrack, artX, artY, artScale);
+
+    float oldScale = artScale;
     artScale += delta * 0.001f;
-    if (artScale < 1.0f) artScale = 1.0f;
+
+    float targetScale = (std::max)(1.0f, artScale);
+
+    float dpiScale = static_cast<float>(GetDpiForWindow(m_window.GetHandle())) / 96.0f;
+    float mx = x / dpiScale;
+    float my = y / dpiScale;
+
+    if (oldScale > 0.0f) {
+        artX = mx - (mx - artX) * (targetScale / oldScale);
+        artY = my - (my - artY) * (targetScale / oldScale);
+    }
+
+    artScale = targetScale;
     m_renderer.ClampArtFraming(artScale, artX, artY);
     m_framingDb.SetFraming(currentTrack, artX, artY, artScale);
     m_renderer.SetBackgroundFraming(artX, artY, artScale);
