@@ -63,6 +63,20 @@ void Application::HandleMediaCommand(int cmd) {
 bool Application::PlayCurrentTrack(int relativeDistance) {
   std::wstring track = m_playlistManager.GetCurrentTrack();
   if (m_audioManager.Play(track)) {
+
+    // 司令塔としてのデータ分配と非同期処理の発注
+    bool isNewThumb = false;
+    uint32_t currentThumbId = m_thumbnailManager.GetOrGenerateThumbId(track, isNewThumb);
+
+    // 背景フレーミングの設定伝達処理を復活
+    float framingX = 0.0f;
+    float framingY = 0.0f;
+    float framingScale = 1.0f;
+    m_framingDb.GetFraming(track, framingX, framingY, framingScale);
+    m_renderer.SetBackgroundFraming(framingX, framingY, framingScale);
+
+    m_backgroundManager.RequestLoad(track);
+
     auto dataProvider = [this](int relativeIndex, DrumSlot* slot) -> TrackMetadata {
       size_t currentIdx = m_playlistManager.GetCurrentIndex();
       size_t total = m_playlistManager.GetCount();
@@ -95,25 +109,13 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
       }
     };
 
-
-    // 背景フレーミングの設定伝達処理を復活
-    float framingX = 0.0f;
-    float framingY = 0.0f;
-    float framingScale = 1.0f;
-    m_framingDb.GetFraming(track, framingX, framingY, framingScale);
-    m_renderer.SetBackgroundFraming(framingX, framingY, framingScale);
-
-    m_backgroundManager.RequestLoad(track);
-
-    auto onComplete = [this, track]() {
-      bool isNew = false;
-      uint32_t thumbId = m_thumbnailManager.GetOrGenerateThumbId(track, isNew);
-      ID2D1Bitmap* thumbBmp = m_thumbnailManager.GetCachedThumbnailBitmap(thumbId);
+    auto onComplete = [this, track, currentThumbId]() {
+      ID2D1Bitmap* thumbBmp = m_thumbnailManager.GetCachedThumbnailBitmap(currentThumbId);
       
       m_renderer.GetTrackDrum().SetAlbumArt(thumbBmp);
 
       if (!thumbBmp) {
-        m_thumbnailManager.RequestThumbnailLoad(thumbId, m_renderer.GetD2DContext(), m_renderer.GetWicFactory());
+        m_thumbnailManager.RequestThumbnailLoad(currentThumbId, m_renderer.GetD2DContext(), m_renderer.GetWicFactory());
       }
 
       UpdateTrackMetadataIfNeeded(track);
