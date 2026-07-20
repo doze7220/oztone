@@ -7,6 +7,7 @@ Application::Application()
 
 Application::~Application() {
   m_thumbnailManager.Uninitialize();
+  m_backgroundManager.Uninitialize();
   m_trackAnalyzer.Uninitialize();
 
   m_audioManager.Uninitialize();

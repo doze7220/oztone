@@ -133,3 +133,37 @@
 #### 【絶対遵守ルール (Constraints)】
 *   **スコープの厳守** : 本タスクはクロスフェードの「状態管理（更新ロジックと変数追加）」のみを行う。`Application` や `Renderer` への結線（タスク4, 5）は絶対にフライングで行わないこと。
 *   **D2D非依存の原則** : この層ではまだ `ID2D1Bitmap` の生成・管理は行わず、あくまでWICイメージ（`IWICFormatConverter` 等）またはメタデータに対する状態管理に留めること。
+
+-------------------------------------------------------------------------------
+
+### 作業指示書 REQ: Phase 23-6 Task 4 : Applicationクラスとの結線
+*  ルール: D:\ozlab\oztone\PROJECT_CONSTITUTION.md
+*  開発資料:D:\ozlab\oztone\PROJECT_ARCHITECTURE.md
+*  実装計画書:D:\ozlab\oztone\_docs\logs\20260720_1939_RES_Phase23-6_BackgroundManager.md
+
+#### 【作業手順（厳守事項）】
+本プロンプトはPhase 23-6 Task 4: Applicationクラスとの結線である。必ず以下の順序で作業を行うこと。
+1. ルール（PROJECT_CONSTITUTION.md）および開発資料（PROJECT_ARCHITECTURE.md）を熟読・把握すること。
+2. 実装計画書（20260720_1939_RES_Phase23-6_BackgroundManager.md）を読み、今回の自分のスコープが「タスク4」のみであることを確認すること。
+3. 上記を確認した後、以下の【実装要件】に従って **「タスク4のみ」** の実装を開始し、ソースコードの修正を実行すること。絶対にタスク5以降をフライングで実行しないこと。
+4. 作業完了後、既存の作業レポート（20260720_1939_RES_Phase23-6_BackgroundManager.md）の「タスク4」のチェックボックスを完了 [x] にし、必ず以下のフォーマットで詳細作業内容を追記すること。
+    ### タスク4: Applicationクラスとの結線
+    **【作業ファイル】**
+    - `ファイル名` (編集)
+    **【作業内容】**
+    - 詳細な作業内容
+5. チャットにて「タスク4の実装が完了しました。ビルド確認をお願いします」と報告すること。
+
+#### 【実装要件】
+空間の司令塔である `BackgroundManager` を `Application` クラスに保持させ、ライフサイクルと画像ロードの結線を行う。
+*   **要件1: Application.h への追加**
+    *   `src/Application.h` に `BackgroundManager` をメンバ変数（例: `m_backgroundManager`）として追加すること。
+*   **要件2: 初期化・終了・更新処理の結線**
+    *   `src/Application_Initialize.cpp` 等における初期化（`Initialize`）処理内で、`m_backgroundManager.Initialize()` を呼び出すこと。
+    *   終了処理（デストラクタ等）で `Uninitialize()` を呼び出すこと。
+    *   毎フレームの更新処理（`ForceRender` または `Run` 内）にて、`m_backgroundManager.UpdateAnimation(deltaTime)` を呼び出すようにすること。
+*   **要件3: 曲切り替え時のロード発注の結線**
+    *   `src/Application_Playback.cpp` 内の曲決定時（`PlayCurrentTrack`等）において、対象のファイルパスを `m_backgroundManager.RequestLoad(filepath)` へ渡し、背景画像の非同期ロードを発注するように結線すること。
+
+#### 【絶対遵守ルール (Constraints)】
+*   **スコープの厳守** : 本タスクは `Application` クラスの配線のみを行う。`Renderer` 側への結線・画像渡し（タスク5）は絶対にフライングで行わないこと。

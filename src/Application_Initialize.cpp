@@ -287,6 +287,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
   }
 
   m_thumbnailManager.Initialize();
+  m_backgroundManager.Initialize();
 
   if (m_audioManager.Initialize()) {
     m_audioManager.SetVolume(m_config.GetDefaultVolume());

@@ -98,6 +98,7 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
 
     // [Phase23-1] 背景画像読み込み・デコード処理および
     // 背景フレーミングの設定伝達処理をパージ
+    m_backgroundManager.RequestLoad(track);
 
     auto onComplete = [this, track]() {
       bool isNew = false;

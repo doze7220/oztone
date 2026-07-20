@@ -17,6 +17,7 @@
 #include "TrackDatabase.h"
 #include "ArtFramingDatabase.h"
 #include "ThumbnailManager.h"
+#include "BackgroundManager.h"
 
 enum class WatchdogState {
     Normal,
@@ -141,6 +142,7 @@ private:
     std::wstring m_framingDbPath;
 
     ThumbnailManager m_thumbnailManager;
+    BackgroundManager m_backgroundManager;
 
     bool m_isPlaylistListViewMode = false;
     ULONGLONG m_lastConfigCheckTime = 0;

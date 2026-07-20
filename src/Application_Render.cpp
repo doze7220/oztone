@@ -254,6 +254,8 @@ void Application::ForceRender() {
 
   bool wasDrumAnimating = m_renderer.GetTrackDrum().IsDrumAnimating();
 
+  m_backgroundManager.UpdateAnimation(0.016f);
+
   m_renderer.UpdateAnimation(
       0.016f, m_window.IsControlHovered(), m_window.IsVolumeHovered(),
       m_window.IsPlaylistHovered(), m_window.IsLogoMenuHovered(),
