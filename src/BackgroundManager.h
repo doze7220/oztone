@@ -19,6 +19,8 @@ class ConfigManager;
 enum class BackgroundLayerType {
     SolidColor, ///< 単色塗りつぶし
     Image,      ///< 画像描画
+    LayerGroupBegin, ///< レイヤーグループ開始
+    LayerGroupEnd,   ///< レイヤーグループ終了
 };
 
 /**

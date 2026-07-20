@@ -147,12 +147,11 @@ std::vector<BackgroundLayer> BackgroundManager::GetLayers() const {
     std::vector<BackgroundLayer> layers;
     if (!m_config) return layers;
 
-    // 1. 下敷き
-    BackgroundLayer baseLayer;
-    baseLayer.type = BackgroundLayerType::SolidColor;
-    baseLayer.color = { 0.0f, 0.0f, 0.0f, 1.0f }; // Black
-    baseLayer.opacity = 1.0f;
-    layers.push_back(baseLayer);
+    // レイヤーグループ開始
+    BackgroundLayer groupBegin;
+    groupBegin.type = BackgroundLayerType::LayerGroupBegin;
+    groupBegin.opacity = m_config->GetBgOpacity();
+    layers.push_back(groupBegin);
 
     int bgMode = m_config->GetBackgroundArtMode();
 
@@ -201,6 +200,11 @@ std::vector<BackgroundLayer> BackgroundManager::GetLayers() const {
         overlay.opacity = darken;
         layers.push_back(overlay);
     }
+
+    // レイヤーグループ終了
+    BackgroundLayer groupEnd;
+    groupEnd.type = BackgroundLayerType::LayerGroupEnd;
+    layers.push_back(groupEnd);
 
     return layers;
 }
