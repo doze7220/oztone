@@ -286,6 +286,9 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
     return false;
   }
 
+  m_thumbnailDatabase.Initialize();
+  m_thumbCacher.Initialize();
+
   if (m_audioPlayer.Initialize()) {
     m_audioPlayer.SetVolume(m_config.GetDefaultVolume());
     std::wstring defPlaylist = m_config.GetDefaultPlaylistPath();
@@ -320,9 +323,6 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
   }
 
   m_trackAnalyzer.Initialize(&m_trackDatabase, &m_config);
-
-  m_thumbnailDatabase.Initialize();
-  m_thumbCacher.Initialize();
 
   std::vector<std::wstring> unparsed = m_playlistManager.GetShuffleList();
   if (!unparsed.empty()) {
