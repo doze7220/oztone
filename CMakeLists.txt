@@ -68,7 +68,7 @@ set(SOURCES
     src/Widget_VolumeControl.cpp
     src/Widget_LogoMenu.cpp
     src/Widget_Osd.cpp
-    src/AudioPlayer.cpp
+    src/AudioPlaybackEngine.cpp
     src/AudioAnalyzer.cpp
     src/AudioManager.cpp
     src/FileManager.cpp
@@ -104,7 +104,7 @@ set(HEADERS
     src/Widget_VolumeControl.h
     src/Widget_LogoMenu.h
     src/Widget_Osd.h
-    src/AudioPlayer.h
+    src/AudioPlaybackEngine.h
     src/AudioAnalyzer.h
     src/AudioManager.h
     src/FileManager.h

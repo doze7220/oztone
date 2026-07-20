@@ -143,8 +143,12 @@ UI要素ごとの独立した描画・状態管理を担うコンポーネント
 *   `VisualizerPrismBeat` (src/Visualizer_PrismBeat.cpp): 直線型の心電図表現（ネオングロー3パス描画）
 *   `VisualizerHaloDust` (src/Visualizer_HaloDust.cpp): 円形パーティクル表現（レーザー・破片パーティクル物理演算）
 
-#### `AudioPlayer` クラス (src/AudioPlayer.h, cpp)
-音声処理ライブラリ `miniaudio` をラップし、MP3/FLAC/WAV/OGG の再生・停止・シーク・音量制御を管理するクラス。リアルタイムFFTスペクトル解析および楽曲の事前スキャン機能を内包する。
+#### `AudioManager` クラス (src/AudioManager.h, cpp)
+音声処理ライブラリ miniaudio をラップし、音声に関わるすべての操作（再生・停止・シーク・音量制御・FFT解析・事前スキャン等）の窓口となるファサードクラス。内部に `AudioPlaybackEngine`（再生担当）と `AudioAnalyzer`（解析担当）をカプセル化している。
+**物理分割ファイル:**
+*   `AudioManager.h/cpp`
+*   `AudioPlaybackEngine.h/cpp`
+*   `AudioAnalyzer.h/cpp`
 
 #### `FileManager` クラス (src/FileManager.h, cpp)
 ファイルI/Oおよびメタデータ抽出を単一の窓口として引き受ける門番クラス。外部に対して TagLib などの存在を完全に隠蔽する Adapter パターンとして機能する。大量の楽曲ロード時のメモリ圧迫を防ぐため、軽量なテキストメタデータの抽出と、重い画像バイナリのオンデマンド抽出に責務を分割して定義されている。

@@ -21,43 +21,42 @@
 - `TrackAnalyzer.cpp` における `AudioPlayer::ScanAudioData` の呼び出しを `AudioManager::ScanAudioData` へ差し替える。
 
 ## 3. 対象ファイル
-- `src/AudioAnalyzer.h` (新規作成)
-- `src/AudioAnalyzer.cpp` (新規作成)
-- `src/AudioManager.h` (新規作成)
-- `src/AudioManager.cpp` (新規作成)
-- `src/AudioPlayer.h` (編集)
-- `src/AudioPlayer.cpp` (編集)
-- `src/Application.h` (編集)
-- `src/Application.cpp` (編集)
-- `src/Application_FileDrop.cpp` (編集)
-- `src/Application_Initialize.cpp` (編集)
-- `src/Application_Playback.cpp` (編集)
-- `src/Application_Playlist.cpp` (編集)
-- `src/Application_Render.cpp` (編集)
-- `src/TrackAnalyzer.cpp` (編集)
-- `CMakeLists.txt` (編集)
+
 
 ## 4. 実装タスクリスト
 - [x] タスク1: AudioAnalyzer の新設と ScanAudioData 処理の移管
 - [x] タスク2: AudioPlayer を AudioPlaybackEngine へリネーム・純化
 - [x] タスク3: AudioManager の新設（Facadeクラスの構築）
 - [x] タスク4: 外部クラス (Application, TrackAnalyzer) の配線付け替え
-- [ ] タスク5: CMakeLists.txt および PROJECT_ARCHITECTURE.md の更新
+- [x] タスク5: CMakeLists.txt および PROJECT_ARCHITECTURE.md の更新
 
 ## 5. 詳細作業内容
 ### タスク1: AudioAnalyzer の新設と ScanAudioData 処理の移管
+**【作業ファイル】**
+- `src/AudioAnalyzer.h` (新規作成)
+- `src/AudioAnalyzer.cpp` (新規作成)
+- `src/AudioPlayer.h` (編集)
+- `src/AudioPlayer.cpp` (編集)
+**【作業内容】**
 - `src/AudioAnalyzer.h` および `src/AudioAnalyzer.cpp` を新規作成。
 - `AudioPlayer` にあった `ScanAudioData` の実体、およびFFT処理（`PerformFFT` 等）を `AudioAnalyzer` に移管。
 - タスク制約「外部クラスからの呼び出し箇所の修正はフライングで行わない」を遵守するため、一時的に `AudioPlayer::ScanAudioData` （非推奨・委譲用）を残し、ビルドを維持しつつ該当処理の実体を分離。
 - `CMakeLists.txt` を更新してビルド成功を確認。
 
 ### タスク2: AudioPlayer を AudioPlaybackEngine へリネーム・純化
+**【作業ファイル】**
+- `src/AudioPlayer.h` (編集)
+- `src/AudioPlayer.cpp` (編集)
 **【作業内容】**
 - `src/AudioPlayer.h` と `src/AudioPlayer.cpp` 内のクラス定義を `AudioPlayer` から `AudioPlaybackEngine` にリネーム。
 - 既存の外部ファイル (Application 等) のコンパイルエラーを回避するため、`src/AudioPlayer.h` の末尾に `using AudioPlayer = AudioPlaybackEngine;` のエイリアスを追記。
 - ファイル名 (`AudioPlayer.h/cpp`) は現状のまま維持し、影響範囲を最小限に抑制。
 
 ### タスク3: AudioManager の新設（Facadeクラスの構築）
+**【作業ファイル】**
+- `src/AudioManager.h` (新規作成)
+- `src/AudioManager.cpp` (新規作成)
+- `CMakeLists.txt` (編集)
 **【作業内容】**
 - `src/AudioManager.h` および `src/AudioManager.cpp` を新規作成。
 - `AudioPlaybackEngine` を `std::unique_ptr` で保持し、各種音声操作メソッド（`Play`, `Stop`, `Pause`, `Seek`, `SetVolume`, `GetSpectrumData` 等）を委譲。
@@ -66,9 +65,28 @@
 - 新規作成した2ファイルを `CMakeLists.txt` に追加。
 
 ### タスク4: 外部クラス (Application, TrackAnalyzer) の配線付け替え
+**【作業ファイル】**
+- `src/Application.h` (編集)
+- `src/Application.cpp` (編集)
+- `src/Application_FileDrop.cpp` (編集)
+- `src/Application_Initialize.cpp` (編集)
+- `src/Application_Playback.cpp` (編集)
+- `src/Application_Playlist.cpp` (編集)
+- `src/Application_Render.cpp` (編集)
+- `src/TrackAnalyzer.cpp` (編集)
+- `src/AudioPlayer.h` (編集)
 **【作業内容】**
 - `Application.h` および `Application_*.cpp` (Playback, Render, Initialize, Playlist, FileDrop 等) 内の `AudioPlayer m_audioPlayer` を `AudioManager m_audioManager` に置換し、各種メソッド呼び出しを移行。
 - `TrackAnalyzer.cpp` のバックグラウンド音声解析における `AudioPlayer::ScanAudioData` を `AudioManager::ScanAudioData` 呼び出しに置換。
 - `AudioPlayer.h` に一時的に追加していた `using AudioPlayer = AudioPlaybackEngine;` のエイリアスを削除し、外部からの直接利用を完全に遮断。
+
 ### タスク5: CMakeLists.txt および PROJECT_ARCHITECTURE.md の更新
-- (実行後記載)
+**【作業ファイル】**
+- `CMakeLists.txt` (編集)
+- `PROJECT_ARCHITECTURE.md` (編集)
+- `src/AudioPlaybackEngine.h` (ファイル名変更)
+- `src/AudioPlaybackEngine.cpp` (ファイル名変更)
+**【作業内容】**
+- `src/AudioPlayer.h/cpp` を `src/AudioPlaybackEngine.h/cpp` にリネーム（物理変更）。
+- `CMakeLists.txt` 内の対象ファイルを `AudioPlayer` から `AudioPlaybackEngine` へ更新し、ビルドを通した。
+- `PROJECT_ARCHITECTURE.md` の「実装済みクラス・関数リファレンス」を更新し、`AudioPlayer` の記載を `AudioManager` へ変更。カプセル化された `AudioPlaybackEngine` と `AudioAnalyzer` の関係を簡潔に追記した。
