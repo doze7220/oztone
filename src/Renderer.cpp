@@ -23,36 +23,29 @@ void Renderer::SetBackgroundFraming(float offsetX, float offsetY, float scale) {
 }
 
 void Renderer::ClampArtFraming(float& scale, float& offsetX, float& offsetY) {
-    if (!m_d2dContext || !m_currentBgBitmap) return;
-
     scale = (std::max)(1.0f, scale);
+    if (!m_d2dContext || !m_currentBgBitmap) return;
 
     D2D1_SIZE_F rtSize = m_d2dContext->GetSize();
     float logicWidth = rtSize.width / m_dpiScale;
     float logicHeight = rtSize.height / m_dpiScale;
 
-    D2D1_SIZE_F imgSize = m_currentBgBitmap->GetSize();
-    if (imgSize.width <= 0.0f || imgSize.height <= 0.0f) return;
+    D2D1_SIZE_F bmpSize = m_currentBgBitmap->GetSize();
+    if (bmpSize.width <= 0 || bmpSize.height <= 0) return;
 
-    float baseScaleX = logicWidth / imgSize.width;
-    float baseScaleY = logicHeight / imgSize.height;
-    float baseScale = (std::max)(baseScaleX, baseScaleY);
+    float scaleX = logicWidth / bmpSize.width;
+    float scaleY = logicHeight / bmpSize.height;
+    float baseScale = (std::max)(scaleX, scaleY);
+    float finalScale = baseScale * scale;
 
-    float actualScale = baseScale * scale;
-    float scaledWidth = imgSize.width * actualScale;
-    float scaledHeight = imgSize.height * actualScale;
+    float drawWidth = bmpSize.width * finalScale;
+    float drawHeight = bmpSize.height * finalScale;
 
-    float maxOffsetX = (scaledWidth - logicWidth) / 2.0f;
-    float maxOffsetY = (scaledHeight - logicHeight) / 2.0f;
+    float limitX = (std::max)(0.0f, (drawWidth - logicWidth) / 2.0f);
+    float limitY = (std::max)(0.0f, (drawHeight - logicHeight) / 2.0f);
 
-    if (maxOffsetX < 0.0f) maxOffsetX = 0.0f;
-    if (maxOffsetY < 0.0f) maxOffsetY = 0.0f;
-
-    if (offsetX > maxOffsetX) offsetX = maxOffsetX;
-    if (offsetX < -maxOffsetX) offsetX = -maxOffsetX;
-
-    if (offsetY > maxOffsetY) offsetY = maxOffsetY;
-    if (offsetY < -maxOffsetY) offsetY = -maxOffsetY;
+    offsetX = std::clamp(offsetX, -limitX, limitX);
+    offsetY = std::clamp(offsetY, -limitY, limitY);
 }
 
 

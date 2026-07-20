@@ -81,6 +81,7 @@ public:
     void SetThumbnailManager(ThumbnailManager* manager);
 
     TrackDrum& GetTrackDrum() { return m_trackDrum; }
+    float GetDpiScale() const { return m_dpiScale; }
 
     ID2D1DeviceContext* GetD2DContext() const { return m_d2dContext.Get(); }
     IWICImagingFactory* GetWicFactory() const { return m_wicFactory.Get(); }

@@ -584,7 +584,8 @@ bool Window::HandleMouseWheel(HWND hwnd, WPARAM wParam, LPARAM lParam) {
       return true;
     }
     
-    if (!m_isPlaylistHovered && !m_isVolumeHovered) {
+    bool inPlaylist = m_isPlaylistHovered && IsInPlaylistRegion(pt.x, pt.y);
+    if (!inPlaylist && !m_isVolumeHovered) {
       if ((GetAsyncKeyState(VK_SHIFT) & 0x8000) || (wParam & MK_RBUTTON)) {
         if (m_onArtFramingScroll) {
           int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);

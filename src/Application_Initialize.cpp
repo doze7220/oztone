@@ -211,21 +211,26 @@ void Application::SetupCallbacks() {
     float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
     m_framingDb.GetFraming(currentTrack, artX, artY, artScale);
 
+    float logicalX = x / m_renderer.GetDpiScale();
+    float logicalY = y / m_renderer.GetDpiScale();
+    
+    RECT clientRect;
+    GetClientRect(m_window.GetHandle(), &clientRect);
+    float logicalWidth = clientRect.right / m_renderer.GetDpiScale();
+    float logicalHeight = clientRect.bottom / m_renderer.GetDpiScale();
+    float centerX = logicalWidth / 2.0f;
+    float centerY = logicalHeight / 2.0f;
+    
     float oldScale = artScale;
     artScale += delta * 0.001f;
-
-    float targetScale = (std::max)(1.0f, artScale);
-
-    float dpiScale = static_cast<float>(GetDpiForWindow(m_window.GetHandle())) / 96.0f;
-    float mx = x / dpiScale;
-    float my = y / dpiScale;
-
+    if (artScale < 1.0f) artScale = 1.0f;
+    
     if (oldScale > 0.0f) {
-        artX = mx - (mx - artX) * (targetScale / oldScale);
-        artY = my - (my - artY) * (targetScale / oldScale);
+        float relX = logicalX - centerX;
+        float relY = logicalY - centerY;
+        artX = artX - relX * (artScale / oldScale - 1.0f);
+        artY = artY - relY * (artScale / oldScale - 1.0f);
     }
-
-    artScale = targetScale;
     m_renderer.ClampArtFraming(artScale, artX, artY);
     m_framingDb.SetFraming(currentTrack, artX, artY, artScale);
     m_renderer.SetBackgroundFraming(artX, artY, artScale);
