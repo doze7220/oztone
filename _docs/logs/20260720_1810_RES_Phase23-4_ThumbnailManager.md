@@ -20,7 +20,7 @@
 - `CMakeLists.txt` に新規ファイルを追加しビルドを通す。
 
 ## 3. 実装タスクリスト
-- [ ] タスク1: ThumbnailManagerのクラス定義と実装作成
+- [x] タスク1: ThumbnailManagerのクラス定義と実装作成
     - `src/ThumbnailManager.h` および `src/ThumbnailManager.cpp` の新規作成。
     - `CMakeLists.txt` への追加。
 - [ ] タスク2: Applicationクラスの配線付け替え (ヘッダ・コンストラクタ・初期化)
@@ -34,12 +34,14 @@
 
 ## 4. 詳細作業内容
 ### タスク1: ThumbnailManagerのクラス定義と実装作成
-    **【対象ファイル】**
-    - `src/ThumbnailManager.h` : 新規作成
-    - `src/ThumbnailManager.cpp` : 新規作成
-    - `CMakeLists.txt` : 更新
+    **【作業ファイル】**
+    - `src/ThumbnailManager.h` (新規作成)
+    - `src/ThumbnailManager.cpp` (新規作成)
+    - `CMakeLists.txt` (編集)
     **【作業内容】**
-    - 未実行
+    - `ThumbnailManager` クラスを新規作成し、内部に `ThumbnailDatabase` および `ThumbCacher` を `std::unique_ptr` で保持する構造を実装しました。
+    - `GetOrGenerateThumbId`、`HasCookedData`、`GetThumbnailBitmap` などのAPIを定義し、各内部コンポーネントへ処理を委譲（ルーティング）するよう実装しました。
+    - `CMakeLists.txt` の `SOURCES` および `HEADERS` に作成したファイルを追加し、ビルドが正常に通ることを確認しました。
 
 ### タスク2: Applicationクラスの配線付け替え (ヘッダ・コンストラクタ・初期化)
     **【対象ファイル】**

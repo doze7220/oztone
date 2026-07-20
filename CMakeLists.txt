@@ -78,6 +78,7 @@ set(SOURCES
     src/ArtFramingDatabase.cpp
     src/ThumbnailDatabase.cpp
     src/ThumbCacher.cpp
+    src/ThumbnailManager.cpp
     src/OZtone.rc
 )
 
@@ -114,6 +115,7 @@ set(HEADERS
     src/ArtFramingDatabase.h
     src/ThumbnailDatabase.h
     src/ThumbCacher.h
+    src/ThumbnailManager.h
 )
 
 # 実行ファイルの作成 (WIN32 を指定してコンソールウィンドウを非表示にする)
