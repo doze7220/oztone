@@ -144,6 +144,8 @@ private:
     ThumbnailManager m_thumbnailManager;
     BackgroundManager m_backgroundManager;
 
+    bool m_isCurrentBackgroundPlaceholder = false;
+
     bool m_isPlaylistListViewMode = false;
     ULONGLONG m_lastConfigCheckTime = 0;
     ULONGLONG m_lastPlaylistSnapshotTime = 0;

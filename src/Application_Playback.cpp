@@ -75,7 +75,14 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
     m_framingDb.GetFraming(track, framingX, framingY, framingScale);
     m_backgroundManager.SetBackgroundFraming(framingScale, framingX, framingY);
 
-    m_backgroundManager.RequestLoad(track);
+    std::vector<BYTE> artData = FileManager::ExtractAlbumArtBinary(track);
+    if (artData.empty()) {
+        m_isCurrentBackgroundPlaceholder = true;
+        m_backgroundManager.RequestLoad(L"");
+    } else {
+        m_isCurrentBackgroundPlaceholder = false;
+        m_backgroundManager.RequestLoad(track);
+    }
 
     auto dataProvider = [this](int relativeIndex, DrumSlot* slot) -> TrackMetadata {
       size_t currentIdx = m_playlistManager.GetCurrentIndex();

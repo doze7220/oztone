@@ -193,7 +193,7 @@ void Application::SetupCallbacks() {
   });
 
   m_window.SetArtFramingMoveCallback([this](float dx, float dy) {
-    if (m_playlistManager.IsEmpty()) return;
+    if (m_playlistManager.IsEmpty() || m_isCurrentBackgroundPlaceholder) return;
     std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
     float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
     m_framingDb.GetFraming(currentTrack, artX, artY, artScale);
@@ -206,7 +206,7 @@ void Application::SetupCallbacks() {
   });
 
   m_window.SetArtFramingScrollCallback([this](float delta, int x, int y) {
-    if (m_playlistManager.IsEmpty()) return;
+    if (m_playlistManager.IsEmpty() || m_isCurrentBackgroundPlaceholder) return;
     std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
     float artX = 0.0f, artY = 0.0f, artScale = 1.0f;
     m_framingDb.GetFraming(currentTrack, artX, artY, artScale);
@@ -238,7 +238,7 @@ void Application::SetupCallbacks() {
   });
 
   m_window.SetArtFramingResetCallback([this]() {
-    if (m_playlistManager.IsEmpty()) return;
+    if (m_playlistManager.IsEmpty() || m_isCurrentBackgroundPlaceholder) return;
     std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
     m_framingDb.SetFraming(currentTrack, 0.0f, 0.0f, 1.0f);
     m_backgroundManager.SetArtFramingScale(1.0f);

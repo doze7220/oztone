@@ -19,10 +19,10 @@
 ## 3. 実装タスクリスト
 - [x] タスク1: BackgroundManager のプレースホルダWIC保持とフォールバック処理の実装
     - `BackgroundManager.h` および `BackgroundManager.cpp` を修正し、リソースからの初期化とワーカーでのフォールバックロジックを組み込む。
-- [ ] タスク2: Application へのフラグ追加と判定ロジックの実装
+- [x] タスク2: Application へのフラグ追加と判定ロジックの実装
     - `Application.h` に `m_isCurrentBackgroundPlaceholder` フラグを追加する。
     - `Application_Playback.cpp` (`PlayCurrentTrack`) で画像有無の判定を行い、フラグの更新および BackgroundManager への要求パスを制御する。
-- [ ] タスク3: フレーミング保存と操作のロック適用
+- [x] タスク3: フレーミング保存と操作のロック適用
     - `Application_Initialize.cpp` 内のフレーミング操作コールバック内にフラグ判定を導入し、プレースホルダ時の操作を弾くロジックを追加する。
 
 ## 4. 詳細作業内容
@@ -41,10 +41,11 @@
     - `src/Application.h` : 更新
     - `src/Application_Playback.cpp` : 更新
     **【作業内容】**
-    - 未実行
+    - `Application.h` に `m_isCurrentBackgroundPlaceholder` フラグを追加した。
+    - `Application_Playback.cpp` (`PlayCurrentTrack`) で `FileManager::ExtractAlbumArtBinary` を呼び出して画像有無を判定し、フラグの更新および BackgroundManager へ空パス（`L""`）またはファイルパスを渡すよう実装した。
 
 ### タスク3: フレーミング保存と操作のロック適用
     **【対象ファイル】**
     - `src/Application_Initialize.cpp` : 更新
     **【作業内容】**
-    - 未実行
+    - `Application_Initialize.cpp` のフレーミング操作コールバック (`SetArtFramingMoveCallback`, `SetArtFramingScrollCallback`, `SetArtFramingResetCallback`) の冒頭に `m_isCurrentBackgroundPlaceholder` の判定を追加し、プレースホルダ表示中の操作（DB保存など）を即座に弾くよう実装した。
