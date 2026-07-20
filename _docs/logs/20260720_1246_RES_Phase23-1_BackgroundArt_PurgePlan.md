@@ -124,3 +124,24 @@
 
     ##### 対応: サムネイル生成関連ロジックの完全パージ
         - `ThumbCacher.cpp`: `WorkerLoop`内において、`TagManager::ExtractAlbumArtBinary` による生バイナリの抽出処理、およびそれに続くWICを用いたサムネイル画像への変換（`CookThumbnailImage`）、最終的なデータベースへの保存（`StoreCookedData`）という一連の処理ブロックを完全に削除した。
+
+    #### HOTFIX6 (ドキュメント更新完了)
+    ##### 原因・理由: Phase 23-1 Docs: アーキテクチャ資料の更新
+        - Phase 23-1完了に伴うドキュメントのHotfix更新として、仕様変更点（TagManager純化、Rendererの背景パージ、ThumbCacherのパージ等）を反映するため。
+
+    ##### 対象ファイル: 
+        - `PROJECT_ARCHITECTURE.md`
+
+    ##### 対応: 開発資料の更新
+        - `PROJECT_ARCHITECTURE.md`: FileManagerリファクタリング中の特記事項の追記、TagManagerからのAPIC抽出記述削除、Rendererからの背景アート描画記述削除（ダークオーバーレイのみとマーカー化）、ThumbCacherの画像抽出呼び出しパージと次世代パイプライン待ち状態の追記を行った。
+
+    #### HOTFIX7 (TagManager::Load 引数エラー修正)
+    ##### 原因・理由: TagManager::Load呼び出しの引数不一致(C2660エラー)の修正
+        - TagManagerの純化に伴いLoadメソッドの第2引数(`skipImage`)が削除されたが、呼び出し側（Application_Playback.cpp、TrackAnalyzer.cpp）で第2引数として`true`を渡し続けていたため。
+
+    ##### 対象ファイル: 
+        - `src/Application_Playback.cpp`
+        - `src/TrackAnalyzer.cpp`
+
+    ##### 対応: 第2引数の削除
+        - `Application_Playback.cpp` および `TrackAnalyzer.cpp` における `TagManager::Load` の呼び出し箇所から、不要となった第2引数（`true`）を削除し、引数を1つのみに修正した。

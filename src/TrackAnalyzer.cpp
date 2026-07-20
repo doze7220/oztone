@@ -81,7 +81,7 @@ void TrackAnalyzer::ParseThreadFunc() {
         if (!isMetaLoaded) {
             std::wstring title, artist, timeString;
             try {
-                if (localTagManager.Load(targetPath, true)) {
+                if (localTagManager.Load(targetPath)) {
                     title = localTagManager.GetTitle();
                     artist = localTagManager.GetArtist();
                     timeString = localTagManager.GetTimeString();

@@ -121,7 +121,7 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
 
 void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
   TagManager localTagManager;
-  if (localTagManager.Load(filepath, true)) { // 画像抽出をスキップしてテキスト情報のみ取得
+  if (localTagManager.Load(filepath)) { // 画像抽出をスキップしてテキスト情報のみ取得
     std::wstring title = localTagManager.GetTitle();
     std::wstring artist = localTagManager.GetArtist();
     if (title.empty()) {
