@@ -10,7 +10,6 @@ struct AudioMetadata {
     std::wstring title;
     std::wstring artist;
     int durationSeconds = 0;
-    std::vector<BYTE> coverArt;
 };
 
 /**
@@ -20,11 +19,18 @@ struct AudioMetadata {
 class FileManager {
 public:
     /**
-     * @brief 指定されたファイルパスからメタデータを抽出する
+     * @brief 指定されたファイルパスからテキストのメタデータを抽出する
      * @param filepath 対象のファイルパス (UTF-16)
-     * @return 抽出されたメタデータ構造体。抽出できなかった項目は空または0となる。
+     * @return 抽出されたテキストメタデータ構造体。抽出できなかった項目は空または0となる。
      */
-    static AudioMetadata ExtractMetadata(const std::wstring& filepath);
+    static AudioMetadata ExtractTextMetadata(const std::wstring& filepath);
+
+    /**
+     * @brief 指定されたファイルパスからアルバムアートのバイナリデータのみを抽出する
+     * @param filepath 対象のファイルパス (UTF-16)
+     * @return 抽出された画像バイナリ。存在しない、または抽出できなかった場合は空のvectorが返る。
+     */
+    static std::vector<BYTE> ExtractAlbumArtBinary(const std::wstring& filepath);
 
 private:
     // インスタンス化禁止の静的ユーティリティクラス
