@@ -174,7 +174,8 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       }
 
       if (m_fallbackBlackBrush) {
-        m_fallbackBlackBrush->SetOpacity(config->GetFallbackArtOpacity());
+        float fallbackOpacity = config->GetFallbackArtOpacity() * (1.0f - m_thumbFadeAlpha[slotIndex]);
+        m_fallbackBlackBrush->SetOpacity(fallbackOpacity);
         context->FillRectangle(&layout.fallbackArtRect, m_fallbackBlackBrush.Get());
       }
 
