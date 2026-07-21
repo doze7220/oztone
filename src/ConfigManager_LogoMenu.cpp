@@ -7,6 +7,9 @@ void ConfigManager::LoadLogoMenuSettings() {
     m_logoY = LoadOrWriteInt(L"Layout_AppLogo", L"Y");
     m_logoWidth = LoadOrWriteInt(L"Layout_AppLogo", L"Width");
     m_logoHeight = LoadOrWriteInt(L"Layout_AppLogo", L"Height");
+    
+    m_logoIdleOpacity = LoadOrWriteFloat(L"Layout_AppLogo", L"LogoIdleOpacity");
+    m_logoFadeSpeed = LoadOrWriteFloat(L"Layout_AppLogo", L"LogoFadeSpeed");
 
     m_logoMenuTypingFontSize = LoadOrWriteFloat(L"Layout_LogoMenu", L"MenuTypingFontSize");
     m_logoMenuTextColor = LoadOrWriteString(L"Layout_LogoMenu", L"MenuTextColor");

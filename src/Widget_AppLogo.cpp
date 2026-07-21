@@ -26,6 +26,15 @@ void AppLogoWidget::ReleaseResources() {
 }
 
 void AppLogoWidget::UpdateAnimation(const WidgetContext &ctx) {
+    bool isMenuExpanded = (ctx.outIsLogoMenuExpanded && *ctx.outIsLogoMenuExpanded);
+    if (ctx.isHovered || isMenuExpanded) {
+        m_logoHoverAlpha += (ctx.config ? ctx.config->GetLogoFadeSpeed() : 5.0f) * ctx.deltaTime;
+        if (m_logoHoverAlpha > 1.0f) m_logoHoverAlpha = 1.0f;
+    } else {
+        m_logoHoverAlpha -= (ctx.config ? ctx.config->GetLogoFadeSpeed() : 5.0f) * ctx.deltaTime;
+        if (m_logoHoverAlpha < 0.0f) m_logoHoverAlpha = 0.0f;
+    }
+
     if (ctx.isLogoClicked) {
         m_isRippling = true;
         m_rippleProgress = 0.0f;
@@ -43,17 +52,17 @@ void AppLogoWidget::UpdateLayout(const WidgetContext &ctx,
 
 void AppLogoWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
                          const ConfigManager *config) {
-  ID2D1Bitmap *bitmapToDraw = (ctx.isHovered || ctx.isLogoMenuHovered)
-                                  ? m_appLogoHoverBitmap.Get()
-                                  : m_appLogoBitmap.Get();
-  if (config && config->GetShowAppLogo() && bitmapToDraw) {
+  if (config && config->GetShowAppLogo() && m_appLogoBitmap) {
     D2D1_SIZE_F rtSize = context->GetSize();
     float logicWidth = rtSize.width / ctx.dpiScale;
     AppLogoLayout layout =
         LayoutCalculator::CalculateAppLogoLayout(logicWidth, config);
 
+    float idleOpacity = config->GetLogoIdleOpacity();
+    float baseOpacity = idleOpacity + (1.0f - idleOpacity) * m_logoHoverAlpha;
+
     if (m_shadowEffect && config->GetEnableShadow()) {
-      m_shadowEffect->SetInput(0, bitmapToDraw);
+      m_shadowEffect->SetInput(0, m_appLogoBitmap.Get());
       m_shadowEffect->SetValue(
           D2D1_SHADOW_PROP_COLOR,
           D2D1::Vector4F(0.0f, 0.0f, 0.0f, config->GetShadowOpacity()));
@@ -62,8 +71,13 @@ void AppLogoWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
                          D2D1_COMPOSITE_MODE_SOURCE_OVER);
     }
 
-    context->DrawBitmap(bitmapToDraw, &layout.destRect, 1.0f,
+    context->DrawBitmap(m_appLogoBitmap.Get(), &layout.destRect, baseOpacity,
                         D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+
+    if (m_appLogoHoverBitmap && m_logoHoverAlpha > 0.0f) {
+      context->DrawBitmap(m_appLogoHoverBitmap.Get(), &layout.destRect, m_logoHoverAlpha,
+                          D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+    }
 
     if (m_isRippling) {
         D2D1_POINT_2F center = {
@@ -77,7 +91,8 @@ void AppLogoWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
         context->GetTransform(&oldTransform);
         context->SetTransform(D2D1::Matrix3x2F::Scale(scale, scale, center) * oldTransform);
         
-        context->DrawBitmap(bitmapToDraw, &layout.destRect, opacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+        ID2D1Bitmap* rippleBmp = (m_logoHoverAlpha >= 0.5f && m_appLogoHoverBitmap) ? m_appLogoHoverBitmap.Get() : m_appLogoBitmap.Get();
+        context->DrawBitmap(rippleBmp, &layout.destRect, opacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
         
         context->SetTransform(oldTransform);
     }

@@ -63,6 +63,8 @@ X=16
 Y=16
 Width=64
 Height=64
+LogoIdleOpacity=0.5
+LogoFadeSpeed=5.0
 
 [Layout_LogoMenu]
 MenuTypingFontSize=14.0

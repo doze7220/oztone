@@ -250,7 +250,7 @@ void Application::ForceRender() {
   }
 
   bool isPlaylistExpanded = false;
-  bool isLogoMenuExpanded = false;
+  bool isLogoMenuExpanded = m_window.IsLogoMenuExpanded();
 
   bool wasDrumAnimating = m_renderer.GetTrackDrum().IsDrumAnimating();
 

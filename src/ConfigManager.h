@@ -262,6 +262,9 @@ public:
     int GetLogoWidth() const { return m_logoWidth; }
     int GetLogoHeight() const { return m_logoHeight; }
 
+    float GetLogoIdleOpacity() const { return m_logoIdleOpacity; }
+    float GetLogoFadeSpeed() const { return m_logoFadeSpeed; }
+
     float GetLogoMenuIconSize() const { return m_logoMenuIconSize; }
     int GetLogoMenuIconSpacing() const { return m_logoMenuIconSpacing; }
     int GetLogoMenuIconOffsetX() const { return m_logoMenuIconOffsetX; }
@@ -526,6 +529,8 @@ private:
     int m_logoY;
     int m_logoWidth;
     int m_logoHeight;
+    float m_logoIdleOpacity;
+    float m_logoFadeSpeed;
 
     float m_logoMenuIconSize;
     int m_logoMenuIconSpacing;
