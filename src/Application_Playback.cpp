@@ -62,6 +62,10 @@ void Application::HandleMediaCommand(int cmd) {
 
 bool Application::PlayCurrentTrack(int relativeDistance) {
   std::wstring track = m_playlistManager.GetCurrentTrack();
+  
+  // TrackMetadataの自己修復はメインスレッド同期処理のため、ファイルロックを取得される前に実行する
+  UpdateTrackMetadataIfNeeded(track);
+
   if (m_audioManager.Play(track)) {
 
     // 司令塔としてのデータ分配と非同期処理の発注
@@ -124,8 +128,6 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
       if (!thumbBmp) {
         m_thumbnailManager.RequestThumbnailLoad(currentThumbId, m_renderer.GetD2DContext(), m_renderer.GetWicFactory());
       }
-
-      UpdateTrackMetadataIfNeeded(track);
     };
 
     m_renderer.GetTrackDrum().StartDrumAnimation(relativeDistance, m_config.GetTrackDrumMaxDuration(), m_config.GetTrackDrumMaxSpeed(), dataProvider, onComplete);
