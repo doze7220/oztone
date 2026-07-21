@@ -115,18 +115,6 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
       m_playlistManager.ShuffleNextLoop();
     }
 
-    std::vector<std::wstring> unparsed = m_playlistManager.GetShuffleList();
-    if (!unparsed.empty()) {
-      for (const auto &path : unparsed) {
-        m_trackAnalyzer.AddTrackToQueue(path);
-        bool isNew = false;
-        uint32_t thumbId = m_thumbnailManager.GetOrGenerateThumbId(path, isNew);
-        if (isNew) {
-          m_thumbnailManager.EnqueueTrack(thumbId, path);
-        }
-      }
-    }
-
     if (!isShiftPressed || (wasEmpty && !m_audioManager.IsPlaying())) {
       m_audioManager.Stop();
 
@@ -147,6 +135,18 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
       if (!played) {
         m_renderer.GetTrackDrum().StartDrumAnimation(0, 0.0f, 0.0f, nullptr, nullptr);
         m_renderer.GetTrackDrum().SetAlbumArt(nullptr);
+      }
+    }
+
+    std::vector<std::wstring> unparsed = m_playlistManager.GetShuffleList();
+    if (!unparsed.empty()) {
+      for (const auto &path : unparsed) {
+        m_trackAnalyzer.AddTrackToQueue(path);
+        bool isNew = false;
+        uint32_t thumbId = m_thumbnailManager.GetOrGenerateThumbId(path, isNew);
+        if (isNew) {
+          m_thumbnailManager.EnqueueTrack(thumbId, path);
+        }
       }
     }
   }
