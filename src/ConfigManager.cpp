@@ -194,12 +194,12 @@ void ConfigManager::SaveDefaultSettings() {
         std::filesystem::copy_options::overwrite_existing, ec);
   }
 
-  std::ofstream ofs(m_iniFilePath);
+  std::ofstream ofs(m_iniFilePath, std::ios::binary);
   if (ofs) {
-    int size_needed = WideCharToMultiByte(CP_UTF8, 0, DEFAULT_INI_CONTENT, -1, NULL, 0, NULL, NULL);
-    std::string strTo(size_needed, 0);
-    WideCharToMultiByte(CP_UTF8, 0, DEFAULT_INI_CONTENT, -1, &strTo[0], size_needed, NULL, NULL);
-    ofs << strTo.c_str();
+    const char bom[] = { '\xFF', '\xFE' };
+    ofs.write(bom, sizeof(bom));
+    std::wstring content(DEFAULT_INI_CONTENT);
+    ofs.write(reinterpret_cast<const char*>(content.c_str()), content.length() * sizeof(wchar_t));
     ofs.close();
   }
 
