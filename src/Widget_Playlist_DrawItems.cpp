@@ -129,11 +129,18 @@ void PlaylistWidget::DrawPlaylistList(ID2D1DeviceContext* context, const WidgetC
               D2D1::RectF(itemLayout.timeOrigin.x, itemLayout.timeOrigin.y,
                           itemLayout.timeOrigin.x + itemLayout.timeMaxWidth,
                           itemLayout.timeOrigin.y + itemLayout.timeMaxHeight);
-          context->DrawText(timeStr.c_str(),
-                            static_cast<UINT32>(timeStr.length()),
-                            m_playlistTimeTextFormat.Get(), &timeRect,
-                            m_playlistTimeBrush ? m_playlistTimeBrush.Get()
-                                                : m_textBrush.Get());
+          Microsoft::WRL::ComPtr<IDWriteTextLayout> timeLayout;
+          if (m_dwriteFactory && SUCCEEDED(m_dwriteFactory->CreateTextLayout(
+                  timeStr.c_str(), static_cast<UINT32>(timeStr.length()),
+                  m_playlistTimeTextFormat.Get(), itemLayout.timeMaxWidth, itemLayout.timeMaxHeight, &timeLayout))) {
+              Microsoft::WRL::ComPtr<IDWriteTextLayout1> layout1;
+              if (SUCCEEDED(timeLayout.As(&layout1))) {
+                  DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(timeStr.length())};
+                  layout1->SetCharacterSpacing(0.0f, config->GetPlaylistTimeLetterSpacing(), 0.0f, textRange);
+              }
+              context->DrawTextLayout(D2D1::Point2F(timeRect.left, timeRect.top), timeLayout.Get(),
+                                      m_playlistTimeBrush ? m_playlistTimeBrush.Get() : m_textBrush.Get());
+          }
         }
 
         // --- CD Band Drawing ---
@@ -301,11 +308,18 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
             D2D1::RectF(itemLayout.timeOrigin.x, itemLayout.timeOrigin.y,
                         itemLayout.timeOrigin.x + itemLayout.timeMaxWidth,
                         itemLayout.timeOrigin.y + itemLayout.timeMaxHeight);
-        context->DrawText(timeStr.c_str(),
-                          static_cast<UINT32>(timeStr.length()),
-                          m_playlistTimeTextFormat.Get(), &timeRect,
-                          m_playlistTimeBrush ? m_playlistTimeBrush.Get()
-                                              : m_textBrush.Get());
+        Microsoft::WRL::ComPtr<IDWriteTextLayout> timeLayout;
+        if (m_dwriteFactory && SUCCEEDED(m_dwriteFactory->CreateTextLayout(
+                timeStr.c_str(), static_cast<UINT32>(timeStr.length()),
+                m_playlistTimeTextFormat.Get(), itemLayout.timeMaxWidth, itemLayout.timeMaxHeight, &timeLayout))) {
+            Microsoft::WRL::ComPtr<IDWriteTextLayout1> layout1;
+            if (SUCCEEDED(timeLayout.As(&layout1))) {
+                DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(timeStr.length())};
+                layout1->SetCharacterSpacing(0.0f, config->GetPlaylistTimeLetterSpacing(), 0.0f, textRange);
+            }
+            context->DrawTextLayout(D2D1::Point2F(timeRect.left, timeRect.top), timeLayout.Get(),
+                                    m_playlistTimeBrush ? m_playlistTimeBrush.Get() : m_textBrush.Get());
+        }
       }
 
       // --- CD Band Drawing ---
@@ -399,8 +413,17 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
               D2D1_RECT_F timeRect = D2D1::RectF(itemLayout.timeOrigin.x, itemLayout.timeOrigin.y,
                                                  itemLayout.timeOrigin.x + itemLayout.timeMaxWidth,
                                                  itemLayout.timeOrigin.y + itemLayout.timeMaxHeight);
-              context->DrawText(timeStr.c_str(), static_cast<UINT32>(timeStr.length()),
-                                m_playlistTimeTextFormat.Get(), &timeRect, m_textBrush.Get());
+              Microsoft::WRL::ComPtr<IDWriteTextLayout> timeLayout;
+              if (m_dwriteFactory && SUCCEEDED(m_dwriteFactory->CreateTextLayout(
+                      timeStr.c_str(), static_cast<UINT32>(timeStr.length()),
+                      m_playlistTimeTextFormat.Get(), itemLayout.timeMaxWidth, itemLayout.timeMaxHeight, &timeLayout))) {
+                  Microsoft::WRL::ComPtr<IDWriteTextLayout1> layout1;
+                  if (SUCCEEDED(timeLayout.As(&layout1))) {
+                      DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(timeStr.length())};
+                      layout1->SetCharacterSpacing(0.0f, config->GetPlaylistTimeLetterSpacing(), 0.0f, textRange);
+                  }
+                  context->DrawTextLayout(D2D1::Point2F(timeRect.left, timeRect.top), timeLayout.Get(), m_textBrush.Get());
+              }
           }
           
           context->PopAxisAlignedClip(); // Pop text clip
