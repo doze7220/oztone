@@ -84,35 +84,26 @@ void ThumbCacher::WorkerLoop()
         }
 
         bool processed = false;
-        for (int retry = 0; retry < 10; ++retry)
+        try
         {
-            try
+            std::vector<BYTE> rawBinary = FileManager::ExtractAlbumArtBinary(filepath);
+            if (!rawBinary.empty())
             {
-                std::vector<BYTE> rawBinary = FileManager::ExtractAlbumArtBinary(filepath);
-                if (!rawBinary.empty())
+                const UINT THUMBNAIL_SIZE = 160;
+                const float JPEG_QUALITY = 0.85f;
+                std::vector<BYTE> cookedBinary = CookThumbnailImage(rawBinary, THUMBNAIL_SIZE, JPEG_QUALITY);
+                if (!cookedBinary.empty())
                 {
-                    const UINT THUMBNAIL_SIZE = 160;
-                    const float JPEG_QUALITY = 0.85f;
-                    std::vector<BYTE> cookedBinary = CookThumbnailImage(rawBinary, THUMBNAIL_SIZE, JPEG_QUALITY);
-                    if (!cookedBinary.empty())
+                    if (m_db->StoreCookedData(thumbId, filepath, cookedBinary))
                     {
-                        if (m_db->StoreCookedData(thumbId, filepath, cookedBinary))
-                        {
-                            processed = true;
-                            break;
-                        }
+                        processed = true;
                     }
                 }
             }
-            catch (...)
-            {
-                // 例外が発生した場合はリトライ
-            }
-
-            if (!processed && retry < 9)
-            {
-                Sleep(50);
-            }
+        }
+        catch (...)
+        {
+            // 例外が発生した場合は処理失敗として扱う
         }
 
         if (!processed)
