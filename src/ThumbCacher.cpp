@@ -83,34 +83,47 @@ void ThumbCacher::WorkerLoop()
             continue;
         }
 
-        try
+        bool processed = false;
+        for (int retry = 0; retry < 10; ++retry)
         {
-            std::vector<BYTE> rawBinary = FileManager::ExtractAlbumArtBinary(filepath);
-            if (!rawBinary.empty())
+            try
             {
-                const UINT THUMBNAIL_SIZE = 160;
-                const float JPEG_QUALITY = 0.85f;
-                std::vector<BYTE> cookedBinary = CookThumbnailImage(rawBinary, THUMBNAIL_SIZE, JPEG_QUALITY);
-                if (!cookedBinary.empty())
+                std::vector<BYTE> rawBinary = FileManager::ExtractAlbumArtBinary(filepath);
+                if (!rawBinary.empty())
                 {
-                    if (!m_db->StoreCookedData(thumbId, filepath, cookedBinary))
+                    const UINT THUMBNAIL_SIZE = 160;
+                    const float JPEG_QUALITY = 0.85f;
+                    std::vector<BYTE> cookedBinary = CookThumbnailImage(rawBinary, THUMBNAIL_SIZE, JPEG_QUALITY);
+                    if (!cookedBinary.empty())
                     {
-                        m_db->RollbackThumbId(filepath);
+                        if (m_db->StoreCookedData(thumbId, filepath, cookedBinary))
+                        {
+                            processed = true;
+                            break;
+                        }
                     }
                 }
-                else
-                {
-                    m_db->RollbackThumbId(filepath);
-                }
             }
-            else
+            catch (...)
+            {
+                // 例外が発生した場合はリトライ
+            }
+
+            if (!processed && retry < 9)
+            {
+                Sleep(50);
+            }
+        }
+
+        if (!processed)
+        {
+            try
             {
                 m_db->RollbackThumbId(filepath);
             }
-        }
-        catch (...)
-        {
-            m_db->RollbackThumbId(filepath);
+            catch (...)
+            {
+            }
         }
     }
 

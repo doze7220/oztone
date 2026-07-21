@@ -83,23 +83,33 @@ void TrackAnalyzer::ParseThreadFunc() {
 
             if (!isMetaLoaded) {
                 std::wstring title, artist, timeString;
-                try {
-                    AudioMetadata fmMeta = FileManager::ExtractTextMetadata(targetPath);
-                    if (!fmMeta.title.empty() || !fmMeta.artist.empty()) {
-                        title = fmMeta.title;
-                        artist = fmMeta.artist;
-                        wchar_t buf[32];
-                        swprintf_s(buf, 32, L"%02d:%02d", fmMeta.durationSeconds / 60, fmMeta.durationSeconds % 60);
-                        timeString = buf;
-                        if (title.empty()) {
+                bool extractSuccess = false;
+                for (int retry = 0; retry < 10; ++retry) {
+                    try {
+                        AudioMetadata fmMeta = FileManager::ExtractTextMetadata(targetPath);
+                        if (!fmMeta.title.empty() || !fmMeta.artist.empty()) {
+                            title = fmMeta.title;
+                            artist = fmMeta.artist;
+                            wchar_t buf[32];
+                            swprintf_s(buf, 32, L"%02d:%02d", fmMeta.durationSeconds / 60, fmMeta.durationSeconds % 60);
+                            timeString = buf;
+                            if (title.empty()) {
+                                try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
+                            }
+                            if (artist.empty()) artist = L"---";
+                        } else {
                             try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
+                            artist = L"---";
                         }
-                        if (artist.empty()) artist = L"---";
-                    } else {
-                        try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
-                        artist = L"---";
+                        extractSuccess = true;
+                        break;
+                    } catch (...) {
+                        if (retry < 9) {
+                            Sleep(50);
+                        }
                     }
-                } catch (...) {
+                }
+                if (!extractSuccess) {
                     try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
                     artist = L"---";
                 }
@@ -116,7 +126,26 @@ void TrackAnalyzer::ParseThreadFunc() {
                     float peakAmplitude = 0.0f;
                     float maxFrequency = 0.0f;
                     float noiseThreshold = m_configManager->GetHighFreqNoiseThreshold();
-                    if (AudioManager::ScanAudioData(targetPath, noiseThreshold, peakAmplitude, maxFrequency)) {
+                    
+                    bool scanSuccess = false;
+                    for (int retry = 0; retry < 10; ++retry) {
+                        try {
+                            if (AudioManager::ScanAudioData(targetPath, noiseThreshold, peakAmplitude, maxFrequency)) {
+                                scanSuccess = true;
+                                break;
+                            } else {
+                                if (retry < 9) {
+                                    Sleep(50);
+                                }
+                            }
+                        } catch (...) {
+                            if (retry < 9) {
+                                Sleep(50);
+                            }
+                        }
+                    }
+                    
+                    if (scanSuccess) {
                         currentMeta.peakAmplitude = peakAmplitude;
                         currentMeta.maxFrequency = maxFrequency;
                     } else {
