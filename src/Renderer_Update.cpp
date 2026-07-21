@@ -41,11 +41,23 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
 
     if (m_thumbnailManager) {
         auto& slots = m_trackDrum.GetDrumSlotsWritable();
+        ULONGLONG now = GetTickCount64();
+        bool canPoll = false;
+        if (now - m_lastThumbPollTime >= 1000) {
+            canPoll = true;
+            m_lastThumbPollTime = now;
+        }
+
         for (int i = 0; i < 3; ++i) {
-            if (slots[i].thumbId > 0 && !slots[i].artBitmap) {
-                ID2D1Bitmap* bmp = m_thumbnailManager->GetCachedThumbnailBitmap(slots[i].thumbId);
+            auto& slot = slots[i];
+            if (slot.thumbId > 0 && !slot.artBitmap) {
+                ID2D1Bitmap* bmp = m_thumbnailManager->GetCachedThumbnailBitmap(slot.thumbId);
                 if (bmp) {
-                    slots[i].artBitmap = bmp;
+                    slot.artBitmap = bmp;
+                } else if (canPoll) {
+                    if (m_thumbnailManager->HasCookedData(slot.thumbId)) {
+                        m_thumbnailManager->RequestThumbnailLoad(slot.thumbId, m_d2dContext.Get(), m_wicFactory.Get());
+                    }
                 }
             }
         }

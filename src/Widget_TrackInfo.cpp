@@ -59,6 +59,17 @@ void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {
     m_artCrossfadeProgress = 1.0f;
   }
   m_wasDrumAnimating = isDrumAnimating;
+
+  for (int i = 0; i < 3; ++i) {
+      if (!ctx.drumSlots[i].artBitmap) {
+          m_thumbFadeAlpha[i] = 0.0f;
+      } else {
+          m_thumbFadeAlpha[i] += 2.0f * ctx.deltaTime;
+          if (m_thumbFadeAlpha[i] > 1.0f) {
+              m_thumbFadeAlpha[i] = 1.0f;
+          }
+      }
+  }
 }
 
 void TrackInfoWidget::UpdateLayout(const WidgetContext &ctx,
@@ -162,21 +173,14 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
 
       }
 
-      bool drawGlass = (art == nullptr);
-      float artOpacity = 1.0f;
-      float glassAlphaMultiplier = 1.0f;
-
-      if (drawGlass) {
-          artOpacity = 0.0f;
-      } else if (absoluteIndex == ctx.animatingTargetIndex && m_artCrossfadeProgress < 1.0f) {
-          drawGlass = true;
-          artOpacity = m_artCrossfadeProgress;
-          glassAlphaMultiplier = 1.0f - m_artCrossfadeProgress;
+      if (m_fallbackBlackBrush) {
+        m_fallbackBlackBrush->SetOpacity(config->GetFallbackArtOpacity());
+        context->FillRectangle(&layout.fallbackArtRect, m_fallbackBlackBrush.Get());
       }
 
-      if (drawGlass && m_fallbackBlackBrush) {
-        m_fallbackBlackBrush->SetOpacity(config->GetFallbackArtOpacity() * glassAlphaMultiplier);
-        context->FillRectangle(&layout.fallbackArtRect, m_fallbackBlackBrush.Get());
+      float artOpacity = m_thumbFadeAlpha[slotIndex];
+      if (absoluteIndex == ctx.animatingTargetIndex && m_artCrossfadeProgress < 1.0f) {
+          artOpacity *= m_artCrossfadeProgress;
       }
 
       if (artOpacity > 0.0f && art) {

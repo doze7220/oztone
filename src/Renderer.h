@@ -176,6 +176,8 @@ private:
     const ConfigManager* m_config = nullptr;
     float m_dpiScale = 1.0f;
     
+    ULONGLONG m_lastThumbPollTime = 0;
+    
     float m_controlAlpha = 0.0f;
     float m_controlLeaveTimer = 0.0f;
     float m_osdVolumeAlpha = 0.0f;

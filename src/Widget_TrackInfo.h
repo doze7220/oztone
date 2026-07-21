@@ -28,6 +28,8 @@ private:
     bool m_wasDrumAnimating = false;
     int m_animatingOldIndexOffset = 0;
 
+    std::array<float, 3> m_thumbFadeAlpha = {0.0f, 0.0f, 0.0f};
+
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_shadowBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_textBrush;
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_fallbackBlackBrush;
