@@ -6,6 +6,8 @@
 #include <attachedpictureframe.h>
 #include <vector>
 #include <string>
+#include <memory>
+#include <windows.h>
 
 AudioMetadata FileManager::ExtractTextMetadata(const std::wstring& filepath) {
     AudioMetadata metadata;
@@ -13,20 +15,33 @@ AudioMetadata FileManager::ExtractTextMetadata(const std::wstring& filepath) {
         return metadata;
     }
 
-    TagLib::MPEG::File mpegFile(filepath.c_str());
-    if (!mpegFile.isValid()) {
+    std::unique_ptr<TagLib::MPEG::File> mpegFile;
+    const int maxRetries = 10;
+    for (int i = 0; i < maxRetries; ++i) {
+        try {
+            mpegFile = std::make_unique<TagLib::MPEG::File>(filepath.c_str());
+            if (mpegFile->isValid()) {
+                break;
+            }
+        } catch (...) {
+            // 例外時は無視してリトライ
+        }
+        Sleep(50);
+    }
+
+    if (!mpegFile || !mpegFile->isValid()) {
         return metadata;
     }
 
     // テキストメタデータ（タイトル、アーティスト名）の取得
-    TagLib::Tag* tag = mpegFile.tag();
+    TagLib::Tag* tag = mpegFile->tag();
     if (tag) {
         metadata.title = tag->title().toWString();
         metadata.artist = tag->artist().toWString();
     }
 
     // オーディオプロパティから曲の長さを取得
-    TagLib::AudioProperties* properties = mpegFile.audioProperties();
+    TagLib::AudioProperties* properties = mpegFile->audioProperties();
     if (properties) {
         metadata.durationSeconds = properties->lengthInSeconds();
     }
@@ -40,13 +55,26 @@ std::vector<BYTE> FileManager::ExtractAlbumArtBinary(const std::wstring& filepat
         return imageData;
     }
 
-    TagLib::MPEG::File mpegFile(filepath.c_str());
-    if (!mpegFile.isValid()) {
+    std::unique_ptr<TagLib::MPEG::File> mpegFile;
+    const int maxRetries = 10;
+    for (int i = 0; i < maxRetries; ++i) {
+        try {
+            mpegFile = std::make_unique<TagLib::MPEG::File>(filepath.c_str());
+            if (mpegFile->isValid()) {
+                break;
+            }
+        } catch (...) {
+            // 例外時は無視してリトライ
+        }
+        Sleep(50);
+    }
+
+    if (!mpegFile || !mpegFile->isValid()) {
         return imageData;
     }
 
     // ID3v2タグからAPICフレーム（アルバムアート画像）を抽出
-    TagLib::ID3v2::Tag* tag = mpegFile.ID3v2Tag();
+    TagLib::ID3v2::Tag* tag = mpegFile->ID3v2Tag();
     if (tag) {
         TagLib::ID3v2::FrameList frames = tag->frameListMap()["APIC"];
         if (!frames.isEmpty()) {
