@@ -415,3 +415,8 @@ bool ThumbnailDatabase::StoreCookedData(uint32_t thumbId, const std::wstring& fi
     m_sectorMap[thumbId] = {offset, data.size()};
     return true;
 }
+
+void ThumbnailDatabase::RollbackThumbId(const std::wstring& filepath) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_pathToId.erase(filepath);
+}

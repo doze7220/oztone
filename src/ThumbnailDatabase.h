@@ -37,6 +37,7 @@ public:
     void RequestThumbnailLoad(uint32_t thumbId, ID2D1RenderTarget* renderTarget, IWICImagingFactory* wicFactory);
 
     bool StoreCookedData(uint32_t thumbId, const std::wstring& filepath, const std::vector<BYTE>& data);
+    void RollbackThumbId(const std::wstring& filepath);
 
 private:
     ConfigManager* m_config;

@@ -83,16 +83,34 @@ void ThumbCacher::WorkerLoop()
             continue;
         }
 
-        std::vector<BYTE> rawBinary = FileManager::ExtractAlbumArtBinary(filepath);
-        if (!rawBinary.empty())
+        try
         {
-            const UINT THUMBNAIL_SIZE = 160;
-            const float JPEG_QUALITY = 0.85f;
-            std::vector<BYTE> cookedBinary = CookThumbnailImage(rawBinary, THUMBNAIL_SIZE, JPEG_QUALITY);
-            if (!cookedBinary.empty())
+            std::vector<BYTE> rawBinary = FileManager::ExtractAlbumArtBinary(filepath);
+            if (!rawBinary.empty())
             {
-                m_db->StoreCookedData(thumbId, filepath, cookedBinary);
+                const UINT THUMBNAIL_SIZE = 160;
+                const float JPEG_QUALITY = 0.85f;
+                std::vector<BYTE> cookedBinary = CookThumbnailImage(rawBinary, THUMBNAIL_SIZE, JPEG_QUALITY);
+                if (!cookedBinary.empty())
+                {
+                    if (!m_db->StoreCookedData(thumbId, filepath, cookedBinary))
+                    {
+                        m_db->RollbackThumbId(filepath);
+                    }
+                }
+                else
+                {
+                    m_db->RollbackThumbId(filepath);
+                }
             }
+            else
+            {
+                m_db->RollbackThumbId(filepath);
+            }
+        }
+        catch (...)
+        {
+            m_db->RollbackThumbId(filepath);
         }
     }
 
