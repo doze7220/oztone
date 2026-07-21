@@ -50,7 +50,7 @@ EnableShadow=1
 ShadowColor=#000000
 ShadowOffsetX=2.0
 ShadowOffsetY=2.0
-ShadowOpacity=0.7
+ShadowOpacity=0.8
 
 [Background]
 BgOpacity=0.8
@@ -63,8 +63,8 @@ X=16
 Y=16
 Width=64
 Height=64
-LogoIdleOpacity=0.5
-LogoFadeSpeed=5.0
+LogoIdleOpacity=0.3
+LogoFadeSpeed=2.0
 
 [Layout_LogoMenu]
 MenuTypingFontSize=14.0

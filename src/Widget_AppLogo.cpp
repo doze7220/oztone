@@ -15,14 +15,11 @@ void AppLogoWidget::CreateResources(ID2D1DeviceContext *context,
                                    &m_appLogoBitmap);
   WidgetCommon::LoadBitmapResource(wicFactory, context, L"app_logo_hover.png",
                                    IDI_APP_LOGO_HOVER, &m_appLogoHoverBitmap);
-
-  context->CreateEffect(CLSID_D2D1Shadow, &m_shadowEffect);
 }
 
 void AppLogoWidget::ReleaseResources() {
   m_appLogoBitmap.Reset();
   m_appLogoHoverBitmap.Reset();
-  m_shadowEffect.Reset();
 }
 
 void AppLogoWidget::UpdateAnimation(const WidgetContext &ctx) {
@@ -60,16 +57,6 @@ void AppLogoWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
 
     float idleOpacity = config->GetLogoIdleOpacity();
     float baseOpacity = idleOpacity + (1.0f - idleOpacity) * m_logoHoverAlpha;
-
-    if (m_shadowEffect && config->GetEnableShadow()) {
-      m_shadowEffect->SetInput(0, m_appLogoBitmap.Get());
-      m_shadowEffect->SetValue(
-          D2D1_SHADOW_PROP_COLOR,
-          D2D1::Vector4F(0.0f, 0.0f, 0.0f, config->GetShadowOpacity()));
-      context->DrawImage(m_shadowEffect.Get(), &layout.shadowOffset, nullptr,
-                         D2D1_INTERPOLATION_MODE_LINEAR,
-                         D2D1_COMPOSITE_MODE_SOURCE_OVER);
-    }
 
     context->DrawBitmap(m_appLogoBitmap.Get(), &layout.destRect, baseOpacity,
                         D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);

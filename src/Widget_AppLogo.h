@@ -17,7 +17,6 @@ public:
 private:
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_appLogoBitmap;
     Microsoft::WRL::ComPtr<ID2D1Bitmap> m_appLogoHoverBitmap;
-    Microsoft::WRL::ComPtr<ID2D1Effect> m_shadowEffect;
 
     float m_logoHoverAlpha = 0.0f;
     float m_rippleProgress = 0.0f;
