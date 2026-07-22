@@ -22,6 +22,14 @@ void ConfigManager::SetSkipSeconds(float seconds) {
                              m_iniFilePath.c_str());
 }
 
+void ConfigManager::SetJogDialConfirmDelay(float delay) {
+  m_jogDialConfirmDelay = delay;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", delay);
+  WritePrivateProfileStringW(L"TrackDrum", L"JogDialConfirmDelay", buf,
+                             m_iniFilePath.c_str());
+}
+
 void ConfigManager::LoadPlaybackSettings() {
   m_showPlaybackControls = LoadOrWriteInt(L"Visibility", L"ShowPlaybackControls") != 0;
   m_playbackBaseBottomOffset = LoadOrWriteInt(L"Layout_PlaybackControls", L"BaseBottomOffset");
@@ -87,4 +95,5 @@ void ConfigManager::LoadPlaybackSettings() {
   m_tdMaxSpeed = LoadOrWriteFloat(L"TrackDrum", L"MaxSpeed");
   m_tdAcceleration = LoadOrWriteFloat(L"TrackDrum", L"Acceleration");
   m_tdDeceleration = LoadOrWriteFloat(L"TrackDrum", L"Deceleration");
+  m_jogDialConfirmDelay = LoadOrWriteFloat(L"TrackDrum", L"JogDialConfirmDelay");
 }

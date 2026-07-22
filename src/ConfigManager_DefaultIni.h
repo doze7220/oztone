@@ -37,6 +37,7 @@ MinSpeed=0.1
 MaxSpeed=4.0
 Acceleration=0.5
 Deceleration=0.1
+JogDialConfirmDelay=0.8
 
 [UI_Common_Parm]
 FocusColor=#FFA500

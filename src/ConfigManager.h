@@ -325,6 +325,8 @@ public:
 
     float GetTooltipOffsetX() const { return m_tooltipOffsetX; }
     float GetTooltipOffsetY() const { return m_tooltipOffsetY; }
+    float GetJogDialConfirmDelay() const { return m_jogDialConfirmDelay; }
+    void SetJogDialConfirmDelay(float delay);
 
     float GetSeekBarMargin() const { return m_seekBarMargin; }
     int GetSeekBarHeight() const { return m_seekBarHeight; }
@@ -569,6 +571,7 @@ private:
 
     float m_tooltipOffsetX;
     float m_tooltipOffsetY;
+    float m_jogDialConfirmDelay;
 
     float m_seekBarMargin;
     int m_seekBarHeight;

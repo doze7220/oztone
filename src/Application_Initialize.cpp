@@ -283,7 +283,7 @@ void Application::SetupCallbacks() {
       m_renderer.ResetPlaylistScroll();
     }
 
-    m_virtualScrollTimer = 0.5f;
+    m_virtualScrollTimer = m_config.GetJogDialConfirmDelay();
 
     auto dataProvider = [this](int relDist, DrumSlot* slot) -> TrackMetadata {
       size_t total = m_playlistManager.GetCount();
