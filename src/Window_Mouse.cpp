@@ -3,6 +3,7 @@
 #include "LayoutCalculator.h"
 #include "resource.h"
 #include <windowsx.h>
+#include <algorithm>
 
 bool Window::IsInLogoRegion(int x, int y) const {
   if (!m_config || !m_hwnd)
@@ -170,11 +171,27 @@ bool Window::IsInTrackInfoRegion(int x, int y) const {
     }
   }
 
-  float bottomLimit = logicalHeight - m_config->GetControlHoverHeight();
-  float topLimit = logicalHeight - static_cast<float>(m_config->GetBaseBottomOffset()) - static_cast<float>(m_config->GetArtSize());
+  float baseY = static_cast<float>(logicalHeight - m_config->GetBaseBottomOffset());
+
+  float artTop = baseY + static_cast<float>(m_config->GetArtOffsetY());
+  float artBottom = artTop + static_cast<float>(m_config->GetArtSize());
+
+  float titleTop = baseY + static_cast<float>(m_config->GetTitleOffsetY());
+  float titleBottom = titleTop + m_config->GetTitleFontSize();
+
+  float artistTop = baseY + static_cast<float>(m_config->GetArtistOffsetY());
+  float artistBottom = artistTop + m_config->GetArtistFontSize();
+
+  float topLimit = artTop;
+  if (titleTop < topLimit) topLimit = titleTop;
+  if (artistTop < topLimit) topLimit = artistTop;
+
+  float bottomLimit = artBottom;
+  if (titleBottom > bottomLimit) bottomLimit = titleBottom;
+  if (artistBottom > bottomLimit) bottomLimit = artistBottom;
 
   return (logicalX >= 0 && logicalX < rightLimit) &&
-         (logicalY >= topLimit && logicalY < bottomLimit);
+         (logicalY >= topLimit && logicalY <= bottomLimit);
 }
 
 bool Window::IsInPlaylistRegion(int x, int y) const {
