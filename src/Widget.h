@@ -49,6 +49,7 @@ public:
     // スクロール操作の受け取り（デフォルトは何もしない）
     virtual void AddScroll(float delta) {}
     virtual float GetScrollY() const { return 0.0f; }
+    virtual void ResetScroll() {}
 
     // ホバーディレイの強制クリア（デフォルトは何もしない）
     virtual void ForceClearHoverDelay() {}

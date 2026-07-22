@@ -9,6 +9,10 @@ void PlaylistWidget::AddScroll(float delta) {
 
 float PlaylistWidget::GetScrollY() const { return m_playlistManualScrollY; }
 
+void PlaylistWidget::ResetScroll() {
+  m_playlistManualScrollY = 0.0f;
+}
+
 void PlaylistWidget::ForceClearHoverDelay() {
     m_playlistLeaveTimer = 0.0f;
 }

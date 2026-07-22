@@ -38,6 +38,12 @@ float Renderer::GetPlaylistManualScrollY() const {
     return scrollY;
 }
 
+void Renderer::ResetPlaylistScroll() {
+    for (auto& widget : m_widgets) {
+        widget->ResetScroll();
+    }
+}
+
 void Renderer::TriggerVolumeOsd() {
     if (m_config && !m_config->GetEnableOSD()) return;
     m_osdVolumeAlpha = 1.0f;

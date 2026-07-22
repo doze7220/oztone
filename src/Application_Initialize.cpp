@@ -277,8 +277,10 @@ void Application::SetupCallbacks() {
 
     if (delta > 0) {
       m_playlistManager.Previous();
+      m_renderer.ResetPlaylistScroll();
     } else if (delta < 0) {
       m_playlistManager.Advance();
+      m_renderer.ResetPlaylistScroll();
     }
 
     m_virtualScrollTimer = 0.5f;

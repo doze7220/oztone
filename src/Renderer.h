@@ -109,6 +109,11 @@ public:
     float GetPlaylistManualScrollY() const;
 
     /**
+     * @brief プレイリストの手動スクロールをリセットする
+     */
+    void ResetPlaylistScroll();
+
+    /**
      * @brief ボリューム操作時のOSD表示をトリガーする
      */
     void TriggerVolumeOsd();

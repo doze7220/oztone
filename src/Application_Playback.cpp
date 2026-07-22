@@ -21,9 +21,11 @@ void Application::HandleMediaCommand(int cmd) {
     if (cmd == APPCOMMAND_MEDIA_NEXTTRACK) {
       m_renderer.TriggerFlyText(L"NEXT TRACK");
       m_playlistManager.Advance();
+      m_renderer.ResetPlaylistScroll();
     } else {
       m_renderer.TriggerFlyText(L"PREV TRACK");
       m_playlistManager.Previous();
+      m_renderer.ResetPlaylistScroll();
     }
 
     size_t skipCount = 0;

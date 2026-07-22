@@ -21,6 +21,7 @@ public:
 
     void AddScroll(float delta) override;
     float GetScrollY() const override;
+    void ResetScroll() override;
     void ForceClearHoverDelay() override;
 
 private:
