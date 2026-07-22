@@ -37,7 +37,7 @@ MinSpeed=0.1
 MaxSpeed=4.0
 Acceleration=0.5
 Deceleration=0.1
-JogDialConfirmDelay=0.8
+JogDialConfirmDelay=1.2
 
 [UI_Common_Parm]
 FocusColor=#FFA500
@@ -98,8 +98,8 @@ TitleFontSize=36.0
 ArtistOffsetX=128
 ArtistOffsetY=54
 ArtistFontSize=18.0
-TooltipOffsetX=-10.0
-TooltipOffsetY=-20.0
+TooltipOffsetX=70.0
+TooltipOffsetY=-60.0
 
 [Layout_SeekBar]
 SeekBarMargin=20.0
