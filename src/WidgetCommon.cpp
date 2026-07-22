@@ -135,4 +135,64 @@ void DrawShadowedText(
     }
 }
 
+void DrawMouseScrollTooltip(
+    ID2D1DeviceContext* context,
+    float tooltipBoxX,
+    float tooltipBoxY,
+    float tooltipBoxW,
+    float tooltipBoxH,
+    ID2D1Geometry* bgGeometry,
+    ID2D1Geometry* strokeGeometry,
+    ID2D1Geometry* fillGeometry,
+    ID2D1Geometry* wheelGeometry,
+    ID2D1SolidColorBrush* bgBrush,
+    ID2D1SolidColorBrush* iconBrush,
+    ID2D1SolidColorBrush* wheelBrush,
+    float tooltipAlphaFinal,
+    float bgOpacityMultiplier,
+    float iconSize,
+    const D2D1_MATRIX_3X2_F& oldTransform,
+    IDWriteTextLayout* textLayout,
+    ID2D1SolidColorBrush* textBrush,
+    float textX,
+    float textY) {
+    
+    if (!context || tooltipAlphaFinal <= 0.0f) return;
+
+    if (bgGeometry && bgBrush) {
+        bgBrush->SetOpacity(tooltipAlphaFinal * bgOpacityMultiplier);
+        context->SetTransform(D2D1::Matrix3x2F::Translation(tooltipBoxX, tooltipBoxY) * oldTransform);
+        context->FillGeometry(bgGeometry, bgBrush);
+    }
+    
+    float cx = tooltipBoxX + tooltipBoxW / 2.0f;
+    float cy = tooltipBoxY + tooltipBoxH / 2.0f;
+    
+    if (strokeGeometry || fillGeometry || wheelGeometry) {
+        context->SetTransform(D2D1::Matrix3x2F::Scale(iconSize, iconSize) * D2D1::Matrix3x2F::Translation(cx, cy) * oldTransform);
+
+        if (iconBrush) {
+            iconBrush->SetOpacity(tooltipAlphaFinal);
+            if (strokeGeometry) {
+                context->DrawGeometry(strokeGeometry, iconBrush, 1.5f / iconSize);
+            }
+            if (fillGeometry) {
+                context->FillGeometry(fillGeometry, iconBrush);
+            }
+        }
+        if (wheelBrush && wheelGeometry) {
+            wheelBrush->SetOpacity(tooltipAlphaFinal);
+            context->FillGeometry(wheelGeometry, wheelBrush);
+        }
+    }
+
+    if (textLayout && textBrush) {
+        context->SetTransform(oldTransform);
+        textBrush->SetOpacity(tooltipAlphaFinal);
+        context->DrawTextLayout(D2D1::Point2F(textX, textY), textLayout, textBrush);
+    }
+
+    context->SetTransform(oldTransform);
+}
+
 } // namespace WidgetCommon

@@ -312,30 +312,22 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
 
     if (m_tooltipAlpha > 0.0f && m_tooltipGeometry && m_tooltipStrokeGeometry) {
       float tooltipAlphaFinal = m_tooltipAlpha * finalAlpha;
-      if (m_tooltipBgBrush) {
-        m_tooltipBgBrush->SetOpacity(tooltipAlphaFinal * config->GetVolumeTooltipBgOpacity());
-        context->SetTransform(D2D1::Matrix3x2F::Translation(layout.tooltipBoxX, layout.tooltipBoxY) * oldTransform);
-        context->FillGeometry(m_tooltipGeometry.Get(), m_tooltipBgBrush.Get());
-      }
-      
-      float iconSize = config->GetVolumeTooltipIconSize();
-      float cx = layout.tooltipBoxX + layout.tooltipBoxW / 2.0f;
-      float cy = layout.tooltipBoxY + layout.tooltipBoxH / 2.0f;
-      context->SetTransform(D2D1::Matrix3x2F::Scale(iconSize, iconSize) * D2D1::Matrix3x2F::Translation(cx, cy) * oldTransform);
-
-      if (m_tooltipIconBrush) {
-        m_tooltipIconBrush->SetOpacity(tooltipAlphaFinal);
-        context->DrawGeometry(m_tooltipStrokeGeometry.Get(), m_tooltipIconBrush.Get(), 1.5f / iconSize);
-        if (m_tooltipFillGeometry) {
-          context->FillGeometry(m_tooltipFillGeometry.Get(), m_tooltipIconBrush.Get());
-        }
-      }
-      if (m_tooltipWheelBrush && m_tooltipWheelGeometry) {
-        m_tooltipWheelBrush->SetOpacity(tooltipAlphaFinal);
-        context->FillGeometry(m_tooltipWheelGeometry.Get(), m_tooltipWheelBrush.Get());
-      }
-      
-      context->SetTransform(oldTransform);
+      WidgetCommon::DrawMouseScrollTooltip(
+          context,
+          layout.tooltipBoxX, layout.tooltipBoxY,
+          layout.tooltipBoxW, layout.tooltipBoxH,
+          m_tooltipGeometry.Get(),
+          m_tooltipStrokeGeometry.Get(),
+          m_tooltipFillGeometry.Get(),
+          m_tooltipWheelGeometry.Get(),
+          m_tooltipBgBrush.Get(),
+          m_tooltipIconBrush.Get(),
+          m_tooltipWheelBrush.Get(),
+          tooltipAlphaFinal,
+          config->GetVolumeTooltipBgOpacity(),
+          config->GetVolumeTooltipIconSize(),
+          oldTransform
+      );
     }
   }
 }
