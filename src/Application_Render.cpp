@@ -101,7 +101,7 @@ void Application::Run() {
       }
     }
 
-    if (m_audioManager.IsAtEnd()) {
+    if (m_audioManager.IsAtEnd() && m_virtualScrollTimer <= 0.0f) {
       std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
       if (m_audioManager.IsLearningValid()) {
           float learnedPeak = m_audioManager.GetLearningPeakAmplitude();
