@@ -9,7 +9,7 @@ void PlaylistWidget::BuildToolbarText(const WidgetContext& ctx, const ConfigMana
     int idx = ctx.playlistToolbarHoveredIndex;
     if (ctx.isPlaylistListViewMode) {
       if (idx == 0)
-        hoverText = L""; // (非表示)
+        hoverText = L""; // (グレーアウト時は非表示)
       if (idx == 1)
         hoverText = L"プレイリストを新規作成する";
       if (idx == 2)
@@ -85,7 +85,7 @@ void PlaylistWidget::DrawPinButton(ID2D1DeviceContext* context, const WidgetCont
 void PlaylistWidget::DrawToolbar(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config, const PlaylistLayout& layout) {
   std::wstring icons[3];
   if (ctx.isPlaylistListViewMode) {
-    icons[0] = L""; // (非表示)
+    icons[0] = L"📁"; // グレーアウト表示
     icons[1] = L"➕";
     icons[2] = L"🗑️";
   } else {
@@ -138,20 +138,31 @@ void PlaylistWidget::DrawToolbar(ID2D1DeviceContext* context, const WidgetContex
   }
 
   for (int i = 0; i < 3; ++i) {
-    if (ctx.isPlaylistListViewMode && i == 0)
-      continue; // (非表示)
+    bool isDisabled = (ctx.isPlaylistListViewMode && i == 0);
 
-    if (ctx.playlistToolbarHoveredIndex == i && m_playlistHighlightBrush) {
+    if (ctx.playlistToolbarHoveredIndex == i && m_playlistHighlightBrush && !isDisabled) {
       m_playlistHighlightBrush->SetOpacity(0.2f);
       context->FillRectangle(&layout.toolbarLayout.buttonHitRects[i],
                              m_playlistHighlightBrush.Get());
     }
 
     if (m_toolbarIconFormat && !icons[i].empty()) {
+      float originalOpacity = 1.0f;
+      if (m_textBrush) {
+        originalOpacity = m_textBrush->GetOpacity();
+        if (isDisabled) {
+          m_textBrush->SetOpacity(0.3f);
+        }
+      }
+
       context->DrawText(
           icons[i].c_str(), static_cast<UINT32>(icons[i].length()),
           m_toolbarIconFormat.Get(), &layout.toolbarLayout.buttonHitRects[i],
           m_textBrush.Get());
+
+      if (m_textBrush && isDisabled) {
+        m_textBrush->SetOpacity(originalOpacity);
+      }
     }
   }
 
