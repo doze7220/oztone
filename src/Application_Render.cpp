@@ -29,7 +29,18 @@ void Application::Run() {
       }
     }
 
+    static ULONGLONG lastFrameTime = GetTickCount64();
     ULONGLONG currentTime = GetTickCount64();
+    float deltaTime = static_cast<float>(currentTime - lastFrameTime) / 1000.0f;
+    lastFrameTime = currentTime;
+
+    if (m_virtualScrollTimer > 0.0f) {
+      m_virtualScrollTimer -= deltaTime;
+      if (m_virtualScrollTimer <= 0.0f) {
+        // TODO: 後続タスクで再生の確定やインデックスのジャンプを実装する
+        m_virtualScrollTimer = 0.0f;
+      }
+    }
 
     if (!m_isWaitingForDevice && m_audioManager.IsPlaying()) {
       float currentPos = m_audioManager.GetPositionSeconds();

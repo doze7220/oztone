@@ -161,4 +161,8 @@ private:
     ULONGLONG m_lastWatchdogPollTime = 0;
     float m_lastWatchdogPosition = -1.0f;
     ULONGLONG m_watchdogWarningStartTime = 0;
+
+    // 仮想スクロール関連
+    float m_virtualScrollTimer = 0.0f;
+    int m_virtualScrollTargetIndex = -1;
 };
