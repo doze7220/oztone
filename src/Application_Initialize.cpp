@@ -275,30 +275,27 @@ void Application::SetupCallbacks() {
   m_window.SetVirtualScrollCallback([this](int delta) {
     if (m_playlistManager.IsEmpty()) return;
 
-    if (m_virtualScrollTimer <= 0.0f) {
-      m_virtualScrollTargetIndex = static_cast<int>(m_playlistManager.GetCurrentIndex());
-    }
-
-    int count = static_cast<int>(m_playlistManager.GetCount());
-    if (count > 0) {
-      if (delta > 0) {
-        m_virtualScrollTargetIndex = (m_virtualScrollTargetIndex - 1 + count) % count;
-      } else if (delta < 0) {
-        m_virtualScrollTargetIndex = (m_virtualScrollTargetIndex + 1) % count;
-      }
+    if (delta > 0) {
+      m_playlistManager.Previous();
+    } else if (delta < 0) {
+      m_playlistManager.Advance();
     }
 
     m_virtualScrollTimer = 0.5f;
 
-    auto dataProvider = [this](int relativeIndex, DrumSlot* slot) -> TrackMetadata {
-      size_t currentIdx = m_playlistManager.GetCurrentIndex();
+    auto dataProvider = [this](int relDist, DrumSlot* slot) -> TrackMetadata {
       size_t total = m_playlistManager.GetCount();
-      size_t targetIdx = (currentIdx + relativeIndex + total) % total;
+      size_t targetIdx = (m_playlistManager.GetCurrentIndex() + relDist + total) % total;
       
       std::wstring path = m_playlistManager.GetShuffleList()[targetIdx];
 
       if (slot) {
-          slot->thumbId = 0;
+          bool isNew = false;
+          slot->thumbId = m_thumbnailManager.GetOrGenerateThumbId(path, isNew);
+          slot->artBitmap = m_thumbnailManager.GetCachedThumbnailBitmap(slot->thumbId);
+          if (!slot->artBitmap) {
+              m_thumbnailManager.RequestThumbnailLoad(slot->thumbId, m_renderer.GetD2DContext(), m_renderer.GetWicFactory());
+          }
       }
 
       TrackMetadata meta;
@@ -311,12 +308,14 @@ void Application::SetupCallbacks() {
       }
     };
 
-    int relativeDistance = m_virtualScrollTargetIndex - static_cast<int>(m_playlistManager.GetCurrentIndex());
-    int halfCount = count / 2;
-    if (relativeDistance > halfCount) relativeDistance -= count;
-    else if (relativeDistance < -halfCount) relativeDistance += count;
-
-    m_renderer.GetTrackDrum().StartDrumAnimation(relativeDistance, m_config.GetTrackDrumMaxDuration(), m_config.GetTrackDrumMaxSpeed(), dataProvider, nullptr);
+    // ドラムエンジンは「前の曲=+1」「次の曲=-1」を期待する
+    int distanceForDrum = 0;
+    if (delta > 0) {
+      distanceForDrum = 1;
+    } else if (delta < 0) {
+      distanceForDrum = -1;
+    }
+    m_renderer.GetTrackDrum().StartDrumAnimation(distanceForDrum, m_config.GetTrackDrumMaxDuration(), m_config.GetTrackDrumMaxSpeed(), dataProvider, nullptr);
   });
 
   m_window.SetPowerSuspendCallback([this]() { this->OnPowerSuspend(); });

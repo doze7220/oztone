@@ -60,7 +60,7 @@ void Application::HandleMediaCommand(int cmd) {
 }
 
 
-bool Application::PlayCurrentTrack(int relativeDistance) {
+bool Application::PlayCurrentTrack(int relativeDistance, bool isVirtualScrollConfirm) {
   std::wstring track = m_playlistManager.GetCurrentTrack();
   
   // TrackMetadataの自己修復はメインスレッド同期処理のため、ファイルロックを取得される前に実行する
@@ -130,7 +130,11 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
       }
     };
 
-    m_renderer.GetTrackDrum().StartDrumAnimation(relativeDistance, m_config.GetTrackDrumMaxDuration(), m_config.GetTrackDrumMaxSpeed(), dataProvider, onComplete);
+    if (!isVirtualScrollConfirm) {
+      m_renderer.GetTrackDrum().StartDrumAnimation(relativeDistance, m_config.GetTrackDrumMaxDuration(), m_config.GetTrackDrumMaxSpeed(), dataProvider, onComplete);
+    } else {
+      onComplete();
+    }
     return true;
   }
   return false;

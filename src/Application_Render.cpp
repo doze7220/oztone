@@ -39,8 +39,7 @@ void Application::Run() {
       if (m_virtualScrollTimer <= 0.0f) {
         m_virtualScrollTimer = 0.0f;
         if (!m_playlistManager.IsEmpty()) {
-          m_playlistManager.JumpToIndex(m_virtualScrollTargetIndex);
-          PlayCurrentTrack(-1);
+          PlayCurrentTrack(-1, true);
         }
         m_window.ResetVirtualScrollState();
       }

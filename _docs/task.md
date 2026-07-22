@@ -1,5 +1,4 @@
 [ ] シークバー対応: UIは用意せず、ショートカットキー・マウスホイールのみで対応
-[ ] Prev/Nextトラックのマウスホイール対応: アルバムアート・タイトルテキスト上でマウスホイールによるトラック移動。
 [ ] ArtFramingDatabase の BackgroundManager への吸収とカプセル化
 [ ] ConfigManager.hリファクタリング
 
