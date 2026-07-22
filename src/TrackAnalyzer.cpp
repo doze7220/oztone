@@ -96,10 +96,10 @@ void TrackAnalyzer::ParseThreadFunc() {
                             if (title.empty()) {
                                 try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
                             }
-                            if (artist.empty()) artist = L"---";
+                            if (artist.empty()) artist = L"　";
                         } else {
                             try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
-                            artist = L"---";
+                            artist = L"　";
                         }
                         extractSuccess = true;
                         break;
@@ -111,7 +111,7 @@ void TrackAnalyzer::ParseThreadFunc() {
                 }
                 if (!extractSuccess) {
                     try { title = std::filesystem::path(targetPath).filename().wstring(); } catch (...) { title = L"UNKNOWN"; }
-                    artist = L"---";
+                    artist = L"　";
                 }
                 currentMeta.title = title;
                 currentMeta.artist = artist;

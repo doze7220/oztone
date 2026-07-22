@@ -111,10 +111,10 @@ bool Application::PlayCurrentTrack(int relativeDistance) {
             if (meta.title.empty()) {
               try { meta.title = std::filesystem::path(path).filename().wstring(); } catch (...) { meta.title = L"UNKNOWN"; }
             }
-            if (meta.artist.empty()) meta.artist = L"---";
+            if (meta.artist.empty()) meta.artist = L"　";
           } else {
             try { meta.title = std::filesystem::path(path).filename().wstring(); } catch (...) { meta.title = L"UNKNOWN"; }
-            meta.artist = L"---";
+            meta.artist = L"　";
           }
         return meta;
       }
@@ -149,7 +149,7 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
       }
     }
     if (artist.empty()) {
-      artist = L"---";
+      artist = L"　";
     }
 
     TrackMetadata currentMeta;

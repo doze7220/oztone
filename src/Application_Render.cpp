@@ -282,7 +282,7 @@ void Application::ForceRender() {
       } catch (...) {
         meta.title = L"UNKNOWN";
       }
-      meta.artist = L"---";
+      meta.artist = L"　";
     }
     metadataList.push_back(meta);
   }
