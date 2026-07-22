@@ -4,7 +4,7 @@
 #include "LayoutCalculator.h"
 #include "ThumbnailManager.h"
 
-WidgetContext Renderer::BuildAnimationContext(float deltaTime, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isTrackInfoHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode, int playbackHoveredIndex, int playlistHoveredItemIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isLogoClicked, int clickedLogoMenuIndex, int clickedPlaybackIndex, bool* outIsPlaylistExpanded, bool* outIsLogoMenuExpanded) const {
+WidgetContext Renderer::BuildAnimationContext(float deltaTime, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isTrackInfoHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode, int playbackHoveredIndex, int playlistHoveredItemIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isLogoClicked, int clickedLogoMenuIndex, int clickedPlaybackIndex, bool* outIsPlaylistExpanded, bool* outIsLogoMenuExpanded, bool isJogDialing) const {
     WidgetContext ctx = {};
     ctx.deltaTime = deltaTime;
     ctx.isControlHovered = isControlHovered;
@@ -37,6 +37,7 @@ WidgetContext Renderer::BuildAnimationContext(float deltaTime, bool isControlHov
     ctx.drumSlots = m_trackDrum.GetDrumSlots();
     ctx.currentDrumSlotIndex = m_trackDrum.GetCurrentDrumSlotIndex();
     ctx.animatingOldIndexOffset = m_trackDrum.GetAnimatingOldIndexOffset();
+    ctx.isJogDialing = isJogDialing;
 
     return ctx;
 }
@@ -64,7 +65,7 @@ WidgetContext Renderer::BuildLayoutContext(const std::wstring& timeString, float
     return ctx;
 }
 
-WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isTrackInfoHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isPlaylistListViewMode, bool isPlaying, float progress, const std::vector<float>* spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>* shuffleMetadataList, int playlistToolbarHoveredIndex, const std::vector<PlaylistSummary>* availablePlaylistsCache) const {
+WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isTrackInfoHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isPlaylistListViewMode, bool isPlaying, float progress, const std::vector<float>* spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>* shuffleMetadataList, int playlistToolbarHoveredIndex, const std::vector<PlaylistSummary>* availablePlaylistsCache, bool isJogDialing) const {
     WidgetContext ctx = {};
     ctx.logoMenuItems = logoMenuItems;
     ctx.isControlHovered = isControlHovered;
@@ -169,6 +170,8 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
             }
         }
     }
+
+    ctx.isJogDialing = isJogDialing;
 
     return ctx;
 }

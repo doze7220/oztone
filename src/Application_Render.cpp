@@ -277,7 +277,7 @@ void Application::ForceRender() {
       m_playlistManager.GetCount(), m_isPlaylistListViewMode,
       m_window.GetPlaybackHoveredIndex(), playlistHoveredItemIndex,
       &m_window.GetLogoMenuItems(), logoClicked, logoMenuClicked,
-      playbackClicked, &isPlaylistExpanded, &isLogoMenuExpanded);
+      playbackClicked, &isPlaylistExpanded, &isLogoMenuExpanded, m_virtualScrollTimer > 0.0f);
 
   std::wstring currentTrackPath = m_playlistManager.GetCurrentTrack();
 
@@ -315,7 +315,7 @@ void Application::ForceRender() {
       m_audioManager.IsPlaying(), progress, spectrum, m_audioManager.GetVolume(),
       m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount(),
       metadataList,
-      m_window.GetPlaylistToolbarHoveredIndex(), &m_playlistSummaries);
+      m_window.GetPlaylistToolbarHoveredIndex(), &m_playlistSummaries, m_virtualScrollTimer > 0.0f);
 }
 
 void Application::UpdatePlaylistSummaries() {

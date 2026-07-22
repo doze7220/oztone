@@ -192,7 +192,7 @@ void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {
   float fadeOutSpeed = ctx.config ? ctx.config->GetHoverFadeOutSpeed() : 3.0f;
   float fadeInSpeed = 10.0f;
   
-  if (ctx.isTrackInfoHovered) {
+  if (ctx.isTrackInfoHovered && !ctx.isJogDialing) {
     m_hoverAlpha += ctx.deltaTime * fadeInSpeed;
     if (m_hoverAlpha > 1.0f) m_hoverAlpha = 1.0f;
   } else {

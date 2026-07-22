@@ -4,7 +4,7 @@
 #include "WidgetContext.h"
 #include "BackgroundManager.h"
 
-void Renderer::Render(bool isHovered, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isTrackInfoHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isPlaylistListViewMode, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList, int playlistToolbarHoveredIndex, const std::vector<PlaylistSummary>* availablePlaylistsCache) {
+void Renderer::Render(bool isHovered, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isTrackInfoHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isPlaylistListViewMode, bool isPlaying, float progress, const std::vector<float>& spectrum, float volume, size_t currentTrackIndex, size_t totalTracks, const std::vector<TrackMetadata>& shuffleMetadataList, int playlistToolbarHoveredIndex, const std::vector<PlaylistSummary>* availablePlaylistsCache, bool isJogDialing) {
     if (!m_d2dContext) return;
 
     m_d2dContext->BeginDraw();
@@ -24,7 +24,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isVolumeHovere
     }
     DrawVisualizer(spectrum, currentMeta);
 
-    WidgetContext ctx = BuildRenderContext(isHovered, isControlHovered, isVolumeHovered, isPlaylistHovered, isTrackInfoHovered, isLogoMenuHovered, logoMenuHoveredIndex, logoMenuItems, isPlaylistListViewMode, isPlaying, progress, &spectrum, volume, currentTrackIndex, totalTracks, &shuffleMetadataList, playlistToolbarHoveredIndex, availablePlaylistsCache);
+    WidgetContext ctx = BuildRenderContext(isHovered, isControlHovered, isVolumeHovered, isPlaylistHovered, isTrackInfoHovered, isLogoMenuHovered, logoMenuHoveredIndex, logoMenuItems, isPlaylistListViewMode, isPlaying, progress, &spectrum, volume, currentTrackIndex, totalTracks, &shuffleMetadataList, playlistToolbarHoveredIndex, availablePlaylistsCache, isJogDialing);
 
     for (auto& widget : m_widgets) {
         widget->Draw(m_d2dContext.Get(), ctx, m_config);

@@ -52,6 +52,7 @@ struct WidgetContext {
     bool isPlaylistPinnedHovered;
     bool isPlaylistListViewMode;
     bool isPlaying;
+    bool isJogDialing = false;
     float progress;
     const std::vector<float>* spectrum;
     float volume;
