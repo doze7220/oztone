@@ -31,6 +31,115 @@ void TrackInfoWidget::CreateResources(ID2D1DeviceContext *context,
                                  &m_textBrush);
   context->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f),
                                  &m_fallbackBlackBrush);
+
+  if (config) {
+    context->CreateSolidColorBrush(ParseHexColor(config->GetTooltipBgColor()), &m_tooltipBgBrush);
+    context->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_tooltipIconBrush);
+    context->CreateSolidColorBrush(D2D1::ColorF(1.0f, 0.3f, 0.3f, 1.0f), &m_tooltipWheelBrush);
+  }
+
+  context->GetFactory(&m_d2dFactory);
+
+  if (m_d2dFactory) {
+    m_d2dFactory->CreatePathGeometry(&m_tooltipStrokeGeometry);
+    if (m_tooltipStrokeGeometry) {
+      Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+      m_tooltipStrokeGeometry->Open(&sink);
+      
+      float mx = -0.13f;
+      float rx = 0.15f, ry = 0.25f, r = 0.1f;
+      
+      sink->BeginFigure(D2D1::Point2F(mx-rx+r, -ry), D2D1_FIGURE_BEGIN_FILLED);
+      sink->AddLine(D2D1::Point2F(mx+rx-r, -ry));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(mx+rx, -ry+r), D2D1::SizeF(r, r), 0, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      sink->AddLine(D2D1::Point2F(mx+rx, ry-r));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(mx+rx-r, ry), D2D1::SizeF(r, r), 0, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      sink->AddLine(D2D1::Point2F(mx-rx+r, ry));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(mx-rx, ry-r), D2D1::SizeF(r, r), 0, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      sink->AddLine(D2D1::Point2F(mx-rx, -ry+r));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(mx-rx+r, -ry), D2D1::SizeF(r, r), 0, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+
+      sink->BeginFigure(D2D1::Point2F(mx-rx, -0.05f), D2D1_FIGURE_BEGIN_HOLLOW);
+      sink->AddLine(D2D1::Point2F(mx+rx, -0.05f));
+      sink->EndFigure(D2D1_FIGURE_END_OPEN);
+      
+      sink->BeginFigure(D2D1::Point2F(mx, -ry), D2D1_FIGURE_BEGIN_HOLLOW);
+      sink->AddLine(D2D1::Point2F(mx, -0.05f));
+      sink->EndFigure(D2D1_FIGURE_END_OPEN);
+
+      sink->Close();
+    }
+
+    m_d2dFactory->CreatePathGeometry(&m_tooltipFillGeometry);
+    if (m_tooltipFillGeometry) {
+      Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+      m_tooltipFillGeometry->Open(&sink);
+      sink->SetFillMode(D2D1_FILL_MODE_WINDING);
+      
+      float ax = 0.20f;
+      float aw = 0.08f;
+
+      sink->BeginFigure(D2D1::Point2F(ax-aw, -0.05f), D2D1_FIGURE_BEGIN_FILLED);
+      sink->AddLine(D2D1::Point2F(ax, -0.25f));
+      sink->AddLine(D2D1::Point2F(ax+aw, -0.05f));
+      sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+      
+      sink->BeginFigure(D2D1::Point2F(ax-aw, 0.05f), D2D1_FIGURE_BEGIN_FILLED);
+      sink->AddLine(D2D1::Point2F(ax, 0.25f));
+      sink->AddLine(D2D1::Point2F(ax+aw, 0.05f));
+      sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+      
+      sink->Close();
+    }
+
+    m_d2dFactory->CreatePathGeometry(&m_tooltipWheelGeometry);
+    if (m_tooltipWheelGeometry) {
+      Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+      m_tooltipWheelGeometry->Open(&sink);
+      sink->SetFillMode(D2D1_FILL_MODE_WINDING);
+      
+      float mx = -0.13f;
+      float wx = 0.03f;
+
+      sink->BeginFigure(D2D1::Point2F(mx-wx, -0.20f), D2D1_FIGURE_BEGIN_FILLED);
+      sink->AddLine(D2D1::Point2F(mx+wx, -0.20f));
+      sink->AddLine(D2D1::Point2F(mx+wx, -0.08f));
+      sink->AddLine(D2D1::Point2F(mx-wx, -0.08f));
+      sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+      
+      sink->Close();
+    }
+
+    m_d2dFactory->CreatePathGeometry(&m_tooltipGeometry);
+    if (m_tooltipGeometry) {
+      Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
+      m_tooltipGeometry->Open(&sink);
+      sink->SetFillMode(D2D1_FILL_MODE_WINDING);
+
+      float w = config ? config->GetTooltipWidth() : 50.0f;
+      float h = config ? config->GetTooltipHeight() : 26.0f;
+      float r = 4.0f;
+
+      sink->BeginFigure(D2D1::Point2F(r, 0.0f), D2D1_FIGURE_BEGIN_FILLED);
+      sink->AddLine(D2D1::Point2F(w - r, 0.0f));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(w, r), D2D1::SizeF(r, r), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      sink->AddLine(D2D1::Point2F(w, h - r));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(w - r, h), D2D1::SizeF(r, r), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      
+      sink->AddLine(D2D1::Point2F(w / 2.0f + 6.0f, h));
+      sink->AddLine(D2D1::Point2F(w / 2.0f, h + 6.0f));
+      sink->AddLine(D2D1::Point2F(w / 2.0f - 6.0f, h));
+
+      sink->AddLine(D2D1::Point2F(r, h));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(0.0f, h - r), D2D1::SizeF(r, r), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      sink->AddLine(D2D1::Point2F(0.0f, r));
+      sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(r, 0.0f), D2D1::SizeF(r, r), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+      
+      sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+      sink->Close();
+    }
+  }
 }
 
 void TrackInfoWidget::ReleaseResources() {
@@ -42,6 +151,15 @@ void TrackInfoWidget::ReleaseResources() {
   m_textBrush.Reset();
   m_fallbackBlackBrush.Reset();
   m_dwriteFactory.Reset();
+
+  m_tooltipBgBrush.Reset();
+  m_tooltipIconBrush.Reset();
+  m_tooltipWheelBrush.Reset();
+  m_tooltipStrokeGeometry.Reset();
+  m_tooltipFillGeometry.Reset();
+  m_tooltipWheelGeometry.Reset();
+  m_tooltipGeometry.Reset();
+  m_d2dFactory.Reset();
 }
 
 void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {
@@ -69,6 +187,17 @@ void TrackInfoWidget::UpdateAnimation(const WidgetContext &ctx) {
               m_thumbFadeAlpha[i] = 1.0f;
           }
       }
+  }
+
+  float fadeOutSpeed = ctx.config ? ctx.config->GetHoverFadeOutSpeed() : 3.0f;
+  float fadeInSpeed = 10.0f;
+  
+  if (ctx.isTrackInfoHovered) {
+    m_hoverAlpha += ctx.deltaTime * fadeInSpeed;
+    if (m_hoverAlpha > 1.0f) m_hoverAlpha = 1.0f;
+  } else {
+    m_hoverAlpha -= ctx.deltaTime * fadeOutSpeed;
+    if (m_hoverAlpha < 0.0f) m_hoverAlpha = 0.0f;
   }
 }
 
@@ -251,5 +380,38 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
     }
 
     context->PopAxisAlignedClip();
+
+    if (m_hoverAlpha > 0.0f && m_tooltipGeometry && m_tooltipStrokeGeometry) {
+      D2D1_MATRIX_3X2_F oldTransform;
+      context->GetTransform(&oldTransform);
+      
+      float tooltipW = config->GetTooltipWidth();
+      float tooltipH = config->GetTooltipHeight();
+      float offsetX = config->GetTooltipOffsetX();
+      float offsetY = config->GetTooltipOffsetY();
+      
+      float artCenterX = layout.fallbackArtRect.left + (layout.fallbackArtRect.right - layout.fallbackArtRect.left) / 2.0f;
+      float artCenterY = layout.fallbackArtRect.top + (layout.fallbackArtRect.bottom - layout.fallbackArtRect.top) / 2.0f;
+      
+      float tooltipX = artCenterX + offsetX;
+      float tooltipY = artCenterY + offsetY;
+
+      WidgetCommon::DrawMouseScrollTooltip(
+          context,
+          tooltipX, tooltipY,
+          tooltipW, tooltipH,
+          m_tooltipGeometry.Get(),
+          m_tooltipStrokeGeometry.Get(),
+          m_tooltipFillGeometry.Get(),
+          m_tooltipWheelGeometry.Get(),
+          m_tooltipBgBrush.Get(),
+          m_tooltipIconBrush.Get(),
+          m_tooltipWheelBrush.Get(),
+          m_hoverAlpha,
+          config->GetTooltipBgOpacity(),
+          config->GetTooltipIconSize(),
+          oldTransform
+      );
+    }
   }
 }

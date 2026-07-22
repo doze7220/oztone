@@ -47,6 +47,7 @@ struct WidgetContext {
     bool isControlHovered;
     bool isVolumeHovered;
     bool isPlaylistHovered;
+    bool isTrackInfoHovered = false;
     int playlistToolbarHoveredIndex;
     bool isPlaylistPinnedHovered;
     bool isPlaylistListViewMode;

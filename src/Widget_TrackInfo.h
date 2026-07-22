@@ -35,5 +35,16 @@ private:
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_fallbackBlackBrush;
 
     Microsoft::WRL::ComPtr<IDWriteFactory> m_dwriteFactory;
+    Microsoft::WRL::ComPtr<ID2D1Factory> m_d2dFactory;
+
+    // Tooltip resources
+    float m_hoverAlpha = 0.0f;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_tooltipBgBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_tooltipIconBrush;
+    Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> m_tooltipWheelBrush;
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_tooltipStrokeGeometry;
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_tooltipFillGeometry;
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_tooltipWheelGeometry;
+    Microsoft::WRL::ComPtr<ID2D1PathGeometry> m_tooltipGeometry;
 
 };

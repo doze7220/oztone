@@ -273,7 +273,7 @@ void Application::ForceRender() {
 
   m_renderer.UpdateAnimation(
       0.016f, m_window.IsControlHovered(), m_window.IsVolumeHovered(),
-      m_window.IsPlaylistHovered(), m_window.IsLogoMenuHovered(),
+      m_window.IsPlaylistHovered(), m_window.IsTrackInfoHovered(), m_window.IsLogoMenuHovered(),
       m_window.GetLogoMenuHoveredIndex(), m_playlistManager.GetCurrentIndex(),
       m_playlistManager.GetCount(), m_isPlaylistListViewMode,
       m_window.GetPlaybackHoveredIndex(), playlistHoveredItemIndex,
@@ -311,7 +311,7 @@ void Application::ForceRender() {
   m_renderer.Render(
       m_window.IsHovered(), m_window.IsControlHovered(),
       m_window.IsVolumeHovered(), m_window.IsPlaylistHovered(),
-      m_window.IsLogoMenuHovered(), m_window.GetLogoMenuHoveredIndex(),
+      m_window.IsTrackInfoHovered(), m_window.IsLogoMenuHovered(), m_window.GetLogoMenuHoveredIndex(),
       &m_window.GetLogoMenuItems(), m_isPlaylistListViewMode,
       m_audioManager.IsPlaying(), progress, spectrum, m_audioManager.GetVolume(),
       m_playlistManager.GetCurrentIndex(), m_playlistManager.GetCount(),
