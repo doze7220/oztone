@@ -142,6 +142,41 @@ bool Window::IsInVolumeControlRegion(int x, int y) const {
           logicalY >= volY - height / 2 && logicalY <= volY + height / 2);
 }
 
+bool Window::IsInTrackInfoRegion(int x, int y) const {
+  if (!m_config || !m_hwnd)
+    return false;
+
+  UINT dpi = GetDpiForWindow(m_hwnd);
+  int logicalX = MulDiv(x, 96, dpi);
+  int logicalY = MulDiv(y, 96, dpi);
+
+  RECT rect;
+  GetClientRect(m_hwnd, &rect);
+  int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
+  int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
+
+  int rightLimit = logicalWidth;
+  if (m_config->GetPlaylistPosition() == 1) {
+    float hoverWidth = (m_isPlaylistHovered || m_isPlaylistExpanded)
+                           ? static_cast<float>(m_config->GetPlaylistWidth())
+                           : static_cast<float>(m_config->GetPlaylistHoverWidth());
+    rightLimit -= static_cast<int>(hoverWidth);
+  } else if (m_config->GetPlaylistPosition() == 0) {
+    if (m_config->GetIsPlaylistPinned()) {
+      int playlistWidth = m_config->GetPlaylistWidth();
+      logicalX -= playlistWidth;
+      rightLimit -= playlistWidth;
+      if (logicalX < 0) return false;
+    }
+  }
+
+  float bottomLimit = logicalHeight - m_config->GetControlHoverHeight();
+  float topLimit = logicalHeight - static_cast<float>(m_config->GetBaseBottomOffset()) - static_cast<float>(m_config->GetArtSize()) - 40.0f;
+
+  return (logicalX >= 0 && logicalX < rightLimit) &&
+         (logicalY >= topLimit && logicalY < bottomLimit);
+}
+
 bool Window::IsInPlaylistRegion(int x, int y) const {
   if (!(m_isPlaylistHovered || m_isPlaylistExpanded) && IsInLogoRegion(x, y))
     return false;
@@ -328,6 +363,7 @@ void Window::HandleMouseMove(HWND hwnd, WPARAM wParam, LPARAM lParam) {
       m_isControlHovered = false;
       m_isVolumeHovered = false;
       m_isLogoMenuHovered = false;
+      m_isTrackInfoHovered = false;
       m_playbackHoveredIndex = -1;
     } else {
       m_isHovered = IsInLogoRegion(xPos, yPos);
@@ -348,6 +384,12 @@ void Window::HandleMouseMove(HWND hwnd, WPARAM wParam, LPARAM lParam) {
         m_isLogoMenuHovered = false;
         m_logoMenuHoveredIndex = -1;
       }
+
+      if (!m_isPlaylistHovered && !m_isControlHovered && !m_isVolumeHovered && !m_isLogoMenuHovered && !m_isHovered) {
+        m_isTrackInfoHovered = IsInTrackInfoRegion(xPos, yPos);
+      } else {
+        m_isTrackInfoHovered = false;
+      }
     }
 
     if (!m_isTrackingMouse) {
@@ -366,6 +408,7 @@ void Window::HandleMouseLeave() {
   m_isControlHovered = false;
   m_isVolumeHovered = false;
   m_isPlaylistHovered = false;
+  m_isTrackInfoHovered = false;
   m_isLogoMenuHovered = false;
   m_logoMenuHoveredIndex = -1;
   m_playlistToolbarHoveredIndex = -1;

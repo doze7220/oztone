@@ -120,6 +120,17 @@ public:
     bool IsInPlaybackControlRegion(int x, int y) const;
 
     /**
+     * @brief TrackInfo領域のホバー状態
+     */
+    bool IsTrackInfoHovered() const { return m_isTrackInfoHovered; }
+    void SetTrackInfoHovered(bool hovered) { m_isTrackInfoHovered = hovered; }
+
+    /**
+     * @brief 座標がTrackInfo領域内にあるかを判定する
+     */
+    bool IsInTrackInfoRegion(int x, int y) const;
+
+    /**
      * @brief プレイリストのホバー状態
      */
     bool IsPlaylistHovered() const { return m_isPlaylistHovered; }
@@ -391,6 +402,7 @@ private:
     bool m_isControlHovered;
     bool m_isVolumeHovered;
     bool m_isPlaylistHovered;
+    bool m_isTrackInfoHovered = false;
     bool m_isTrackingMouse;
     std::function<void(const std::vector<std::wstring>&)> m_onFilesDropped;
     std::function<void(int)> m_onMediaCommand;
