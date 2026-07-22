@@ -97,6 +97,8 @@ TitleFontSize=36.0
 ArtistOffsetX=128
 ArtistOffsetY=54
 ArtistFontSize=18.0
+TooltipOffsetX=-10.0
+TooltipOffsetY=-20.0
 
 [Layout_SeekBar]
 SeekBarMargin=20.0

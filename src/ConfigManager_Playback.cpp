@@ -82,6 +82,8 @@ void ConfigManager::LoadPlaybackSettings() {
   m_artistOffsetX = LoadOrWriteInt(L"Layout_NowPlaying", L"ArtistOffsetX");
   m_artistOffsetY = LoadOrWriteInt(L"Layout_NowPlaying", L"ArtistOffsetY");
   m_artistFontSize = LoadOrWriteFloat(L"Layout_NowPlaying", L"ArtistFontSize");
+  m_tooltipOffsetX = LoadOrWriteFloat(L"Layout_NowPlaying", L"TooltipOffsetX");
+  m_tooltipOffsetY = LoadOrWriteFloat(L"Layout_NowPlaying", L"TooltipOffsetY");
 
 
   m_tdEnable = LoadOrWriteInt(L"TrackDrum", L"EnableTrackDrum") != 0;

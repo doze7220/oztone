@@ -323,6 +323,9 @@ public:
     int GetArtistOffsetY() const { return m_artistOffsetY; }
     float GetArtistFontSize() const { return m_artistFontSize; }
 
+    float GetTooltipOffsetX() const { return m_tooltipOffsetX; }
+    float GetTooltipOffsetY() const { return m_tooltipOffsetY; }
+
     float GetSeekBarMargin() const { return m_seekBarMargin; }
     int GetSeekBarHeight() const { return m_seekBarHeight; }
     int GetSeekBarBottomOffset() const { return m_seekBarBottomOffset; }
@@ -563,6 +566,9 @@ private:
     int m_artistOffsetX;
     int m_artistOffsetY;
     float m_artistFontSize;
+
+    float m_tooltipOffsetX;
+    float m_tooltipOffsetY;
 
     float m_seekBarMargin;
     int m_seekBarHeight;
