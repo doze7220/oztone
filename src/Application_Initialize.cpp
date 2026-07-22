@@ -272,6 +272,53 @@ void Application::SetupCallbacks() {
     }
   });
 
+  m_window.SetVirtualScrollCallback([this](int delta) {
+    if (m_playlistManager.IsEmpty()) return;
+
+    if (m_virtualScrollTimer <= 0.0f) {
+      m_virtualScrollTargetIndex = static_cast<int>(m_playlistManager.GetCurrentIndex());
+    }
+
+    int count = static_cast<int>(m_playlistManager.GetCount());
+    if (count > 0) {
+      if (delta > 0) {
+        m_virtualScrollTargetIndex = (m_virtualScrollTargetIndex + 1) % count;
+      } else if (delta < 0) {
+        m_virtualScrollTargetIndex = (m_virtualScrollTargetIndex - 1 + count) % count;
+      }
+    }
+
+    m_virtualScrollTimer = 0.5f;
+
+    auto dataProvider = [this](int relativeIndex, DrumSlot* slot) -> TrackMetadata {
+      size_t currentIdx = m_playlistManager.GetCurrentIndex();
+      size_t total = m_playlistManager.GetCount();
+      size_t targetIdx = (currentIdx + relativeIndex + total) % total;
+      
+      std::wstring path = m_playlistManager.GetShuffleList()[targetIdx];
+
+      if (slot) {
+          slot->thumbId = 0;
+      }
+
+      TrackMetadata meta;
+      if (m_trackDatabase.GetMetadata(path, meta)) {
+        return meta;
+      } else {
+        try { meta.title = std::filesystem::path(path).filename().wstring(); } catch (...) { meta.title = L"UNKNOWN"; }
+        meta.artist = L"";
+        return meta;
+      }
+    };
+
+    int relativeDistance = m_virtualScrollTargetIndex - static_cast<int>(m_playlistManager.GetCurrentIndex());
+    int halfCount = count / 2;
+    if (relativeDistance > halfCount) relativeDistance -= count;
+    else if (relativeDistance < -halfCount) relativeDistance += count;
+
+    m_renderer.GetTrackDrum().StartDrumAnimation(relativeDistance, m_config.GetTrackDrumMaxDuration(), m_config.GetTrackDrumMaxSpeed(), dataProvider, nullptr);
+  });
+
   m_window.SetPowerSuspendCallback([this]() { this->OnPowerSuspend(); });
   m_window.SetPowerResumeCallback([this]() { this->OnPowerResume(); });
 }

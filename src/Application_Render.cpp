@@ -37,8 +37,12 @@ void Application::Run() {
     if (m_virtualScrollTimer > 0.0f) {
       m_virtualScrollTimer -= deltaTime;
       if (m_virtualScrollTimer <= 0.0f) {
-        // TODO: 後続タスクで再生の確定やインデックスのジャンプを実装する
         m_virtualScrollTimer = 0.0f;
+        if (!m_playlistManager.IsEmpty()) {
+          m_playlistManager.JumpToIndex(m_virtualScrollTargetIndex);
+          PlayCurrentTrack(-1);
+        }
+        m_window.ResetVirtualScrollState();
       }
     }
 
