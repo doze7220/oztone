@@ -134,12 +134,14 @@ TextOffsetX=40
 TextOffsetY=-12
 FontSize=24.0
 TextLetterSpacing=-4.0
-TooltipIconSize=60
 TooltipOffsetY=-5
+
+[Layout_Tooltip]
+TooltipIconSize=60.0
 TooltipBgColor=#000000
 TooltipBgOpacity=0.8
-TooltipWidth=64
-TooltipHeight=50
+TooltipWidth=64.0
+TooltipHeight=50.0
 
 [Layout_Playlist]
 PlaylistPosition=1

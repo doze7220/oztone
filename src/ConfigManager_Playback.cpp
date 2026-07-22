@@ -43,12 +43,7 @@ void ConfigManager::LoadPlaybackSettings() {
   m_volTextOffsetY = LoadOrWriteInt(L"Layout_VolumeControl", L"TextOffsetY");
   m_volTextLetterSpacing = LoadOrWriteFloat(L"Layout_VolumeControl", L"TextLetterSpacing");
   m_volFontSize = LoadOrWriteFloat(L"Layout_VolumeControl", L"FontSize");
-  m_volTooltipIconSize = LoadOrWriteFloat(L"Layout_VolumeControl", L"TooltipIconSize");
   m_volTooltipOffsetY = LoadOrWriteFloat(L"Layout_VolumeControl", L"TooltipOffsetY");
-  m_volTooltipBgColor = LoadOrWriteString(L"Layout_VolumeControl", L"TooltipBgColor");
-  m_volTooltipBgOpacity = LoadOrWriteFloat(L"Layout_VolumeControl", L"TooltipBgOpacity");
-  m_volTooltipWidth = LoadOrWriteFloat(L"Layout_VolumeControl", L"TooltipWidth");
-  m_volTooltipHeight = LoadOrWriteFloat(L"Layout_VolumeControl", L"TooltipHeight");
 
   m_showSeekBar = LoadOrWriteInt(L"Visibility", L"ShowSeekBar") != 0;
   m_seekBarMargin = LoadOrWriteFloat(L"Layout_SeekBar", L"SeekBarMargin");

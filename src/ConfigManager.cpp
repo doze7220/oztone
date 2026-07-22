@@ -178,6 +178,12 @@ void ConfigManager::LoadCommonSettings() {
   m_shadowOffsetX = LoadOrWriteFloat(L"UI_Common_Parm", L"ShadowOffsetX");
   m_shadowOffsetY = LoadOrWriteFloat(L"UI_Common_Parm", L"ShadowOffsetY");
   m_shadowOpacity = LoadOrWriteFloat(L"UI_Common_Parm", L"ShadowOpacity");
+
+  m_tooltipIconSize = LoadOrWriteFloat(L"Layout_Tooltip", L"TooltipIconSize");
+  m_tooltipBgColor = LoadOrWriteString(L"Layout_Tooltip", L"TooltipBgColor");
+  m_tooltipBgOpacity = LoadOrWriteFloat(L"Layout_Tooltip", L"TooltipBgOpacity");
+  m_tooltipWidth = LoadOrWriteFloat(L"Layout_Tooltip", L"TooltipWidth");
+  m_tooltipHeight = LoadOrWriteFloat(L"Layout_Tooltip", L"TooltipHeight");
 }
 
 void ConfigManager::SaveDefaultSettings() {

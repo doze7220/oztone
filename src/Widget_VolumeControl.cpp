@@ -1,6 +1,7 @@
 #include "Widget_VolumeControl.h"
 #include "ConfigManager.h"
 #include "LayoutCalculator.h"
+#include "WidgetCommon.h"
 
 void VolumeControlWidget::CreateResources(ID2D1DeviceContext *context,
                                           IWICImagingFactory *wicFactory,
@@ -23,7 +24,7 @@ void VolumeControlWidget::CreateResources(ID2D1DeviceContext *context,
       // Text alignment setup removed to fix text positioning issue
     }
 
-    context->CreateSolidColorBrush(ParseHexColor(config->GetVolumeTooltipBgColor()), &m_tooltipBgBrush);
+    context->CreateSolidColorBrush(ParseHexColor(config->GetTooltipBgColor()), &m_tooltipBgBrush);
     context->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_tooltipIconBrush);
     context->CreateSolidColorBrush(D2D1::ColorF(1.0f, 0.3f, 0.3f, 1.0f), &m_tooltipWheelBrush);
   }
@@ -130,8 +131,8 @@ void VolumeControlWidget::CreateResources(ID2D1DeviceContext *context,
       m_tooltipGeometry->Open(&sink);
       sink->SetFillMode(D2D1_FILL_MODE_WINDING);
 
-      float w = config ? config->GetVolumeTooltipWidth() : 50.0f;
-      float h = config ? config->GetVolumeTooltipHeight() : 26.0f;
+      float w = config ? config->GetTooltipWidth() : 50.0f;
+      float h = config ? config->GetTooltipHeight() : 26.0f;
       float r = 4.0f;
 
       sink->BeginFigure(D2D1::Point2F(r, 0.0f), D2D1_FIGURE_BEGIN_FILLED);
@@ -324,8 +325,8 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
           m_tooltipIconBrush.Get(),
           m_tooltipWheelBrush.Get(),
           tooltipAlphaFinal,
-          config->GetVolumeTooltipBgOpacity(),
-          config->GetVolumeTooltipIconSize(),
+          config->GetTooltipBgOpacity(),
+          config->GetTooltipIconSize(),
           oldTransform
       );
     }

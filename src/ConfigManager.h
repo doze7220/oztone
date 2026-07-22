@@ -368,12 +368,12 @@ public:
     float GetVolumeTextLetterSpacing() const { return m_volTextLetterSpacing; }
     float GetVolumeFontSize() const { return m_volFontSize; }
 
-    float GetVolumeTooltipIconSize() const { return m_volTooltipIconSize; }
+    float GetTooltipIconSize() const { return m_tooltipIconSize; }
     float GetVolumeTooltipOffsetY() const { return m_volTooltipOffsetY; }
-    std::wstring GetVolumeTooltipBgColor() const { return m_volTooltipBgColor; }
-    float GetVolumeTooltipBgOpacity() const { return m_volTooltipBgOpacity; }
-    float GetVolumeTooltipWidth() const { return m_volTooltipWidth; }
-    float GetVolumeTooltipHeight() const { return m_volTooltipHeight; }
+    std::wstring GetTooltipBgColor() const { return m_tooltipBgColor; }
+    float GetTooltipBgOpacity() const { return m_tooltipBgOpacity; }
+    float GetTooltipWidth() const { return m_tooltipWidth; }
+    float GetTooltipHeight() const { return m_tooltipHeight; }
 
 
 
@@ -634,12 +634,12 @@ private:
     float m_volTextLetterSpacing;
     float m_volFontSize;
 
-    float m_volTooltipIconSize;
+    float m_tooltipIconSize;
     float m_volTooltipOffsetY;
-    std::wstring m_volTooltipBgColor;
-    float m_volTooltipBgOpacity;
-    float m_volTooltipWidth;
-    float m_volTooltipHeight;
+    std::wstring m_tooltipBgColor;
+    float m_tooltipBgOpacity;
+    float m_tooltipWidth;
+    float m_tooltipHeight;
 
 
 
