@@ -626,6 +626,22 @@ bool Window::HandleMouseWheel(HWND hwnd, WPARAM wParam, LPARAM lParam) {
       m_onVolumeScroll(zDelta);
       return true;
     }
+
+    if (m_isTrackInfoHovered) {
+      int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+      m_virtualScrollAccumulator += zDelta;
+      int threshold = m_isVirtualScrolling ? WHEEL_DELTA : (WHEEL_DELTA * 2);
+
+      if (std::abs(m_virtualScrollAccumulator) >= threshold) {
+        m_isVirtualScrolling = true;
+        int direction = (m_virtualScrollAccumulator > 0) ? 1 : -1;
+        if (m_onVirtualScrollCallback) {
+          m_onVirtualScrollCallback(direction);
+        }
+        m_virtualScrollAccumulator -= direction * threshold;
+      }
+      return true;
+    }
     
     bool inPlaylist = m_isPlaylistHovered && IsInPlaylistRegion(pt.x, pt.y);
     if (!inPlaylist && !m_isVolumeHovered) {

@@ -253,6 +253,15 @@ public:
         m_onPlaylistPinnedToggle = cb;
     }
 
+    void SetVirtualScrollCallback(std::function<void(int)> cb) {
+        m_onVirtualScrollCallback = cb;
+    }
+
+    void ResetVirtualScrollState() {
+        m_virtualScrollAccumulator = 0;
+        m_isVirtualScrolling = false;
+    }
+
     /**
      * @brief 背景フレーミングのスクロール（マウスホイール・キーボード）コールバック
      */
@@ -403,6 +412,8 @@ private:
     bool m_isVolumeHovered;
     bool m_isPlaylistHovered;
     bool m_isTrackInfoHovered = false;
+    int m_virtualScrollAccumulator = 0;
+    bool m_isVirtualScrolling = false;
     bool m_isTrackingMouse;
     std::function<void(const std::vector<std::wstring>&)> m_onFilesDropped;
     std::function<void(int)> m_onMediaCommand;
@@ -424,6 +435,7 @@ private:
     std::function<void()> m_onResetAllCallback;
     std::function<void()> m_onArtFramingSave;
     std::function<void(bool)> m_onPlaylistPinnedToggle;
+    std::function<void(int)> m_onVirtualScrollCallback;
     std::function<void()> m_onBackgroundClickCallback;
     std::function<void()> m_onPowerSuspend;
     std::function<void()> m_onPowerResume;
