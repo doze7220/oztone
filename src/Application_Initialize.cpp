@@ -282,9 +282,9 @@ void Application::SetupCallbacks() {
     int count = static_cast<int>(m_playlistManager.GetCount());
     if (count > 0) {
       if (delta > 0) {
-        m_virtualScrollTargetIndex = (m_virtualScrollTargetIndex + 1) % count;
-      } else if (delta < 0) {
         m_virtualScrollTargetIndex = (m_virtualScrollTargetIndex - 1 + count) % count;
+      } else if (delta < 0) {
+        m_virtualScrollTargetIndex = (m_virtualScrollTargetIndex + 1) % count;
       }
     }
 

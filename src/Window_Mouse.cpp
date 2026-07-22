@@ -171,7 +171,7 @@ bool Window::IsInTrackInfoRegion(int x, int y) const {
   }
 
   float bottomLimit = logicalHeight - m_config->GetControlHoverHeight();
-  float topLimit = logicalHeight - static_cast<float>(m_config->GetBaseBottomOffset()) - static_cast<float>(m_config->GetArtSize()) - 40.0f;
+  float topLimit = logicalHeight - static_cast<float>(m_config->GetBaseBottomOffset()) - static_cast<float>(m_config->GetArtSize());
 
   return (logicalX >= 0 && logicalX < rightLimit) &&
          (logicalY >= topLimit && logicalY < bottomLimit);
@@ -211,8 +211,8 @@ bool Window::IsInPlaylistRegion(int x, int y) const {
   }
 
   // プレイリストが展開されている場合は、画面下部であってもリスト上にマウスがあればホバーを維持する。
-  // 展開されていない場合のみ、右下のリサイズやコントロールとの干渉を避けるためY座標を制限する。
-  bool isYMatch = (m_isPlaylistHovered || m_isPlaylistExpanded) ||
+  // 展開されていない場合、またはピン留め時は、右下のリサイズやコントロールとの干渉を避けるためY座標を制限する。
+  bool isYMatch = ((m_isPlaylistHovered || m_isPlaylistExpanded) && !m_config->GetIsPlaylistPinned()) ||
                   (logicalY < logicalHeight - controlHeight);
 
   return isXMatch && isYMatch;
@@ -348,7 +348,7 @@ void Window::HandleMouseMove(HWND hwnd, WPARAM wParam, LPARAM lParam) {
 
     bool isPinned = m_config->GetIsPlaylistPinned();
     bool isInPlaylistRegion = IsInPlaylistRegion(xPos, yPos);
-    m_isPlaylistHovered = isPinned || isInPlaylistRegion;
+    m_isPlaylistHovered = isInPlaylistRegion;
 
     if (m_isPlaylistHovered) {
       m_playlistToolbarHoveredIndex = GetPlaylistToolbarButtonAt(xPos, yPos);
@@ -551,9 +551,8 @@ void Window::HandleLButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam) {
 
   if (IsInLogoRegion(xPos, yPos) && !m_isLogoMenuHovered) {
     m_isLogoClicked = true;
-  } else if (!IsInPlaylistRegion(xPos, yPos) && !m_isLogoMenuHovered && !m_isControlHovered && !m_isVolumeHovered) {
-    if (m_onBackgroundClickCallback) m_onBackgroundClickCallback();
   }
+
 
   if (!m_config || !m_config->GetLockWindowPosition()) {
     ReleaseCapture();
@@ -573,7 +572,7 @@ bool Window::HandleRButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam) {
   int xPos = GET_X_LPARAM(lParam);
   int yPos = GET_Y_LPARAM(lParam);
 
-  if (!IsInPlaylistRegion(xPos, yPos) && !m_isLogoMenuHovered && !m_isControlHovered && !m_isVolumeHovered && !IsInLogoRegion(xPos, yPos)) {
+  if (!m_isPlaylistHovered && !m_isLogoMenuHovered && !m_isControlHovered && !m_isVolumeHovered && !IsInLogoRegion(xPos, yPos)) {
       if (m_onBackgroundClickCallback) m_onBackgroundClickCallback();
       m_isArtFramingDragging = true;
       m_artFramingDragStartPt.x = xPos;

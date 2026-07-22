@@ -346,6 +346,15 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       }
 
       if (m_textBrush && titleLayout && artistLayout) {
+        D2D1_COLOR_F baseColor = D2D1::ColorF(D2D1::ColorF::White);
+        D2D1_COLOR_F hoverColor = config ? ParseHexColor(config->GetFocusColor()) : baseColor;
+        float t = (absoluteIndex == ctx.animatingTargetIndex) ? m_hoverAlpha : 0.0f;
+        m_textBrush->SetColor(D2D1::ColorF(
+            baseColor.r + (hoverColor.r - baseColor.r) * t,
+            baseColor.g + (hoverColor.g - baseColor.g) * t,
+            baseColor.b + (hoverColor.b - baseColor.b) * t,
+            1.0f
+        ));
         titleLayout->SetMaxWidth(layout.titleRect.right - layout.titleRect.left);
         titleLayout->SetMaxHeight(layout.titleRect.bottom - layout.titleRect.top);
         artistLayout->SetMaxWidth(layout.artistRect.right - layout.artistRect.left);
