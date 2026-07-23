@@ -13,7 +13,7 @@ void Application::HandleMediaCommand(int cmd) {
   } else if (cmd == APPCOMMAND_MEDIA_NEXTTRACK ||
              cmd == APPCOMMAND_MEDIA_PREVIOUSTRACK) {
     if (!m_playlistManager.IsEmpty()) {
-      m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
+      m_playlistManager.SaveToFile(m_config.GetPlaylist().DefaultPlaylistPath);
       if (!m_framingDbPath.empty()) {
         m_framingDb.SaveToFile(m_framingDbPath);
       }
@@ -133,7 +133,7 @@ bool Application::PlayCurrentTrack(int relativeDistance, bool isVirtualScrollCon
     };
 
     if (!isVirtualScrollConfirm) {
-      m_renderer.GetTrackDrum().StartDrumAnimation(relativeDistance, m_config.GetTrackDrumMaxDuration(), m_config.GetTrackDrumMaxSpeed(), dataProvider, onComplete);
+      m_renderer.GetTrackDrum().StartDrumAnimation(relativeDistance, m_config.GetTrackDrum().MaxDuration, m_config.GetTrackDrum().MaxSpeed, dataProvider, onComplete);
     } else {
       onComplete();
     }
@@ -175,7 +175,7 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
         currentMeta.timeString = buf;
         currentMeta.isMetaLoaded = true;
         m_trackDatabase.UpdateMetadata(filepath, currentMeta);
-        std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
+        std::wstring defaultPath = m_config.GetPlaylist().DefaultPlaylistPath;
         m_playlistManager.SaveToFile(defaultPath);
         UpdatePlaylistSummaries();
         
@@ -190,7 +190,7 @@ void Application::UpdateTrackMetadataIfNeeded(const std::wstring &filepath) {
         currentMeta.timeString = buf;
         currentMeta.isMetaLoaded = true;
         m_trackDatabase.UpdateMetadata(filepath, currentMeta);
-        std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
+        std::wstring defaultPath = m_config.GetPlaylist().DefaultPlaylistPath;
         m_playlistManager.SaveToFile(defaultPath);
         UpdatePlaylistSummaries();
         

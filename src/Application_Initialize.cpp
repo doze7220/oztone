@@ -32,7 +32,7 @@ void Application::SetupCallbacks() {
       [this](const std::wstring &filepath) { this->SwitchPlaylist(filepath); });
 
   m_window.SetShuffleCallback([this]() {
-    bool newMode = !m_config.GetShuffleMode();
+    bool newMode = !m_config.GetAudio().ShuffleMode;
     m_config.SetShuffleMode(newMode);
 
     std::wstring currentTrack;
@@ -121,7 +121,7 @@ void Application::SetupCallbacks() {
       std::vector<std::wstring> playlists = m_config.GetAvailablePlaylists();
       if (playlists.size() <= 1)
         break;
-      std::wstring current = m_config.GetDefaultPlaylistPath();
+      std::wstring current = m_config.GetPlaylist().DefaultPlaylistPath;
       int idx = -1;
       for (int i = 0; i < (int)playlists.size(); ++i) {
         if (playlists[i] == current) {
@@ -174,7 +174,7 @@ void Application::SetupCallbacks() {
   });
 
   m_window.SetPlaylistScrollCallback([this](int delta) {
-    float itemHeight = static_cast<float>(m_config.GetPlaylistItemOffsetY());
+    float itemHeight = static_cast<float>(m_config.GetLayoutPlaylist().PlaylistItemOffsetY);
     float scrollDelta =
         (static_cast<float>(delta) / WHEEL_DELTA) * itemHeight * 2.0f;
     m_renderer.AddPlaylistScroll(scrollDelta);
@@ -283,7 +283,7 @@ void Application::SetupCallbacks() {
       m_renderer.ResetPlaylistScroll();
     }
 
-    m_virtualScrollTimer = m_config.GetJogDialConfirmDelay();
+    m_virtualScrollTimer = m_config.GetTrackDrum().JogDialConfirmDelay;
 
     auto dataProvider = [this](int relDist, DrumSlot* slot) -> TrackMetadata {
       size_t total = m_playlistManager.GetCount();
@@ -317,7 +317,7 @@ void Application::SetupCallbacks() {
     } else if (delta < 0) {
       distanceForDrum = -1;
     }
-    m_renderer.GetTrackDrum().StartDrumAnimation(distanceForDrum, m_config.GetTrackDrumMaxDuration(), m_config.GetTrackDrumMaxSpeed(), dataProvider, nullptr);
+    m_renderer.GetTrackDrum().StartDrumAnimation(distanceForDrum, m_config.GetTrackDrum().MaxDuration, m_config.GetTrackDrum().MaxSpeed, dataProvider, nullptr);
   });
 
   m_window.SetPowerSuspendCallback([this]() { this->OnPowerSuspend(); });
@@ -345,7 +345,7 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
 
   for (auto &item : m_window.GetLogoMenuItemsMutable()) {
     if (item.commandId == Window::ID_LOGO_SHUFFLE) {
-      item.toggleState = m_config.GetShuffleMode();
+      item.toggleState = m_config.GetAudio().ShuffleMode;
     }
   }
 
@@ -359,10 +359,10 @@ bool Application::Initialize(HINSTANCE hInstance, int nCmdShow) {
   m_backgroundManager.Initialize(&m_config);
 
   if (m_audioManager.Initialize()) {
-    m_audioManager.SetVolume(m_config.GetDefaultVolume());
-    std::wstring defPlaylist = m_config.GetDefaultPlaylistPath();
+    m_audioManager.SetVolume(m_config.GetAudio().DefaultVolume);
+    std::wstring defPlaylist = m_config.GetPlaylist().DefaultPlaylistPath;
     m_playlistManager.LoadFromFile(defPlaylist, &m_framingDb);
-    m_playlistManager.RebuildQueue(m_config.GetShuffleMode());
+    m_playlistManager.RebuildQueue(m_config.GetAudio().ShuffleMode);
 
     if (!m_playlistManager.IsEmpty()) {
       size_t skipCount = 0;

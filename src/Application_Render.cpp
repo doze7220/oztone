@@ -12,7 +12,7 @@ void Application::Run() {
       if (m_audioManager.HasValidOutputDevice()) {
         m_isWaitingForDevice = false;
         if (m_audioManager.Initialize()) {
-          m_audioManager.SetVolume(m_config.GetDefaultVolume());
+          m_audioManager.SetVolume(m_config.GetAudio().DefaultVolume);
           std::wstring currentTrack = m_playlistManager.GetCurrentTrack();
           if (!currentTrack.empty()) {
             if (m_audioManager.Play(currentTrack)) {
@@ -48,7 +48,7 @@ void Application::Run() {
     if (!m_isWaitingForDevice && m_audioManager.IsPlaying()) {
       float currentPos = m_audioManager.GetPositionSeconds();
       if (m_watchdogState == WatchdogState::Normal) {
-        float intervalMs = m_config.GetWatchdogInterval() * 1000.0f;
+        float intervalMs = m_config.GetSystem().WatchdogInterval * 1000.0f;
         if (currentTime - m_lastWatchdogPollTime >= static_cast<ULONGLONG>(intervalMs)) {
           m_lastWatchdogPollTime = currentTime;
           if (m_lastWatchdogPosition >= 0.0f && currentPos == m_lastWatchdogPosition) {
@@ -63,7 +63,7 @@ void Application::Run() {
           m_lastWatchdogPosition = currentPos;
           m_lastWatchdogPollTime = currentTime;
         } else {
-          float timeoutMs = m_config.GetWatchdogTimeout() * 1000.0f;
+          float timeoutMs = m_config.GetSystem().WatchdogTimeout * 1000.0f;
           if (currentTime - m_watchdogWarningStartTime >= static_cast<ULONGLONG>(timeoutMs)) {
             m_suspendPosition = currentPos;
             m_suspendIsPlaying = true;
@@ -94,7 +94,7 @@ void Application::Run() {
       if (m_config.CheckPlaylistSnapshotChanged()) {
         UpdatePlaylistSummaries();
         
-        std::wstring currentPlaylistPath = m_config.GetDefaultPlaylistPath();
+        std::wstring currentPlaylistPath = m_config.GetPlaylist().DefaultPlaylistPath;
         if (!std::filesystem::exists(currentPlaylistPath)) {
           m_playlistManager.Clear();
           m_audioManager.Stop();
@@ -121,7 +121,7 @@ void Application::Run() {
         }
 
         if (!m_playlistManager.IsEmpty()) {
-          m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
+          m_playlistManager.SaveToFile(m_config.GetPlaylist().DefaultPlaylistPath);
           if (!m_framingDbPath.empty()) {
             m_framingDb.SaveToFile(m_framingDbPath);
           }
@@ -205,7 +205,7 @@ void Application::ForceRender() {
     if (m_isPlaylistListViewMode) {
       std::vector<std::wstring> playlists = m_config.GetAvailablePlaylists();
       int totalPlaylists = static_cast<int>(playlists.size());
-      std::wstring currentPlaylist = m_config.GetDefaultPlaylistPath();
+      std::wstring currentPlaylist = m_config.GetPlaylist().DefaultPlaylistPath;
       int currentIndex = 0;
       for (int i = 0; i < totalPlaylists; ++i) {
         if (playlists[i] == currentPlaylist) {
@@ -241,23 +241,23 @@ void Application::ForceRender() {
     if (logoMenuClicked < items.size()) {
       int cmdId = items[logoMenuClicked].commandId;
       if (cmdId == Window::ID_LOGO_VISUALIZER) {
-        int mode = m_config.GetVisualizerMode();
+        int mode = m_config.GetVisualizer().VisualizerMode;
         if (mode == 1) m_renderer.TriggerFlyText(L"VISUALIZER: PRISM BEAT");
         else if (mode == 2) m_renderer.TriggerFlyText(L"VISUALIZER: HALO DUST");
         else m_renderer.TriggerFlyText(L"VISUALIZER: OFF");
       } else if (cmdId == Window::ID_LOGO_BG_MODE) {
-        int mode = m_config.GetBackgroundArtMode();
+        int mode = m_config.GetBackground().BackgroundArtMode;
         if (mode == 0) m_renderer.TriggerFlyText(L"BACKGROUND: NOW PLAYING");
         else if (mode == 1) m_renderer.TriggerFlyText(L"BACKGROUND: HIDDEN");
         else m_renderer.TriggerFlyText(L"BACKGROUND: DEFAULT");
       } else if (cmdId == Window::ID_LOGO_RESIZE_MODE) {
-        bool on = m_config.GetEnableResize();
+        bool on = m_config.GetWindow().EnableResize;
         m_renderer.TriggerFlyText(on ? L"RESIZE MODE: ON" : L"RESIZE MODE: OFF");
       } else if (cmdId == Window::ID_LOGO_LOCK_POS) {
-        bool on = m_config.GetLockWindowPosition();
+        bool on = m_config.GetWindow().LockWindowPosition;
         m_renderer.TriggerFlyText(on ? L"WINDOW LOCK: ON" : L"WINDOW LOCK: OFF");
       } else if (cmdId == Window::ID_LOGO_PLAYLIST_POS) {
-        int pos = m_config.GetPlaylistPosition();
+        int pos = m_config.GetLayoutPlaylist().PlaylistPosition;
         m_renderer.TriggerFlyText(pos == 0 ? L"PLAYLIST POS: LEFT" : L"PLAYLIST POS: RIGHT");
       }
     }

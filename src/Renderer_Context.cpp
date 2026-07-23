@@ -140,7 +140,7 @@ WidgetContext Renderer::BuildRenderContext(bool isHovered, bool isControlHovered
         float manualScrollY = GetPlaylistManualScrollY();
         size_t totalPlaylists = availablePlaylistsCache->size();
         
-        std::wstring currentPlaylist = m_config->GetDefaultPlaylistPath();
+        std::wstring currentPlaylist = m_config->GetPlaylist().DefaultPlaylistPath;
         int currentIndex = 0;
         for (size_t i = 0; i < totalPlaylists; ++i) {
             if ((*availablePlaylistsCache)[i].filepath == currentPlaylist) {

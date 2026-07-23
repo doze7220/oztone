@@ -36,7 +36,7 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
     }
     if (spectrum.empty() || !m_initialized) return;
 
-    int mode = m_config ? m_config->GetVisualizerMode() : 0;
+    int mode = m_config ? m_config->GetVisualizer().VisualizerMode : 0;
     if (mode == 0) return;
 
     size_t validSize = spectrum.size();
@@ -45,11 +45,11 @@ void Visualizer::Draw(ID2D1DeviceContext* context, const std::vector<float>& spe
     std::vector<float> processedSpectrum(256, 0.0f);
     float b0 = 1.0f, b25 = 1.0f, b50 = 1.0f, b75 = 1.0f, b100 = 1.0f;
     if (m_config) {
-        b0 = m_config->GetBandGain0();
-        b25 = m_config->GetBandGain25();
-        b50 = m_config->GetBandGain50();
-        b75 = m_config->GetBandGain75();
-        b100 = m_config->GetBandGain100();
+        b0 = m_config->GetVisualizer().BandGain0;
+        b25 = m_config->GetVisualizer().BandGain25;
+        b50 = m_config->GetVisualizer().BandGain50;
+        b75 = m_config->GetVisualizer().BandGain75;
+        b100 = m_config->GetVisualizer().BandGain100;
     }
 
     float minIndex = 4.0f;

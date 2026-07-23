@@ -28,7 +28,7 @@ void Window::HandleTrayIcon(HWND hwnd, LPARAM lParam) {
         m_dynamicPlaylistPaths.clear();
         if (m_config) {
           m_dynamicPlaylistPaths = m_config->GetAvailablePlaylists();
-          std::wstring defaultPath = m_config->GetDefaultPlaylistPath();
+          std::wstring defaultPath = m_config->GetPlaylist().DefaultPlaylistPath;
           std::filesystem::path defP(defaultPath);
 
           UINT index = 0;
@@ -75,22 +75,22 @@ void Window::HandleTrayIcon(HWND hwnd, LPARAM lParam) {
                     L"OSD表示");
 
         if (m_config) {
-          int zOrder = m_config->GetZOrder();
+          int zOrder = m_config->GetWindow().ZOrder;
           CheckMenuRadioItem(hAdvMenu, ID_TRAY_ZORDER_NORMAL,
                              ID_TRAY_ZORDER_BOTTOM,
                              ID_TRAY_ZORDER_NORMAL + zOrder, MF_BYCOMMAND);
-          if (m_config->GetSavePositionOnExit()) {
+          if (m_config->GetWindow().SavePositionOnExit) {
             CheckMenuItem(hAdvMenu, ID_TRAY_SAVE_POS,
                           MF_BYCOMMAND | MF_CHECKED);
           } else {
             CheckMenuItem(hAdvMenu, ID_TRAY_SAVE_POS,
                           MF_BYCOMMAND | MF_UNCHECKED);
           }
-          if (m_config->GetShowHotkeys()) {
+          if (m_config->GetGlobalHotkeys().ShowHotkeys) {
             CheckMenuItem(hAdvMenu, ID_TRAY_SHOW_HOTKEYS,
                           MF_BYCOMMAND | MF_CHECKED);
           }
-          if (m_config->GetEnableOSD()) {
+          if (m_config->GetLayoutOSD().EnableOSD) {
             CheckMenuItem(hAdvMenu, ID_TRAY_SHOW_OSD,
                           MF_BYCOMMAND | MF_CHECKED);
           }
@@ -166,18 +166,18 @@ void Window::HandleCommand(HWND hwnd, WPARAM wParam) {
   }
   case ID_TRAY_SHOW_HOTKEYS:
     if (m_config) {
-      m_config->SetShowHotkeys(!m_config->GetShowHotkeys());
+      m_config->SetShowHotkeys(!m_config->GetGlobalHotkeys().ShowHotkeys);
     }
     break;
   case ID_TRAY_SAVE_POS:
     if (m_config) {
-      bool currentState = m_config->GetSavePositionOnExit();
+      bool currentState = m_config->GetWindow().SavePositionOnExit;
       m_config->SetSavePositionOnExit(!currentState);
     }
     break;
   case ID_TRAY_SHOW_OSD:
     if (m_config) {
-      m_config->SetEnableOSD(!m_config->GetEnableOSD());
+      m_config->SetEnableOSD(!m_config->GetLayoutOSD().EnableOSD);
     }
     break;
   case ID_TRAY_PLAY_PAUSE:

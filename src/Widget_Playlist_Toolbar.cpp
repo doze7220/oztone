@@ -25,12 +25,12 @@ void PlaylistWidget::BuildToolbarText(const WidgetContext& ctx, const ConfigMana
   }
   
   if (ctx.isPlaylistPinnedHovered) {
-    hoverText = config->GetIsPlaylistPinned() ? L"表示モード: 画面固定" : L"表示モード: 自動格納";
+    hoverText = config->GetLayoutPlaylist().IsPlaylistPinned ? L"表示モード: 画面固定" : L"表示モード: 自動格納";
   }
 
   std::wstring toolbarCenterText = hoverText;
   if (toolbarCenterText.empty() && !ctx.isPlaylistListViewMode) {
-    std::wstring currentPlaylist = config->GetDefaultPlaylistPath();
+    std::wstring currentPlaylist = config->GetPlaylist().DefaultPlaylistPath;
     if (!currentPlaylist.empty()) {
       try {
         toolbarCenterText = std::filesystem::path(currentPlaylist).stem().wstring();
@@ -48,7 +48,7 @@ void PlaylistWidget::DrawPinButton(ID2D1DeviceContext* context, const WidgetCont
     context->FillRectangle(&layout.toolbarLayout.pinButtonHitRect, m_playlistHighlightBrush.Get());
   }
 
-  bool isPinned = config->GetIsPlaylistPinned();
+  bool isPinned = config->GetLayoutPlaylist().IsPlaylistPinned;
   std::wstring pinBaseIcon = L"📌";
   std::wstring pinSubIcon = isPinned ? L"🔒" : L"🔓";
 
@@ -62,10 +62,10 @@ void PlaylistWidget::DrawPinButton(ID2D1DeviceContext* context, const WidgetCont
 
   if (m_pinSubIconFormat && m_textBrush && m_shadowBrush) {
     D2D1_RECT_F subRect = layout.toolbarLayout.pinButtonHitRect;
-    subRect.left += config->GetPinSubIconOffsetX();
-    subRect.right += config->GetPinSubIconOffsetX();
-    subRect.top += config->GetPinSubIconOffsetY();
-    subRect.bottom += config->GetPinSubIconOffsetY();
+    subRect.left += config->GetLayoutPlaylist().PinSubIconOffsetX;
+    subRect.right += config->GetLayoutPlaylist().PinSubIconOffsetX;
+    subRect.top += config->GetLayoutPlaylist().PinSubIconOffsetY;
+    subRect.bottom += config->GetLayoutPlaylist().PinSubIconOffsetY;
 
     m_shadowBrush->SetOpacity(1.0f);
     D2D1_RECT_F outlineRects[4] = {
@@ -101,8 +101,8 @@ void PlaylistWidget::DrawToolbar(ID2D1DeviceContext* context, const WidgetContex
     D2D1_RECT_F textRect = layout.toolbarLayout.textRect;
     textRect.left += 2.0f;
 
-    if (m_shadowBrush && config->GetEnableShadow()) {
-      m_shadowBrush->SetOpacity(config->GetShadowOpacity());
+    if (m_shadowBrush && config->GetUICommonParm().EnableShadow) {
+      m_shadowBrush->SetOpacity(config->GetUICommonParm().ShadowOpacity);
       D2D1_RECT_F sRect = textRect;
       sRect.left += 1.0f;
       sRect.top += 1.0f;
@@ -121,8 +121,8 @@ void PlaylistWidget::DrawToolbar(ID2D1DeviceContext* context, const WidgetContex
   if (!ctx.isPlaylistListViewMode && m_toolbarCountTextFormat && m_textBrush) {
     if (ctx.playlistToolbarHoveredIndex == -1) {
       std::wstring countText = std::to_wstring(ctx.totalTracks) + L" Tracks";
-      if (m_shadowBrush && config->GetEnableShadow()) {
-        m_shadowBrush->SetOpacity(config->GetShadowOpacity());
+      if (m_shadowBrush && config->GetUICommonParm().EnableShadow) {
+        m_shadowBrush->SetOpacity(config->GetUICommonParm().ShadowOpacity);
         D2D1_RECT_F sRect = layout.toolbarLayout.textRect;
         sRect.left += 1.0f;
         sRect.top += 1.0f;

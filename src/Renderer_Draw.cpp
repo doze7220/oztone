@@ -10,7 +10,7 @@ void Renderer::Render(bool isHovered, bool isControlHovered, bool isVolumeHovere
     m_d2dContext->BeginDraw();
     m_d2dContext->SetTransform(D2D1::Matrix3x2F::Scale(m_dpiScale, m_dpiScale));
     
-    if (m_config && m_config->GetEnableResize()) {
+    if (m_config && m_config->GetWindow().EnableResize) {
         m_d2dContext->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f));
     } else {
         m_d2dContext->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
@@ -96,7 +96,7 @@ void Renderer::DrawBackground() {
 }
 
 void Renderer::DrawVisualizer(const std::vector<float>& spectrum, const TrackMetadata* currentMeta) {
-    if (m_config && m_config->GetVisualizerMode() != 0 && !spectrum.empty()) {
+    if (m_config && m_config->GetVisualizer().VisualizerMode != 0 && !spectrum.empty()) {
         D2D1_SIZE_F renderTargetSize = m_d2dContext->GetSize();
         float logicWidth = renderTargetSize.width / m_dpiScale;
         float logicHeight = renderTargetSize.height / m_dpiScale;

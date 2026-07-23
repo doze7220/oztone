@@ -45,16 +45,16 @@ void Renderer::ResetPlaylistScroll() {
 }
 
 void Renderer::TriggerVolumeOsd() {
-    if (m_config && !m_config->GetEnableOSD()) return;
+    if (m_config && !m_config->GetLayoutOSD().EnableOSD) return;
     m_osdVolumeAlpha = 1.0f;
-    m_osdVolumeWaitTimer = m_config ? m_config->GetOsdFadeWait() : 1.0f;
+    m_osdVolumeWaitTimer = m_config ? m_config->GetLayoutOSD().OsdFadeWait : 1.0f;
 }
 
 void Renderer::TriggerFlyText(const std::wstring& text) {
-    if (m_config && !m_config->GetEnableOSD()) return;
+    if (m_config && !m_config->GetLayoutOSD().EnableOSD) return;
     m_flyTextString = text;
     m_flyTextAlpha = 1.0f;
-    m_flyTextWaitTimer = m_config ? m_config->GetOsdFadeWait() : 1.0f;
+    m_flyTextWaitTimer = m_config ? m_config->GetLayoutOSD().OsdFadeWait : 1.0f;
 }
 
 void Renderer::ForceClearHoverDelays() {

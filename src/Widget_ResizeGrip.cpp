@@ -42,7 +42,7 @@ void ResizeGripWidget::ReleaseResources() {
 void ResizeGripWidget::Draw(ID2D1DeviceContext *context,
                             const WidgetContext &ctx,
                             const ConfigManager *config) {
-  if (config && config->GetEnableResize() && m_resizeGripBrush &&
+  if (config && config->GetWindow().EnableResize && m_resizeGripBrush &&
       m_resizeGripGeometry) {
     D2D1_SIZE_F renderTargetSize = context->GetSize();
     float logicWidth = renderTargetSize.width / ctx.dpiScale;

@@ -25,10 +25,10 @@ void AppLogoWidget::ReleaseResources() {
 void AppLogoWidget::UpdateAnimation(const WidgetContext &ctx) {
     bool isMenuExpanded = (ctx.outIsLogoMenuExpanded && *ctx.outIsLogoMenuExpanded);
     if (ctx.isHovered || isMenuExpanded) {
-        m_logoHoverAlpha += (ctx.config ? ctx.config->GetLogoFadeSpeed() : 5.0f) * ctx.deltaTime;
+        m_logoHoverAlpha += (ctx.config ? ctx.config->GetLayoutAppLogo().LogoFadeSpeed : 5.0f) * ctx.deltaTime;
         if (m_logoHoverAlpha > 1.0f) m_logoHoverAlpha = 1.0f;
     } else {
-        m_logoHoverAlpha -= (ctx.config ? ctx.config->GetLogoFadeSpeed() : 5.0f) * ctx.deltaTime;
+        m_logoHoverAlpha -= (ctx.config ? ctx.config->GetLayoutAppLogo().LogoFadeSpeed : 5.0f) * ctx.deltaTime;
         if (m_logoHoverAlpha < 0.0f) m_logoHoverAlpha = 0.0f;
     }
 
@@ -49,13 +49,13 @@ void AppLogoWidget::UpdateLayout(const WidgetContext &ctx,
 
 void AppLogoWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
                          const ConfigManager *config) {
-  if (config && config->GetShowAppLogo() && m_appLogoBitmap) {
+  if (config && config->GetVisibility().ShowAppLogo && m_appLogoBitmap) {
     D2D1_SIZE_F rtSize = context->GetSize();
     float logicWidth = rtSize.width / ctx.dpiScale;
     AppLogoLayout layout =
         LayoutCalculator::CalculateAppLogoLayout(logicWidth, config);
 
-    float idleOpacity = config->GetLogoIdleOpacity();
+    float idleOpacity = config->GetLayoutAppLogo().LogoIdleOpacity;
     float baseOpacity = idleOpacity + (1.0f - idleOpacity) * m_logoHoverAlpha;
 
     context->DrawBitmap(m_appLogoBitmap.Get(), &layout.destRect, baseOpacity,

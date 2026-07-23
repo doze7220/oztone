@@ -92,11 +92,11 @@ void TrackDrum::StartDrumAnimation(int relativeDistance,
 void TrackDrum::Update(float deltaTime, const ConfigManager* config) {
     if (!config) return;
     
-    if (!config->GetEnableTrackDrum()) {
+    if (!config->GetTrackDrum().EnableTrackDrum) {
         m_drumAbsolutePosition = static_cast<float>(m_drumTargetPosition);
     } else {
         if (m_drumAbsolutePosition != static_cast<float>(m_drumTargetPosition)) {
-            float dampingFactor = static_cast<float>(config->GetTrackDrumMaxSpeed()) * deltaTime;
+            float dampingFactor = static_cast<float>(config->GetTrackDrum().MaxSpeed) * deltaTime;
             if (dampingFactor > 1.0f) dampingFactor = 1.0f;
             
             m_drumAbsolutePosition += (static_cast<float>(m_drumTargetPosition) - m_drumAbsolutePosition) * dampingFactor;

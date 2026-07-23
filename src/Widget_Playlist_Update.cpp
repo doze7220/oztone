@@ -8,14 +8,14 @@ void PlaylistWidget::UpdateAnimation(const WidgetContext &ctx) {
     return;
 
   float configPlaylistWidth =
-      static_cast<float>(ctx.config->GetPlaylistWidth());
+      static_cast<float>(ctx.config->GetLayoutPlaylist().PlaylistWidth);
   if (m_playlistSlideX > configPlaylistWidth * 2.0f)
     m_playlistSlideX = configPlaylistWidth;
 
-  bool isExpanded = ctx.isPlaylistHovered || ctx.config->GetIsPlaylistPinned();
+  bool isExpanded = ctx.isPlaylistHovered || ctx.config->GetLayoutPlaylist().IsPlaylistPinned;
   
   if (isExpanded) {
-      m_playlistLeaveTimer = ctx.config->GetPlaylistLeaveDelay();
+      m_playlistLeaveTimer = ctx.config->GetLayoutPlaylist().PlaylistLeaveDelay;
   } else {
       if (m_playlistLeaveTimer > 0.0f) {
           m_playlistLeaveTimer -= ctx.deltaTime;
@@ -37,8 +37,8 @@ void PlaylistWidget::UpdateAnimation(const WidgetContext &ctx) {
     float logicHeight = ctx.logicalHeight;
     if (logicWidth == 0.0f || logicHeight == 0.0f) {
         D2D1_SIZE_F renderTargetSize =
-            D2D1::SizeF(ctx.config->GetWindowWidth() * ctx.dpiScale,
-                        ctx.config->GetWindowHeight() * ctx.dpiScale);
+            D2D1::SizeF(ctx.config->GetWindow().WindowWidth * ctx.dpiScale,
+                        ctx.config->GetWindow().WindowHeight * ctx.dpiScale);
         logicWidth = renderTargetSize.width / ctx.dpiScale;
         logicHeight = renderTargetSize.height / ctx.dpiScale;
     }
@@ -49,7 +49,7 @@ void PlaylistWidget::UpdateAnimation(const WidgetContext &ctx) {
     if (ctx.isPlaylistListViewMode) {
       if (ctx.availablePlaylistsCache) {
         activeTotal = ctx.availablePlaylistsCache->size();
-        std::wstring currentPlaylist = ctx.config->GetDefaultPlaylistPath();
+        std::wstring currentPlaylist = ctx.config->GetPlaylist().DefaultPlaylistPath;
         activeIndex = 0;
         for (size_t i = 0; i < ctx.availablePlaylistsCache->size(); ++i) {
           if ((*ctx.availablePlaylistsCache)[i].filepath == currentPlaylist) {
@@ -83,7 +83,7 @@ void PlaylistWidget::UpdateAnimation(const WidgetContext &ctx) {
       }
   }
 
-  float fadeOutSpeed = ctx.config->GetHoverFadeOutSpeed() * ctx.deltaTime;
+  float fadeOutSpeed = ctx.config->GetUICommonParm().HoverFadeOutSpeed * ctx.deltaTime;
   float fadeInSpeed = 10.0f * ctx.deltaTime;
 
   for (auto it = m_hoverAlpha.begin(); it != m_hoverAlpha.end(); ) {

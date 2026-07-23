@@ -67,28 +67,28 @@ void Window::RegisterHotkeys() {
     }
   };
 
-  reg(HK_NEXT_TRACK, m_config->GetModifierNextTrack(),
-      m_config->GetVKNextTrack());
-  reg(HK_PREV_TRACK, m_config->GetModifierPrevTrack(),
-      m_config->GetVKPrevTrack());
-  reg(HK_PLAY_PAUSE, m_config->GetModifierPlayPause(),
-      m_config->GetVKPlayPause());
-  reg(HK_STOP, m_config->GetModifierStop(), m_config->GetVKStop());
-  reg(HK_VOL_UP_5, m_config->GetModifierVolUp5(), m_config->GetVKVolUp5());
-  reg(HK_VOL_DOWN_5, m_config->GetModifierVolDown5(),
-      m_config->GetVKVolDown5());
-  reg(HK_VOL_UP_25, m_config->GetModifierVolUp25(), m_config->GetVKVolUp25());
-  reg(HK_VOL_DOWN_25, m_config->GetModifierVolDown25(),
-      m_config->GetVKVolDown25());
-  reg(HK_PREV_PLAYLIST, m_config->GetModifierPrevPlaylist(),
-      m_config->GetVKPrevPlaylist());
-  reg(HK_NEXT_PLAYLIST, m_config->GetModifierNextPlaylist(),
-      m_config->GetVKNextPlaylist());
-  reg(HK_ACTIVE_TOPMOST, m_config->GetModifierActiveTopMost(),
-      m_config->GetVKActiveTopMost());
-  reg(HK_ACTIVE_BOTTOM, m_config->GetModifierActiveBottom(),
-      m_config->GetVKActiveBottom());
-  reg(HK_EXIT_APP, m_config->GetModifierExitApp(), m_config->GetVKExitApp());
+  reg(HK_NEXT_TRACK, m_config->GetGlobalHotkeys().ModifierNextTrack,
+      m_config->GetGlobalHotkeys().VKNextTrack);
+  reg(HK_PREV_TRACK, m_config->GetGlobalHotkeys().ModifierPrevTrack,
+      m_config->GetGlobalHotkeys().VKPrevTrack);
+  reg(HK_PLAY_PAUSE, m_config->GetGlobalHotkeys().ModifierPlayPause,
+      m_config->GetGlobalHotkeys().VKPlayPause);
+  reg(HK_STOP, m_config->GetGlobalHotkeys().ModifierStop, m_config->GetGlobalHotkeys().VKStop);
+  reg(HK_VOL_UP_5, m_config->GetGlobalHotkeys().ModifierVolUp5, m_config->GetGlobalHotkeys().VKVolUp5);
+  reg(HK_VOL_DOWN_5, m_config->GetGlobalHotkeys().ModifierVolDown5,
+      m_config->GetGlobalHotkeys().VKVolDown5);
+  reg(HK_VOL_UP_25, m_config->GetGlobalHotkeys().ModifierVolUp25, m_config->GetGlobalHotkeys().VKVolUp25);
+  reg(HK_VOL_DOWN_25, m_config->GetGlobalHotkeys().ModifierVolDown25,
+      m_config->GetGlobalHotkeys().VKVolDown25);
+  reg(HK_PREV_PLAYLIST, m_config->GetGlobalHotkeys().ModifierPrevPlaylist,
+      m_config->GetGlobalHotkeys().VKPrevPlaylist);
+  reg(HK_NEXT_PLAYLIST, m_config->GetGlobalHotkeys().ModifierNextPlaylist,
+      m_config->GetGlobalHotkeys().VKNextPlaylist);
+  reg(HK_ACTIVE_TOPMOST, m_config->GetGlobalHotkeys().ModifierActiveTopMost,
+      m_config->GetGlobalHotkeys().VKActiveTopMost);
+  reg(HK_ACTIVE_BOTTOM, m_config->GetGlobalHotkeys().ModifierActiveBottom,
+      m_config->GetGlobalHotkeys().VKActiveBottom);
+  reg(HK_EXIT_APP, m_config->GetGlobalHotkeys().ModifierExitApp, m_config->GetGlobalHotkeys().VKExitApp);
 }
 
 void Window::UnregisterHotkeys() {
@@ -116,7 +116,7 @@ void Window::HandleSize(WPARAM wParam, LPARAM lParam) {
 
 LRESULT Window::HandleNcHitTest(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   LRESULT hit = DefWindowProc(hwnd, uMsg, wParam, lParam);
-  if (hit == HTCLIENT && m_config && m_config->GetEnableResize()) {
+  if (hit == HTCLIENT && m_config && m_config->GetWindow().EnableResize) {
     POINT pt;
     pt.x = GET_X_LPARAM(lParam);
     pt.y = GET_Y_LPARAM(lParam);
@@ -136,7 +136,7 @@ LRESULT Window::HandleNcHitTest(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 }
 
 void Window::HandleWindowPosChanging(LPARAM lParam) {
-  if (m_config && m_config->GetZOrder() == 2) {
+  if (m_config && m_config->GetWindow().ZOrder == 2) {
     WINDOWPOS *pos = reinterpret_cast<WINDOWPOS *>(lParam);
     pos->hwndInsertAfter = HWND_BOTTOM;
   }

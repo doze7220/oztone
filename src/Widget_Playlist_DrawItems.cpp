@@ -24,14 +24,14 @@ void PlaylistWidget::DrawPlaylistList(ID2D1DeviceContext* context, const WidgetC
   float currentY = layout.startY;
   D2D1_COLOR_F originalTextColor = m_textBrush->GetColor();
   auto GetBlendedTextColor = [&](int index, bool isPlaying) {
-      D2D1_COLOR_F baseColor = isPlaying ? ParseHexColor(config->GetFocusColor()) : originalTextColor;
+      D2D1_COLOR_F baseColor = isPlaying ? ParseHexColor(config->GetUICommonParm().FocusColor) : originalTextColor;
       float t = 0.0f;
       auto it = m_hoverAlpha.find(index);
       if (it != m_hoverAlpha.end()) t = it->second;
 
       if (t <= 0.0f) return baseColor;
 
-      D2D1_COLOR_F hoverColor = ParseHexColor(config->GetFocusColor());
+      D2D1_COLOR_F hoverColor = ParseHexColor(config->GetUICommonParm().FocusColor);
       return D2D1_COLOR_F{
           baseColor.r + (hoverColor.r - baseColor.r) * t,
           baseColor.g + (hoverColor.g - baseColor.g) * t,
@@ -41,7 +41,7 @@ void PlaylistWidget::DrawPlaylistList(ID2D1DeviceContext* context, const WidgetC
   };
 
   if (ctx.availablePlaylistsCache) {
-    std::wstring currentPlaylist = config->GetDefaultPlaylistPath();
+    std::wstring currentPlaylist = config->GetPlaylist().DefaultPlaylistPath;
 
     for (size_t i = 0; i < ctx.availablePlaylistsCache->size(); ++i) {
       if (currentY + layout.itemHeight > 0 &&
@@ -64,7 +64,7 @@ void PlaylistWidget::DrawPlaylistList(ID2D1DeviceContext* context, const WidgetC
         std::wstring timeStr = (*ctx.availablePlaylistsCache)[i].totalTimeString;
 
         // --- Layout Adjustment for CD Band ---
-        float bandRightEdge = itemLayout.hlRect.left + config->GetPlaylistTrackCountOffsetX() + config->GetPlaylistTrackCountBoxWidth();
+        float bandRightEdge = itemLayout.hlRect.left + config->GetLayoutPlaylist().TrackCountOffsetX + config->GetLayoutPlaylist().TrackCountBoxWidth;
         if (itemLayout.titleRect.left < bandRightEdge) {
             float shift = bandRightEdge - itemLayout.titleRect.left + 5.0f;
             itemLayout.titleRect.left += shift;
@@ -136,7 +136,7 @@ void PlaylistWidget::DrawPlaylistList(ID2D1DeviceContext* context, const WidgetC
               Microsoft::WRL::ComPtr<IDWriteTextLayout1> layout1;
               if (SUCCEEDED(timeLayout.As(&layout1))) {
                   DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(timeStr.length())};
-                  layout1->SetCharacterSpacing(0.0f, config->GetPlaylistTimeLetterSpacing(), 0.0f, textRange);
+                  layout1->SetCharacterSpacing(0.0f, config->GetLayoutPlaylist().PlaylistTimeLetterSpacing, 0.0f, textRange);
               }
               context->DrawTextLayout(D2D1::Point2F(timeRect.left, timeRect.top), timeLayout.Get(),
                                       m_playlistTimeBrush ? m_playlistTimeBrush.Get() : m_textBrush.Get());
@@ -145,8 +145,8 @@ void PlaylistWidget::DrawPlaylistList(ID2D1DeviceContext* context, const WidgetC
 
         // --- CD Band Drawing ---
         if (m_trackCountBoxBrush) {
-            float boxX = itemLayout.hlRect.left + config->GetPlaylistTrackCountOffsetX();
-            float boxWidth = config->GetPlaylistTrackCountBoxWidth();
+            float boxX = itemLayout.hlRect.left + config->GetLayoutPlaylist().TrackCountOffsetX;
+            float boxWidth = config->GetLayoutPlaylist().TrackCountBoxWidth;
             
             float boxStartY = currentY + 1.0f;
             float boxHeight = layout.itemHeight - 1.0f;
@@ -154,11 +154,11 @@ void PlaylistWidget::DrawPlaylistList(ID2D1DeviceContext* context, const WidgetC
             D2D1_RECT_F boxRect = D2D1::RectF(boxX, boxStartY, boxX + boxWidth, boxStartY + boxHeight);
             
             if (isPlaying) {
-                m_trackCountBoxBrush->SetColor(WidgetCommon::HexToColorF(config->GetFocusColor()));
+                m_trackCountBoxBrush->SetColor(WidgetCommon::HexToColorF(config->GetUICommonParm().FocusColor));
             } else {
-                m_trackCountBoxBrush->SetColor(WidgetCommon::HexToColorF(config->GetPlaylistTrackCountBoxBaseColor()));
+                m_trackCountBoxBrush->SetColor(WidgetCommon::HexToColorF(config->GetLayoutPlaylist().TrackCountBoxBaseColor));
             }
-            m_trackCountBoxBrush->SetOpacity(config->GetPlaylistTrackCountBoxBaseOpacity());
+            m_trackCountBoxBrush->SetOpacity(config->GetLayoutPlaylist().TrackCountBoxBaseOpacity);
             
             context->FillRectangle(&boxRect, m_trackCountBoxBrush.Get());
 
@@ -171,9 +171,9 @@ void PlaylistWidget::DrawPlaylistList(ID2D1DeviceContext* context, const WidgetC
 
             D2D1_RECT_F underlineRect = D2D1::RectF(
                 origin.x,
-                origin.y + config->GetPlaylistTrackCountUnderLineX(),
+                origin.y + config->GetLayoutPlaylist().TrackCountUnderLineX,
                 origin.x + boxHeight,
-                origin.y + config->GetPlaylistTrackCountUnderLineX() + config->GetPlaylistTrackCountUnderLineWidth()
+                origin.y + config->GetLayoutPlaylist().TrackCountUnderLineX + config->GetLayoutPlaylist().TrackCountUnderLineWidth
             );
             context->FillRectangle(&underlineRect, m_trackCountBoxBrush.Get());
 
@@ -190,14 +190,14 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
   float currentY = layout.startY;
   D2D1_COLOR_F originalTextColor = m_textBrush->GetColor();
   auto GetBlendedTextColor = [&](int index, bool isPlaying) {
-      D2D1_COLOR_F baseColor = isPlaying ? ParseHexColor(config->GetFocusColor()) : originalTextColor;
+      D2D1_COLOR_F baseColor = isPlaying ? ParseHexColor(config->GetUICommonParm().FocusColor) : originalTextColor;
       float t = 0.0f;
       auto it = m_hoverAlpha.find(index);
       if (it != m_hoverAlpha.end()) t = it->second;
 
       if (t <= 0.0f) return baseColor;
 
-      D2D1_COLOR_F hoverColor = ParseHexColor(config->GetFocusColor());
+      D2D1_COLOR_F hoverColor = ParseHexColor(config->GetUICommonParm().FocusColor);
       return D2D1_COLOR_F{
           baseColor.r + (hoverColor.r - baseColor.r) * t,
           baseColor.g + (hoverColor.g - baseColor.g) * t,
@@ -243,7 +243,7 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
       }
 
       // --- Layout Adjustment for CD Band ---
-      float bandRightEdge = itemLayout.hlRect.left + config->GetPlaylistTrackCountOffsetX() + config->GetPlaylistTrackCountBoxWidth();
+      float bandRightEdge = itemLayout.hlRect.left + config->GetLayoutPlaylist().TrackCountOffsetX + config->GetLayoutPlaylist().TrackCountBoxWidth;
       if (itemLayout.titleRect.left < bandRightEdge) {
           float shift = bandRightEdge - itemLayout.titleRect.left + 5.0f;
           itemLayout.titleRect.left += shift;
@@ -315,7 +315,7 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
             Microsoft::WRL::ComPtr<IDWriteTextLayout1> layout1;
             if (SUCCEEDED(timeLayout.As(&layout1))) {
                 DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(timeStr.length())};
-                layout1->SetCharacterSpacing(0.0f, config->GetPlaylistTimeLetterSpacing(), 0.0f, textRange);
+                layout1->SetCharacterSpacing(0.0f, config->GetLayoutPlaylist().PlaylistTimeLetterSpacing, 0.0f, textRange);
             }
             context->DrawTextLayout(D2D1::Point2F(timeRect.left, timeRect.top), timeLayout.Get(),
                                     m_playlistTimeBrush ? m_playlistTimeBrush.Get() : m_textBrush.Get());
@@ -324,8 +324,8 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
 
       // --- CD Band Drawing ---
       if (m_trackCountBoxBrush && m_trackCountTextBrush && m_trackCountTextFormat) {
-          float boxX = itemLayout.hlRect.left + config->GetPlaylistTrackCountOffsetX();
-          float boxWidth = config->GetPlaylistTrackCountBoxWidth();
+          float boxX = itemLayout.hlRect.left + config->GetLayoutPlaylist().TrackCountOffsetX;
+          float boxWidth = config->GetLayoutPlaylist().TrackCountBoxWidth;
           
           float boxStartY = currentY + 1.0f;
           float boxHeight = layout.itemHeight - 1.0f;
@@ -333,11 +333,11 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
           D2D1_RECT_F boxRect = D2D1::RectF(boxX, boxStartY, boxX + boxWidth, boxStartY + boxHeight);
           
           if (isPlaying) {
-              m_trackCountBoxBrush->SetColor(WidgetCommon::HexToColorF(config->GetFocusColor()));
+              m_trackCountBoxBrush->SetColor(WidgetCommon::HexToColorF(config->GetUICommonParm().FocusColor));
           } else {
-              m_trackCountBoxBrush->SetColor(WidgetCommon::HexToColorF(config->GetPlaylistTrackCountBoxBaseColor()));
+              m_trackCountBoxBrush->SetColor(WidgetCommon::HexToColorF(config->GetLayoutPlaylist().TrackCountBoxBaseColor));
           }
-          m_trackCountBoxBrush->SetOpacity(config->GetPlaylistTrackCountBoxBaseOpacity());
+          m_trackCountBoxBrush->SetOpacity(config->GetLayoutPlaylist().TrackCountBoxBaseOpacity);
           
           context->FillRectangle(&boxRect, m_trackCountBoxBrush.Get());
 
@@ -368,16 +368,16 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
               Microsoft::WRL::ComPtr<IDWriteTextLayout1> layout1;
               if (SUCCEEDED(trackCountLayout.As(&layout1))) {
                   DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(trackNum.length())};
-                  layout1->SetCharacterSpacing(0.0f, config->GetPlaylistTrackCountLetterSpacing(), 0.0f, textRange);
+                  layout1->SetCharacterSpacing(0.0f, config->GetLayoutPlaylist().TrackCountLetterSpacing, 0.0f, textRange);
               }
               context->DrawTextLayout(D2D1::Point2F(rotatedBoxRect.left, rotatedBoxRect.top + 1.0f), trackCountLayout.Get(), m_trackCountTextBrush.Get());
           }
 
           D2D1_RECT_F underlineRect = D2D1::RectF(
               origin.x,
-              origin.y + config->GetPlaylistTrackCountUnderLineX(),
+              origin.y + config->GetLayoutPlaylist().TrackCountUnderLineX,
               origin.x + boxHeight,
-              origin.y + config->GetPlaylistTrackCountUnderLineX() + config->GetPlaylistTrackCountUnderLineWidth()
+              origin.y + config->GetLayoutPlaylist().TrackCountUnderLineX + config->GetLayoutPlaylist().TrackCountUnderLineWidth
           );
           context->FillRectangle(&underlineRect, m_trackCountBoxBrush.Get());
 
@@ -402,7 +402,7 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
           D2D1_RECT_F textClipRect = D2D1::RectF(startX, itemLayout.hlRect.top, currentX, itemLayout.hlRect.bottom);
           context->PushAxisAlignedClip(&textClipRect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
           
-          m_textBrush->SetColor(ParseHexColor(config->GetFocusColor()));
+          m_textBrush->SetColor(ParseHexColor(config->GetUICommonParm().FocusColor));
           context->DrawText(title.c_str(), static_cast<UINT32>(title.length()),
                             m_playlistTitleTextFormat.Get(), &itemLayout.titleRect, m_textBrush.Get());
           if (!artist.empty()) {
@@ -420,7 +420,7 @@ void PlaylistWidget::DrawTrackList(ID2D1DeviceContext* context, const WidgetCont
                   Microsoft::WRL::ComPtr<IDWriteTextLayout1> layout1;
                   if (SUCCEEDED(timeLayout.As(&layout1))) {
                       DWRITE_TEXT_RANGE textRange = {0, static_cast<UINT32>(timeStr.length())};
-                      layout1->SetCharacterSpacing(0.0f, config->GetPlaylistTimeLetterSpacing(), 0.0f, textRange);
+                      layout1->SetCharacterSpacing(0.0f, config->GetLayoutPlaylist().PlaylistTimeLetterSpacing, 0.0f, textRange);
                   }
                   context->DrawTextLayout(D2D1::Point2F(timeRect.left, timeRect.top), timeLayout.Get(), m_textBrush.Get());
               }

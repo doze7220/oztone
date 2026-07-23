@@ -17,16 +17,16 @@ bool Window::IsInLogoRegion(int x, int y) const {
   GetClientRect(m_hwnd, &clientRect);
   int logicalWidth = MulDiv(clientRect.right - clientRect.left, 96, dpi);
 
-  if (m_config->GetIsPlaylistPinned() && m_config->GetPlaylistPosition() == 0) {
-    if (logicalWidth > 495 + m_config->GetPlaylistWidth()) {
-      logicalX -= m_config->GetPlaylistWidth();
+  if (m_config->GetLayoutPlaylist().IsPlaylistPinned && m_config->GetLayoutPlaylist().PlaylistPosition == 0) {
+    if (logicalWidth > 495 + m_config->GetLayoutPlaylist().PlaylistWidth) {
+      logicalX -= m_config->GetLayoutPlaylist().PlaylistWidth;
     }
   }
 
-  return (logicalX >= m_config->GetLogoX() &&
-          logicalX <= m_config->GetLogoX() + m_config->GetLogoWidth() &&
-          logicalY >= m_config->GetLogoY() &&
-          logicalY <= m_config->GetLogoY() + m_config->GetLogoHeight());
+  return (logicalX >= m_config->GetLayoutAppLogo().X &&
+          logicalX <= m_config->GetLayoutAppLogo().X + m_config->GetLayoutAppLogo().Width &&
+          logicalY >= m_config->GetLayoutAppLogo().Y &&
+          logicalY <= m_config->GetLayoutAppLogo().Y + m_config->GetLayoutAppLogo().Height);
 }
 
 bool Window::IsInLogoMenuRegion(int x, int y, float progress) const {
@@ -90,9 +90,9 @@ bool Window::IsInPlaybackControlRegion(int x, int y) const {
   int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
   int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
 
-  if (m_config->GetIsPlaylistPinned()) {
-    int playlistWidth = m_config->GetPlaylistWidth();
-    if (m_config->GetPlaylistPosition() == 0) {
+  if (m_config->GetLayoutPlaylist().IsPlaylistPinned) {
+    int playlistWidth = m_config->GetLayoutPlaylist().PlaylistWidth;
+    if (m_config->GetLayoutPlaylist().PlaylistPosition == 0) {
       logicalX -= playlistWidth;
       logicalWidth -= playlistWidth;
       if (logicalX < 0)
@@ -104,7 +104,7 @@ bool Window::IsInPlaybackControlRegion(int x, int y) const {
     }
   }
 
-  return (logicalY >= logicalHeight - m_config->GetControlHoverHeight());
+  return (logicalY >= logicalHeight - m_config->GetLayoutPlaybackControls().ControlHoverHeight);
 }
 
 bool Window::IsInVolumeControlRegion(int x, int y) const {
@@ -118,9 +118,9 @@ bool Window::IsInVolumeControlRegion(int x, int y) const {
   int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
   int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
 
-  if (m_config->GetIsPlaylistPinned()) {
-    int playlistWidth = m_config->GetPlaylistWidth();
-    if (m_config->GetPlaylistPosition() == 0) {
+  if (m_config->GetLayoutPlaylist().IsPlaylistPinned) {
+    int playlistWidth = m_config->GetLayoutPlaylist().PlaylistWidth;
+    if (m_config->GetLayoutPlaylist().PlaylistPosition == 0) {
       logicalX -= playlistWidth;
       logicalWidth -= playlistWidth;
       if (logicalX < 0)
@@ -132,10 +132,10 @@ bool Window::IsInVolumeControlRegion(int x, int y) const {
     }
   }
 
-  float volX = static_cast<float>(m_config->GetVolumeBaseLeftOffset());
+  float volX = static_cast<float>(m_config->GetLayoutVolumeControl().BaseLeftOffset);
   float volY =
       logicalHeight - static_cast<float>(m_config->GetVolumeBaseBottomOffset());
-  float size = static_cast<float>(m_config->GetVolumeIconSize());
+  float size = static_cast<float>(m_config->GetLayoutVolumeControl().IconSize);
   float width = size + 80.0f;
   float height = size + 20.0f;
 
@@ -157,30 +157,30 @@ bool Window::IsInTrackInfoRegion(int x, int y) const {
   int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
 
   int rightLimit = logicalWidth;
-  if (m_config->GetPlaylistPosition() == 1) {
+  if (m_config->GetLayoutPlaylist().PlaylistPosition == 1) {
     float hoverWidth = (m_isPlaylistHovered || m_isPlaylistExpanded)
-                           ? static_cast<float>(m_config->GetPlaylistWidth())
-                           : static_cast<float>(m_config->GetPlaylistHoverWidth());
+                           ? static_cast<float>(m_config->GetLayoutPlaylist().PlaylistWidth)
+                           : static_cast<float>(m_config->GetLayoutPlaylist().PlaylistHoverWidth);
     rightLimit -= static_cast<int>(hoverWidth);
-  } else if (m_config->GetPlaylistPosition() == 0) {
-    if (m_config->GetIsPlaylistPinned()) {
-      int playlistWidth = m_config->GetPlaylistWidth();
+  } else if (m_config->GetLayoutPlaylist().PlaylistPosition == 0) {
+    if (m_config->GetLayoutPlaylist().IsPlaylistPinned) {
+      int playlistWidth = m_config->GetLayoutPlaylist().PlaylistWidth;
       logicalX -= playlistWidth;
       rightLimit -= playlistWidth;
       if (logicalX < 0) return false;
     }
   }
 
-  float baseY = static_cast<float>(logicalHeight - m_config->GetBaseBottomOffset());
+  float baseY = static_cast<float>(logicalHeight - m_config->GetLayoutVolumeControl().BaseBottomOffset);
 
-  float artTop = baseY + static_cast<float>(m_config->GetArtOffsetY());
-  float artBottom = artTop + static_cast<float>(m_config->GetArtSize());
+  float artTop = baseY + static_cast<float>(m_config->GetLayoutNowPlaying().ArtOffsetY);
+  float artBottom = artTop + static_cast<float>(m_config->GetLayoutNowPlaying().ArtSize);
 
-  float titleTop = baseY + static_cast<float>(m_config->GetTitleOffsetY());
-  float titleBottom = titleTop + m_config->GetTitleFontSize();
+  float titleTop = baseY + static_cast<float>(m_config->GetLayoutNowPlaying().TitleOffsetY);
+  float titleBottom = titleTop + m_config->GetLayoutNowPlaying().TitleFontSize;
 
-  float artistTop = baseY + static_cast<float>(m_config->GetArtistOffsetY());
-  float artistBottom = artistTop + m_config->GetArtistFontSize();
+  float artistTop = baseY + static_cast<float>(m_config->GetLayoutNowPlaying().ArtistOffsetY);
+  float artistBottom = artistTop + m_config->GetLayoutNowPlaying().ArtistFontSize;
 
   float topLimit = artTop;
   if (titleTop < topLimit) topLimit = titleTop;
@@ -210,18 +210,18 @@ bool Window::IsInPlaylistRegion(int x, int y) const {
 
   // ロゴ拡張メニュー等との干渉排除
   if (!(m_isPlaylistHovered || m_isPlaylistExpanded) &&
-      logicalY <= m_config->GetLogoY() + m_config->GetLogoHeight() + 10.0f) {
+      logicalY <= m_config->GetLayoutAppLogo().Y + m_config->GetLayoutAppLogo().Height + 10.0f) {
     return false;
   }
 
   float hoverWidth =
       (m_isPlaylistHovered || m_isPlaylistExpanded)
-          ? static_cast<float>(m_config->GetPlaylistWidth())
-          : static_cast<float>(m_config->GetPlaylistHoverWidth());
-  float controlHeight = m_config->GetControlHoverHeight();
+          ? static_cast<float>(m_config->GetLayoutPlaylist().PlaylistWidth)
+          : static_cast<float>(m_config->GetLayoutPlaylist().PlaylistHoverWidth);
+  float controlHeight = m_config->GetLayoutPlaybackControls().ControlHoverHeight;
 
   bool isXMatch = false;
-  if (m_config->GetPlaylistPosition() == 0) {
+  if (m_config->GetLayoutPlaylist().PlaylistPosition == 0) {
     isXMatch = logicalX <= hoverWidth;
   } else {
     isXMatch = logicalX >= logicalWidth - hoverWidth;
@@ -229,7 +229,7 @@ bool Window::IsInPlaylistRegion(int x, int y) const {
 
   // プレイリストが展開されている場合は、画面下部であってもリスト上にマウスがあればホバーを維持する。
   // 展開されていない場合、またはピン留め時は、右下のリサイズやコントロールとの干渉を避けるためY座標を制限する。
-  bool isYMatch = ((m_isPlaylistHovered || m_isPlaylistExpanded) && !m_config->GetIsPlaylistPinned()) ||
+  bool isYMatch = ((m_isPlaylistHovered || m_isPlaylistExpanded) && !m_config->GetLayoutPlaylist().IsPlaylistPinned) ||
                   (logicalY < logicalHeight - controlHeight);
 
   return isXMatch && isYMatch;
@@ -296,9 +296,9 @@ int Window::GetPlaybackButtonAt(int x, int y) const {
   int logicalWidth = MulDiv(rect.right - rect.left, 96, dpi);
   int logicalHeight = MulDiv(rect.bottom - rect.top, 96, dpi);
 
-  if (m_config->GetIsPlaylistPinned()) {
-    int playlistWidth = m_config->GetPlaylistWidth();
-    if (m_config->GetPlaylistPosition() == 0) {
+  if (m_config->GetLayoutPlaylist().IsPlaylistPinned) {
+    int playlistWidth = m_config->GetLayoutPlaylist().PlaylistWidth;
+    if (m_config->GetLayoutPlaylist().PlaylistPosition == 0) {
       logicalX -= playlistWidth;
       logicalWidth -= playlistWidth;
       if (logicalX < 0)
@@ -310,11 +310,11 @@ int Window::GetPlaybackButtonAt(int x, int y) const {
     }
   }
 
-  float centerX = (logicalWidth / 2.0f) + m_config->GetPlaybackCenterOffsetX();
+  float centerX = (logicalWidth / 2.0f) + m_config->GetLayoutPlaybackControls().CenterOffsetX;
   float centerY = logicalHeight -
                   static_cast<float>(m_config->GetPlaybackBaseBottomOffset());
-  float size = static_cast<float>(m_config->GetPlaybackButtonSize());
-  float spacing = static_cast<float>(m_config->GetPlaybackButtonSpacing());
+  float size = static_cast<float>(m_config->GetLayoutPlaybackControls().ButtonSize);
+  float spacing = static_cast<float>(m_config->GetLayoutPlaybackControls().ButtonSpacing);
   float halfSize = size / 2.0f;
 
   if (logicalY >= centerY - halfSize && logicalY <= centerY + halfSize) {
@@ -331,7 +331,7 @@ int Window::GetPlaybackButtonAt(int x, int y) const {
 }
 
 bool Window::HandleMouseActivate(LRESULT& outResult) {
-  if (m_config && m_config->GetZOrder() == 2) {
+  if (m_config && m_config->GetWindow().ZOrder == 2) {
     outResult = MA_NOACTIVATE;
     return true;
   }
@@ -363,7 +363,7 @@ void Window::HandleMouseMove(HWND hwnd, WPARAM wParam, LPARAM lParam) {
     int xPos = GET_X_LPARAM(lParam);
     int yPos = GET_Y_LPARAM(lParam);
 
-    bool isPinned = m_config->GetIsPlaylistPinned();
+    bool isPinned = m_config->GetLayoutPlaylist().IsPlaylistPinned;
     bool isInPlaylistRegion = IsInPlaylistRegion(xPos, yPos);
     m_isPlaylistHovered = isInPlaylistRegion;
 
@@ -449,7 +449,7 @@ void Window::HandleLButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam) {
 
   if (m_isPlaylistHovered) {
     if (IsPlaylistPinnedButtonAt(xPos, yPos)) {
-      bool pinned = !m_config->GetIsPlaylistPinned();
+      bool pinned = !m_config->GetLayoutPlaylist().IsPlaylistPinned;
       m_config->SetIsPlaylistPinned(pinned);
       if (m_onPlaylistPinnedToggle) {
           m_onPlaylistPinnedToggle(pinned);
@@ -500,7 +500,7 @@ void Window::HandleLButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam) {
           PostQuitMessage(0);
         } else if (item.commandId == ID_LOGO_BG_MODE) {
           if (m_config) {
-            int mode = m_config->GetBackgroundArtMode();
+            int mode = m_config->GetBackground().BackgroundArtMode;
             if (mode == 0)
               mode = 1;
             else if (mode == 1)
@@ -511,16 +511,16 @@ void Window::HandleLButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam) {
           }
         } else if (item.commandId == ID_LOGO_RESIZE_MODE) {
           if (m_config) {
-            m_config->SetEnableResize(!m_config->GetEnableResize());
+            m_config->SetEnableResize(!m_config->GetWindow().EnableResize);
           }
         } else if (item.commandId == ID_LOGO_LOCK_POS) {
           if (m_config) {
             m_config->SetLockWindowPosition(
-                !m_config->GetLockWindowPosition());
+                !m_config->GetWindow().LockWindowPosition);
           }
         } else if (item.commandId == ID_LOGO_VISUALIZER) {
           if (m_config) {
-            int mode = m_config->GetVisualizerMode();
+            int mode = m_config->GetVisualizer().VisualizerMode;
             if (mode == 1)
               mode = 2;
             else if (mode == 2)
@@ -535,7 +535,7 @@ void Window::HandleLButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam) {
           }
         } else if (item.commandId == ID_LOGO_PLAYLIST_POS) {
           if (m_config) {
-            int newPos = m_config->GetPlaylistPosition() == 0 ? 1 : 0;
+            int newPos = m_config->GetLayoutPlaylist().PlaylistPosition == 0 ? 1 : 0;
             m_config->SetPlaylistPosition(newPos);
           }
         }
@@ -549,8 +549,8 @@ void Window::HandleLButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam) {
     m_playbackClickedIndex = btnId;
     if (btnId == 2 || btnId == 4) {
       if (m_onSkipCommand) {
-        float delta = (btnId == 2) ? -m_config->GetSkipSeconds()
-                                   : m_config->GetSkipSeconds();
+        float delta = (btnId == 2) ? -m_config->GetAudio().SkipSeconds
+                                   : m_config->GetAudio().SkipSeconds;
         m_onSkipCommand(delta);
       }
     } else {
@@ -571,7 +571,7 @@ void Window::HandleLButtonDown(HWND hwnd, WPARAM wParam, LPARAM lParam) {
   }
 
 
-  if (!m_config || !m_config->GetLockWindowPosition()) {
+  if (!m_config || !m_config->GetWindow().LockWindowPosition) {
     ReleaseCapture();
     SendMessage(hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
   }

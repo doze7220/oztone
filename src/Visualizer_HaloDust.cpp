@@ -95,8 +95,8 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
     float centerY = drawRect.top + height / 2.0f;
     
     float refSize = (std::min)(width, height);
-    float baseRadiusRatio = m_config ? m_config->GetHaloDustBaseRadiusRatio() : 0.25f;
-    float graphLengthRatio = m_config ? m_config->GetHaloDustGraphLengthRatio() : 0.30f;
+    float baseRadiusRatio = m_config ? m_config->GetVisualizerHaloDust().BaseRadiusRatio : 0.25f;
+    float graphLengthRatio = m_config ? m_config->GetVisualizerHaloDust().GraphLengthRatio : 0.30f;
     float baseRadius = refSize * baseRadiusRatio;
     float graphLength = refSize * graphLengthRatio;
 
@@ -105,9 +105,9 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
     size_t hashValue = std::hash<std::wstring>{}(combined);
 
     D2D1::ColorF themeColor(0.0f, 0.0f, 0.0f, 1.0f);
-    int colorMode = m_config ? m_config->GetHaloDustColorMode() : 2;
+    int colorMode = m_config ? m_config->GetVisualizerHaloDust().ColorMode : 2;
     if (colorMode == 0) {
-        themeColor = WidgetCommon::HexToColorF(m_config->GetHaloDustFixedColor());
+        themeColor = WidgetCommon::HexToColorF(m_config->GetVisualizerHaloDust().FixedColor);
     } else if (colorMode == 1) {
         themeColor = GenerateColorRGB(hashValue);
     } else {
@@ -118,8 +118,8 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
     float finalG = themeColor.g;
     float finalB = themeColor.b;
 
-    float glowOpacity = m_config ? m_config->GetHaloGlowOpacity() : CIRCLE_GLOW_OPACITY;
-    float glowThickness = m_config ? m_config->GetHaloGlowThickness() : CIRCLE_NEON_GLOW_THICKNESS;
+    float glowOpacity = m_config ? m_config->GetVisualizerHaloDust().HaloGlowOpacity : CIRCLE_GLOW_OPACITY;
+    float glowThickness = m_config ? m_config->GetVisualizerHaloDust().HaloGlowThickness : CIRCLE_NEON_GLOW_THICKNESS;
 
     D2D1_COLOR_F themeColorFill = D2D1::ColorF(finalR, finalG, finalB, CIRCLE_FILL_OPACITY);
     D2D1_COLOR_F themeColorGlow = D2D1::ColorF(finalR, finalG, finalB, glowOpacity);
@@ -184,18 +184,18 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
         if (prevAmp > 0.4f && m_circleAmplitudes[i] < prevAmp - 0.05f) {
             std::uniform_real_distribution<float> randDist(-1.0f, 1.0f);
             
-            float laserSpawnRate = m_config ? m_config->GetHaloLaserSpawnRate() : 0.1f;
+            float laserSpawnRate = m_config ? m_config->GetVisualizerHaloDust().HaloLaserSpawnRate : 0.1f;
             if (std::abs(randDist(rng)) < laserSpawnRate) {
                 std::uniform_real_distribution<float> angleDist(0.0f, 360.0f);
-                float lSpeed = m_config ? m_config->GetHaloLaserSpeed() : 1.0f;
-                float lLife = m_config ? m_config->GetHaloLaserLifeTime() : 30.0f;
+                float lSpeed = m_config ? m_config->GetVisualizerHaloDust().HaloLaserSpeed : 1.0f;
+                float lLife = m_config ? m_config->GetVisualizerHaloDust().HaloLaserLifeTime : 30.0f;
 
                 LaserRay ray;
                 ray.angle = angleDist(rng);
                 ray.maxLifeTime = lLife * (1.0f + std::abs(randDist(rng))*0.5f);
                 ray.lifeTime = 0.0f;
                 ray.distance = 0.0f;
-                float baseLenRatio = m_config ? m_config->GetHaloLaserLengthRatio() : 0.2f;
+                float baseLenRatio = m_config ? m_config->GetVisualizerHaloDust().HaloLaserLengthRatio : 0.2f;
                 ray.length = baseLenRatio * refSize * (0.5f + std::abs(randDist(rng))*0.5f);
                 ray.speed = 0.0f;
                 ray.startRadius = baseRadius + prevAmpPx;
@@ -203,11 +203,11 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
                 m_laserRays.push_back(ray);
             }
             
-            float particleSpawnRate = m_config ? m_config->GetHaloParticleSpawnRate() : 0.2f;
+            float particleSpawnRate = m_config ? m_config->GetVisualizerHaloDust().HaloParticleSpawnRate : 0.2f;
             if (std::abs(randDist(rng)) < particleSpawnRate) {
                 std::uniform_real_distribution<float> radDist(0.0f, 2.0f * 3.14159265f);
-                float pSpeed = m_config ? m_config->GetHaloParticleSpeed() : 1.0f;
-                float pLife = m_config ? m_config->GetHaloParticleLifeTime() : 60.0f;
+                float pSpeed = m_config ? m_config->GetVisualizerHaloDust().HaloParticleSpeed : 1.0f;
+                float pLife = m_config ? m_config->GetVisualizerHaloDust().HaloParticleLifeTime : 60.0f;
 
                 Particle p;
                 float pAngle = radDist(rng);
@@ -218,7 +218,7 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
                 p.vy = 0.0f;
                 p.maxLifeTime = pLife * (1.0f + std::abs(randDist(rng))*0.5f);
                 p.lifeTime = 0.0f;
-                float baseSizeRatio = m_config ? m_config->GetHaloParticleSizeRatio() : 0.05f;
+                float baseSizeRatio = m_config ? m_config->GetVisualizerHaloDust().HaloParticleSizeRatio : 0.05f;
                 p.size = baseSizeRatio * refSize * (0.5f + std::abs(randDist(rng))*0.5f);
                 p.axis = D2D1::Vector3F(randDist(rng), randDist(rng), randDist(rng));
                 p.angle = 0.0f;
@@ -284,7 +284,7 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
         context->SetTransform(D2D1::Matrix3x2F::Rotation(it->angle, D2D1::Point2F(centerX, centerY)) * originalTransform);
         
         float fade = std::sin(progress * 3.14159265f);
-        float laserBaseOpacity = m_config ? m_config->GetHaloLaserBaseOpacity() : 0.3f;
+        float laserBaseOpacity = m_config ? m_config->GetVisualizerHaloDust().HaloLaserBaseOpacity : 0.3f;
         float finalFade = fade * laserBaseOpacity;
         
         float currentLength = (std::max)(0.0f, it->length * fade);
@@ -297,7 +297,7 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
         D2D1_POINT_2F p0 = D2D1::Point2F(centerX, centerY - it->startRadius - it->distance);
         D2D1_POINT_2F p1 = D2D1::Point2F(centerX, centerY - it->startRadius - it->distance - currentLength);
         
-        float laserThickness = m_config ? m_config->GetHaloLaserThickness() : 2.0f;
+        float laserThickness = m_config ? m_config->GetVisualizerHaloDust().HaloLaserThickness : 2.0f;
         
         if (rayGlowBrush && rayCoreBrush) {
             context->DrawLine(p0, p1, rayGlowBrush.Get(), glowThickness);
@@ -354,7 +354,7 @@ void VisualizerHaloDust::Draw(ID2D1DeviceContext* context, const std::vector<flo
         float sinA = std::sin(rad);
 
         float fade = std::sin(progress * 3.14159265f);
-        float particleBaseOpacity = m_config ? m_config->GetHaloParticleBaseOpacity() : 0.5f;
+        float particleBaseOpacity = m_config ? m_config->GetVisualizerHaloDust().HaloParticleBaseOpacity : 0.5f;
         float finalFade = fade * particleBaseOpacity;
         float s = it->size; // サイズ固定化
         D2D1_VECTOR_3F pts[4] = {

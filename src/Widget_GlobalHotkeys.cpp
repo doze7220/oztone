@@ -36,9 +36,9 @@ void GlobalHotkeysWidget::CreateResources(ID2D1DeviceContext *context,
       .Reset(); // Force recreation of text layout when resources are recreated
 
   dwriteFactory->CreateTextFormat(
-      config->GetOsdFontFamily().c_str(), nullptr,
+      config->GetUICommonParm().OsdFontFamily.c_str(), nullptr,
       DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL,
-      DWRITE_FONT_STRETCH_NORMAL, config->GetGlobalHotkeysFontSize(), L"en-us",
+      DWRITE_FONT_STRETCH_NORMAL, config->GetLayoutGlobalHotkeys().FontSize, L"en-us",
       &m_textFormat);
 
   if (m_textFormat) {
@@ -47,13 +47,13 @@ void GlobalHotkeysWidget::CreateResources(ID2D1DeviceContext *context,
   }
 
   context->CreateSolidColorBrush(
-      WidgetCommon::HexToColorF(config->GetGlobalHotkeysCoreColor(), 0.9f), &m_coreBrush);
+      WidgetCommon::HexToColorF(config->GetLayoutGlobalHotkeys().CoreColor, 0.9f), &m_coreBrush);
   context->CreateSolidColorBrush(
-      WidgetCommon::HexToColorF(config->GetGlobalHotkeysGlowColor(),
-                                config->GetGlobalHotkeysGlowOpacity()),
+      WidgetCommon::HexToColorF(config->GetLayoutGlobalHotkeys().GlowColor,
+                                config->GetLayoutGlobalHotkeys().GlowOpacity),
       &m_glowBrush);
   context->CreateSolidColorBrush(
-      WidgetCommon::HexToColorF(config->GetShadowColor(), 1.0f), &m_shadowBrush);
+      WidgetCommon::HexToColorF(config->GetUICommonParm().ShadowColor, 1.0f), &m_shadowBrush);
 }
 
 void GlobalHotkeysWidget::ReleaseResources() {
@@ -184,29 +184,29 @@ void GlobalHotkeysWidget::GenerateHotkeysStrings(const ConfigManager *config,
       outActions += GetActionName(actionId) + L"\n";
     }
   };
-  append(ACTION_NEXT_TRACK, config->GetModifierNextTrack(),
-         config->GetVKNextTrack());
-  append(ACTION_PREV_TRACK, config->GetModifierPrevTrack(),
-         config->GetVKPrevTrack());
-  append(ACTION_PLAY_PAUSE, config->GetModifierPlayPause(),
-         config->GetVKPlayPause());
-  append(ACTION_STOP, config->GetModifierStop(), config->GetVKStop());
-  append(ACTION_VOL_UP_5, config->GetModifierVolUp5(), config->GetVKVolUp5());
-  append(ACTION_VOL_DOWN_5, config->GetModifierVolDown5(),
-         config->GetVKVolDown5());
-  append(ACTION_VOL_UP_25, config->GetModifierVolUp25(),
-         config->GetVKVolUp25());
-  append(ACTION_VOL_DOWN_25, config->GetModifierVolDown25(),
-         config->GetVKVolDown25());
-  append(ACTION_NEXT_PLAYLIST, config->GetModifierNextPlaylist(),
-         config->GetVKNextPlaylist());
-  append(ACTION_PREV_PLAYLIST, config->GetModifierPrevPlaylist(),
-         config->GetVKPrevPlaylist());
-  append(ACTION_PIN_TOP, config->GetModifierActiveTopMost(),
-         config->GetVKActiveTopMost());
-  append(ACTION_PIN_BOTTOM, config->GetModifierActiveBottom(),
-         config->GetVKActiveBottom());
-  append(ACTION_EXIT_APP, config->GetModifierExitApp(), config->GetVKExitApp());
+  append(ACTION_NEXT_TRACK, config->GetGlobalHotkeys().ModifierNextTrack,
+         config->GetGlobalHotkeys().VKNextTrack);
+  append(ACTION_PREV_TRACK, config->GetGlobalHotkeys().ModifierPrevTrack,
+         config->GetGlobalHotkeys().VKPrevTrack);
+  append(ACTION_PLAY_PAUSE, config->GetGlobalHotkeys().ModifierPlayPause,
+         config->GetGlobalHotkeys().VKPlayPause);
+  append(ACTION_STOP, config->GetGlobalHotkeys().ModifierStop, config->GetGlobalHotkeys().VKStop);
+  append(ACTION_VOL_UP_5, config->GetGlobalHotkeys().ModifierVolUp5, config->GetGlobalHotkeys().VKVolUp5);
+  append(ACTION_VOL_DOWN_5, config->GetGlobalHotkeys().ModifierVolDown5,
+         config->GetGlobalHotkeys().VKVolDown5);
+  append(ACTION_VOL_UP_25, config->GetGlobalHotkeys().ModifierVolUp25,
+         config->GetGlobalHotkeys().VKVolUp25);
+  append(ACTION_VOL_DOWN_25, config->GetGlobalHotkeys().ModifierVolDown25,
+         config->GetGlobalHotkeys().VKVolDown25);
+  append(ACTION_NEXT_PLAYLIST, config->GetGlobalHotkeys().ModifierNextPlaylist,
+         config->GetGlobalHotkeys().VKNextPlaylist);
+  append(ACTION_PREV_PLAYLIST, config->GetGlobalHotkeys().ModifierPrevPlaylist,
+         config->GetGlobalHotkeys().VKPrevPlaylist);
+  append(ACTION_PIN_TOP, config->GetGlobalHotkeys().ModifierActiveTopMost,
+         config->GetGlobalHotkeys().VKActiveTopMost);
+  append(ACTION_PIN_BOTTOM, config->GetGlobalHotkeys().ModifierActiveBottom,
+         config->GetGlobalHotkeys().VKActiveBottom);
+  append(ACTION_EXIT_APP, config->GetGlobalHotkeys().ModifierExitApp, config->GetGlobalHotkeys().VKExitApp);
 }
 
 void GlobalHotkeysWidget::UpdateLayout(const WidgetContext &ctx,
@@ -218,13 +218,13 @@ void GlobalHotkeysWidget::UpdateLayout(const WidgetContext &ctx,
 void GlobalHotkeysWidget::Draw(ID2D1DeviceContext *context,
                                const WidgetContext &ctx,
                                const ConfigManager *config) {
-  if (!config || !config->GetShowHotkeys())
+  if (!config || !config->GetGlobalHotkeys().ShowHotkeys)
     return;
 
   D2D1_SIZE_F rtSize = context->GetSize();
   float logicWidth = rtSize.width / ctx.dpiScale;
 
-  bool show = config->GetShowHotkeys();
+  bool show = config->GetGlobalHotkeys().ShowHotkeys;
   std::wstring keyStr, actionStr;
   if (show) {
     GenerateHotkeysStrings(config, keyStr, actionStr);
@@ -251,8 +251,8 @@ void GlobalHotkeysWidget::Draw(ID2D1DeviceContext *context,
               if (SUCCEEDED(outLayout.As(&textLayout1))) {
                 textLayout1->SetLineSpacing(
                     DWRITE_LINE_SPACING_METHOD_UNIFORM,
-                    config->GetGlobalHotkeysLineSpacing(),
-                    config->GetGlobalHotkeysFontSize());
+                    config->GetLayoutGlobalHotkeys().LineSpacing,
+                    config->GetLayoutGlobalHotkeys().FontSize);
               }
             }
           };
@@ -275,7 +275,7 @@ void GlobalHotkeysWidget::Draw(ID2D1DeviceContext *context,
                       D2D1_POINT_2F origin) {
     WidgetCommon::DrawShadowedTextLayout(
         context, textLayout.Get(), nullptr, m_shadowBrush.Get(),
-        origin, D2D1::Point2F(origin.x + 2.0f, origin.y + 2.0f), config->GetShadowOpacity());
+        origin, D2D1::Point2F(origin.x + 2.0f, origin.y + 2.0f), config->GetUICommonParm().ShadowOpacity);
 
     if (m_glowBrush) {
       float glowOffsets[] = {1.5f, 3.0f};

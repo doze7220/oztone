@@ -18,9 +18,9 @@ void SeekBarWidget::CreateResources(ID2D1DeviceContext *context,
 
   if (config) {
     dwriteFactory->CreateTextFormat(
-        config->GetMonoFontFamily().c_str(), nullptr,
+        config->GetUICommonParm().MonoFontFamily.c_str(), nullptr,
         DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL, config->GetSeekBarTimeFontSize(), L"ja-jp",
+        DWRITE_FONT_STRETCH_NORMAL, config->GetLayoutSeekBar().TimeFontSize, L"ja-jp",
         &m_timeTextFormat);
     if (m_timeTextFormat) {
       m_timeTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
@@ -46,7 +46,7 @@ void SeekBarWidget::UpdateLayout(const WidgetContext &ctx,
 
 void SeekBarWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
                          const ConfigManager *config) {
-  if (!config || !config->GetShowSeekBar() || !m_textBrush || !m_timeTextFormat)
+  if (!config || !config->GetVisibility().ShowSeekBar || !m_textBrush || !m_timeTextFormat)
     return;
 
   D2D1_SIZE_F rtSize = context->GetSize();
@@ -70,7 +70,7 @@ void SeekBarWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
         DWRITE_TEXT_RANGE textRange = {
             0, static_cast<UINT32>(ctx.timeString.length())};
         textLayout1->SetCharacterSpacing(
-            0.0f, config->GetSeekBarTimeLetterSpacing(), 0.0f, textRange);
+            0.0f, config->GetLayoutSeekBar().TimeLetterSpacing, 0.0f, textRange);
       }
     }
   }
@@ -78,20 +78,20 @@ void SeekBarWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
   float dimFactor = 1.0f - (ctx.controlAlpha * 0.5f);
 
   if (m_seekBarBgBrush) {
-    m_seekBarBgBrush->SetColor(WidgetCommon::HexToColorF(config->GetSeekBarBgColor()));
+    m_seekBarBgBrush->SetColor(WidgetCommon::HexToColorF(config->GetLayoutSeekBar().BgColor));
     m_seekBarBgBrush->SetOpacity(config->GetSeekBarBgOpacity() * dimFactor);
     context->FillRectangle(&layout.bgRect, m_seekBarBgBrush.Get());
   }
 
   if (m_seekBarFgBrush) {
-    m_seekBarFgBrush->SetColor(WidgetCommon::HexToColorF(config->GetSeekBarFgColor()));
-    m_seekBarFgBrush->SetOpacity(config->GetSeekBarFgOpacity() * dimFactor);
+    m_seekBarFgBrush->SetColor(WidgetCommon::HexToColorF(config->GetLayoutSeekBar().FgColor));
+    m_seekBarFgBrush->SetOpacity(config->GetLayoutSeekBar().FgOpacity * dimFactor);
     context->FillRectangle(&layout.fgRect, m_seekBarFgBrush.Get());
   }
 
   if (m_timeTextLayout && m_textBrush) {
-    m_textBrush->SetColor(WidgetCommon::HexToColorF(config->GetSeekBarTimeTextColor()));
-    m_textBrush->SetOpacity(config->GetSeekBarTimeTextOpacity() * dimFactor);
+    m_textBrush->SetColor(WidgetCommon::HexToColorF(config->GetLayoutSeekBar().TextColor));
+    m_textBrush->SetOpacity(config->GetLayoutSeekBar().TextOpacity * dimFactor);
     context->DrawTextLayout(layout.textOrigin, m_timeTextLayout.Get(),
                             m_textBrush.Get(),
                             D2D1_DRAW_TEXT_OPTIONS_NONE);

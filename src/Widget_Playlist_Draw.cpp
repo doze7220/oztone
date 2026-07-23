@@ -18,7 +18,7 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
   if (ctx.isPlaylistListViewMode && config) {
     if (ctx.availablePlaylistsCache) {
       activeTotal = ctx.availablePlaylistsCache->size();
-      std::wstring currentPlaylist = config->GetDefaultPlaylistPath();
+      std::wstring currentPlaylist = config->GetPlaylist().DefaultPlaylistPath;
       activeIndex = 0;
       for (size_t i = 0; i < ctx.availablePlaylistsCache->size(); ++i) {
         if ((*ctx.availablePlaylistsCache)[i].filepath == currentPlaylist) {
@@ -59,19 +59,19 @@ void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
 
 void PlaylistWidget::DrawGrip(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config, const PlaylistLayout& layout) {
   ID2D1PathGeometry *arrowGeometry =
-      config->GetPlaylistPosition() == 0
+      config->GetLayoutPlaylist().PlaylistPosition == 0
           ? m_playlistGripArrowRightGeometry.Get()
           : m_playlistGripArrowGeometry.Get();
   if (m_playlistGripLineBrush && m_playlistGripArrowBrush && arrowGeometry) {
-    if (m_shadowBrush && config->GetShadowOpacity() > 0.0f) {
-      m_shadowBrush->SetOpacity(config->GetShadowOpacity());
+    if (m_shadowBrush && config->GetUICommonParm().ShadowOpacity > 0.0f) {
+      m_shadowBrush->SetOpacity(config->GetUICommonParm().ShadowOpacity);
 
       context->DrawLine(D2D1::Point2F(layout.gripShadowX, layout.playlistY),
                         D2D1::Point2F(layout.gripShadowX,
                                       layout.playlistY + layout.playlistHeight),
                         m_shadowBrush.Get(), layout.gripLineWidth);
 
-      if (!config->GetIsPlaylistPinned()) {
+      if (!config->GetLayoutPlaylist().IsPlaylistPinned) {
         D2D1_MATRIX_3X2_F shadowTransform = D2D1::Matrix3x2F::Translation(
             layout.gripShadowX,
             layout.gripShadowY + layout.playlistHeight / 2.0f);
@@ -88,7 +88,7 @@ void PlaylistWidget::DrawGrip(ID2D1DeviceContext* context, const WidgetContext& 
         D2D1::Point2F(layout.gripX, layout.playlistY + layout.playlistHeight),
         m_playlistGripLineBrush.Get(), layout.gripLineWidth);
 
-    if (!config->GetIsPlaylistPinned()) {
+    if (!config->GetLayoutPlaylist().IsPlaylistPinned) {
       D2D1_MATRIX_3X2_F arrowTransform = D2D1::Matrix3x2F::Translation(
           layout.gripX, layout.playlistY + layout.playlistHeight / 2.0f);
       context->SetTransform(arrowTransform *
@@ -101,7 +101,7 @@ void PlaylistWidget::DrawGrip(ID2D1DeviceContext* context, const WidgetContext& 
 
 void PlaylistWidget::DrawBackground(ID2D1DeviceContext* context, const WidgetContext& ctx, const ConfigManager* config, const PlaylistLayout& layout) {
   if (m_playlistBgBrush) {
-    m_playlistBgBrush->SetOpacity(config->GetPlaylistBgOpacity());
+    m_playlistBgBrush->SetOpacity(config->GetLayoutPlaylist().PlaylistBgOpacity);
     context->FillRectangle(&layout.bgRect, m_playlistBgBrush.Get());
   }
 }

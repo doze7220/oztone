@@ -35,7 +35,7 @@ void ThumbnailDatabase::Initialize() {
 
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    float configSize = m_config->GetThumbnailSize();
+    float configSize = m_config->GetSystem().ThumbnailSize;
     bool needReset = true;
 
     // ヘッダ検証 (idx)
@@ -233,7 +233,7 @@ void ThumbnailDatabase::RequestThumbnailLoad(uint32_t thumbId, ID2D1RenderTarget
                             m_cache[thumbId] = bitmap;
                             m_lruList.push_front(thumbId);
 
-                            size_t maxCache = m_config ? m_config->GetMaxThumbnailCache() : 100;
+                            size_t maxCache = m_config ? m_config->GetSystem().MaxThumbnailCache : 100;
                             while (m_lruList.size() > maxCache) {
                                 uint32_t oldestId = m_lruList.back();
                                 m_lruList.pop_back();
@@ -345,7 +345,7 @@ Microsoft::WRL::ComPtr<ID2D1Bitmap> ThumbnailDatabase::GetThumbnailBitmap(uint32
         m_lruList.push_front(thumbId);
 
         // 最大キャッシュサイズ超過時の押し出し
-        size_t maxCache = m_config ? m_config->GetMaxThumbnailCache() : 100;
+        size_t maxCache = m_config ? m_config->GetSystem().MaxThumbnailCache : 100;
         while (m_lruList.size() > maxCache) {
             uint32_t oldestId = m_lruList.back();
             m_lruList.pop_back();

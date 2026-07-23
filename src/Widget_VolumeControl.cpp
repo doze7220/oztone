@@ -16,15 +16,15 @@ void VolumeControlWidget::CreateResources(ID2D1DeviceContext *context,
 
   if (config) {
     dwriteFactory->CreateTextFormat(
-        config->GetMonoFontFamily().c_str(), nullptr,
+        config->GetUICommonParm().MonoFontFamily.c_str(), nullptr,
         DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL, config->GetVolumeFontSize(), L"ja-jp",
+        DWRITE_FONT_STRETCH_NORMAL, config->GetLayoutVolumeControl().FontSize, L"ja-jp",
         &m_volumeTextFormat);
     if (m_volumeTextFormat) {
       // Text alignment setup removed to fix text positioning issue
     }
 
-    context->CreateSolidColorBrush(ParseHexColor(config->GetTooltipBgColor()), &m_tooltipBgBrush);
+    context->CreateSolidColorBrush(ParseHexColor(config->GetLayoutTooltip().TooltipBgColor), &m_tooltipBgBrush);
     context->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_tooltipIconBrush);
     context->CreateSolidColorBrush(D2D1::ColorF(1.0f, 0.3f, 0.3f, 1.0f), &m_tooltipWheelBrush);
   }
@@ -131,8 +131,8 @@ void VolumeControlWidget::CreateResources(ID2D1DeviceContext *context,
       m_tooltipGeometry->Open(&sink);
       sink->SetFillMode(D2D1_FILL_MODE_WINDING);
 
-      float w = config ? config->GetTooltipWidth() : 50.0f;
-      float h = config ? config->GetTooltipHeight() : 26.0f;
+      float w = config ? config->GetLayoutTooltip().TooltipWidth : 50.0f;
+      float h = config ? config->GetLayoutTooltip().TooltipHeight : 26.0f;
       float r = 4.0f;
 
       sink->BeginFigure(D2D1::Point2F(r, 0.0f), D2D1_FIGURE_BEGIN_FILLED);
@@ -175,7 +175,7 @@ void VolumeControlWidget::ReleaseResources() {
 }
 
 void VolumeControlWidget::UpdateAnimation(const WidgetContext &ctx) {
-  float fadeOutSpeed = ctx.config ? ctx.config->GetHoverFadeOutSpeed() : 3.0f;
+  float fadeOutSpeed = ctx.config ? ctx.config->GetUICommonParm().HoverFadeOutSpeed : 3.0f;
   float fadeInSpeed = 10.0f;
 
   if (ctx.isVolumeHovered) {
@@ -200,7 +200,7 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
                                const WidgetContext &ctx,
                                const ConfigManager *config) {
   float finalAlpha = (std::max)(ctx.controlAlpha, ctx.osdVolumeAlpha);
-  if (finalAlpha <= 0.0f || !config || !config->GetShowVolumeControl())
+  if (finalAlpha <= 0.0f || !config || !config->GetVisibility().ShowVolumeControl)
     return;
 
   D2D1_SIZE_F renderTargetSize = context->GetSize();
@@ -218,7 +218,7 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
     swprintf_s(volBuf, L"%d%%", volPercent);
 
     m_volTextLayout.Reset();
-    float letterSpacing = config->GetVolumeTextLetterSpacing();
+    float letterSpacing = config->GetLayoutVolumeControl().TextLetterSpacing;
     m_dwriteFactory->CreateTextLayout(
         volBuf, static_cast<UINT32>(wcslen(volBuf)), m_volumeTextFormat.Get(),
         layout.textMaxWidth, layout.textMaxHeight, &m_volTextLayout);
@@ -233,7 +233,7 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
 
   if (m_controlBrush) {
     D2D1_COLOR_F baseColor = D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f);
-    D2D1_COLOR_F hoverColor = config ? ParseHexColor(config->GetFocusColor()) : baseColor;
+    D2D1_COLOR_F hoverColor = config ? ParseHexColor(config->GetUICommonParm().FocusColor) : baseColor;
     float t = m_hoverAlpha;
     D2D1_COLOR_F blendedColor = D2D1::ColorF(
         baseColor.r + (hoverColor.r - baseColor.r) * t,
@@ -250,8 +250,8 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
         D2D1::Matrix3x2F::Scale(layout.volSize, layout.volSize) *
         D2D1::Matrix3x2F::Translation(layout.volX, layout.volY);
 
-    if (m_shadowBrush && config->GetEnableShadow()) {
-      m_shadowBrush->SetOpacity(config->GetShadowOpacity() *
+    if (m_shadowBrush && config->GetUICommonParm().EnableShadow) {
+      m_shadowBrush->SetOpacity(config->GetUICommonParm().ShadowOpacity *
                                 finalAlpha);
 
       context->SetTransform(
@@ -325,8 +325,8 @@ void VolumeControlWidget::Draw(ID2D1DeviceContext *context,
           m_tooltipIconBrush.Get(),
           m_tooltipWheelBrush.Get(),
           tooltipAlphaFinal,
-          config->GetTooltipBgOpacity(),
-          config->GetTooltipIconSize(),
+          config->GetLayoutTooltip().TooltipBgOpacity,
+          config->GetLayoutTooltip().TooltipIconSize,
           oldTransform
       );
     }

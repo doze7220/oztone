@@ -93,9 +93,9 @@ void LogoMenuWidget::CreateResources(ID2D1DeviceContext *context,
 
   if (config) {
     dwriteFactory->CreateTextFormat(
-        config->GetIconFontFamily().c_str(), nullptr,
+        config->GetUICommonParm().IconFontFamily.c_str(), nullptr,
         DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL, config->GetLogoMenuIconSize(), L"ja-jp",
+        DWRITE_FONT_STRETCH_NORMAL, config->GetLayoutLogoMenu().MenuIconSize, L"ja-jp",
         &m_iconTextFormat);
     if (m_iconTextFormat) {
       m_iconTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
@@ -104,9 +104,9 @@ void LogoMenuWidget::CreateResources(ID2D1DeviceContext *context,
     }
 
     dwriteFactory->CreateTextFormat(
-        config->GetBaseFontFamily().c_str(), nullptr,
+        config->GetUICommonParm().BaseFontFamily.c_str(), nullptr,
         DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL, config->GetLogoMenuTypingFontSize(),
+        DWRITE_FONT_STRETCH_NORMAL, config->GetLayoutLogoMenu().MenuTypingFontSize,
         L"ja-jp", &m_typingTextFormat);
     if (m_typingTextFormat) {
       m_typingTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
@@ -115,15 +115,15 @@ void LogoMenuWidget::CreateResources(ID2D1DeviceContext *context,
     }
 
     dwriteFactory->CreateTextFormat(
-        config->GetIconFontFamily().c_str(), nullptr,
+        config->GetUICommonParm().IconFontFamily.c_str(), nullptr,
         DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL, config->GetLogoMenuVisualizerFontSize(),
+        DWRITE_FONT_STRETCH_NORMAL, config->GetLayoutLogoMenu().VisualizerIconFontSize,
         L"ja-jp", &m_indicatorTextFormat);
 
     dwriteFactory->CreateTextFormat(
-        config->GetIconFontFamily().c_str(), nullptr,
+        config->GetUICommonParm().IconFontFamily.c_str(), nullptr,
         DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL, config->GetLogoMenuLockIconFontSize(),
+        DWRITE_FONT_STRETCH_NORMAL, config->GetLayoutLogoMenu().LockIconFontSize,
         L"ja-jp", &m_lockIconTextFormat);
     if (m_indicatorTextFormat) {
       m_indicatorTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
@@ -159,10 +159,10 @@ void LogoMenuWidget::ReleaseResources() {
 }
 
 void LogoMenuWidget::UpdateAnimation(const WidgetContext &ctx) {
-  float duration = ctx.config ? ctx.config->GetLogoMenuScrollDuration() : 0.5f;
+  float duration = ctx.config ? ctx.config->GetLayoutLogoMenu().MenuScrollDuration : 0.5f;
   float speed = (duration > 0.0f) ? (1.0f / duration) : 2.0f;
   if (ctx.isLogoMenuHovered || ctx.isHovered) {
-    m_logoMenuLeaveTimer = ctx.config ? ctx.config->GetBaseLeaveDelay() : 3.0f;
+    m_logoMenuLeaveTimer = ctx.config ? ctx.config->GetUICommonParm().BaseLeaveDelay : 3.0f;
   } else if (m_logoMenuLeaveTimer > 0.0f) {
     m_logoMenuLeaveTimer -= ctx.deltaTime;
   }
@@ -189,7 +189,7 @@ void LogoMenuWidget::UpdateAnimation(const WidgetContext &ctx) {
       m_isRippling.resize(count, false);
     }
 
-    float fadeOutSpeed = ctx.config->GetHoverFadeOutSpeed() * ctx.deltaTime;
+    float fadeOutSpeed = ctx.config->GetUICommonParm().HoverFadeOutSpeed * ctx.deltaTime;
     float fadeInSpeed = 10.0f * ctx.deltaTime;
 
     for (size_t i = 0; i < count; ++i) {
@@ -244,27 +244,27 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
     std::wstring indicatorText;
 
     if (item.commandId == Window::ID_LOGO_VISUALIZER) {
-      int mode = config->GetVisualizerMode();
+      int mode = config->GetVisualizer().VisualizerMode;
       active = (mode != 0);
       if (mode == 1 || mode == 2) {
         hasIndicator = true;
         indicatorText = mode == 1 ? L"1" : L"2";
       }
     } else if (item.commandId == Window::ID_LOGO_BG_MODE) {
-      int mode = config->GetBackgroundArtMode();
+      int mode = config->GetBackground().BackgroundArtMode;
       active = (mode != 1);
       if (mode == 2) {
         hasIndicator = true;
         indicatorText = L"2";
       }
     } else if (item.commandId == Window::ID_LOGO_RESIZE_MODE) {
-      active = config->GetEnableResize();
+      active = config->GetWindow().EnableResize;
     } else if (item.commandId == Window::ID_LOGO_LOCK_POS) {
-      active = config->GetLockWindowPosition();
+      active = config->GetWindow().LockWindowPosition;
       hasIndicator = true;
       indicatorText = active ? L"🔒" : L"🔓";
     } else if (item.commandId == Window::ID_LOGO_SHUFFLE) {
-      if (config->GetShuffleMode()) {
+      if (config->GetAudio().ShuffleMode) {
         iconText = L"🔀";
       } else {
         iconText = L"➡️";
@@ -275,7 +275,7 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
 
     auto GetBlendedColor = [&](bool isActive, int index) {
         D2D1_COLOR_F baseColor = isActive ? D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f) : D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.4f);
-        D2D1_COLOR_F hoverColor = ParseHexColor(config->GetFocusColor());
+        D2D1_COLOR_F hoverColor = ParseHexColor(config->GetUICommonParm().FocusColor);
         float t = (index >= 0 && index < static_cast<int>(m_hoverAlpha.size())) ? m_hoverAlpha[index] : 0.0f;
         return D2D1_COLOR_F{
             baseColor.r + (hoverColor.r - baseColor.r) * t,
@@ -324,9 +324,9 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
         bool isLockPos = (item.commandId == Window::ID_LOGO_LOCK_POS);
         
         indRect.left =
-            itemLayout.position.x + (isLockPos ? config->GetLogoMenuLockIconOffsetX() : config->GetLogoMenuVisualizerIconOffsetX());
+            itemLayout.position.x + (isLockPos ? config->GetLayoutLogoMenu().LockIconOffsetX : config->GetLayoutLogoMenu().VisualizerIconOffsetX);
         indRect.top =
-            itemLayout.position.y + (isLockPos ? config->GetLogoMenuLockIconOffsetY() : config->GetLogoMenuVisualizerIconOffsetY());
+            itemLayout.position.y + (isLockPos ? config->GetLayoutLogoMenu().LockIconOffsetY : config->GetLayoutLogoMenu().VisualizerIconOffsetY);
 
         // Create a temporary layout for shadow/outline effect
         IDWriteTextFormat* format = isLockPos && m_lockIconTextFormat ? m_lockIconTextFormat.Get() : m_indicatorTextFormat.Get();
@@ -374,7 +374,7 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
       ctx.logoMenuHoveredIndex < ctx.logoMenuItems->size()) {
     const auto &hoveredItem = (*ctx.logoMenuItems)[ctx.logoMenuHoveredIndex];
     if (hoveredItem.commandId == Window::ID_LOGO_VISUALIZER) {
-      int mode = config->GetVisualizerMode();
+      int mode = config->GetVisualizer().VisualizerMode;
       if (mode == 1)
         textToDraw = L"ビジュアライザ: PRISM BEAT";
       else if (mode == 2)
@@ -382,7 +382,7 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
       else
         textToDraw = L"ビジュアライザ: OFF";
     } else if (hoveredItem.commandId == Window::ID_LOGO_BG_MODE) {
-      int mode = config->GetBackgroundArtMode();
+      int mode = config->GetBackground().BackgroundArtMode;
       if (mode == 1)
         textToDraw = L"背景表示: 非表示";
       else if (mode == 2)
@@ -390,23 +390,23 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
       else
         textToDraw = L"背景表示: 再生中のアートワーク";
     } else if (hoveredItem.commandId == Window::ID_LOGO_RESIZE_MODE) {
-      if (config->GetEnableResize())
+      if (config->GetWindow().EnableResize)
         textToDraw = L"リサイズモード: 有効";
       else
         textToDraw = L"リサイズモード: 無効";
     } else if (hoveredItem.commandId == Window::ID_LOGO_LOCK_POS) {
-      if (config->GetLockWindowPosition())
+      if (config->GetWindow().LockWindowPosition)
         textToDraw = L"画面位置固定: 有効";
       else
         textToDraw = L"画面位置固定: 無効";
     } else if (hoveredItem.commandId == Window::ID_LOGO_PLAYLIST_POS) {
-      if (config->GetPlaylistPosition() == 0) {
+      if (config->GetLayoutPlaylist().PlaylistPosition == 0) {
         textToDraw = L"プレイリスト配置: 画面左";
       } else {
         textToDraw = L"プレイリスト配置: 画面右";
       }
     } else if (hoveredItem.commandId == Window::ID_LOGO_SHUFFLE) {
-      if (config->GetShuffleMode()) {
+      if (config->GetAudio().ShuffleMode) {
         textToDraw = L"再生モード：シャッフル";
       } else {
         textToDraw = L"再生モード：プレイリスト登録順";
@@ -416,7 +416,7 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
     }
   }
 
-  float letterSpacing = config->GetLogoMenuTypingLetterSpacing();
+  float letterSpacing = config->GetLayoutLogoMenu().MenuTypingLetterSpacing;
   if (letterSpacing != 0.0f && m_dwriteFactory) {
     Microsoft::WRL::ComPtr<IDWriteTextLayout> textLayout;
     HRESULT hr = m_dwriteFactory->CreateTextLayout(
@@ -434,12 +434,12 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
       }
 
       if (m_shadowBrush) {
-        m_shadowBrush->SetOpacity(config->GetShadowOpacity());
+        m_shadowBrush->SetOpacity(config->GetUICommonParm().ShadowOpacity);
         context->DrawTextLayout(
             D2D1::Point2F(layout.typingTextRect.left +
-                              config->GetShadowOffsetX(),
+                              config->GetUICommonParm().ShadowOffsetX,
                           layout.typingTextRect.top +
-                              config->GetShadowOffsetY()),
+                              config->GetUICommonParm().ShadowOffsetY),
             textLayout.Get(), m_shadowBrush.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE);
       }
 
@@ -450,12 +450,12 @@ void LogoMenuWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
     }
   } else {
     if (m_shadowBrush) {
-      m_shadowBrush->SetOpacity(config->GetShadowOpacity());
+      m_shadowBrush->SetOpacity(config->GetUICommonParm().ShadowOpacity);
       D2D1_RECT_F shadowRect = layout.typingTextRect;
-      shadowRect.left += config->GetShadowOffsetX();
-      shadowRect.right += config->GetShadowOffsetX();
-      shadowRect.top += config->GetShadowOffsetY();
-      shadowRect.bottom += config->GetShadowOffsetY();
+      shadowRect.left += config->GetUICommonParm().ShadowOffsetX;
+      shadowRect.right += config->GetUICommonParm().ShadowOffsetX;
+      shadowRect.top += config->GetUICommonParm().ShadowOffsetY;
+      shadowRect.bottom += config->GetUICommonParm().ShadowOffsetY;
       context->DrawText(textToDraw.c_str(),
                         static_cast<UINT32>(textToDraw.length()),
                         m_typingTextFormat.Get(), shadowRect,

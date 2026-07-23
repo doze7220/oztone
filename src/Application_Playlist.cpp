@@ -25,7 +25,7 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
 
           UpdatePlaylistSummaries();
 
-          if (targetPath == m_config.GetDefaultPlaylistPath()) {
+          if (targetPath == m_config.GetPlaylist().DefaultPlaylistPath) {
             std::vector<std::wstring> newAvailable =
                 m_config.GetAvailablePlaylists();
             if (!newAvailable.empty()) {
@@ -40,7 +40,7 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
     }
   } else {
     if (btnIndex == 0) { // 📁 (上の階層へ)
-      std::wstring currentPlaylist = m_config.GetDefaultPlaylistPath();
+      std::wstring currentPlaylist = m_config.GetPlaylist().DefaultPlaylistPath;
       std::vector<std::wstring> available = m_config.GetAvailablePlaylists();
       for (size_t i = 0; i < available.size(); ++i) {
         if (available[i] == currentPlaylist) {
@@ -53,7 +53,7 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
       m_renderer.TriggerFlyText(L"TRACK REMOVED");
       if (!m_playlistManager.IsEmpty()) {
         m_playlistManager.RemoveCurrentTrack();
-        m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
+        m_playlistManager.SaveToFile(m_config.GetPlaylist().DefaultPlaylistPath);
         UpdatePlaylistSummaries();
 
         m_audioManager.Stop();
@@ -83,7 +83,7 @@ void Application::OnPlaylistClicked(int x, int y) {
   float logicalHeight = static_cast<float>(rect.bottom - rect.top) /
                         (static_cast<float>(dpi) / 96.0f);
 
-  float toolbarHeight = m_config.GetPlaylistToolbarHeight();
+  float toolbarHeight = m_config.GetLayoutPlaylist().ToolbarHeight;
   if (logicalY < toolbarHeight) {
     // ツールバー領域へのクリックはWindow.cpp(WM_LBUTTONDOWN)から
     // SetPlaylistToolbarClickCallbackを通じて飛んでくるためここでは無視する。
@@ -96,7 +96,7 @@ void Application::OnPlaylistClicked(int x, int y) {
     if (totalPlaylists == 0)
       return;
 
-    std::wstring currentPlaylist = m_config.GetDefaultPlaylistPath();
+    std::wstring currentPlaylist = m_config.GetPlaylist().DefaultPlaylistPath;
     int currentIndex = 0;
     for (int i = 0; i < totalPlaylists; ++i) {
       if (playlists[i] == currentPlaylist) {
@@ -134,7 +134,7 @@ void Application::OnPlaylistClicked(int x, int y) {
     m_focusedPlaylistIndex = index;
 
     if (!m_playlistManager.IsEmpty()) {
-      m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
+      m_playlistManager.SaveToFile(m_config.GetPlaylist().DefaultPlaylistPath);
       if (!m_framingDbPath.empty()) {
         m_framingDb.SaveToFile(m_framingDbPath);
       }
@@ -142,7 +142,7 @@ void Application::OnPlaylistClicked(int x, int y) {
     int oldIndex = static_cast<int>(m_playlistManager.GetCurrentIndex());
     m_playlistManager.JumpToIndex(index);
 
-    float itemHeight = static_cast<float>(m_config.GetPlaylistItemOffsetY());
+    float itemHeight = static_cast<float>(m_config.GetLayoutPlaylist().PlaylistItemOffsetY);
     float offsetCorrection =
         static_cast<float>(index - oldIndex) * itemHeight;
     m_renderer.AddPlaylistScroll(offsetCorrection);
@@ -172,7 +172,7 @@ void Application::OnPlaylistDoubleClicked(int x, int y) {
   float logicalHeight = static_cast<float>(rect.bottom - rect.top) /
                         (static_cast<float>(dpi) / 96.0f);
 
-  float toolbarHeight = m_config.GetPlaylistToolbarHeight();
+  float toolbarHeight = m_config.GetLayoutPlaylist().ToolbarHeight;
   if (logicalY < toolbarHeight) {
     return;
   }
@@ -183,7 +183,7 @@ void Application::OnPlaylistDoubleClicked(int x, int y) {
     if (totalPlaylists == 0)
       return;
 
-    std::wstring currentPlaylist = m_config.GetDefaultPlaylistPath();
+    std::wstring currentPlaylist = m_config.GetPlaylist().DefaultPlaylistPath;
     int currentIndex = 0;
     for (int i = 0; i < totalPlaylists; ++i) {
       if (playlists[i] == currentPlaylist) {
@@ -212,7 +212,7 @@ void Application::ClearPlaylist() {
 
   m_trackAnalyzer.ClearQueue();
 
-  std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
+  std::wstring defaultPath = m_config.GetPlaylist().DefaultPlaylistPath;
   m_playlistManager.SaveToFile(defaultPath);
   if (!m_framingDbPath.empty()) {
     m_framingDb.SaveToFile(m_framingDbPath);
@@ -226,7 +226,7 @@ void Application::ClearPlaylist() {
 }
 
 void Application::SwitchPlaylist(const std::wstring &filepath) {
-  std::wstring oldPath = m_config.GetDefaultPlaylistPath();
+  std::wstring oldPath = m_config.GetPlaylist().DefaultPlaylistPath;
   std::filesystem::path newPath(filepath);
   std::filesystem::path currentPath(oldPath);
 
@@ -261,7 +261,7 @@ void Application::SwitchPlaylist(const std::wstring &filepath) {
 
   m_playlistManager.Clear();
   m_playlistManager.LoadFromFile(filepath);
-  m_playlistManager.RebuildQueue(m_config.GetShuffleMode());
+  m_playlistManager.RebuildQueue(m_config.GetAudio().ShuffleMode);
   if (!m_playlistManager.IsEmpty()) {
     size_t skipCount = 0;
     bool played = false;
@@ -307,7 +307,7 @@ void Application::CreateNewPlaylist() {
   ss << L"playlist_" << std::put_time<wchar_t>(&bt, L"%Y%m%d_%H%M");
   std::wstring baseName = ss.str();
 
-  std::wstring defaultPath = m_config.GetDefaultPlaylistPath();
+  std::wstring defaultPath = m_config.GetPlaylist().DefaultPlaylistPath;
   std::filesystem::path currentPath(defaultPath);
   std::filesystem::path dir = currentPath.parent_path();
 

@@ -6,7 +6,7 @@
 
 void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVolumeHovered, bool isPlaylistHovered, bool isTrackInfoHovered, bool isLogoMenuHovered, int logoMenuHoveredIndex, size_t currentTrackIndex, size_t totalTracks, bool isPlaylistListViewMode, int playbackHoveredIndex, int playlistHoveredItemIndex, const std::vector<Window::LogoMenuItem>* logoMenuItems, bool isLogoClicked, int clickedLogoMenuIndex, int clickedPlaybackIndex, bool* outIsPlaylistExpanded, bool* outIsLogoMenuExpanded, bool isJogDialing) {
     if (isControlHovered) {
-        m_controlLeaveTimer = m_config ? m_config->GetBaseLeaveDelay() : 3.0f;
+        m_controlLeaveTimer = m_config ? m_config->GetUICommonParm().BaseLeaveDelay : 3.0f;
         m_controlAlpha += 0.05f;
         if (m_controlAlpha > 1.0f) m_controlAlpha = 1.0f;
     } else {
@@ -19,7 +19,7 @@ void Renderer::UpdateAnimation(float deltaTime, bool isControlHovered, bool isVo
     }
 
     if (m_config) {
-        float fadeSpeed = m_config->GetOsdFadeSpeed();
+        float fadeSpeed = m_config->GetLayoutOSD().OsdFadeSpeed;
         
         if (m_osdVolumeWaitTimer > 0.0f) {
             m_osdVolumeWaitTimer -= deltaTime;

@@ -97,7 +97,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
   }
 
   if (addedAny) {
-    std::filesystem::path defaultPath = m_config.GetDefaultPlaylistPath();
+    std::filesystem::path defaultPath = m_config.GetPlaylist().DefaultPlaylistPath;
     std::filesystem::path playlistDir = defaultPath.parent_path();
     if (!playlistDir.empty() && !std::filesystem::exists(playlistDir)) {
       std::filesystem::create_directories(playlistDir);
@@ -107,7 +107,7 @@ void Application::OnFilesDropped(const std::vector<std::wstring> &paths) {
 
     bool isShiftPressed = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
     if (!isShiftPressed) {
-      m_playlistManager.RebuildQueue(m_config.GetShuffleMode());
+      m_playlistManager.RebuildQueue(m_config.GetAudio().ShuffleMode);
       if (!firstAddedTrack.empty()) {
         m_playlistManager.WarpToTrack(firstAddedTrack);
       }

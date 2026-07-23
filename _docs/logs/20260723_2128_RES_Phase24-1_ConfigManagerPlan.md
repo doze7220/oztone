@@ -48,13 +48,11 @@
     - `Config_LayoutOSD.h/cpp`, `Config_Visualizer.h/cpp`, `Config_VisualizerPrismBeat.h/cpp` の作成
 - [x] Task 8: Visualizer_HaloDust / GlobalHotkeys セクションの移行
     - `Config_VisualizerHaloDust.h/cpp`, `Config_GlobalHotkeys.h/cpp` の作成
-- [ ] Task 9: 最終結線、パージ、およびアーキテクチャ更新
+- [x] Task 9: 最終結線と置換（※パージ保留）
     - Task 1〜8のメモ書きをもとに `ConfigManager.h` へ一斉結線
-    - `ConfigManager.h` 内の旧変数および旧ゲッターの全削除
-    - アプリケーション各所の既存ゲッター呼び出し箇所を新構造体経由への修正 (例: `GetFocusColor()` -> `GetUICommonParm().FocusColor`)
-    - `ConfigManager.h`, `ConfigManager.cpp` の `src/Config/` への移動と、それに伴う各ファイルの include パス修正
-    - 古い `ConfigManager_XXX.cpp` の整理、`CMakeLists.txt` の更新（`src/Config/Config_*.cpp` 構造の反映）
-    - `PROJECT_ARCHITECTURE.md` の内容更新
+    - アプリケーション各所の既存ゲッター呼び出し箇所を新構造体経由への一括修正 (例: `GetFocusColor()` -> `GetUICommonParm().FocusColor`)
+    - `CMakeLists.txt` の更新（`src/Config/Config_*.cpp` 構造の反映）およびビルド通過確認
+    - （※旧変数、旧ゲッター、旧パース用cppファイル等のパージ、および ConfigManager 本体の移動は次フェーズへ保留）
 
 ## 4. 詳細作業内容
 ### Task 1: System / Window / Visibility セクションの移行
@@ -265,8 +263,15 @@ void LoadSection_VisualizerHaloDust(Config_VisualizerHaloDust& outConfig);
 void LoadSection_GlobalHotkeys(Config_GlobalHotkeys& outConfig);
 ```
 
-### Task 9: 最終結線、パージ、およびアーキテクチャ更新
+### Task 9: 最終結線と置換（※パージ保留）
 **【対象ファイル】**
-- (タスク完了時に記載)
+- `src/ConfigManager.h`, `src/ConfigManager.cpp`
+- `src/*.cpp` (全てのWidget, Application, Window, Renderer 等)
+- `CMakeLists.txt`
 **【作業内容】**
-- (タスク完了時に記載)
+- `ConfigManager.h` に、Task 1〜8で作成した全22セクションのインクルード、メンバ変数、ゲッターメソッドを追加した。
+- `ConfigManager.cpp` の `LoadSettings()` にて、全セクションのロード関数（`LoadSection_XXX`）を呼び出すように追加した。
+- Pythonスクリプトを用いて、旧ゲッター呼び出し（例：`GetShowTitleBar()`）を新構造体経由（例：`GetVisibility().ShowTitleBar`）に一括置換した。
+- `CMakeLists.txt` に新設した `Config_*.cpp` および `Config_*.h` を追加した。
+- ビルドを実行し、LNKエラーを含むすべてのエラーが解消され、ビルドが通ることを確認した。
+- **※安全装置として、旧メンバ変数、旧ゲッター、旧パース用cppファイル（`ConfigManager_Window.cpp`等）は一切削除せずに残している。パージ作業およびConfigManager本体のディレクトリ移動は保留中。**

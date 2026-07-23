@@ -145,7 +145,7 @@ void BackgroundManager::UpdateAnimation(float deltaTime)
         // クロスフェード完了までの時間（秒）を ConfigManager から取得
         float fadeDuration = 0.5f;
         if (m_config) {
-            fadeDuration = m_config->GetCrossfadeDuration();
+            fadeDuration = m_config->GetBackground().CrossfadeDuration;
         }
         if (fadeDuration <= 0.0f) {
             m_fadeProgress = 1.0f;
@@ -219,10 +219,10 @@ std::vector<BackgroundLayer> BackgroundManager::GetLayers() const {
     // レイヤーグループ開始
     BackgroundLayer groupBegin;
     groupBegin.type = BackgroundLayerType::LayerGroupBegin;
-    groupBegin.opacity = m_config->GetBgOpacity();
+    groupBegin.opacity = m_config->GetLayoutSeekBar().BgOpacity;
     layers.push_back(groupBegin);
 
-    int bgMode = m_config->GetBackgroundArtMode();
+    int bgMode = m_config->GetBackground().BackgroundArtMode;
 
     if (bgMode == 0) {
         // 2. OLD画像
@@ -261,7 +261,7 @@ std::vector<BackgroundLayer> BackgroundManager::GetLayers() const {
     }
 
     // 4. ポストエフェクト (カラーフィル)
-    float darken = m_config->GetBgDarkenOpacity();
+    float darken = m_config->GetBackground().BgDarkenOpacity;
     if (darken > 0.0f) {
         BackgroundLayer overlay;
         overlay.type = BackgroundLayerType::SolidColor;

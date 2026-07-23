@@ -12,10 +12,10 @@ Application::~Application() {
 
   m_audioManager.Uninitialize();
 
-  m_config.SetDefaultPlaylistPath(m_config.GetDefaultPlaylistPath());
+  m_config.SetDefaultPlaylistPath(m_config.GetPlaylist().DefaultPlaylistPath);
 
   if (!m_playlistManager.IsEmpty()) {
-    m_playlistManager.SaveToFile(m_config.GetDefaultPlaylistPath());
+    m_playlistManager.SaveToFile(m_config.GetPlaylist().DefaultPlaylistPath);
   }
 
   wchar_t exePath[MAX_PATH];

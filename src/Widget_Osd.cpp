@@ -9,16 +9,16 @@ void OsdWidget::CreateResources(ID2D1DeviceContext* context, IWICImagingFactory*
 
     m_dwriteFactory = dwriteFactory;
 
-    context->CreateSolidColorBrush(ParseHexColor(config->GetOsdTextColor()), &m_textBrush);
-    context->CreateSolidColorBrush(ParseHexColor(config->GetShadowColor()), &m_shadowBrush);
+    context->CreateSolidColorBrush(ParseHexColor(config->GetLayoutOSD().OsdTextColor), &m_textBrush);
+    context->CreateSolidColorBrush(ParseHexColor(config->GetUICommonParm().ShadowColor), &m_shadowBrush);
 
     dwriteFactory->CreateTextFormat(
-        config->GetOsdFontFamily().c_str(),
+        config->GetUICommonParm().OsdFontFamily.c_str(),
         nullptr,
         DWRITE_FONT_WEIGHT_BOLD,
         DWRITE_FONT_STYLE_NORMAL,
         DWRITE_FONT_STRETCH_NORMAL,
-        config->GetOsdFontSize(),
+        config->GetLayoutOSD().OsdFontSize,
         L"ja-jp",
         &m_textFormat
     );
@@ -87,8 +87,8 @@ void OsdWidget::Draw(ID2D1DeviceContext* context, const WidgetContext& ctx, cons
     m_textLayout->SetMaxWidth(metrics.width);
     m_textLayout->SetMaxHeight(metrics.height);
 
-    if (m_shadowBrush && config->GetShadowOpacity() > 0.0f) {
-        m_shadowBrush->SetOpacity(ctx.flyTextAlpha * config->GetShadowOpacity());
+    if (m_shadowBrush && config->GetUICommonParm().ShadowOpacity > 0.0f) {
+        m_shadowBrush->SetOpacity(ctx.flyTextAlpha * config->GetUICommonParm().ShadowOpacity);
         context->DrawTextLayout(D2D1::Point2F(layout.shadowRect.left, layout.shadowRect.top), m_textLayout.Get(), m_shadowBrush.Get());
     }
 

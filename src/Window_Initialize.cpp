@@ -61,28 +61,28 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow,
   DWORD dwStyle = 0;
   DWORD dwExStyle = 0;
 
-  if (config.GetShowTitleBar() && config.GetShowWindowFrame()) {
+  if (config.GetWindow().ShowTitleBar && config.GetWindow().ShowWindowFrame) {
     dwStyle = WS_OVERLAPPEDWINDOW;
-  } else if (config.GetShowTitleBar()) {
+  } else if (config.GetWindow().ShowTitleBar) {
     dwStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
-  } else if (config.GetShowWindowFrame()) {
+  } else if (config.GetWindow().ShowWindowFrame) {
     dwStyle = WS_POPUP | WS_THICKFRAME;
   } else {
     dwStyle = WS_POPUP; // 完全枠なし
     dwExStyle |= WS_EX_LAYERED | WS_EX_NOREDIRECTIONBITMAP;
   }
 
-  if (!config.GetShowTaskbar()) {
+  if (!config.GetWindow().ShowTaskbar) {
     dwExStyle |= WS_EX_TOOLWINDOW;
   } else {
     dwExStyle |= WS_EX_APPWINDOW;
   }
 
   // ConfigManagerからサイズ・座標を取得しDPIスケーリング
-  int x = config.GetWindowX();
-  int y = config.GetWindowY();
-  int width = config.GetWindowWidth();
-  int height = config.GetWindowHeight();
+  int x = config.GetWindow().WindowX;
+  int y = config.GetWindow().WindowY;
+  int width = config.GetWindow().WindowWidth;
+  int height = config.GetWindow().WindowHeight;
 
   UINT dpi = GetDpiForSystem();
   int scaledWidth = MulDiv(width, dpi, 96);
@@ -125,7 +125,7 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow,
   UpdateWindow(m_hwnd);
 
   // Initialize Z-Order
-  int zOrder = m_config->GetZOrder();
+  int zOrder = m_config->GetWindow().ZOrder;
   HWND hWndInsertAfter = HWND_NOTOPMOST;
   if (zOrder == 1)
     hWndInsertAfter = HWND_TOPMOST;
@@ -155,7 +155,7 @@ bool Window::Initialize(HINSTANCE hInstance, int nCmdShow,
 
 void Window::HandleDestroy(HWND hwnd) {
   Shell_NotifyIconW(NIM_DELETE, &m_nid);
-  if (m_config && m_config->GetSavePositionOnExit()) {
+  if (m_config && m_config->GetWindow().SavePositionOnExit) {
     RECT wndRect, clientRect;
     if (GetWindowRect(hwnd, &wndRect) && GetClientRect(hwnd, &clientRect)) {
       UINT dpi = GetDpiForWindow(hwnd);

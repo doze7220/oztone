@@ -73,7 +73,7 @@ void TrackAnalyzer::ParseThreadFunc() {
             }
             bool isFFTLoaded = hasMeta && currentMeta.isFFTLoaded;
             bool isMetaLoaded = hasMeta && currentMeta.isMetaLoaded;
-            bool needsScan = hasMeta && (currentMeta.peakAmplitude <= 1.0f) && m_configManager->GetEnablePreScan();
+            bool needsScan = hasMeta && (currentMeta.peakAmplitude <= 1.0f) && m_configManager->GetVisualizer().EnablePreScan;
 
             if (isFFTLoaded && isMetaLoaded && !needsScan) {
                 continue;
@@ -122,10 +122,10 @@ void TrackAnalyzer::ParseThreadFunc() {
             }
 
             if (!isFFTLoaded || needsScan) {
-                if (m_configManager->GetEnablePreScan()) {
+                if (m_configManager->GetVisualizer().EnablePreScan) {
                     float peakAmplitude = 0.0f;
                     float maxFrequency = 0.0f;
-                    float noiseThreshold = m_configManager->GetHighFreqNoiseThreshold();
+                    float noiseThreshold = m_configManager->GetVisualizer().HighFreqNoiseThreshold;
                     
                     bool scanSuccess = false;
                     for (int retry = 0; retry < 10; ++retry) {

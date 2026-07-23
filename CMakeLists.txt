@@ -35,6 +35,28 @@ set(SOURCES
     src/Window_DropTarget.cpp
     src/Window_System.cpp
     src/ConfigManager.cpp
+    src/Config/Config_System.cpp
+    src/Config/Config_Window.cpp
+    src/Config/Config_Visibility.cpp
+    src/Config/Config_Playlist.cpp
+    src/Config/Config_Audio.cpp
+    src/Config/Config_TrackDrum.cpp
+    src/Config/Config_UICommonParm.cpp
+    src/Config/Config_Background.cpp
+    src/Config/Config_LayoutAppLogo.cpp
+    src/Config/Config_LayoutLogoMenu.cpp
+    src/Config/Config_LayoutNowPlaying.cpp
+    src/Config/Config_LayoutSeekBar.cpp
+    src/Config/Config_LayoutPlaybackControls.cpp
+    src/Config/Config_LayoutVolumeControl.cpp
+    src/Config/Config_LayoutTooltip.cpp
+    src/Config/Config_LayoutPlaylist.cpp
+    src/Config/Config_LayoutGlobalHotkeys.cpp
+    src/Config/Config_LayoutOSD.cpp
+    src/Config/Config_Visualizer.cpp
+    src/Config/Config_VisualizerPrismBeat.cpp
+    src/Config/Config_VisualizerHaloDust.cpp
+    src/Config/Config_GlobalHotkeys.cpp
     src/ConfigManager_Window.cpp
     src/ConfigManager_Background.cpp
     src/ConfigManager_Playlist.cpp
@@ -88,6 +110,28 @@ set(HEADERS
     src/Application.h
     src/Window.h
     src/ConfigManager.h
+    src/Config/Config_System.h
+    src/Config/Config_Window.h
+    src/Config/Config_Visibility.h
+    src/Config/Config_Playlist.h
+    src/Config/Config_Audio.h
+    src/Config/Config_TrackDrum.h
+    src/Config/Config_UICommonParm.h
+    src/Config/Config_Background.h
+    src/Config/Config_LayoutAppLogo.h
+    src/Config/Config_LayoutLogoMenu.h
+    src/Config/Config_LayoutNowPlaying.h
+    src/Config/Config_LayoutSeekBar.h
+    src/Config/Config_LayoutPlaybackControls.h
+    src/Config/Config_LayoutVolumeControl.h
+    src/Config/Config_LayoutTooltip.h
+    src/Config/Config_LayoutPlaylist.h
+    src/Config/Config_LayoutGlobalHotkeys.h
+    src/Config/Config_LayoutOSD.h
+    src/Config/Config_Visualizer.h
+    src/Config/Config_VisualizerPrismBeat.h
+    src/Config/Config_VisualizerHaloDust.h
+    src/Config/Config_GlobalHotkeys.h
     src/Renderer.h
     src/Renderer_TrackDrum.h
     src/LayoutCalculator.h

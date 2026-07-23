@@ -11,21 +11,21 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
   m_dwriteFactory = dwriteFactory;
 
   dwriteFactory->CreateTextFormat(
-      config->GetBaseFontFamily().c_str(), nullptr,
+      config->GetUICommonParm().BaseFontFamily.c_str(), nullptr,
       DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL,
-      DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistTitleFontSize(), L"ja-jp",
+      DWRITE_FONT_STRETCH_NORMAL, config->GetLayoutPlaylist().PlaylistTitleFontSize, L"ja-jp",
       &m_playlistTitleTextFormat);
 
   dwriteFactory->CreateTextFormat(
-      config->GetBaseFontFamily().c_str(), nullptr,
+      config->GetUICommonParm().BaseFontFamily.c_str(), nullptr,
       DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
-      DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistArtistFontSize(), L"ja-jp",
+      DWRITE_FONT_STRETCH_NORMAL, config->GetLayoutPlaylist().PlaylistArtistFontSize, L"ja-jp",
       &m_playlistArtistTextFormat);
 
   dwriteFactory->CreateTextFormat(
-      config->GetBaseFontFamily().c_str(), nullptr,
+      config->GetUICommonParm().BaseFontFamily.c_str(), nullptr,
       DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
-      DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistTimeFontSize(), L"en-us",
+      DWRITE_FONT_STRETCH_NORMAL, config->GetLayoutPlaylist().PlaylistTimeFontSize, L"en-us",
       &m_playlistTimeTextFormat);
 
   auto ApplyTrimming = [&](Microsoft::WRL::ComPtr<IDWriteTextFormat> &format) {
@@ -48,9 +48,9 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
     m_playlistTimeTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
 
   dwriteFactory->CreateTextFormat(
-      config->GetBaseFontFamily().c_str(), nullptr,
+      config->GetUICommonParm().BaseFontFamily.c_str(), nullptr,
       DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
-      DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistToolbarTextFontSize(),
+      DWRITE_FONT_STRETCH_NORMAL, config->GetLayoutPlaylist().ToolbarTextFontSize,
       L"ja-jp", &m_toolbarTextFormat);
   if (m_toolbarTextFormat) {
     m_toolbarTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
@@ -59,9 +59,9 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
   }
 
   dwriteFactory->CreateTextFormat(
-      config->GetBaseFontFamily().c_str(), nullptr,
+      config->GetUICommonParm().BaseFontFamily.c_str(), nullptr,
       DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
-      DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistToolbarTextFontSize(),
+      DWRITE_FONT_STRETCH_NORMAL, config->GetLayoutPlaylist().ToolbarTextFontSize,
       L"ja-jp", &m_toolbarCountTextFormat);
   if (m_toolbarCountTextFormat) {
     m_toolbarCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
@@ -69,9 +69,9 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
   }
 
   dwriteFactory->CreateTextFormat(
-      config->GetBaseFontFamily().c_str(), nullptr,
+      config->GetUICommonParm().BaseFontFamily.c_str(), nullptr,
       DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL,
-      DWRITE_FONT_STRETCH_NORMAL, config->GetPlaylistTrackCountFontSize(),
+      DWRITE_FONT_STRETCH_NORMAL, config->GetLayoutPlaylist().TrackCountFontSize,
       L"en-us", &m_trackCountTextFormat);
   if (m_trackCountTextFormat) {
     m_trackCountTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
@@ -81,7 +81,7 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
   dwriteFactory->CreateTextFormat(
       L"Segoe UI Emoji", nullptr, DWRITE_FONT_WEIGHT_NORMAL,
       DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL,
-      config->GetPlaylistToolbarIconSize(), L"ja-jp", &m_toolbarIconFormat);
+      config->GetLayoutPlaylist().ToolbarIconSize, L"ja-jp", &m_toolbarIconFormat);
   if (m_toolbarIconFormat) {
     m_toolbarIconFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
     m_toolbarIconFormat->SetParagraphAlignment(
@@ -91,7 +91,7 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
   dwriteFactory->CreateTextFormat(
       L"Segoe UI Emoji", nullptr, DWRITE_FONT_WEIGHT_NORMAL,
       DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL,
-      config->GetPinSubIconFontSize(), L"ja-jp", &m_pinSubIconFormat);
+      config->GetLayoutPlaylist().PinSubIconFontSize, L"ja-jp", &m_pinSubIconFormat);
   if (m_pinSubIconFormat) {
     m_pinSubIconFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
     m_pinSubIconFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -113,8 +113,8 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
   };
 
   context->CreateSolidColorBrush(
-      ParseHexColor(config->GetPlaylistArtistColor()), &m_playlistArtistBrush);
-  context->CreateSolidColorBrush(ParseHexColor(config->GetPlaylistTimeColor()),
+      ParseHexColor(config->GetLayoutPlaylist().PlaylistArtistColor), &m_playlistArtistBrush);
+  context->CreateSolidColorBrush(ParseHexColor(config->GetLayoutPlaylist().PlaylistTimeColor),
                                  &m_playlistTimeBrush);
   context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White),
                                  &m_textBrush);
@@ -125,15 +125,15 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
   context->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f),
                                  &m_playlistHighlightBrush);
 
-  context->CreateSolidColorBrush(WidgetCommon::HexToColorF(config->GetPlaylistTrackCountBoxBaseColor()),
+  context->CreateSolidColorBrush(WidgetCommon::HexToColorF(config->GetLayoutPlaylist().TrackCountBoxBaseColor),
                                  &m_trackCountBoxBrush);
-  context->CreateSolidColorBrush(WidgetCommon::HexToColorF(config->GetPlaylistTrackCountBoxFontColor()),
+  context->CreateSolidColorBrush(WidgetCommon::HexToColorF(config->GetLayoutPlaylist().TrackCountBoxFontColor),
                                  &m_trackCountTextBrush);
   context->CreateSolidColorBrush(
-      ParseHexColor(config->GetPlaylistGripLineColor()),
+      ParseHexColor(config->GetLayoutPlaylist().PlaylistGripLineColor),
       &m_playlistGripLineBrush);
   context->CreateSolidColorBrush(
-      ParseHexColor(config->GetPlaylistGripArrowColor()),
+      ParseHexColor(config->GetLayoutPlaylist().PlaylistGripArrowColor),
       &m_playlistGripArrowBrush);
 
   Microsoft::WRL::ComPtr<ID2D1Factory> d2dFactory;
@@ -144,8 +144,8 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
     if (m_playlistGripArrowGeometry) {
       Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
       if (SUCCEEDED(m_playlistGripArrowGeometry->Open(&sink))) {
-        float width = config->GetPlaylistGripArrowWidth();
-        float height = config->GetPlaylistGripArrowHeight();
+        float width = config->GetLayoutPlaylist().PlaylistGripArrowWidth;
+        float height = config->GetLayoutPlaylist().PlaylistGripArrowHeight;
         sink->BeginFigure(D2D1::Point2F(0.0f, -height / 2.0f),
                           D2D1_FIGURE_BEGIN_FILLED);
         sink->AddLine(D2D1::Point2F(-width, 0.0f));
@@ -159,8 +159,8 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
     if (m_playlistGripArrowRightGeometry) {
       Microsoft::WRL::ComPtr<ID2D1GeometrySink> sink;
       if (SUCCEEDED(m_playlistGripArrowRightGeometry->Open(&sink))) {
-        float width = config->GetPlaylistGripArrowWidth();
-        float height = config->GetPlaylistGripArrowHeight();
+        float width = config->GetLayoutPlaylist().PlaylistGripArrowWidth;
+        float height = config->GetLayoutPlaylist().PlaylistGripArrowHeight;
         sink->BeginFigure(D2D1::Point2F(0.0f, -height / 2.0f),
                           D2D1_FIGURE_BEGIN_FILLED);
         sink->AddLine(D2D1::Point2F(width, 0.0f));
@@ -172,7 +172,7 @@ void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,
   }
 
   D2D1_GRADIENT_STOP stops[2];
-  D2D1_COLOR_F playingColor = ParseHexColor(config->GetFocusColor());
+  D2D1_COLOR_F playingColor = ParseHexColor(config->GetUICommonParm().FocusColor);
   stops[0].color = playingColor;
   stops[0].color.a = 0.0f;
   stops[0].position = 0.0f;

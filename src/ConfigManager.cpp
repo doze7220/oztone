@@ -163,6 +163,29 @@ void ConfigManager::LoadSettings() {
   LoadLogoMenuSettings();
   LoadVisualizerSettings();
   LoadSystemSettings();
+
+  LoadSection_System(m_configSystem);
+  LoadSection_Window(m_configWindow);
+  LoadSection_Visibility(m_configVisibility);
+  LoadSection_Playlist(m_configPlaylist);
+  LoadSection_Audio(m_configAudio);
+  LoadSection_TrackDrum(m_configTrackDrum);
+  LoadSection_UICommonParm(m_configUICommonParm);
+  LoadSection_Background(m_configBackground);
+  LoadSection_LayoutAppLogo(m_configLayoutAppLogo);
+  LoadSection_LayoutLogoMenu(m_configLayoutLogoMenu);
+  LoadSection_LayoutNowPlaying(m_configLayoutNowPlaying);
+  LoadSection_LayoutSeekBar(m_configLayoutSeekBar);
+  LoadSection_LayoutPlaybackControls(m_configLayoutPlaybackControls);
+  LoadSection_LayoutVolumeControl(m_configLayoutVolumeControl);
+  LoadSection_LayoutTooltip(m_configLayoutTooltip);
+  LoadSection_LayoutPlaylist(m_configLayoutPlaylist);
+  LoadSection_LayoutGlobalHotkeys(m_configLayoutGlobalHotkeys);
+  LoadSection_LayoutOSD(m_configLayoutOSD);
+  LoadSection_Visualizer(m_configVisualizer);
+  LoadSection_VisualizerPrismBeat(m_configVisualizerPrismBeat);
+  LoadSection_VisualizerHaloDust(m_configVisualizerHaloDust);
+  LoadSection_GlobalHotkeys(m_configGlobalHotkeys);
 }
 
 void ConfigManager::LoadCommonSettings() {

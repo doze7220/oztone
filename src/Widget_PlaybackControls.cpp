@@ -39,7 +39,7 @@ void PlaybackControlsWidget::CreateResources(ID2D1DeviceContext *context,
     }
 
     std::vector<float> pts;
-    std::wstringstream ss(config->GetSkipIconPoints());
+    std::wstringstream ss(config->GetLayoutPlaybackControls().SkipIconPoints);
     std::wstring item;
     while (std::getline(ss, item, L',')) {
         try { pts.push_back(std::stof(item)); } catch(...) {}
@@ -77,7 +77,7 @@ void PlaybackControlsWidget::CreateResources(ID2D1DeviceContext *context,
     Microsoft::WRL::ComPtr<IDWriteTextFormat> textFormat;
     dwriteFactory->CreateTextFormat(
         L"Meiryo", nullptr, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL, config->GetSkipTextFontSize(), L"en-us", &textFormat);
+        DWRITE_FONT_STRETCH_NORMAL, config->GetLayoutPlaybackControls().SkipTextFontSize, L"en-us", &textFormat);
     if (textFormat) {
       dwriteFactory->CreateTextLayout(L"10", 2, textFormat.Get(), 50.0f, 20.0f,
                                       &m_indicatorTextLayout);
@@ -96,7 +96,7 @@ void PlaybackControlsWidget::ReleaseResources() {
 
 void PlaybackControlsWidget::UpdateAnimation(const WidgetContext &ctx) {
     if (!ctx.config) return;
-    float fadeOutSpeed = ctx.config->GetHoverFadeOutSpeed() * ctx.deltaTime;
+    float fadeOutSpeed = ctx.config->GetUICommonParm().HoverFadeOutSpeed * ctx.deltaTime;
     float fadeInSpeed = 10.0f * ctx.deltaTime; // Fade in is generally faster
 
     for (int i = 0; i < 5; ++i) {
@@ -127,7 +127,7 @@ void PlaybackControlsWidget::UpdateLayout(const WidgetContext &ctx,
 void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
                                   const WidgetContext &ctx,
                                   const ConfigManager *config) {
-  if (ctx.controlAlpha <= 0.0f || !config || !config->GetShowPlaybackControls())
+  if (ctx.controlAlpha <= 0.0f || !config || !config->GetVisibility().ShowPlaybackControls)
     return;
 
   D2D1_SIZE_F renderTargetSize = context->GetSize();
@@ -151,7 +151,7 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
 
     auto GetButtonColor = [&](int index) {
         D2D1_COLOR_F baseColor = D2D1::ColorF(1.0f, 1.0f, 1.0f, ctx.controlAlpha);
-        D2D1_COLOR_F hoverColor = ParseHexColor(config->GetFocusColor());
+        D2D1_COLOR_F hoverColor = ParseHexColor(config->GetUICommonParm().FocusColor);
         hoverColor.a = ctx.controlAlpha;
         float t = m_hoverAlpha[index];
         return D2D1::ColorF(
@@ -203,7 +203,7 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
             float scale = 1.0f + rp * 0.5f;
             float opacity = 0.5f * (1.0f - rp) * ctx.controlAlpha;
             
-            D2D1_COLOR_F rippleColor = ParseHexColor(config->GetFocusColor());
+            D2D1_COLOR_F rippleColor = ParseHexColor(config->GetUICommonParm().FocusColor);
             rippleColor.a = opacity;
             m_controlBrush->SetColor(rippleColor);
             
@@ -244,14 +244,14 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
       DrawChevron(skipBackX + layout.size * 0.15f, layout.centerY,
                   layout.size * 0.5f, layout.size, false);
       if (m_indicatorTextLayout) {
-        float textX = skipBackX + layout.size * config->GetSkipTextOffsetX();
-        float textY = layout.centerY + layout.size * config->GetSkipTextOffsetY();
-        float shift = config->GetSkipTextShadowShift();
+        float textX = skipBackX + layout.size * config->GetLayoutPlaybackControls().SkipTextOffsetX;
+        float textY = layout.centerY + layout.size * config->GetLayoutPlaybackControls().SkipTextOffsetY;
+        float shift = config->GetLayoutPlaybackControls().SkipTextShadowShift;
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> shadowBrush;
-        context->CreateSolidColorBrush(HexToColorF(config->GetShadowColor()),
+        context->CreateSolidColorBrush(HexToColorF(config->GetUICommonParm().ShadowColor),
                                        &shadowBrush);
         if (shadowBrush) {
-            shadowBrush->SetOpacity(config->GetShadowOpacity() * ctx.controlAlpha);
+            shadowBrush->SetOpacity(config->GetUICommonParm().ShadowOpacity * ctx.controlAlpha);
             context->DrawTextLayout(D2D1::Point2F(textX + shift, textY + shift),
                                     m_indicatorTextLayout.Get(), shadowBrush.Get());
             context->DrawTextLayout(D2D1::Point2F(textX - shift, textY - shift),
@@ -293,14 +293,14 @@ void PlaybackControlsWidget::Draw(ID2D1DeviceContext *context,
       DrawChevron(skipFwdX + layout.size * 0.15f, layout.centerY,
                   layout.size * 0.5f, layout.size, true);
       if (m_indicatorTextLayout) {
-        float textX = skipFwdX + layout.size * config->GetSkipTextOffsetX();
-        float textY = layout.centerY + layout.size * config->GetSkipTextOffsetY();
-        float shift = config->GetSkipTextShadowShift();
+        float textX = skipFwdX + layout.size * config->GetLayoutPlaybackControls().SkipTextOffsetX;
+        float textY = layout.centerY + layout.size * config->GetLayoutPlaybackControls().SkipTextOffsetY;
+        float shift = config->GetLayoutPlaybackControls().SkipTextShadowShift;
         Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> shadowBrush;
-        context->CreateSolidColorBrush(HexToColorF(config->GetShadowColor()),
+        context->CreateSolidColorBrush(HexToColorF(config->GetUICommonParm().ShadowColor),
                                        &shadowBrush);
         if (shadowBrush) {
-            shadowBrush->SetOpacity(config->GetShadowOpacity() * ctx.controlAlpha);
+            shadowBrush->SetOpacity(config->GetUICommonParm().ShadowOpacity * ctx.controlAlpha);
             context->DrawTextLayout(D2D1::Point2F(textX + shift, textY + shift),
                                     m_indicatorTextLayout.Get(), shadowBrush.Get());
             context->DrawTextLayout(D2D1::Point2F(textX - shift, textY - shift),

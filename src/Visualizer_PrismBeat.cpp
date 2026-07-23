@@ -122,7 +122,7 @@ void VisualizerPrismBeat::Draw(ID2D1DeviceContext* context, const std::vector<fl
         
         float normalized = m_smoothedAmplitudes[x_index];
         
-        float maxHeightRatio = m_config ? m_config->GetPrismBeatMaxHeightRatio() : 0.8f;
+        float maxHeightRatio = m_config ? m_config->GetVisualizerPrismBeat().MaxHeightRatio : 0.8f;
         float amplitude = normalized * (height * maxHeightRatio * 0.5f);
         
         // 減衰係数（フェードアウト）の計算
@@ -190,11 +190,11 @@ void VisualizerPrismBeat::Draw(ID2D1DeviceContext* context, const std::vector<fl
 
         ID2D1SolidColorBrush* neonBrush = m_neonBrushes[seg.colorIndex].Get();
 
-        float glow1Thick = m_config ? m_config->GetPrismGlow1Thickness() : 6.0f;
-        float glow1Opac = m_config ? m_config->GetPrismGlow1Opacity() : 0.6f;
-        float glow2Thick = m_config ? m_config->GetPrismGlow2Thickness() : 16.0f;
-        float glow2Opac = m_config ? m_config->GetPrismGlow2Opacity() : 0.2f;
-        float coreThick = m_config ? m_config->GetPrismLineThickness() : 1.0f;
+        float glow1Thick = m_config ? m_config->GetVisualizerPrismBeat().PrismGlow1Thickness : 6.0f;
+        float glow1Opac = m_config ? m_config->GetVisualizerPrismBeat().PrismGlow1Opacity : 0.6f;
+        float glow2Thick = m_config ? m_config->GetVisualizerPrismBeat().PrismGlow2Thickness : 16.0f;
+        float glow2Opac = m_config ? m_config->GetVisualizerPrismBeat().PrismGlow2Opacity : 0.2f;
+        float coreThick = m_config ? m_config->GetVisualizerPrismBeat().PrismLineThickness : 1.0f;
 
         // 第1パス (グロー外側)
         neonBrush->SetOpacity(glow2Opac);
