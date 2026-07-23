@@ -1,6 +1,16 @@
 [ ] シークバー対応: UIは用意せず、ショートカットキー・マウスホイールのみで対応
 [ ] ArtFramingDatabase の BackgroundManager への吸収とカプセル化
-[ ] ConfigManager.hリファクタリング
+[ ] TrackAnalizerのFFT解析とメタタグ抽出を分離化
+
+1. **ConfigManagerに残存したファイルI/Oロジックの移管（さっきの不格好な復元の修復）**
+   パージ時に力技で復元されてしまった `GetAvailablePlaylists` や `CheckPlaylistSnapshotChanged` などのディレクトリ・スナップショット監視処理を、本来の持ち主である `FileManager` や `PlaylistManager` へと正しく移管する責務分離。
+2. **`LayoutCalculator` の `ConfigManager` 依存の完全除去**
+   現在、レイアウト計算時に引数で `const ConfigManager* config` を丸ごと渡してしまっているものを改め、Renderer側で必要な設定値だけを `LayoutInput` 等の専用構造体に詰めて渡すことで、計算機を完全に独立させるアーキテクチャへの進化。
+3. **`Renderer::Update` メソッドの導入と隠蔽**
+   Application側から `UpdateAnimation` や `UpdateTextLayouts` などを個別に呼んでいる現状を、単一の `Renderer::Update(float deltaTime, ...)` に統合し、ApplicationからRenderer内部のリソース更新手順を隠蔽するクリーンアップ。
+4. **`src/` フォルダの大規模ディレクトリ分割**
+   肥大化した `src/` ディレクトリを整理し、Widgetsを `Header/`、`Controls/`、`Playlist/`、`Utility/` などのカテゴリ別にフォルダ分けして、AIのコンテキストをさらに直感的に絞り込めるようにする物理配置のリファクタリング。
+
 
 ## 新規実装の野望
 ### 【UI新規実装】
