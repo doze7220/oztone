@@ -63,6 +63,9 @@ public:
     const Config_VisualizerHaloDust& GetVisualizerHaloDust() const { return m_configVisualizerHaloDust; }
     const Config_GlobalHotkeys& GetGlobalHotkeys() const { return m_configGlobalHotkeys; }
 
+    std::vector<std::wstring> GetAvailablePlaylists() const;
+    bool CheckPlaylistSnapshotChanged();
+
     /**
      * @brief 更新がないか確認する
      */
@@ -78,6 +81,7 @@ public:
     void SetVisualizerMode(int mode);
     void SetShowHotkeys(bool show);
     void SetEnableOSD(bool enable);
+    void SetDefaultPlaylistPath(const std::wstring& path);
     void SetPlaylistPosition(int position);
     void SetDefaultVolume(float volume);
 
@@ -86,7 +90,6 @@ public:
     /**
      * @brief ウィンドウの表示位置とサイズを保存する
      */
-    void SaveWindowPosition(int x, int y, int width, int height);
 
     /**
      * @brief デフォルト設定で上書き保存する
@@ -156,4 +159,6 @@ private:
     Config_VisualizerPrismBeat m_configVisualizerPrismBeat;
     Config_VisualizerHaloDust m_configVisualizerHaloDust;
     Config_GlobalHotkeys m_configGlobalHotkeys;
+
+    std::vector<std::pair<std::wstring, std::filesystem::file_time_type>> m_playlistSnapshot;
 };

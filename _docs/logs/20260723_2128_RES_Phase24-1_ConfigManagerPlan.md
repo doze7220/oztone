@@ -317,9 +317,12 @@ void LoadSection_GlobalHotkeys(Config_GlobalHotkeys& outConfig);
 3. **物理ファイルの削除と移動**
    * **削除:** ConfigManager_Window.cpp 等の旧パース用ファイル群を削除。
    * **移動:** ConfigManager.h, ConfigManager.cpp, ConfigManager_DefaultIni.h を src/Config/ に移動。
+- [x] 古いメンバ変数、セッター・ゲッターメソッドの削除
+- [x] 不要となった旧パース用ファイルの物理削除
+- [x] ファイルの `src/Config/` への移動と CMakeLists.txt の更新
+- [x] プロジェクト全体のビルドと動作確認（`Application.cpp`, `Widget_SeekBar.cpp` の呼び出し修正対応、ビルド成功）
 4. **インクルードパスの修正とCMakeLists.txt の更新**
    * プロジェクト内のすべてのファイルに対し、#include "ConfigManager.h" を #include "Config/ConfigManager.h" に修正。
    * CMakeLists.txt のファイル一覧から削除したパース用ファイルを除外し、移動したファイルのパスを更新。
 5. **最終ビルドと動作確認**
-   * すべての移行が完了した状態でビルドエラーがないことを確認する。
-
+   * すべての移行が完了した状態でビルドエラーがないことを確認した。

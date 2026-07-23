@@ -79,7 +79,7 @@ void SeekBarWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
 
   if (m_seekBarBgBrush) {
     m_seekBarBgBrush->SetColor(WidgetCommon::HexToColorF(config->GetLayoutSeekBar().BgColor));
-    m_seekBarBgBrush->SetOpacity(config->GetSeekBarBgOpacity() * dimFactor);
+    m_seekBarBgBrush->SetOpacity(config->GetLayoutSeekBar().BgOpacity * dimFactor);
     context->FillRectangle(&layout.bgRect, m_seekBarBgBrush.Get());
   }
 
