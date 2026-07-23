@@ -8,7 +8,7 @@
 #include <queue>
 #include <optional>
 #include "Window.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "Renderer.h"
 #include "AudioManager.h"
 #include "FileManager.h"

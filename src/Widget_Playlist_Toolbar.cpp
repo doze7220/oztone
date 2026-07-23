@@ -1,5 +1,5 @@
 #include "Widget_Playlist.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "LayoutCalculator.h"
 #include <filesystem>
 void PlaylistWidget::BuildToolbarText(const WidgetContext& ctx, const ConfigManager* config, std::wstring& outText) {

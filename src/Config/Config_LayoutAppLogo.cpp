@@ -1,5 +1,5 @@
 #include "Config_LayoutAppLogo.h"
-#include "../ConfigManager.h"
+#include "ConfigManager.h"
 
 void ConfigManager::LoadSection_LayoutAppLogo(Config_LayoutAppLogo& outConfig) {
     outConfig.X = LoadOrWriteInt(L"Layout_AppLogo", L"X");

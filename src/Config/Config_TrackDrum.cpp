@@ -1,6 +1,6 @@
 #include "Config_TrackDrum.h"
-#include "../ConfigManager.h"
-#include "../ConfigManager_DefaultIni.h"
+#include "ConfigManager.h"
+#include "ConfigManager_DefaultIni.h"
 
 void ConfigManager::LoadSection_TrackDrum(Config_TrackDrum& outConfig) {
     outConfig.EnableTrackDrum = LoadOrWriteInt(L"TrackDrum", L"EnableTrackDrum") != 0;

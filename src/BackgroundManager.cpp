@@ -1,5 +1,5 @@
 #include "BackgroundManager.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "FileManager.h"
 #include "resource.h"
 #include <objbase.h>

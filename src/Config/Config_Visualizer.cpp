@@ -1,6 +1,6 @@
 #include "Config_Visualizer.h"
-#include "../ConfigManager.h"
-#include "../ConfigManager_DefaultIni.h"
+#include "ConfigManager.h"
+#include "ConfigManager_DefaultIni.h"
 
 void ConfigManager::LoadSection_Visualizer(Config_Visualizer& outConfig) {
     outConfig.VisualizerMode = LoadOrWriteInt(L"Visualizer", L"VisualizerMode");

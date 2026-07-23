@@ -1,5 +1,5 @@
 #include "Renderer.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "resource.h"
 #include <initguid.h>
 #pragma comment(lib, "dxguid.lib")

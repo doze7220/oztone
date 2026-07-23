@@ -1,6 +1,6 @@
 #include "TrackAnalyzer.h"
 #include "PlaylistManager.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "AudioManager.h"
 #include "FileManager.h"
 #include <windows.h>

@@ -1,7 +1,7 @@
 #include "Visualizer.h"
 #include "Visualizer_PrismBeat.h"
 #include "Visualizer_HaloDust.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include <cmath>
 #include <algorithm>
 

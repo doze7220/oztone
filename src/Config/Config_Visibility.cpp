@@ -1,6 +1,6 @@
 #include "Config_Visibility.h"
-#include "../ConfigManager.h"
-#include "../ConfigManager_DefaultIni.h"
+#include "ConfigManager.h"
+#include "ConfigManager_DefaultIni.h"
 
 void ConfigManager::LoadSection_Visibility(Config_Visibility& outConfig) {
     outConfig.ShowAppLogo = LoadOrWriteInt(L"Visibility", L"ShowAppLogo") != 0;

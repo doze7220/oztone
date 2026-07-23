@@ -1,5 +1,5 @@
 #include "Config_LayoutPlaylist.h"
-#include "../ConfigManager.h"
+#include "ConfigManager.h"
 
 void ConfigManager::LoadSection_LayoutPlaylist(Config_LayoutPlaylist& outConfig) {
     outConfig.PlaylistPosition = LoadOrWriteInt(L"Layout_Playlist", L"PlaylistPosition");

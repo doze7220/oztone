@@ -1,5 +1,5 @@
 #include "Window.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include <windowsx.h>
 
 LRESULT CALLBACK Window::LowLevelKeyboardProc(int nCode, WPARAM wParam,

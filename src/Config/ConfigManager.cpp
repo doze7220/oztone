@@ -155,15 +155,6 @@ void ConfigManager::LoadSettings() {
   // キャッシュをクリアしてファイルから最新状態を読み込むように強制する
   WritePrivateProfileStringW(NULL, NULL, NULL, m_iniFilePath.c_str());
 
-  LoadCommonSettings();
-  LoadWindowSettings();
-  LoadBackgroundSettings();
-  LoadPlaylistSettings();
-  LoadPlaybackSettings();
-  LoadLogoMenuSettings();
-  LoadVisualizerSettings();
-  LoadSystemSettings();
-
   LoadSection_System(m_configSystem);
   LoadSection_Window(m_configWindow);
   LoadSection_Visibility(m_configVisibility);
@@ -186,27 +177,6 @@ void ConfigManager::LoadSettings() {
   LoadSection_VisualizerPrismBeat(m_configVisualizerPrismBeat);
   LoadSection_VisualizerHaloDust(m_configVisualizerHaloDust);
   LoadSection_GlobalHotkeys(m_configGlobalHotkeys);
-}
-
-void ConfigManager::LoadCommonSettings() {
-  m_focusColor = LoadOrWriteString(L"UI_Common_Parm", L"FocusColor");
-  m_hoverFadeOutSpeed = LoadOrWriteFloat(L"UI_Common_Parm", L"HoverFadeOutSpeed");
-  m_baseLeaveDelay = LoadOrWriteFloat(L"UI_Common_Parm", L"BaseLeaveDelay");
-  m_baseFontFamily = LoadOrWriteString(L"UI_Common_Parm", L"BaseFontFamily");
-  m_monoFontFamily = LoadOrWriteString(L"UI_Common_Parm", L"MonoFontFamily");
-  m_iconFontFamily = LoadOrWriteString(L"UI_Common_Parm", L"IconFontFamily");
-  m_osdFontFamily = LoadOrWriteString(L"UI_Common_Parm", L"OsdFontFamily");
-  m_enableShadow = LoadOrWriteInt(L"UI_Common_Parm", L"EnableShadow") != 0;
-  m_shadowColor = LoadOrWriteString(L"UI_Common_Parm", L"ShadowColor");
-  m_shadowOffsetX = LoadOrWriteFloat(L"UI_Common_Parm", L"ShadowOffsetX");
-  m_shadowOffsetY = LoadOrWriteFloat(L"UI_Common_Parm", L"ShadowOffsetY");
-  m_shadowOpacity = LoadOrWriteFloat(L"UI_Common_Parm", L"ShadowOpacity");
-
-  m_tooltipIconSize = LoadOrWriteFloat(L"Layout_Tooltip", L"TooltipIconSize");
-  m_tooltipBgColor = LoadOrWriteString(L"Layout_Tooltip", L"TooltipBgColor");
-  m_tooltipBgOpacity = LoadOrWriteFloat(L"Layout_Tooltip", L"TooltipBgOpacity");
-  m_tooltipWidth = LoadOrWriteFloat(L"Layout_Tooltip", L"TooltipWidth");
-  m_tooltipHeight = LoadOrWriteFloat(L"Layout_Tooltip", L"TooltipHeight");
 }
 
 void ConfigManager::SaveDefaultSettings() {
@@ -244,3 +214,76 @@ void ConfigManager::SaveDefaultSettings() {
                              defPlaylistPath.c_str(), m_iniFilePath.c_str());
 }
 
+
+void ConfigManager::SaveWindowPosition(int x, int y, int width, int height) {
+  m_configWindow.WindowX = x;
+  m_configWindow.WindowY = y;
+  m_configWindow.WindowWidth = width;
+  m_configWindow.WindowHeight = height;
+  WritePrivateProfileStringW(L"Window", L"WindowX", std::to_wstring(x).c_str(), m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"Window", L"WindowY", std::to_wstring(y).c_str(), m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"Window", L"WindowWidth", std::to_wstring(width).c_str(), m_iniFilePath.c_str());
+  WritePrivateProfileStringW(L"Window", L"WindowHeight", std::to_wstring(height).c_str(), m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetZOrder(int zOrder) {
+  m_configWindow.ZOrder = zOrder;
+  WritePrivateProfileStringW(L"Window", L"ZOrder", std::to_wstring(zOrder).c_str(), m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetSavePositionOnExit(bool save) {
+  m_configWindow.SavePositionOnExit = save;
+  WritePrivateProfileStringW(L"Window", L"SavePositionOnExit", save ? L"1" : L"0", m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetEnableResize(bool enable) {
+  m_configWindow.EnableResize = enable;
+  WritePrivateProfileStringW(L"Window", L"EnableResize", enable ? L"1" : L"0", m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetLockWindowPosition(bool lock) {
+  m_configWindow.LockWindowPosition = lock;
+  WritePrivateProfileStringW(L"Window", L"LockWindowPosition", lock ? L"1" : L"0", m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetIsPlaylistPinned(bool pinned) {
+  m_configLayoutPlaylist.IsPlaylistPinned = pinned;
+  WritePrivateProfileStringW(L"Layout_Playlist", L"IsPlaylistPinned", pinned ? L"1" : L"0", m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetShuffleMode(bool mode) {
+  m_configAudio.ShuffleMode = mode;
+  WritePrivateProfileStringW(L"Audio", L"ShuffleMode", mode ? L"1" : L"0", m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetBackgroundArtMode(int mode) {
+  m_configBackground.BackgroundArtMode = mode;
+  WritePrivateProfileStringW(L"Background", L"BackgroundArtMode", std::to_wstring(mode).c_str(), m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetVisualizerMode(int mode) {
+  m_configVisualizer.VisualizerMode = mode;
+  WritePrivateProfileStringW(L"Visualizer", L"VisualizerMode", std::to_wstring(mode).c_str(), m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetShowHotkeys(bool show) {
+  m_configGlobalHotkeys.ShowHotkeys = show;
+  WritePrivateProfileStringW(L"GlobalHotkeys", L"ShowHotkeys", show ? L"1" : L"0", m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetEnableOSD(bool enable) {
+  m_configLayoutOSD.EnableOSD = enable;
+  WritePrivateProfileStringW(L"Layout_OSD", L"EnableOSD", enable ? L"1" : L"0", m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetPlaylistPosition(int position) {
+  m_configLayoutPlaylist.PlaylistPosition = position;
+  WritePrivateProfileStringW(L"Layout_Playlist", L"PlaylistPosition", std::to_wstring(position).c_str(), m_iniFilePath.c_str());
+}
+
+void ConfigManager::SetDefaultVolume(float volume) {
+  m_configLayoutVolumeControl.DefaultVolume = volume;
+  wchar_t buf[32];
+  swprintf_s(buf, L"%.2f", volume);
+  WritePrivateProfileStringW(L"Layout_VolumeControl", L"DefaultVolume", buf, m_iniFilePath.c_str());
+}

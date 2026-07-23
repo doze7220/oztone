@@ -1,5 +1,5 @@
 #include "Visualizer_PrismBeat.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include <cmath>
 #include <random>
 

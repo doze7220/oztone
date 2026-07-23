@@ -1,5 +1,5 @@
 #include "Widget_LogoMenu.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "LayoutCalculator.h"
 #include "resource.h"
 #include "Window.h"

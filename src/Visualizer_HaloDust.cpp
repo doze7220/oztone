@@ -1,5 +1,5 @@
 #include "Visualizer_HaloDust.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "WidgetCommon.h"
 #include <cmath>
 #include <random>

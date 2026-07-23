@@ -1,5 +1,5 @@
 #include "Window.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include <filesystem>
 
 constexpr UINT TRAY_MENU_ORDER[] = {Window::ID_TRAY_PLAY_PAUSE,

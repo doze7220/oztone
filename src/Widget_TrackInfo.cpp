@@ -1,6 +1,6 @@
 #include "Widget_TrackInfo.h"
 #include "WidgetCommon.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "LayoutCalculator.h"
 #include <cwchar>
 

@@ -1,6 +1,6 @@
 #include "Config_Background.h"
-#include "../ConfigManager.h"
-#include "../ConfigManager_DefaultIni.h"
+#include "ConfigManager.h"
+#include "ConfigManager_DefaultIni.h"
 
 void ConfigManager::LoadSection_Background(Config_Background& outConfig) {
     outConfig.BgOpacity = LoadOrWriteFloat(L"Background", L"BgOpacity");

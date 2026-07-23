@@ -1,5 +1,5 @@
 #include "Renderer.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "WidgetContext.h"
 #include "ThumbnailManager.h"
 #include <cmath>

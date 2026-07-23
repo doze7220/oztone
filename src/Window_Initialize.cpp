@@ -1,5 +1,5 @@
 #include "Window.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "resource.h"
 #include <shellapi.h>
 

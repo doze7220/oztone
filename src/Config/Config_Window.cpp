@@ -1,6 +1,6 @@
 #include "Config_Window.h"
-#include "../ConfigManager.h"
-#include "../ConfigManager_DefaultIni.h"
+#include "ConfigManager.h"
+#include "ConfigManager_DefaultIni.h"
 
 void ConfigManager::LoadSection_Window(Config_Window& outConfig) {
     outConfig.ShowTitleBar = LoadOrWriteInt(L"Window", L"ShowTitleBar") != 0;

@@ -1,6 +1,6 @@
 #include "Config_UICommonParm.h"
-#include "../ConfigManager.h"
-#include "../ConfigManager_DefaultIni.h"
+#include "ConfigManager.h"
+#include "ConfigManager_DefaultIni.h"
 
 void ConfigManager::LoadSection_UICommonParm(Config_UICommonParm& outConfig) {
     outConfig.FocusColor = LoadOrWriteString(L"UI_Common_Parm", L"FocusColor");

@@ -1,5 +1,5 @@
 #include "Config_LayoutGlobalHotkeys.h"
-#include "../ConfigManager.h"
+#include "ConfigManager.h"
 
 void ConfigManager::LoadSection_LayoutGlobalHotkeys(Config_LayoutGlobalHotkeys& outConfig) {
     outConfig.FontSize = LoadOrWriteFloat(L"Layout_GlobalHotkeys", L"FontSize");

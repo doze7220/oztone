@@ -1,5 +1,5 @@
 #include "Config_LayoutVolumeControl.h"
-#include "../ConfigManager.h"
+#include "ConfigManager.h"
 
 void ConfigManager::LoadSection_LayoutVolumeControl(Config_LayoutVolumeControl& outConfig) {
     outConfig.BaseLeftOffset = LoadOrWriteInt(L"Layout_VolumeControl", L"BaseLeftOffset");

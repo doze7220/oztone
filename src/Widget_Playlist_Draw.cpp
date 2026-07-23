@@ -1,5 +1,5 @@
 #include "Widget_Playlist.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "LayoutCalculator.h"
 
 void PlaylistWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,

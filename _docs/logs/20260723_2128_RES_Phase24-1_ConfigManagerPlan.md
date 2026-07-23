@@ -304,3 +304,22 @@ void LoadSection_GlobalHotkeys(Config_GlobalHotkeys& outConfig);
     - `IsInVolumeControlRegion` にて、残存していた旧ゲッター `GetVolumeBaseBottomOffset()` を新しい構造体プロパティ `GetLayoutVolumeControl().BaseBottomOffset` に修正。
     - `GetPlaybackButtonAt` にて、残存していた旧ゲッター `GetPlaybackBaseBottomOffset()` を新しい構造体プロパティ `GetLayoutPlaybackControls().BaseBottomOffset` に修正。
     - 修正後、`build.bat` を実行し正常にビルドが完了することを確認した。
+
+### [x] Task 10: 旧コードの完全パージとファイル整理 (Final Cleanup)
+**目的:** ConfigManager の移行が完了したため、旧アーキテクチャの残骸を安全にパージする。
+
+**作業内容:**
+1. **ConfigManager.h のパージ**
+   * 古いメンバ変数および、使われなくなった古いゲッターメソッドをすべて削除。
+2. **ConfigManager.cpp のパージ**
+   * LoadSettings() 内に残っている旧ローダーの呼び出しを削除し、古い LoadCommonSettings() 等の実装を削除。
+   * 現在もUIから呼ばれているセッター群の実装を移行し、新構造体へセットするよう書き換え。
+3. **物理ファイルの削除と移動**
+   * **削除:** ConfigManager_Window.cpp 等の旧パース用ファイル群を削除。
+   * **移動:** ConfigManager.h, ConfigManager.cpp, ConfigManager_DefaultIni.h を src/Config/ に移動。
+4. **インクルードパスの修正とCMakeLists.txt の更新**
+   * プロジェクト内のすべてのファイルに対し、#include "ConfigManager.h" を #include "Config/ConfigManager.h" に修正。
+   * CMakeLists.txt のファイル一覧から削除したパース用ファイルを除外し、移動したファイルのパスを更新。
+5. **最終ビルドと動作確認**
+   * すべての移行が完了した状態でビルドエラーがないことを確認する。
+

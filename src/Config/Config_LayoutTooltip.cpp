@@ -1,5 +1,5 @@
 #include "Config_LayoutTooltip.h"
-#include "../ConfigManager.h"
+#include "ConfigManager.h"
 
 void ConfigManager::LoadSection_LayoutTooltip(Config_LayoutTooltip& outConfig) {
     outConfig.TooltipIconSize = LoadOrWriteFloat(L"Layout_Tooltip", L"TooltipIconSize");

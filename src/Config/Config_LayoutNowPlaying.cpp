@@ -1,5 +1,5 @@
 #include "Config_LayoutNowPlaying.h"
-#include "../ConfigManager.h"
+#include "ConfigManager.h"
 
 void ConfigManager::LoadSection_LayoutNowPlaying(Config_LayoutNowPlaying& outConfig) {
     outConfig.BaseX = LoadOrWriteInt(L"Layout_NowPlaying", L"BaseX");

@@ -34,7 +34,7 @@ set(SOURCES
     src/Window_TrayMenu.cpp
     src/Window_DropTarget.cpp
     src/Window_System.cpp
-    src/ConfigManager.cpp
+    src/Config/ConfigManager.cpp
     src/Config/Config_System.cpp
     src/Config/Config_Window.cpp
     src/Config/Config_Visibility.cpp
@@ -57,13 +57,6 @@ set(SOURCES
     src/Config/Config_VisualizerPrismBeat.cpp
     src/Config/Config_VisualizerHaloDust.cpp
     src/Config/Config_GlobalHotkeys.cpp
-    src/ConfigManager_Window.cpp
-    src/ConfigManager_Background.cpp
-    src/ConfigManager_Playlist.cpp
-    src/ConfigManager_Playback.cpp
-    src/ConfigManager_LogoMenu.cpp
-    src/ConfigManager_Visualizer.cpp
-    src/ConfigManager_System.cpp
     src/Renderer.cpp
     src/Renderer_Initialize.cpp
     src/Renderer_Image.cpp
@@ -109,7 +102,7 @@ set(SOURCES
 set(HEADERS
     src/Application.h
     src/Window.h
-    src/ConfigManager.h
+    src/Config/ConfigManager.h
     src/Config/Config_System.h
     src/Config/Config_Window.h
     src/Config/Config_Visibility.h

@@ -8,7 +8,7 @@
 #include <atomic>
 #include <d2d1_1.h>
 #include <wrl/client.h>
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 
 struct IWICImagingFactory;
 

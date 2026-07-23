@@ -1,5 +1,5 @@
 #include "Widget_VolumeControl.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "LayoutCalculator.h"
 #include "WidgetCommon.h"
 

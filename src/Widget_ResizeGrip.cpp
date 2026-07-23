@@ -1,6 +1,6 @@
 #include "Widget_ResizeGrip.h"
 #include "WidgetCommon.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 
 // ================= ResizeGripWidget =================
 

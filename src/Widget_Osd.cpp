@@ -1,7 +1,7 @@
 #include "Widget_Osd.h"
 #include "WidgetCommon.h"
 #include "WidgetContext.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "LayoutCalculator.h"
 
 void OsdWidget::CreateResources(ID2D1DeviceContext* context, IWICImagingFactory* wicFactory, IDWriteFactory* dwriteFactory, const ConfigManager* config) {

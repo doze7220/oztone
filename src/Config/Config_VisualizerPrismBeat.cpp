@@ -1,6 +1,6 @@
 #include "Config_VisualizerPrismBeat.h"
-#include "../ConfigManager.h"
-#include "../ConfigManager_DefaultIni.h"
+#include "ConfigManager.h"
+#include "ConfigManager_DefaultIni.h"
 
 void ConfigManager::LoadSection_VisualizerPrismBeat(Config_VisualizerPrismBeat& outConfig) {
     outConfig.MaxHeightRatio = LoadOrWriteFloat(L"Visualizer_PrismBeat", L"MaxHeightRatio");

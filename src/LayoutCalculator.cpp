@@ -1,5 +1,5 @@
 #include "LayoutCalculator.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include <algorithm>
 
 static void ApplyPinningOffset(float& logicalWidth, float& offsetX, const ConfigManager* config) {

@@ -1,5 +1,5 @@
 #include "Config_LayoutPlaybackControls.h"
-#include "../ConfigManager.h"
+#include "ConfigManager.h"
 
 void ConfigManager::LoadSection_LayoutPlaybackControls(Config_LayoutPlaybackControls& outConfig) {
     outConfig.ControlHoverHeight = LoadOrWriteFloat(L"Layout_PlaybackControls", L"ControlHoverHeight");

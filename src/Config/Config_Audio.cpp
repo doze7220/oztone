@@ -1,6 +1,6 @@
 #include "Config_Audio.h"
-#include "../ConfigManager.h"
-#include "../ConfigManager_DefaultIni.h"
+#include "ConfigManager.h"
+#include "ConfigManager_DefaultIni.h"
 
 void ConfigManager::LoadSection_Audio(Config_Audio& outConfig) {
     outConfig.DefaultVolume = LoadOrWriteFloat(L"Audio", L"DefaultVolume");

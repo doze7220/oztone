@@ -1,6 +1,6 @@
 #include "Config_GlobalHotkeys.h"
-#include "../ConfigManager.h"
-#include "../ConfigManager_DefaultIni.h"
+#include "ConfigManager.h"
+#include "ConfigManager_DefaultIni.h"
 #include <windows.h>
 #include <string>
 

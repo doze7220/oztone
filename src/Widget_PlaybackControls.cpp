@@ -1,5 +1,5 @@
 #include "Widget_PlaybackControls.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "LayoutCalculator.h"
 #include <sstream>
 

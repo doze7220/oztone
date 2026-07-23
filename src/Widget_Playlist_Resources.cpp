@@ -1,5 +1,5 @@
 #include "Widget_Playlist.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "WidgetCommon.h"
 
 void PlaylistWidget::CreateResources(ID2D1DeviceContext *context,

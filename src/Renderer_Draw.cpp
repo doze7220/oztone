@@ -1,5 +1,5 @@
 #include "Renderer.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "LayoutCalculator.h"
 #include "WidgetContext.h"
 #include "BackgroundManager.h"

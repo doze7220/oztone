@@ -1,5 +1,5 @@
 #include "Config_LayoutLogoMenu.h"
-#include "../ConfigManager.h"
+#include "ConfigManager.h"
 
 void ConfigManager::LoadSection_LayoutLogoMenu(Config_LayoutLogoMenu& outConfig) {
     outConfig.MenuTypingFontSize = LoadOrWriteFloat(L"Layout_LogoMenu", L"MenuTypingFontSize");

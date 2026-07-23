@@ -1,5 +1,5 @@
 #include "Widget_Playlist.h"
-#include "ConfigManager.h"
+#include "Config/ConfigManager.h"
 #include "LayoutCalculator.h"
 #include "WidgetCommon.h"
 #include <filesystem>

@@ -1,6 +1,6 @@
 #include "Config_System.h"
-#include "../ConfigManager.h"
-#include "../ConfigManager_DefaultIni.h"
+#include "ConfigManager.h"
+#include "ConfigManager_DefaultIni.h"
 
 void ConfigManager::LoadSection_System(Config_System& outConfig) {
     outConfig.WatchdogInterval = LoadOrWriteFloat(L"System", L"WatchdogInterval");

@@ -1,5 +1,5 @@
 #include "Config_LayoutSeekBar.h"
-#include "../ConfigManager.h"
+#include "ConfigManager.h"
 
 void ConfigManager::LoadSection_LayoutSeekBar(Config_LayoutSeekBar& outConfig) {
     outConfig.SeekBarMargin = LoadOrWriteFloat(L"Layout_SeekBar", L"SeekBarMargin");

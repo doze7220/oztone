@@ -1,6 +1,6 @@
 #include "Config_LayoutOSD.h"
-#include "../ConfigManager.h"
-#include "../ConfigManager_DefaultIni.h"
+#include "ConfigManager.h"
+#include "ConfigManager_DefaultIni.h"
 
 void ConfigManager::LoadSection_LayoutOSD(Config_LayoutOSD& outConfig) {
     outConfig.OsdFontSize = LoadOrWriteFloat(L"Layout_OSD", L"OsdFontSize");
