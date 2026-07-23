@@ -1,6 +1,6 @@
 #pragma once
 
-struct Config_LayoutNowPlaying {
+struct Config_LayoutTrackInfo {
     int BaseX;
     int BaseBottomOffset;
     int ArtOffsetX;

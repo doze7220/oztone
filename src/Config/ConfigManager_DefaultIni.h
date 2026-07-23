@@ -85,7 +85,7 @@ LockIconFontSize=20.0
 LockIconOffsetX=-2
 LockIconOffsetY=-2
 
-[Layout_NowPlaying]
+[Layout_TrackInfo]
 BaseX=20
 BaseBottomOffset=162
 ArtOffsetX=0

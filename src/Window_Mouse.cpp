@@ -171,16 +171,16 @@ bool Window::IsInTrackInfoRegion(int x, int y) const {
     }
   }
 
-  float baseY = static_cast<float>(logicalHeight - m_config->GetLayoutNowPlaying().BaseBottomOffset);
+  float baseY = static_cast<float>(logicalHeight - m_config->GetLayoutTrackInfo().BaseBottomOffset);
 
-  float artTop = baseY + static_cast<float>(m_config->GetLayoutNowPlaying().ArtOffsetY);
-  float artBottom = artTop + static_cast<float>(m_config->GetLayoutNowPlaying().ArtSize);
+  float artTop = baseY + static_cast<float>(m_config->GetLayoutTrackInfo().ArtOffsetY);
+  float artBottom = artTop + static_cast<float>(m_config->GetLayoutTrackInfo().ArtSize);
 
-  float titleTop = baseY + static_cast<float>(m_config->GetLayoutNowPlaying().TitleOffsetY);
-  float titleBottom = titleTop + m_config->GetLayoutNowPlaying().TitleFontSize;
+  float titleTop = baseY + static_cast<float>(m_config->GetLayoutTrackInfo().TitleOffsetY);
+  float titleBottom = titleTop + m_config->GetLayoutTrackInfo().TitleFontSize;
 
-  float artistTop = baseY + static_cast<float>(m_config->GetLayoutNowPlaying().ArtistOffsetY);
-  float artistBottom = artistTop + m_config->GetLayoutNowPlaying().ArtistFontSize;
+  float artistTop = baseY + static_cast<float>(m_config->GetLayoutTrackInfo().ArtistOffsetY);
+  float artistBottom = artistTop + m_config->GetLayoutTrackInfo().ArtistFontSize;
 
   float topLimit = artTop;
   if (titleTop < topLimit) topLimit = titleTop;

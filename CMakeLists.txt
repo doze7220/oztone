@@ -45,7 +45,7 @@ set(SOURCES
     src/Config/Config_Background.cpp
     src/Config/Config_LayoutAppLogo.cpp
     src/Config/Config_LayoutLogoMenu.cpp
-    src/Config/Config_LayoutNowPlaying.cpp
+    src/Config/Config_LayoutTrackInfo.cpp
     src/Config/Config_LayoutSeekBar.cpp
     src/Config/Config_LayoutPlaybackControls.cpp
     src/Config/Config_LayoutVolumeControl.cpp
@@ -113,7 +113,7 @@ set(HEADERS
     src/Config/Config_Background.h
     src/Config/Config_LayoutAppLogo.h
     src/Config/Config_LayoutLogoMenu.h
-    src/Config/Config_LayoutNowPlaying.h
+    src/Config/Config_LayoutTrackInfo.h
     src/Config/Config_LayoutSeekBar.h
     src/Config/Config_LayoutPlaybackControls.h
     src/Config/Config_LayoutVolumeControl.h

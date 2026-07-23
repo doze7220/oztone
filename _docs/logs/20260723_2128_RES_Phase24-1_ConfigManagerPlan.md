@@ -359,3 +359,15 @@ void LoadSection_GlobalHotkeys(Config_GlobalHotkeys& outConfig);
     - `src/ConfigManager_DefaultIni.h` の該当箇所のデフォルト値定義を新しいキー名に更新。
     - 各ファイルのパース処理、および `Widget_SeekBar.cpp` の利用側の呼び出しを一括で新しいプロパティ名に置換。
     - 修正後、ビルドと動作確認を行い正常に完了した。
+
+### [x] Task 11: TrackInfo リネームと整理
+**目的:** UIウィジェット（Widget_TrackInfo）の名称と設定管理の名称を一致させるため、Config_LayoutNowPlaying となっている設定構造体・ファイル名・INIセクション名を TrackInfo に統一する。
+
+**作業内容:**
+- src/Config/Config_LayoutNowPlaying.h および .cpp を Config_LayoutTrackInfo.h/cpp に物理リネームした。
+- 関連する各ファイル内で、以下の置換を実行した。
+  - 構造体名: Config_LayoutNowPlaying -> Config_LayoutTrackInfo
+  - INIセクション名: [Layout_NowPlaying] -> [Layout_TrackInfo]
+  - ゲッター名: GetLayoutNowPlaying() -> GetLayoutTrackInfo()
+  - メソッド名: LoadSection_LayoutNowPlaying -> LoadSection_LayoutTrackInfo
+- CMakeLists.txt のビルド対象を新しいファイル名に変更し、ビルドを通して動作確認を完了した。

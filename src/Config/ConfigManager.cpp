@@ -165,7 +165,7 @@ void ConfigManager::LoadSettings() {
   LoadSection_Background(m_configBackground);
   LoadSection_LayoutAppLogo(m_configLayoutAppLogo);
   LoadSection_LayoutLogoMenu(m_configLayoutLogoMenu);
-  LoadSection_LayoutNowPlaying(m_configLayoutNowPlaying);
+  LoadSection_LayoutTrackInfo(m_configLayoutTrackInfo);
   LoadSection_LayoutSeekBar(m_configLayoutSeekBar);
   LoadSection_LayoutPlaybackControls(m_configLayoutPlaybackControls);
   LoadSection_LayoutVolumeControl(m_configLayoutVolumeControl);

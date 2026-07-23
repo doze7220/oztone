@@ -145,9 +145,9 @@ TrackInfoLayout LayoutCalculator::CalculateTrackInfoLayout(float logicalWidth, f
     ApplyPinningOffset(logicalWidth, offsetX, config);
     layout.clipRect = D2D1::RectF(offsetX, 0.0f, offsetX + logicalWidth, logicalHeight);
 
-    float size = static_cast<float>(config->GetLayoutNowPlaying().ArtSize);
-    float x = offsetX + static_cast<float>(config->GetLayoutNowPlaying().BaseX + config->GetLayoutNowPlaying().ArtOffsetX);
-    float y = logicalHeight - static_cast<float>(config->GetLayoutNowPlaying().BaseBottomOffset) + static_cast<float>(config->GetLayoutNowPlaying().ArtOffsetY);
+    float size = static_cast<float>(config->GetLayoutTrackInfo().ArtSize);
+    float x = offsetX + static_cast<float>(config->GetLayoutTrackInfo().BaseX + config->GetLayoutTrackInfo().ArtOffsetX);
+    float y = logicalHeight - static_cast<float>(config->GetLayoutTrackInfo().BaseBottomOffset) + static_cast<float>(config->GetLayoutTrackInfo().ArtOffsetY);
 
     // Album Art
     layout.fallbackArtRect = D2D1::RectF(x, y, x + size, y + size);
@@ -173,13 +173,13 @@ TrackInfoLayout LayoutCalculator::CalculateTrackInfoLayout(float logicalWidth, f
     }
 
     // Texts
-    float baseX = offsetX + static_cast<float>(config->GetLayoutNowPlaying().BaseX);
-    float baseY = logicalHeight - static_cast<float>(config->GetLayoutNowPlaying().BaseBottomOffset);
+    float baseX = offsetX + static_cast<float>(config->GetLayoutTrackInfo().BaseX);
+    float baseY = logicalHeight - static_cast<float>(config->GetLayoutTrackInfo().BaseBottomOffset);
     float rightMargin = 30.0f;
 
     // Title
-    float titleX = baseX + static_cast<float>(config->GetLayoutNowPlaying().TitleOffsetX);
-    float titleY = baseY + static_cast<float>(config->GetLayoutNowPlaying().TitleOffsetY);
+    float titleX = baseX + static_cast<float>(config->GetLayoutTrackInfo().TitleOffsetX);
+    float titleY = baseY + static_cast<float>(config->GetLayoutTrackInfo().TitleOffsetY);
     float titleRight = offsetX + logicalWidth - rightMargin;
     if (titleRight < titleX) titleRight = titleX + 1.0f;
 
@@ -192,8 +192,8 @@ TrackInfoLayout LayoutCalculator::CalculateTrackInfoLayout(float logicalWidth, f
     );
 
     // Artist
-    float artistX = baseX + static_cast<float>(config->GetLayoutNowPlaying().ArtistOffsetX);
-    float artistY = baseY + static_cast<float>(config->GetLayoutNowPlaying().ArtistOffsetY);
+    float artistX = baseX + static_cast<float>(config->GetLayoutTrackInfo().ArtistOffsetX);
+    float artistY = baseY + static_cast<float>(config->GetLayoutTrackInfo().ArtistOffsetY);
     float artistRight = offsetX + logicalWidth - rightMargin;
     if (artistRight < artistX) artistRight = artistX + 1.0f;
 

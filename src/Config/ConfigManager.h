@@ -14,7 +14,7 @@
 #include "Config_Background.h"
 #include "Config_LayoutAppLogo.h"
 #include "Config_LayoutLogoMenu.h"
-#include "Config_LayoutNowPlaying.h"
+#include "Config_LayoutTrackInfo.h"
 #include "Config_LayoutSeekBar.h"
 #include "Config_LayoutPlaybackControls.h"
 #include "Config_LayoutVolumeControl.h"
@@ -50,7 +50,7 @@ public:
     const Config_Background& GetBackground() const { return m_configBackground; }
     const Config_LayoutAppLogo& GetLayoutAppLogo() const { return m_configLayoutAppLogo; }
     const Config_LayoutLogoMenu& GetLayoutLogoMenu() const { return m_configLayoutLogoMenu; }
-    const Config_LayoutNowPlaying& GetLayoutNowPlaying() const { return m_configLayoutNowPlaying; }
+    const Config_LayoutTrackInfo& GetLayoutTrackInfo() const { return m_configLayoutTrackInfo; }
     const Config_LayoutSeekBar& GetLayoutSeekBar() const { return m_configLayoutSeekBar; }
     const Config_LayoutPlaybackControls& GetLayoutPlaybackControls() const { return m_configLayoutPlaybackControls; }
     const Config_LayoutVolumeControl& GetLayoutVolumeControl() const { return m_configLayoutVolumeControl; }
@@ -121,7 +121,7 @@ private:
     void LoadSection_Background(Config_Background& outConfig);
     void LoadSection_LayoutAppLogo(Config_LayoutAppLogo& outConfig);
     void LoadSection_LayoutLogoMenu(Config_LayoutLogoMenu& outConfig);
-    void LoadSection_LayoutNowPlaying(Config_LayoutNowPlaying& outConfig);
+    void LoadSection_LayoutTrackInfo(Config_LayoutTrackInfo& outConfig);
     void LoadSection_LayoutSeekBar(Config_LayoutSeekBar& outConfig);
     void LoadSection_LayoutPlaybackControls(Config_LayoutPlaybackControls& outConfig);
     void LoadSection_LayoutVolumeControl(Config_LayoutVolumeControl& outConfig);
@@ -147,7 +147,7 @@ private:
     Config_Background m_configBackground;
     Config_LayoutAppLogo m_configLayoutAppLogo;
     Config_LayoutLogoMenu m_configLayoutLogoMenu;
-    Config_LayoutNowPlaying m_configLayoutNowPlaying;
+    Config_LayoutTrackInfo m_configLayoutTrackInfo;
     Config_LayoutSeekBar m_configLayoutSeekBar;
     Config_LayoutPlaybackControls m_configLayoutPlaybackControls;
     Config_LayoutVolumeControl m_configLayoutVolumeControl;

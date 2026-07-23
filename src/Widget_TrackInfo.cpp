@@ -14,11 +14,11 @@ void TrackInfoWidget::CreateResources(ID2D1DeviceContext *context,
   dwriteFactory->CreateTextFormat(
       config->GetUICommonParm().BaseFontFamily.c_str(), nullptr, DWRITE_FONT_WEIGHT_BOLD,
       DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL,
-      config->GetLayoutNowPlaying().TitleFontSize, L"ja-jp", &m_titleTextFormat);
+      config->GetLayoutTrackInfo().TitleFontSize, L"ja-jp", &m_titleTextFormat);
   dwriteFactory->CreateTextFormat(
       config->GetUICommonParm().BaseFontFamily.c_str(), nullptr, DWRITE_FONT_WEIGHT_NORMAL,
       DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL,
-      config->GetLayoutNowPlaying().ArtistFontSize, L"ja-jp", &m_artistTextFormat);
+      config->GetLayoutTrackInfo().ArtistFontSize, L"ja-jp", &m_artistTextFormat);
 
   WidgetCommon::ApplyTextTrimming(dwriteFactory, m_titleTextFormat.Get());
   WidgetCommon::ApplyTextTrimming(dwriteFactory, m_artistTextFormat.Get());
@@ -251,7 +251,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
     TrackInfoLayout layout = LayoutCalculator::CalculateTrackInfoLayout(
         logicWidth, logicHeight, config, bitmapSize);
 
-    float slotHeight = config->GetLayoutNowPlaying().ArtSize + config->GetUICommonParm().ShadowOffsetY + 1.0f;
+    float slotHeight = config->GetLayoutTrackInfo().ArtSize + config->GetUICommonParm().ShadowOffsetY + 1.0f;
 
     D2D1_RECT_F drumClipRect = layout.clipRect;
     drumClipRect.top = layout.fallbackArtRect.top;
@@ -303,7 +303,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       }
 
       if (m_fallbackBlackBrush) {
-        float fallbackOpacity = config->GetLayoutNowPlaying().FallbackArtOpacity * (1.0f - m_thumbFadeAlpha[slotIndex]);
+        float fallbackOpacity = config->GetLayoutTrackInfo().FallbackArtOpacity * (1.0f - m_thumbFadeAlpha[slotIndex]);
         m_fallbackBlackBrush->SetOpacity(fallbackOpacity);
         context->FillRectangle(&layout.fallbackArtRect, m_fallbackBlackBrush.Get());
       }
@@ -318,7 +318,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
         D2D1_RECT_F itemArtShadowRect = layout.fallbackArtRect;
         D2D1_SIZE_F artSize = art->GetSize();
         if (artSize.width > 0 && artSize.height > 0) {
-            float size = static_cast<float>(config->GetLayoutNowPlaying().ArtSize);
+            float size = static_cast<float>(config->GetLayoutTrackInfo().ArtSize);
             float scaleX = size / artSize.width;
             float scaleY = size / artSize.height;
             float scale = (scaleX < scaleY) ? scaleX : scaleY;
@@ -396,8 +396,8 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       
       float tooltipW = config->GetLayoutTooltip().TooltipWidth;
       float tooltipH = config->GetLayoutTooltip().TooltipHeight;
-      float offsetX = config->GetLayoutNowPlaying().TooltipOffsetX;
-      float offsetY = config->GetLayoutNowPlaying().TooltipOffsetY;
+      float offsetX = config->GetLayoutTrackInfo().TooltipOffsetX;
+      float offsetY = config->GetLayoutTrackInfo().TooltipOffsetY;
       
       float artCenterX = layout.fallbackArtRect.left + (layout.fallbackArtRect.right - layout.fallbackArtRect.left) / 2.0f;
       float artCenterY = layout.fallbackArtRect.top + (layout.fallbackArtRect.bottom - layout.fallbackArtRect.top) / 2.0f;
