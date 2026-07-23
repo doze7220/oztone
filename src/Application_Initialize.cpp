@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "FileManager.h"
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -118,7 +119,7 @@ void Application::SetupCallbacks() {
     }
     case Window::HK_PREV_PLAYLIST:
     case Window::HK_NEXT_PLAYLIST: {
-      std::vector<std::wstring> playlists = m_config.GetAvailablePlaylists();
+      std::vector<std::wstring> playlists = FileManager::GetAvailablePlaylists(m_config.GetPlaylist().DefaultPlaylistPath);
       if (playlists.size() <= 1)
         break;
       std::wstring current = m_config.GetPlaylist().DefaultPlaylistPath;

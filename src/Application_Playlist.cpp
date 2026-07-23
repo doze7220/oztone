@@ -1,5 +1,6 @@
 #include "Application.h"
 #include "LayoutCalculator.h"
+#include "FileManager.h"
 #include <chrono>
 #include <filesystem>
 #include <iomanip>
@@ -15,7 +16,7 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
       m_renderer.TriggerFlyText(L"PLAYLIST DELETED");
       if (m_focusedPlaylistIndex.has_value()) {
         std::vector<std::wstring> available =
-            m_config.GetAvailablePlaylists();
+            FileManager::GetAvailablePlaylists(m_config.GetPlaylist().DefaultPlaylistPath);
         if (m_focusedPlaylistIndex.value() < available.size()) {
           std::wstring targetPath = available[m_focusedPlaylistIndex.value()];
           if (std::filesystem::exists(targetPath)) {
@@ -27,7 +28,7 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
 
           if (targetPath == m_config.GetPlaylist().DefaultPlaylistPath) {
             std::vector<std::wstring> newAvailable =
-                m_config.GetAvailablePlaylists();
+                FileManager::GetAvailablePlaylists(m_config.GetPlaylist().DefaultPlaylistPath);
             if (!newAvailable.empty()) {
               this->SwitchPlaylist(newAvailable[0]);
             } else {
@@ -41,7 +42,7 @@ void Application::OnPlaylistToolbarClicked(int btnIndex) {
   } else {
     if (btnIndex == 0) { // 📁 (上の階層へ)
       std::wstring currentPlaylist = m_config.GetPlaylist().DefaultPlaylistPath;
-      std::vector<std::wstring> available = m_config.GetAvailablePlaylists();
+      std::vector<std::wstring> available = FileManager::GetAvailablePlaylists(m_config.GetPlaylist().DefaultPlaylistPath);
       for (size_t i = 0; i < available.size(); ++i) {
         if (available[i] == currentPlaylist) {
           m_focusedPlaylistIndex = static_cast<int>(i);
@@ -91,7 +92,7 @@ void Application::OnPlaylistClicked(int x, int y) {
   }
 
   if (m_isPlaylistListViewMode) {
-    std::vector<std::wstring> playlists = m_config.GetAvailablePlaylists();
+    std::vector<std::wstring> playlists = FileManager::GetAvailablePlaylists(m_config.GetPlaylist().DefaultPlaylistPath);
     int totalPlaylists = static_cast<int>(playlists.size());
     if (totalPlaylists == 0)
       return;
@@ -178,7 +179,7 @@ void Application::OnPlaylistDoubleClicked(int x, int y) {
   }
 
   if (m_isPlaylistListViewMode) {
-    std::vector<std::wstring> playlists = m_config.GetAvailablePlaylists();
+    std::vector<std::wstring> playlists = FileManager::GetAvailablePlaylists(m_config.GetPlaylist().DefaultPlaylistPath);
     int totalPlaylists = static_cast<int>(playlists.size());
     if (totalPlaylists == 0)
       return;
