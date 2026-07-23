@@ -5,3 +5,4 @@ call "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\VC\Auxiliary\
 REM Run build with CMake
 cmake -B build
 cmake --build build --config Release
+pause
