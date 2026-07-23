@@ -147,7 +147,7 @@ TrackInfoLayout LayoutCalculator::CalculateTrackInfoLayout(float logicalWidth, f
 
     float size = static_cast<float>(config->GetLayoutNowPlaying().ArtSize);
     float x = offsetX + static_cast<float>(config->GetLayoutNowPlaying().BaseX + config->GetLayoutNowPlaying().ArtOffsetX);
-    float y = logicalHeight - static_cast<float>(config->GetLayoutVolumeControl().BaseBottomOffset) + static_cast<float>(config->GetLayoutNowPlaying().ArtOffsetY);
+    float y = logicalHeight - static_cast<float>(config->GetLayoutNowPlaying().BaseBottomOffset) + static_cast<float>(config->GetLayoutNowPlaying().ArtOffsetY);
 
     // Album Art
     layout.fallbackArtRect = D2D1::RectF(x, y, x + size, y + size);
@@ -174,7 +174,7 @@ TrackInfoLayout LayoutCalculator::CalculateTrackInfoLayout(float logicalWidth, f
 
     // Texts
     float baseX = offsetX + static_cast<float>(config->GetLayoutNowPlaying().BaseX);
-    float baseY = logicalHeight - static_cast<float>(config->GetLayoutVolumeControl().BaseBottomOffset);
+    float baseY = logicalHeight - static_cast<float>(config->GetLayoutNowPlaying().BaseBottomOffset);
     float rightMargin = 30.0f;
 
     // Title
@@ -243,7 +243,7 @@ PlaybackControlsLayout LayoutCalculator::CalculatePlaybackControlsLayout(float l
     ApplyPinningOffset(logicalWidth, offsetX, config);
 
     layout.centerX = offsetX + (logicalWidth / 2.0f) + config->GetLayoutPlaybackControls().CenterOffsetX;
-    layout.centerY = logicalHeight - config->GetPlaybackBaseBottomOffset();
+    layout.centerY = logicalHeight - config->GetLayoutPlaybackControls().BaseBottomOffset;
     layout.size = static_cast<float>(config->GetLayoutPlaybackControls().ButtonSize);
     layout.spacing = static_cast<float>(config->GetLayoutPlaybackControls().ButtonSpacing);
     layout.half = layout.size / 2.0f;
@@ -259,7 +259,7 @@ VolumeControlLayout LayoutCalculator::CalculateVolumeControlLayout(float logical
     ApplyPinningOffset(logicalWidth, offsetX, config);
 
     layout.volX = offsetX + static_cast<float>(config->GetLayoutVolumeControl().BaseLeftOffset);
-    layout.volY = logicalHeight - static_cast<float>(config->GetVolumeBaseBottomOffset());
+    layout.volY = logicalHeight - static_cast<float>(config->GetLayoutVolumeControl().BaseBottomOffset);
     layout.volSize = static_cast<float>(config->GetLayoutVolumeControl().IconSize);
 
     layout.spkW = layout.volSize * 0.35f;
@@ -281,7 +281,7 @@ VolumeControlLayout LayoutCalculator::CalculateVolumeControlLayout(float logical
     layout.tooltipBoxW = tooltipW;
     layout.tooltipBoxH = tooltipH;
     layout.tooltipBoxX = layout.volX + 16.0f - tooltipW / 2.0f; // center relative to speaker
-    layout.tooltipBoxY = layout.volY - layout.volSize - tooltipH - config->GetVolumeTooltipOffsetY();
+    layout.tooltipBoxY = layout.volY - layout.volSize - tooltipH - config->GetLayoutVolumeControl().TooltipOffsetY;
 
     layout.tooltipRadius = 4.0f;
 

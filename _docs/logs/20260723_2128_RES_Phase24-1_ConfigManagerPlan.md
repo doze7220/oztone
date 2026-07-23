@@ -275,3 +275,32 @@ void LoadSection_GlobalHotkeys(Config_GlobalHotkeys& outConfig);
 - `CMakeLists.txt` に新設した `Config_*.cpp` および `Config_*.h` を追加した。
 - ビルドを実行し、LNKエラーを含むすべてのエラーが解消され、ビルドが通ることを確認した。
 - **※安全装置として、旧メンバ変数、旧ゲッター、旧パース用cppファイル（`ConfigManager_Window.cpp`等）は一切削除せずに残している。パージ作業およびConfigManager本体のディレクトリ移動は保留中。**
+
+### Task 9.5 (Hotfix): TrackInfo ズレ原因調査と補完
+#### 原因・理由: TrackInfo UIのズレ
+    - 置換スクリプトにより `GetBaseBottomOffset()` や `GetTooltipOffsetY()` などの旧ゲッターが、`GetLayoutVolumeControl()` などの別の構造体プロパティに誤って置換されていたことが原因。
+    - `Config_LayoutNowPlaying` 自体のパース内容に漏れがないことを確認済み。`TrackCountOffsetX` 等のパラメータは、正しく `[Layout_Playlist]` の設定として `Config_LayoutPlaylist.cpp` でロードされていることも確認した。
+
+#### 対象ファイル: 
+    - `src/LayoutCalculator.cpp`
+    - `src/Widget_TrackInfo.cpp`
+
+#### 対応: 誤置換された構造体参照の修正と旧ゲッターの移行
+    - `LayoutCalculator.cpp` 内の `CalculateTrackInfoLayout` 等において、`GetLayoutVolumeControl().BaseBottomOffset` と誤用されていた箇所を `GetLayoutNowPlaying().BaseBottomOffset` に修正。
+    - 同ファイル内で未置換で残存していた旧ゲッター `GetPlaybackBaseBottomOffset()`、`GetVolumeBaseBottomOffset()`、`GetVolumeTooltipOffsetY()` を、それぞれ対応する新しい構造体プロパティ（`GetLayoutPlaybackControls().BaseBottomOffset` 等）に修正。
+    - `Widget_TrackInfo.cpp` にて、`GetLayoutVolumeControl().TooltipOffsetY` と誤用されていた箇所を `GetLayoutNowPlaying().TooltipOffsetY` に修正。
+    - 修正後、`build.bat` を実行し正常にビルドが完了することを確認した。
+
+### Task 9.6 (Hotfix): ホバー判定領域の誤置換修正
+#### 原因・理由: 座標判定ロジックの参照先誤り
+    - `src/Window_Mouse.cpp` におけるマウスホバー判定ロジック内で、自動置換スクリプトにより `BaseBottomOffset` などの取得元が誤って一律 `GetLayoutVolumeControl()` に置換されていた（`IsInTrackInfoRegion` 等）。
+    - 古いゲッター (`GetVolumeBaseBottomOffset`, `GetPlaybackBaseBottomOffset`) の未置換も残存していた。
+
+#### 対象ファイル: 
+    - `src/Window_Mouse.cpp`
+
+#### 対応: 誤置換された構造体参照の修正と旧ゲッターの移行
+    - `IsInTrackInfoRegion` にて、`GetLayoutVolumeControl().BaseBottomOffset` を本来の `GetLayoutNowPlaying().BaseBottomOffset` に修正。
+    - `IsInVolumeControlRegion` にて、残存していた旧ゲッター `GetVolumeBaseBottomOffset()` を新しい構造体プロパティ `GetLayoutVolumeControl().BaseBottomOffset` に修正。
+    - `GetPlaybackButtonAt` にて、残存していた旧ゲッター `GetPlaybackBaseBottomOffset()` を新しい構造体プロパティ `GetLayoutPlaybackControls().BaseBottomOffset` に修正。
+    - 修正後、`build.bat` を実行し正常にビルドが完了することを確認した。

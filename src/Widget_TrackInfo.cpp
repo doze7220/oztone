@@ -397,7 +397,7 @@ void TrackInfoWidget::Draw(ID2D1DeviceContext *context,
       float tooltipW = config->GetLayoutTooltip().TooltipWidth;
       float tooltipH = config->GetLayoutTooltip().TooltipHeight;
       float offsetX = config->GetLayoutNowPlaying().TooltipOffsetX;
-      float offsetY = config->GetLayoutVolumeControl().TooltipOffsetY;
+      float offsetY = config->GetLayoutNowPlaying().TooltipOffsetY;
       
       float artCenterX = layout.fallbackArtRect.left + (layout.fallbackArtRect.right - layout.fallbackArtRect.left) / 2.0f;
       float artCenterY = layout.fallbackArtRect.top + (layout.fallbackArtRect.bottom - layout.fallbackArtRect.top) / 2.0f;

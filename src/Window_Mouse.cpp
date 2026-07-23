@@ -134,7 +134,7 @@ bool Window::IsInVolumeControlRegion(int x, int y) const {
 
   float volX = static_cast<float>(m_config->GetLayoutVolumeControl().BaseLeftOffset);
   float volY =
-      logicalHeight - static_cast<float>(m_config->GetVolumeBaseBottomOffset());
+      logicalHeight - static_cast<float>(m_config->GetLayoutVolumeControl().BaseBottomOffset);
   float size = static_cast<float>(m_config->GetLayoutVolumeControl().IconSize);
   float width = size + 80.0f;
   float height = size + 20.0f;
@@ -171,7 +171,7 @@ bool Window::IsInTrackInfoRegion(int x, int y) const {
     }
   }
 
-  float baseY = static_cast<float>(logicalHeight - m_config->GetLayoutVolumeControl().BaseBottomOffset);
+  float baseY = static_cast<float>(logicalHeight - m_config->GetLayoutNowPlaying().BaseBottomOffset);
 
   float artTop = baseY + static_cast<float>(m_config->GetLayoutNowPlaying().ArtOffsetY);
   float artBottom = artTop + static_cast<float>(m_config->GetLayoutNowPlaying().ArtSize);
@@ -312,7 +312,7 @@ int Window::GetPlaybackButtonAt(int x, int y) const {
 
   float centerX = (logicalWidth / 2.0f) + m_config->GetLayoutPlaybackControls().CenterOffsetX;
   float centerY = logicalHeight -
-                  static_cast<float>(m_config->GetPlaybackBaseBottomOffset());
+                  static_cast<float>(m_config->GetLayoutPlaybackControls().BaseBottomOffset);
   float size = static_cast<float>(m_config->GetLayoutPlaybackControls().ButtonSize);
   float spacing = static_cast<float>(m_config->GetLayoutPlaybackControls().ButtonSpacing);
   float halfSize = size / 2.0f;
