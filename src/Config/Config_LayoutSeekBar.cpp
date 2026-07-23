@@ -5,10 +5,10 @@ void ConfigManager::LoadSection_LayoutSeekBar(Config_LayoutSeekBar& outConfig) {
     outConfig.SeekBarMargin = LoadOrWriteFloat(L"Layout_SeekBar", L"SeekBarMargin");
     outConfig.Height = LoadOrWriteInt(L"Layout_SeekBar", L"Height");
     outConfig.BottomOffset = LoadOrWriteInt(L"Layout_SeekBar", L"BottomOffset");
-    outConfig.FgColor = LoadOrWriteString(L"Layout_SeekBar", L"FgColor");
-    outConfig.FgOpacity = LoadOrWriteFloat(L"Layout_SeekBar", L"FgOpacity");
-    outConfig.BgColor = LoadOrWriteString(L"Layout_SeekBar", L"BgColor");
-    outConfig.BgOpacity = LoadOrWriteFloat(L"Layout_SeekBar", L"BgOpacity");
+    outConfig.SeekBarFgColor = LoadOrWriteString(L"Layout_SeekBar", L"SeekBarFgColor");
+    outConfig.SeekBarFgOpacity = LoadOrWriteFloat(L"Layout_SeekBar", L"SeekBarFgOpacity");
+    outConfig.SeekBarBgColor = LoadOrWriteString(L"Layout_SeekBar", L"SeekBarBgColor");
+    outConfig.SeekBarBgOpacity = LoadOrWriteFloat(L"Layout_SeekBar", L"SeekBarBgOpacity");
     outConfig.TimeFontSize = LoadOrWriteFloat(L"Layout_SeekBar", L"TimeFontSize");
     outConfig.TimeLetterSpacing = LoadOrWriteFloat(L"Layout_SeekBar", L"TimeLetterSpacing");
     outConfig.TimeMarginRight = LoadOrWriteFloat(L"Layout_SeekBar", L"TimeMarginRight");

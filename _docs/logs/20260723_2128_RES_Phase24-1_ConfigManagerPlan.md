@@ -326,3 +326,36 @@ void LoadSection_GlobalHotkeys(Config_GlobalHotkeys& outConfig);
    * CMakeLists.txt のファイル一覧から削除したパース用ファイルを除外し、移動したファイルのパスを更新。
 5. **最終ビルドと動作確認**
    * すべての移行が完了した状態でビルドエラーがないことを確認した。
+
+### HOTFIX1
+#### 原因・理由: 背景設定（Backgroundセクション）パラメータが正常に機能しないバグの修正
+    - 自動置換スクリプトが `[Background]` セクションと `[Layout_SeekBar]` セクションで同名のパラメータ（BgOpacity等）を混同し、`src/BackgroundManager.cpp` の呼び出しを誤って `GetLayoutSeekBar().BgOpacity` に置換してしまっていたため。
+
+#### 対象ファイル: 
+    - `src/BackgroundManager.cpp`
+
+#### 対応: 誤置換されたゲッターの修正
+    - `BackgroundManager.cpp` にて、`groupBegin.opacity = m_config->GetLayoutSeekBar().BgOpacity;` を `groupBegin.opacity = m_config->GetBackground().BgOpacity;` に修正・結線し直した。
+    - その他の関連パラメータ（CrossfadeDuration, BackgroundArtMode, BgDarkenOpacity）は正しく `GetBackground()` から取得されていること、および `Config_Background.cpp` で正しくパース・ロードされていることを確認。
+    - 修正後、ビルドと動作確認を行い正常に完了した。
+
+### Task 10.5 (Hotfix): 背景設定の結線修復とキー名リファクタリング
+#### 原因・理由: 
+    - 自動置換スクリプトによる `[Background]` と `[Layout_SeekBar]` の `BgOpacity` 誤爆結線の修正、および将来の名前衝突を防ぐためのリネーム。
+
+#### 対象ファイル: 
+    - `src/BackgroundManager.cpp`
+    - `src/Config/Config_Background.h`
+    - `src/Config/Config_Background.cpp`
+    - `src/Config/Config_LayoutSeekBar.h`
+    - `src/Config/Config_LayoutSeekBar.cpp`
+    - `src/Config/ConfigManager_DefaultIni.h`
+    - `src/Widget_SeekBar.cpp`
+
+#### 対応: 
+    - `src/BackgroundManager.cpp` における背景の不透明度および暗転不透明度の取得先を `GetBackground()` の新しい変数名に修正し結線を修復。
+    - `[Background]` セクション内の `BgOpacity` と `BgDarkenOpacity` をそれぞれ `BackgroundOpacity` と `BackgroundDarkenOpacity` にリネーム。
+    - `[Layout_SeekBar]` セクション内の `BgOpacity`、`BgColor`、`FgOpacity`、`FgColor` をそれぞれ `SeekBarBgOpacity`、`SeekBarBgColor`、`SeekBarFgOpacity`、`SeekBarFgColor` にリネーム。
+    - `src/ConfigManager_DefaultIni.h` の該当箇所のデフォルト値定義を新しいキー名に更新。
+    - 各ファイルのパース処理、および `Widget_SeekBar.cpp` の利用側の呼び出しを一括で新しいプロパティ名に置換。
+    - 修正後、ビルドと動作確認を行い正常に完了した。

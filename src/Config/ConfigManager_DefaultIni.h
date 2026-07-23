@@ -54,8 +54,8 @@ ShadowOffsetY=2.0
 ShadowOpacity=0.8
 
 [Background]
-BgOpacity=0.8
-BgDarkenOpacity=0.4
+BackgroundOpacity=0.8
+BackgroundDarkenOpacity=0.4
 BackgroundArtMode=0
 CrossfadeDuration=0.5
 
@@ -105,10 +105,10 @@ TooltipOffsetY=-60.0
 SeekBarMargin=20.0
 Height=8
 BottomOffset=25
-FgColor=#FFFFFF
-FgOpacity=0.4
-BgColor=#000000
-BgOpacity=0.3
+SeekBarFgColor=#FFFFFF
+SeekBarFgOpacity=0.4
+SeekBarBgColor=#000000
+SeekBarBgOpacity=0.3
 TimeFontSize=20.0
 TimeLetterSpacing=-3.0
 TimeMarginRight=15.0

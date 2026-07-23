@@ -219,7 +219,7 @@ std::vector<BackgroundLayer> BackgroundManager::GetLayers() const {
     // レイヤーグループ開始
     BackgroundLayer groupBegin;
     groupBegin.type = BackgroundLayerType::LayerGroupBegin;
-    groupBegin.opacity = m_config->GetLayoutSeekBar().BgOpacity;
+    groupBegin.opacity = m_config->GetBackground().BackgroundOpacity;
     layers.push_back(groupBegin);
 
     int bgMode = m_config->GetBackground().BackgroundArtMode;
@@ -261,7 +261,7 @@ std::vector<BackgroundLayer> BackgroundManager::GetLayers() const {
     }
 
     // 4. ポストエフェクト (カラーフィル)
-    float darken = m_config->GetBackground().BgDarkenOpacity;
+    float darken = m_config->GetBackground().BackgroundDarkenOpacity;
     if (darken > 0.0f) {
         BackgroundLayer overlay;
         overlay.type = BackgroundLayerType::SolidColor;

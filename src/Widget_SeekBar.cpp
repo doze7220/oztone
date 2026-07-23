@@ -78,14 +78,14 @@ void SeekBarWidget::Draw(ID2D1DeviceContext *context, const WidgetContext &ctx,
   float dimFactor = 1.0f - (ctx.controlAlpha * 0.5f);
 
   if (m_seekBarBgBrush) {
-    m_seekBarBgBrush->SetColor(WidgetCommon::HexToColorF(config->GetLayoutSeekBar().BgColor));
-    m_seekBarBgBrush->SetOpacity(config->GetLayoutSeekBar().BgOpacity * dimFactor);
+    m_seekBarBgBrush->SetColor(WidgetCommon::HexToColorF(config->GetLayoutSeekBar().SeekBarBgColor));
+    m_seekBarBgBrush->SetOpacity(config->GetLayoutSeekBar().SeekBarBgOpacity * dimFactor);
     context->FillRectangle(&layout.bgRect, m_seekBarBgBrush.Get());
   }
 
   if (m_seekBarFgBrush) {
-    m_seekBarFgBrush->SetColor(WidgetCommon::HexToColorF(config->GetLayoutSeekBar().FgColor));
-    m_seekBarFgBrush->SetOpacity(config->GetLayoutSeekBar().FgOpacity * dimFactor);
+    m_seekBarFgBrush->SetColor(WidgetCommon::HexToColorF(config->GetLayoutSeekBar().SeekBarFgColor));
+    m_seekBarFgBrush->SetOpacity(config->GetLayoutSeekBar().SeekBarFgOpacity * dimFactor);
     context->FillRectangle(&layout.fgRect, m_seekBarFgBrush.Get());
   }
 
