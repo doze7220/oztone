@@ -1,5 +1,6 @@
 #include "Window.h"
 #include "Config/ConfigManager.h"
+#include "FileManager.h"
 #include <filesystem>
 
 constexpr UINT TRAY_MENU_ORDER[] = {Window::ID_TRAY_PLAY_PAUSE,
@@ -27,8 +28,8 @@ void Window::HandleTrayIcon(HWND hwnd, LPARAM lParam) {
         HMENU hPlaylistMenu = CreatePopupMenu();
         m_dynamicPlaylistPaths.clear();
         if (m_config) {
-          m_dynamicPlaylistPaths = m_config->GetAvailablePlaylists();
           std::wstring defaultPath = m_config->GetPlaylist().DefaultPlaylistPath;
+          m_dynamicPlaylistPaths = FileManager::GetAvailablePlaylists(defaultPath);
           std::filesystem::path defP(defaultPath);
 
           UINT index = 0;
