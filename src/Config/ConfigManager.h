@@ -63,8 +63,7 @@ public:
     const Config_VisualizerHaloDust& GetVisualizerHaloDust() const { return m_configVisualizerHaloDust; }
     const Config_GlobalHotkeys& GetGlobalHotkeys() const { return m_configGlobalHotkeys; }
 
-    std::vector<std::wstring> GetAvailablePlaylists() const;
-    bool CheckPlaylistSnapshotChanged();
+
 
     /**
      * @brief 更新がないか確認する
@@ -159,6 +158,4 @@ private:
     Config_VisualizerPrismBeat m_configVisualizerPrismBeat;
     Config_VisualizerHaloDust m_configVisualizerHaloDust;
     Config_GlobalHotkeys m_configGlobalHotkeys;
-
-    std::vector<std::pair<std::wstring, std::filesystem::file_time_type>> m_playlistSnapshot;
 };

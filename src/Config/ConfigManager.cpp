@@ -283,68 +283,6 @@ void ConfigManager::SetDefaultPlaylistPath(const std::wstring& path) {
   WritePrivateProfileStringW(L"Playlist", L"DefaultPlaylistPath", path.c_str(), m_iniFilePath.c_str());
 }
 
-std::vector<std::wstring> ConfigManager::GetAvailablePlaylists() const {
-  std::vector<std::wstring> playlists;
-  try {
-    std::filesystem::path currentPath(m_configPlaylist.DefaultPlaylistPath);
-    std::filesystem::path dir = currentPath.parent_path();
-    if (dir.empty()) {
-      std::wstring exePath = GetExecutablePath();
-      if (!exePath.empty()) {
-        size_t pos = exePath.find_last_of(L"\\/");
-        if (pos != std::wstring::npos) dir = exePath.substr(0, pos);
-      }
-      if (dir.empty()) dir = std::filesystem::current_path();
-    }
-    if (std::filesystem::exists(dir) && std::filesystem::is_directory(dir)) {
-      for (const auto& entry : std::filesystem::directory_iterator(dir)) {
-        if (entry.is_regular_file()) {
-          std::wstring ext = entry.path().extension().wstring();
-          std::transform(ext.begin(), ext.end(), ext.begin(), ::towlower);
-          if (ext == L".ozl") playlists.push_back(entry.path().wstring());
-        }
-      }
-    }
-  } catch (...) {}
-  std::sort(playlists.begin(), playlists.end());
-  return playlists;
-}
-
-bool ConfigManager::CheckPlaylistSnapshotChanged() {
-  std::vector<std::pair<std::wstring, std::filesystem::file_time_type>> currentSnapshot;
-  bool success = false;
-  try {
-    std::filesystem::path currentPath(m_configPlaylist.DefaultPlaylistPath);
-    std::filesystem::path dir = currentPath.parent_path();
-    if (dir.empty()) {
-      std::wstring exePath = GetExecutablePath();
-      if (!exePath.empty()) {
-        size_t pos = exePath.find_last_of(L"\\/");
-        if (pos != std::wstring::npos) dir = exePath.substr(0, pos);
-      }
-      if (dir.empty()) dir = std::filesystem::current_path();
-    }
-    if (std::filesystem::exists(dir) && std::filesystem::is_directory(dir)) {
-      for (const auto& entry : std::filesystem::directory_iterator(dir)) {
-        if (entry.is_regular_file()) {
-          std::wstring ext = entry.path().extension().wstring();
-          std::transform(ext.begin(), ext.end(), ext.begin(), ::towlower);
-          if (ext == L".ozl") currentSnapshot.emplace_back(entry.path().wstring(), entry.last_write_time());
-        }
-      }
-      success = true;
-    } else { success = true; }
-  } catch (...) { return false; }
-  if (!success) return false;
-  std::sort(currentSnapshot.begin(), currentSnapshot.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
-  if (m_playlistSnapshot.size() != currentSnapshot.size()) { m_playlistSnapshot = currentSnapshot; return true; }
-  for (size_t i = 0; i < currentSnapshot.size(); ++i) {
-    if (m_playlistSnapshot[i].first != currentSnapshot[i].first || m_playlistSnapshot[i].second != currentSnapshot[i].second) {
-      m_playlistSnapshot = currentSnapshot; return true;
-    }
-  }
-  return false;
-}
 
 
 void ConfigManager::SetPlaylistPosition(int position) {
