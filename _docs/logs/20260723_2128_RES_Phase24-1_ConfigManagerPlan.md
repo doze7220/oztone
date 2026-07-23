@@ -46,7 +46,7 @@
     - `Config_LayoutTooltip.h/cpp`, `Config_LayoutPlaylist.h/cpp`, `Config_LayoutGlobalHotkeys.h/cpp` の作成
 - [x] Task 7: Layout_OSD / Visualizer / Visualizer_PrismBeat セクションの移行
     - `Config_LayoutOSD.h/cpp`, `Config_Visualizer.h/cpp`, `Config_VisualizerPrismBeat.h/cpp` の作成
-- [ ] Task 8: Visualizer_HaloDust / GlobalHotkeys セクションの移行
+- [x] Task 8: Visualizer_HaloDust / GlobalHotkeys セクションの移行
     - `Config_VisualizerHaloDust.h/cpp`, `Config_GlobalHotkeys.h/cpp` の作成
 - [ ] Task 9: 最終結線、パージ、およびアーキテクチャ更新
     - Task 1〜8のメモ書きをもとに `ConfigManager.h` へ一斉結線
@@ -244,11 +244,26 @@ void LoadSection_VisualizerPrismBeat(Config_VisualizerPrismBeat& outConfig);
 
 ### Task 8: Visualizer_HaloDust / GlobalHotkeys セクションの移行
 **【対象ファイル】**
-- (タスク完了時に記載)
+- `src/Config/Config_VisualizerHaloDust.h`, `src/Config/Config_VisualizerHaloDust.cpp`
+- `src/Config/Config_GlobalHotkeys.h`, `src/Config/Config_GlobalHotkeys.cpp`
 **【作業内容】**
-- (タスク完了時に記載)
+- 各セクションに対応する構造体（`Config_VisualizerHaloDust`, `Config_GlobalHotkeys`）の定義をヘッダに作成。
+- INIファイルから値を読み込むためのメンバ関数（`LoadSection_VisualizerHaloDust`, `LoadSection_GlobalHotkeys`）の実装をcppに作成。
+- `ConfigManager.h` の直接的な書き換えは避け、Task 9での最終結線に向けてメモを残した。
 **【最終登録用メモ（ConfigManager.h向け）】**
-- (タスク完了時に記載)
+```cpp
+// メンバ変数
+Config_VisualizerHaloDust m_configVisualizerHaloDust;
+Config_GlobalHotkeys m_configGlobalHotkeys;
+
+// ゲッター
+const Config_VisualizerHaloDust& GetVisualizerHaloDust() const { return m_configVisualizerHaloDust; }
+const Config_GlobalHotkeys& GetGlobalHotkeys() const { return m_configGlobalHotkeys; }
+
+// ロード関数シグネチャ (privateなど)
+void LoadSection_VisualizerHaloDust(Config_VisualizerHaloDust& outConfig);
+void LoadSection_GlobalHotkeys(Config_GlobalHotkeys& outConfig);
+```
 
 ### Task 9: 最終結線、パージ、およびアーキテクチャ更新
 **【対象ファイル】**
