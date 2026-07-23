@@ -44,7 +44,7 @@
     - `Config_LayoutSeekBar.h/cpp`, `Config_LayoutPlaybackControls.h/cpp`, `Config_LayoutVolumeControl.h/cpp` の作成
 - [x] Task 6: Layout_Tooltip / Layout_Playlist / Layout_GlobalHotkeys セクションの移行
     - `Config_LayoutTooltip.h/cpp`, `Config_LayoutPlaylist.h/cpp`, `Config_LayoutGlobalHotkeys.h/cpp` の作成
-- [ ] Task 7: Layout_OSD / Visualizer / Visualizer_PrismBeat セクションの移行
+- [x] Task 7: Layout_OSD / Visualizer / Visualizer_PrismBeat セクションの移行
     - `Config_LayoutOSD.h/cpp`, `Config_Visualizer.h/cpp`, `Config_VisualizerPrismBeat.h/cpp` の作成
 - [ ] Task 8: Visualizer_HaloDust / GlobalHotkeys セクションの移行
     - `Config_VisualizerHaloDust.h/cpp`, `Config_GlobalHotkeys.h/cpp` の作成
@@ -217,11 +217,30 @@ void LoadSection_LayoutGlobalHotkeys(Config_LayoutGlobalHotkeys& outConfig);
 
 ### Task 7: Layout_OSD / Visualizer / Visualizer_PrismBeat セクションの移行
 **【対象ファイル】**
-- (タスク完了時に記載)
+- `src/Config/Config_LayoutOSD.h`, `src/Config/Config_LayoutOSD.cpp`
+- `src/Config/Config_Visualizer.h`, `src/Config/Config_Visualizer.cpp`
+- `src/Config/Config_VisualizerPrismBeat.h`, `src/Config/Config_VisualizerPrismBeat.cpp`
 **【作業内容】**
-- (タスク完了時に記載)
+- 各セクションに対応する構造体（`Config_LayoutOSD`, `Config_Visualizer`, `Config_VisualizerPrismBeat`）の定義をヘッダに作成。
+- INIファイルから値を読み込むためのメンバ関数（`LoadSection_LayoutOSD`, `LoadSection_Visualizer`, `LoadSection_VisualizerPrismBeat`）の実装をcppに作成。
+- `ConfigManager.h` の直接的な書き換えは避け、Task 9での最終結線に向けてメモを残した。
 **【最終登録用メモ（ConfigManager.h向け）】**
-- (タスク完了時に記載)
+```cpp
+// メンバ変数
+Config_LayoutOSD m_configLayoutOSD;
+Config_Visualizer m_configVisualizer;
+Config_VisualizerPrismBeat m_configVisualizerPrismBeat;
+
+// ゲッター
+const Config_LayoutOSD& GetLayoutOSD() const { return m_configLayoutOSD; }
+const Config_Visualizer& GetVisualizer() const { return m_configVisualizer; }
+const Config_VisualizerPrismBeat& GetVisualizerPrismBeat() const { return m_configVisualizerPrismBeat; }
+
+// ロード関数シグネチャ (privateなど)
+void LoadSection_LayoutOSD(Config_LayoutOSD& outConfig);
+void LoadSection_Visualizer(Config_Visualizer& outConfig);
+void LoadSection_VisualizerPrismBeat(Config_VisualizerPrismBeat& outConfig);
+```
 
 ### Task 8: Visualizer_HaloDust / GlobalHotkeys セクションの移行
 **【対象ファイル】**
