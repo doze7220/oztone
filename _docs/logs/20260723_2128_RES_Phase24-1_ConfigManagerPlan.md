@@ -34,7 +34,7 @@
 ## 3. 実装タスクリスト
 - [x] Task 1: System / Window / Visibility セクションの移行
     - `Config_System.h/cpp`, `Config_Window.h/cpp`, `Config_Visibility.h/cpp` の作成
-- [ ] Task 2: Playlist / Audio / TrackDrum セクションの移行
+- [x] Task 2: Playlist / Audio / TrackDrum セクションの移行
     - `Config_Playlist.h/cpp`, `Config_Audio.h/cpp`, `Config_TrackDrum.h/cpp` の作成
 - [ ] Task 3: UI_Common_Parm / Background セクションの移行
     - `Config_UICommonParm.h/cpp`, `Config_Background.h/cpp` の作成
@@ -86,11 +86,30 @@ void LoadSection_Visibility(Config_Visibility& outConfig);
 
 ### Task 2: Playlist / Audio / TrackDrum セクションの移行
 **【対象ファイル】**
-- (タスク完了時に記載)
+- `src/Config/Config_Playlist.h`, `src/Config/Config_Playlist.cpp`
+- `src/Config/Config_Audio.h`, `src/Config/Config_Audio.cpp`
+- `src/Config/Config_TrackDrum.h`, `src/Config/Config_TrackDrum.cpp`
 **【作業内容】**
-- (タスク完了時に記載)
+- 各セクションに対応する構造体（`Config_Playlist`, `Config_Audio`, `Config_TrackDrum`）の定義をヘッダに作成。
+- INIファイルから値を読み込むためのメンバ関数（`LoadSection_Playlist`, `LoadSection_Audio`, `LoadSection_TrackDrum`）の実装をcppに作成。
+- `ConfigManager.h` の直接的な書き換えは避け、Task 9での最終結線に向けてメモを残した。
 **【最終登録用メモ（ConfigManager.h向け）】**
-- (タスク完了時に記載)
+```cpp
+// メンバ変数
+Config_Playlist m_configPlaylist;
+Config_Audio m_configAudio;
+Config_TrackDrum m_configTrackDrum;
+
+// ゲッター
+const Config_Playlist& GetPlaylist() const { return m_configPlaylist; }
+const Config_Audio& GetAudio() const { return m_configAudio; }
+const Config_TrackDrum& GetTrackDrum() const { return m_configTrackDrum; }
+
+// ロード関数シグネチャ (privateなど)
+void LoadSection_Playlist(Config_Playlist& outConfig);
+void LoadSection_Audio(Config_Audio& outConfig);
+void LoadSection_TrackDrum(Config_TrackDrum& outConfig);
+```
 
 ### Task 3: UI_Common_Parm / Background セクションの移行
 **【対象ファイル】**
