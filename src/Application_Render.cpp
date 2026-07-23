@@ -91,7 +91,7 @@ void Application::Run() {
 
     if (currentTime - m_lastPlaylistSnapshotTime >= 1000) {
       m_lastPlaylistSnapshotTime = currentTime;
-      if (m_config.CheckPlaylistSnapshotChanged()) {
+      if (FileManager::CheckPlaylistSnapshotChanged(m_config.GetPlaylist().DefaultPlaylistPath, m_playlistSnapshot)) {
         UpdatePlaylistSummaries();
         
         std::wstring currentPlaylistPath = m_config.GetPlaylist().DefaultPlaylistPath;
@@ -203,7 +203,7 @@ void Application::ForceRender() {
                           (static_cast<float>(dpi) / 96.0f);
 
     if (m_isPlaylistListViewMode) {
-      std::vector<std::wstring> playlists = m_config.GetAvailablePlaylists();
+      std::vector<std::wstring> playlists = FileManager::GetAvailablePlaylists(m_config.GetPlaylist().DefaultPlaylistPath);
       int totalPlaylists = static_cast<int>(playlists.size());
       std::wstring currentPlaylist = m_config.GetPlaylist().DefaultPlaylistPath;
       int currentIndex = 0;
@@ -319,7 +319,7 @@ void Application::ForceRender() {
 }
 
 void Application::UpdatePlaylistSummaries() {
-  std::vector<std::wstring> available = m_config.GetAvailablePlaylists();
+  std::vector<std::wstring> available = FileManager::GetAvailablePlaylists(m_config.GetPlaylist().DefaultPlaylistPath);
   std::vector<PlaylistSummary> summaries;
 
   auto parseTime = [](const std::wstring &tStr) -> long long {

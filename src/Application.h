@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <queue>
 #include <optional>
+#include <filesystem>
 #include "Window.h"
 #include "Config/ConfigManager.h"
 #include "Renderer.h"
@@ -149,6 +150,7 @@ private:
     bool m_isPlaylistListViewMode = false;
     ULONGLONG m_lastConfigCheckTime = 0;
     ULONGLONG m_lastPlaylistSnapshotTime = 0;
+    std::vector<std::pair<std::wstring, std::filesystem::file_time_type>> m_playlistSnapshot;
     std::optional<size_t> m_focusedPlaylistIndex;
 
     std::vector<PlaylistSummary> m_playlistSummaries;
