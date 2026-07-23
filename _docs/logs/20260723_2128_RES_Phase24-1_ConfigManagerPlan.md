@@ -38,7 +38,7 @@
     - `Config_Playlist.h/cpp`, `Config_Audio.h/cpp`, `Config_TrackDrum.h/cpp` の作成
 - [x] Task 3: UI_Common_Parm / Background セクションの移行
     - `Config_UICommonParm.h/cpp`, `Config_Background.h/cpp` の作成
-- [ ] Task 4: Layout_AppLogo / Layout_LogoMenu / Layout_NowPlaying セクションの移行
+- [x] Task 4: Layout_AppLogo / Layout_LogoMenu / Layout_NowPlaying セクションの移行
     - `Config_LayoutAppLogo.h/cpp`, `Config_LayoutLogoMenu.h/cpp`, `Config_LayoutNowPlaying.h/cpp` の作成
 - [ ] Task 5: Layout_SeekBar / Layout_PlaybackControls / Layout_VolumeControl セクションの移行
     - `Config_LayoutSeekBar.h/cpp`, `Config_LayoutPlaybackControls.h/cpp`, `Config_LayoutVolumeControl.h/cpp` の作成
@@ -136,11 +136,30 @@ void LoadSection_Background(Config_Background& outConfig);
 
 ### Task 4: Layout_AppLogo / Layout_LogoMenu / Layout_NowPlaying セクションの移行
 **【対象ファイル】**
-- (タスク完了時に記載)
+- `src/Config/Config_LayoutAppLogo.h`, `src/Config/Config_LayoutAppLogo.cpp`
+- `src/Config/Config_LayoutLogoMenu.h`, `src/Config/Config_LayoutLogoMenu.cpp`
+- `src/Config/Config_LayoutNowPlaying.h`, `src/Config/Config_LayoutNowPlaying.cpp`
 **【作業内容】**
-- (タスク完了時に記載)
+- 各セクションに対応する構造体（`Config_LayoutAppLogo`, `Config_LayoutLogoMenu`, `Config_LayoutNowPlaying`）の定義をヘッダに作成。
+- INIファイルから値を読み込むためのメンバ関数（`LoadSection_LayoutAppLogo`, `LoadSection_LayoutLogoMenu`, `LoadSection_LayoutNowPlaying`）の実装をcppに作成。
+- `ConfigManager.h` の直接的な書き換えは避け、Task 9での最終結線に向けてメモを残した。
 **【最終登録用メモ（ConfigManager.h向け）】**
-- (タスク完了時に記載)
+```cpp
+// メンバ変数
+Config_LayoutAppLogo m_configLayoutAppLogo;
+Config_LayoutLogoMenu m_configLayoutLogoMenu;
+Config_LayoutNowPlaying m_configLayoutNowPlaying;
+
+// ゲッター
+const Config_LayoutAppLogo& GetLayoutAppLogo() const { return m_configLayoutAppLogo; }
+const Config_LayoutLogoMenu& GetLayoutLogoMenu() const { return m_configLayoutLogoMenu; }
+const Config_LayoutNowPlaying& GetLayoutNowPlaying() const { return m_configLayoutNowPlaying; }
+
+// ロード関数シグネチャ (privateなど)
+void LoadSection_LayoutAppLogo(Config_LayoutAppLogo& outConfig);
+void LoadSection_LayoutLogoMenu(Config_LayoutLogoMenu& outConfig);
+void LoadSection_LayoutNowPlaying(Config_LayoutNowPlaying& outConfig);
+```
 
 ### Task 5: Layout_SeekBar / Layout_PlaybackControls / Layout_VolumeControl セクションの移行
 **【対象ファイル】**
