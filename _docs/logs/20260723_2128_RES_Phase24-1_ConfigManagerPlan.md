@@ -36,7 +36,7 @@
     - `Config_System.h/cpp`, `Config_Window.h/cpp`, `Config_Visibility.h/cpp` の作成
 - [x] Task 2: Playlist / Audio / TrackDrum セクションの移行
     - `Config_Playlist.h/cpp`, `Config_Audio.h/cpp`, `Config_TrackDrum.h/cpp` の作成
-- [ ] Task 3: UI_Common_Parm / Background セクションの移行
+- [x] Task 3: UI_Common_Parm / Background セクションの移行
     - `Config_UICommonParm.h/cpp`, `Config_Background.h/cpp` の作成
 - [ ] Task 4: Layout_AppLogo / Layout_LogoMenu / Layout_NowPlaying セクションの移行
     - `Config_LayoutAppLogo.h/cpp`, `Config_LayoutLogoMenu.h/cpp`, `Config_LayoutNowPlaying.h/cpp` の作成
@@ -113,11 +113,26 @@ void LoadSection_TrackDrum(Config_TrackDrum& outConfig);
 
 ### Task 3: UI_Common_Parm / Background セクションの移行
 **【対象ファイル】**
-- (タスク完了時に記載)
+- `src/Config/Config_UICommonParm.h`, `src/Config/Config_UICommonParm.cpp`
+- `src/Config/Config_Background.h`, `src/Config/Config_Background.cpp`
 **【作業内容】**
-- (タスク完了時に記載)
+- 各セクションに対応する構造体（`Config_UICommonParm`, `Config_Background`）の定義をヘッダに作成。
+- INIファイルから値を読み込むためのメンバ関数（`LoadSection_UICommonParm`, `LoadSection_Background`）の実装をcppに作成。
+- `ConfigManager.h` の直接的な書き換えは避け、Task 9での最終結線に向けてメモを残した。
 **【最終登録用メモ（ConfigManager.h向け）】**
-- (タスク完了時に記載)
+```cpp
+// メンバ変数
+Config_UICommonParm m_configUICommonParm;
+Config_Background m_configBackground;
+
+// ゲッター
+const Config_UICommonParm& GetUICommonParm() const { return m_configUICommonParm; }
+const Config_Background& GetBackground() const { return m_configBackground; }
+
+// ロード関数シグネチャ (privateなど)
+void LoadSection_UICommonParm(Config_UICommonParm& outConfig);
+void LoadSection_Background(Config_Background& outConfig);
+```
 
 ### Task 4: Layout_AppLogo / Layout_LogoMenu / Layout_NowPlaying セクションの移行
 **【対象ファイル】**
