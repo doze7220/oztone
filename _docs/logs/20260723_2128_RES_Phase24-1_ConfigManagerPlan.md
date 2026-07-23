@@ -42,7 +42,7 @@
     - `Config_LayoutAppLogo.h/cpp`, `Config_LayoutLogoMenu.h/cpp`, `Config_LayoutNowPlaying.h/cpp` の作成
 - [x] Task 5: Layout_SeekBar / Layout_PlaybackControls / Layout_VolumeControl セクションの移行
     - `Config_LayoutSeekBar.h/cpp`, `Config_LayoutPlaybackControls.h/cpp`, `Config_LayoutVolumeControl.h/cpp` の作成
-- [ ] Task 6: Layout_Tooltip / Layout_Playlist / Layout_GlobalHotkeys セクションの移行
+- [x] Task 6: Layout_Tooltip / Layout_Playlist / Layout_GlobalHotkeys セクションの移行
     - `Config_LayoutTooltip.h/cpp`, `Config_LayoutPlaylist.h/cpp`, `Config_LayoutGlobalHotkeys.h/cpp` の作成
 - [ ] Task 7: Layout_OSD / Visualizer / Visualizer_PrismBeat セクションの移行
     - `Config_LayoutOSD.h/cpp`, `Config_Visualizer.h/cpp`, `Config_VisualizerPrismBeat.h/cpp` の作成
@@ -190,11 +190,30 @@ void LoadSection_LayoutVolumeControl(Config_LayoutVolumeControl& outConfig);
 
 ### Task 6: Layout_Tooltip / Layout_Playlist / Layout_GlobalHotkeys セクションの移行
 **【対象ファイル】**
-- (タスク完了時に記載)
+- `src/Config/Config_LayoutTooltip.h`, `src/Config/Config_LayoutTooltip.cpp`
+- `src/Config/Config_LayoutPlaylist.h`, `src/Config/Config_LayoutPlaylist.cpp`
+- `src/Config/Config_LayoutGlobalHotkeys.h`, `src/Config/Config_LayoutGlobalHotkeys.cpp`
 **【作業内容】**
-- (タスク完了時に記載)
+- 各セクションに対応する構造体（`Config_LayoutTooltip`, `Config_LayoutPlaylist`, `Config_LayoutGlobalHotkeys`）の定義をヘッダに作成。
+- INIファイルから値を読み込むためのメンバ関数（`LoadSection_LayoutTooltip`, `LoadSection_LayoutPlaylist`, `LoadSection_LayoutGlobalHotkeys`）の実装をcppに作成。
+- `ConfigManager.h` の直接的な書き換えは避け、Task 9での最終結線に向けてメモを残した。
 **【最終登録用メモ（ConfigManager.h向け）】**
-- (タスク完了時に記載)
+```cpp
+// メンバ変数
+Config_LayoutTooltip m_configLayoutTooltip;
+Config_LayoutPlaylist m_configLayoutPlaylist;
+Config_LayoutGlobalHotkeys m_configLayoutGlobalHotkeys;
+
+// ゲッター
+const Config_LayoutTooltip& GetLayoutTooltip() const { return m_configLayoutTooltip; }
+const Config_LayoutPlaylist& GetLayoutPlaylist() const { return m_configLayoutPlaylist; }
+const Config_LayoutGlobalHotkeys& GetLayoutGlobalHotkeys() const { return m_configLayoutGlobalHotkeys; }
+
+// ロード関数シグネチャ (privateなど)
+void LoadSection_LayoutTooltip(Config_LayoutTooltip& outConfig);
+void LoadSection_LayoutPlaylist(Config_LayoutPlaylist& outConfig);
+void LoadSection_LayoutGlobalHotkeys(Config_LayoutGlobalHotkeys& outConfig);
+```
 
 ### Task 7: Layout_OSD / Visualizer / Visualizer_PrismBeat セクションの移行
 **【対象ファイル】**
